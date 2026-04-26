@@ -1,0 +1,259 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:64px">
+
+  <div class="px-6 lg:px-10 py-3 border-b border-dark-600 bg-dark-800/60">
+    <a routerLink="/search" [queryParams]="{tab:'bands'}"
+       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-ink transition-colors">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Bandas
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-32">
+      <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else if (!band()) {
+    <div class="empty-state">
+      <p class="text-ink-3 font-semibold mb-4">Banda no encontrada</p>
+      <a routerLink="/search" class="btn-accent text-sm">Volver al directorio</a>
+    </div>
+  } @else {
+  <div class="max-w-4xl mx-auto px-6 lg:px-10 py-10">
+
+    <!-- HERO -->
+    <div class="flex flex-col sm:flex-row gap-6 items-start mb-8">
+      <div class="w-20 h-20 rounded-2xl bg-night flex items-center justify-center text-2xl font-black text-white flex-shrink-0 overflow-hidden">
+        @if (band()!.avatar_url) {
+          <img [src]="band()!.avatar_url" alt="" class="w-full h-full object-cover"/>
+        } @else {
+          {{ band()!.name?.slice(0,1).toUpperCase() }}
+        }
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap gap-2 mb-2">
+          @if (band()!.city) { <span class="tag">{{ band()!.city }}</span> }
+          @if (band()!.genre) { <span class="tag">{{ band()!.genre }}</span> }
+          @if (band()!.founded_year) { <span class="tag">Desde {{ band()!.founded_year }}</span> }
+          @if (vacancies().length > 0) {
+            <span class="tag-accent">Busca {{ vacancies().length === 1 ? 'músico' : vacancies().length + ' músicos' }}</span>
+          }
+        </div>
+        <h1 class="text-3xl font-bold text-ink leading-tight mb-1">{{ band()!.name }}</h1>
+        @if (band()!.description) {
+          <p class="text-sm text-ink-3 leading-relaxed mt-2 max-xl">{{ band()!.description }}</p>
+        }
+      </div>
+      <div class="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
+        @if (band()!.user_id) {
+          <button (click)="sendMessage()" [disabled]="sending()" class="btn-accent disabled:opacity-50 disabled:cursor-not-allowed">{{ sending() ? 'Abriendo chat...' : 'Enviar mensaje' }}</button>
+          @if (msgError()) {
+            <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
+          }
+        }
+        @if (band()!.contact_email) {
+          <a [href]="'mailto:' + band()!.contact_email" class="btn-secondary text-sm text-center">Email</a>
+        }
+        <button (click)="toggleFav()" [disabled]="favLoading()"
+          class="btn-secondary text-sm flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 transition-colors" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
+            [class.text-primary-500]="isFav()" [class.text-ink-muted]="!isFav()">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+          {{ isFav() ? 'Guardado' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+
+      <!-- Columna principal -->
+      <div class="md:col-span-2 flex flex-col gap-5">
+
+        <!-- Vacantes -->
+        @if (vacancies().length > 0 || isOwner) {
+          <div class="card-flat overflow-hidden">
+            <div class="px-5 py-3 border-b border-dark-600 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <h3 class="section-label">Vacantes abiertas</h3>
+                @if (vacancies().length > 0) {
+                  <span class="tag-accent">{{ vacancies().length }} plaza{{ vacancies().length > 1 ? 's' : '' }}</span>
+                }
+              </div>
+              @if (isOwner) {
+                <button (click)="showVacancyForm.set(!showVacancyForm())"
+                  class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">
+                  {{ showVacancyForm() ? 'Cancelar' : '+ Añadir vacante' }}
+                </button>
+              }
+            </div>
+
+            <!-- Formulario nueva vacante (solo owner) -->
+            @if (isOwner && showVacancyForm()) {
+              <div class="p-5 border-b border-dark-600 bg-dark-700/40">
+                <div class="grid sm:grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label class="text-xs font-semibold text-ink-muted block mb-1">Instrumento *</label>
+                    <select [(ngModel)]="newVacancy.instrument" class="input-field text-sm py-2">
+                      <option value="">Seleccionar...</option>
+                      @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-xs font-semibold text-ink-muted block mb-1">Género</label>
+                    <select [(ngModel)]="newVacancy.genre" class="input-field text-sm py-2">
+                      <option value="">Sin género</option>
+                      @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
+                    </select>
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label class="text-xs font-semibold text-ink-muted block mb-1">Descripción</label>
+                    <textarea [(ngModel)]="newVacancy.description" rows="2"
+                      placeholder="Qué buscáis, nivel de experiencia, disponibilidad..."
+                      class="input-field text-sm resize-none"></textarea>
+                  </div>
+                </div>
+                <button (click)="createVacancy()" [disabled]="vacancyLoading() || !newVacancy.instrument"
+                  class="btn-accent text-sm disabled:opacity-50">
+                  {{ vacancyLoading() ? 'Guardando...' : 'Publicar vacante' }}
+                </button>
+              </div>
+            }
+
+            @if (vacancies().length === 0) {
+              <p class="px-5 py-6 text-sm text-ink-muted text-center">No hay vacantes abiertas</p>
+            } @else {
+              <div class="divide-y divide-dark-600">
+                @for (v of vacancies(); track v.id) {
+                  <div class="p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-ink mb-1">{{ v.instrument }}</p>
+                        @if (v.description) {
+                          <p class="text-xs text-ink-3 leading-relaxed mb-2">{{ v.description }}</p>
+                        }
+                        @if (v.genre) { <span class="tag">{{ v.genre }}</span> }
+                      </div>
+                      <div class="flex-shrink-0 flex flex-col gap-2 items-end">
+                        @if (isOwner) {
+                          <button (click)="closeVacancy(v.id)"
+                            class="text-xs text-ink-muted hover:text-signal-red transition-colors border border-dark-600 hover:border-signal-red/30 px-2.5 py-1 rounded-lg">
+                            Cerrar vacante
+                          </button>
+                        } @else if (applySuccess() === v.id || hasApplied(v.id)) {
+                          <span class="tag-green">✓ Solicitud enviada</span>
+                        } @else if (applyingTo() === v.id) {
+                          <div class="flex flex-col gap-2 w-56">
+                            <textarea [(ngModel)]="applyMessage" rows="2"
+                              placeholder="Cuéntales por qué encajas..."
+                              class="input-field text-xs py-2 resize-none"></textarea>
+                            <div class="flex gap-2">
+                              <button (click)="submitApply()" [disabled]="applyLoading()"
+                                class="btn-accent text-xs px-3 py-1.5 flex-1">
+                                {{ applyLoading() ? 'Enviando...' : 'Enviar' }}
+                              </button>
+                              <button (click)="applyingTo.set(null)" class="btn-secondary text-xs px-3 py-1.5">
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        } @else if (myMusicianId()) {
+                          <button (click)="openApply(v.id)" class="btn-accent text-xs px-4 py-2">
+                            Postularme
+                          </button>
+                        } @else if (currentUserId()) {
+                          <span class="text-xs text-ink-muted">Necesitas perfil de músico</span>
+                        } @else {
+                          <a routerLink="/auth/login" class="btn-accent text-xs px-4 py-2">
+                            Iniciar sesión
+                          </a>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Sobre la banda -->
+        @if (band()!.description) {
+          <div class="card-flat p-5">
+            <h3 class="section-label mb-3">Sobre la banda</h3>
+            <p class="text-sm text-ink-3 leading-relaxed">{{ band()!.description }}</p>
+          </div>
+        }
+
+        <!-- Redes -->
+        @if (band()!.spotify_url || band()!.youtube_url || band()!.instagram_url || band()!.website_url) {
+          <div class="card-flat p-5">
+            <h3 class="section-label mb-3">Escúchanos</h3>
+            <div class="flex flex-wrap gap-2">
+              @if (band()!.spotify_url) {
+                <a [href]="band()!.spotify_url" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1DB954]/10 text-[#1DB954] text-xs font-semibold border border-[#1DB954]/20 hover:bg-[#1DB954]/20 transition-colors">Spotify</a>
+              }
+              @if (band()!.youtube_url) {
+                <a [href]="band()!.youtube_url" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-semibold border border-red-100 hover:bg-red-100 transition-colors">YouTube</a>
+              }
+              @if (band()!.instagram_url) {
+                <a [href]="band()!.instagram_url" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-xs font-semibold border border-pink-100 hover:bg-pink-100 transition-colors">Instagram</a>
+              }
+              @if (band()!.website_url) {
+                <a [href]="band()!.website_url" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-dark-700 text-ink-3 text-xs font-semibold border border-dark-600 hover:bg-dark-700 transition-colors">Web</a>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Ficha lateral -->
+      <div class="flex flex-col gap-4">
+        <div class="card-flat overflow-hidden">
+          <div class="px-4 py-3 border-b border-dark-600"><h3 class="section-label">Ficha</h3></div>
+          <div class="divide-y divide-dark-600 text-sm">
+            @if (band()!.genre) {
+              <div class="flex justify-between px-4 py-2.5">
+                <span class="text-ink-muted">Género</span>
+                <span class="font-medium text-ink">{{ band()!.genre }}</span>
+              </div>
+            }
+            @if (band()!.city) {
+              <div class="flex justify-between px-4 py-2.5">
+                <span class="text-ink-muted">Ciudad</span>
+                <span class="font-medium text-ink">{{ band()!.city }}</span>
+              </div>
+            }
+            @if (band()!.members_count) {
+              <div class="flex justify-between px-4 py-2.5">
+                <span class="text-ink-muted">Miembros</span>
+                <span class="font-medium text-ink">{{ band()!.members_count }}</span>
+              </div>
+            }
+            @if (band()!.founded_year) {
+              <div class="flex justify-between px-4 py-2.5">
+                <span class="text-ink-muted">Fundada</span>
+                <span class="font-medium text-ink">{{ band()!.founded_year }}</span>
+              </div>
+            }
+            @if (band()!.looking_for) {
+              <div class="flex justify-between px-4 py-2.5">
+                <span class="text-ink-muted">Busca</span>
+                <span class="font-medium text-ink">{{ band()!.looking_for }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        @if (band()!.user_id) {
+          <button (click)="sendMessage()" [disabled]="sending()" class="btn-accent w-full disabled:opacity-50 disabled:cursor-not-allowed">{{ sending() ? 'Abriendo chat...' : 'Contactar' }}</button>
+        }
+      </div>
+    </div>
+  </div>
+  }
+</div>

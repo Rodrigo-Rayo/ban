@@ -1,0 +1,145 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+
+  <!-- Header -->
+  <div class="border-b border-dark-600 bg-dark-800/50">
+    <div class="max-w-5xl mx-auto px-5 lg:px-8 py-5 flex items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-bold text-ink">Tienda</h1>
+        <p class="text-xs text-ink-muted mt-0.5">Instrumentos y equipamiento de segunda mano</p>
+      </div>
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/shop/new" class="btn-accent text-sm px-4 py-2">+ Vender</a>
+      }
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-5 lg:px-8 py-6">
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-2 mb-6">
+
+      <!-- Category -->
+      <select [(ngModel)]="filterCategory" [ngModel]="filterCategory()" (ngModelChange)="filterCategory.set($event)"
+        class="bg-dark-800 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors">
+        <option value="">Todas las categorías</option>
+        @for (cat of categories; track cat) { <option [value]="cat">{{ cat }}</option> }
+      </select>
+
+      <!-- City -->
+      <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event)"
+        class="bg-dark-800 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors">
+        @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+
+      <!-- Condition pills -->
+      <div class="flex flex-wrap gap-1.5">
+        @for (cond of conditions; track cond.id) {
+          <button (click)="filterCondition.set(filterCondition() === cond.id ? '' : cond.id)"
+            class="text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-all"
+            [class.border-primary-500]="filterCondition() === cond.id"
+            [class.text-primary-400]="filterCondition() === cond.id"
+            [class.bg-primary-900]="filterCondition() === cond.id"
+            [class.border-dark-600]="filterCondition() !== cond.id"
+            [class.text-ink-muted]="filterCondition() !== cond.id">
+            {{ cond.label }}
+          </button>
+        }
+      </div>
+
+      <!-- Clear -->
+      @if (hasFilters()) {
+        <button (click)="clearFilters()" class="text-xs text-ink-muted hover:text-ink transition-colors flex items-center gap-1 px-2">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Limpiar
+        </button>
+      }
+
+      <span class="text-xs text-ink-muted ml-auto self-center">
+        @if (!loading()) { {{ filteredListings().length }} anuncios }
+      </span>
+    </div>
+
+    <!-- Loading skeleton -->
+    @if (loading()) {
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        @for (i of [1,2,3,4,5,6,7,8]; track i) {
+          <div class="bg-dark-800 border border-dark-600 rounded-xl overflow-hidden animate-pulse">
+            <div class="aspect-square bg-dark-700"></div>
+            <div class="p-3">
+              <div class="h-2.5 bg-dark-700 rounded w-20 mb-2"></div>
+              <div class="h-3.5 bg-dark-600 rounded w-full mb-1"></div>
+              <div class="h-3 bg-dark-700 rounded w-16"></div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!loading() && filteredListings().length === 0) {
+      <div class="empty-state">
+        <span class="text-4xl mb-3">🎸</span>
+        <p class="text-sm font-medium text-ink-3 mb-1">No hay anuncios</p>
+        <p class="text-xs text-ink-muted mb-4">Sé el primero en vender algo</p>
+        @if (auth.isLoggedIn()) {
+          <a routerLink="/shop/new" class="btn-accent text-sm px-4 py-2">+ Publicar anuncio</a>
+        }
+      </div>
+    }
+
+    <!-- Grid -->
+    @if (!loading() && filteredListings().length > 0) {
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        @for (item of filteredListings(); track item.id) {
+          <a [routerLink]="['/shop', item.id]"
+             class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden hover:border-primary-500/50 hover:shadow-lg hover:shadow-black/20 transition-all duration-200 group flex flex-col">
+
+            <!-- Image -->
+            <div class="aspect-[4/3] bg-dark-700 relative overflow-hidden">
+              @if (item.images.length > 0) {
+                <img [src]="item.images[0]" [alt]="item.title"
+                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              } @else {
+                <div class="w-full h-full flex items-center justify-center bg-dark-750">
+                  <svg class="w-10 h-10 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                  </svg>
+                </div>
+              }
+              <!-- Gradient overlay -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+              <!-- Condition badge -->
+              <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full border backdrop-blur-sm {{ conditionClass(item.condition) }}">
+                {{ conditionLabel(item.condition) }}
+              </span>
+              @if (item.images.length > 1) {
+                <span class="absolute top-2 right-2 text-[10px] font-medium bg-black/60 text-white/80 rounded-full px-2 py-0.5 backdrop-blur-sm">
+                  1/{{ item.images.length }}
+                </span>
+              }
+              <!-- Price pill over image bottom -->
+              <div class="absolute bottom-2 left-2">
+                <span class="text-sm font-black text-white bg-black/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full">
+                  {{ item.price | number:'1.0-0' }} €
+                </span>
+              </div>
+            </div>
+
+            <!-- Info -->
+            <div class="p-3 flex flex-col gap-1 flex-1">
+              <p class="text-[10px] text-ink-muted font-medium uppercase tracking-wide">
+                {{ item.category }}@if (item.city) { <span class="text-dark-500 mx-0.5">·</span> {{ item.city }} }
+              </p>
+              <p class="text-sm font-semibold text-ink line-clamp-2 leading-snug group-hover:text-primary-400 transition-colors">{{ item.title }}</p>
+              <p class="text-[11px] text-ink-muted mt-auto pt-1.5 truncate border-t border-dark-700">{{ item.seller_name }}</p>
+            </div>
+          </a>
+        }
+      </div>
+    }
+
+  </div>
+</div>

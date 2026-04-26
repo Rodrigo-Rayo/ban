@@ -1,0 +1,207 @@
+@import 'leaflet/dist/leaflet.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-900 text-ink font-sans antialiased;
+  }
+  * { @apply box-border; }
+
+  select option {
+    background-color: #f7f4ee;
+    color: #1a150e;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-dark-600 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-ink-muted; }
+}
+
+@layer components {
+
+  /* ── Buttons ─────────────────────────────────── */
+  .btn-primary {
+    @apply bg-primary-500 text-white font-semibold text-sm
+           px-5 py-2.5 rounded-lg
+           hover:bg-primary-600 active:bg-primary-700
+           transition-colors duration-150 cursor-pointer
+           inline-flex items-center justify-center gap-2
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-accent {
+    @apply bg-primary-500 text-white font-semibold text-sm
+           px-5 py-2.5 rounded-lg
+           hover:bg-primary-600 active:bg-primary-700
+           transition-colors duration-150 cursor-pointer
+           inline-flex items-center justify-center gap-2
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-dark-800 text-ink-2 font-medium text-sm
+           px-5 py-2.5 rounded-lg
+           border border-dark-600
+           hover:border-ink-muted/50 hover:text-ink
+           transition-colors duration-150 cursor-pointer
+           inline-flex items-center justify-center gap-2
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-ink-muted font-medium text-sm
+           px-4 py-2 rounded-lg
+           hover:text-ink hover:bg-dark-700
+           transition-colors duration-150 cursor-pointer
+           inline-flex items-center justify-center gap-2;
+  }
+  /* Botón oscuro para tarjetas hero */
+  .btn-night {
+    @apply bg-night-3 text-white font-semibold text-sm
+           px-5 py-2.5 rounded-lg border border-night-4
+           hover:bg-night-4
+           transition-colors duration-150 cursor-pointer
+           inline-flex items-center justify-center gap-2;
+  }
+
+  /* ── Card ────────────────────────────────────── */
+  .card {
+    @apply bg-dark-800 border border-dark-600 rounded-xl
+           shadow-card
+           hover:shadow-card-md hover:border-ink-line/80
+           transition-all duration-200;
+  }
+  .card-flat {
+    @apply bg-dark-800 border border-dark-600 rounded-xl shadow-card;
+  }
+  /* Tarjeta hero oscura */
+  .card-night {
+    @apply bg-night text-white rounded-xl overflow-hidden;
+  }
+
+  /* ── Form fields ─────────────────────────────── */
+  .input-field {
+    @apply w-full bg-dark-800 border border-dark-600
+           focus:border-primary-400 focus:ring-2 focus:ring-primary-500/10
+           text-ink placeholder-ink-muted
+           px-4 py-3 outline-none transition-all duration-150
+           text-sm rounded-lg;
+  }
+
+  /* ── Tags / Pills ────────────────────────────── */
+  .tag {
+    @apply text-[10px] font-semibold text-ink-3 tracking-wide uppercase
+           px-2 py-0.5 rounded
+           bg-dark-700 border border-dark-600
+           inline-flex items-center;
+  }
+  .tag-accent {
+    @apply text-[10px] font-semibold text-primary-600 tracking-wide uppercase
+           px-2 py-0.5 rounded
+           bg-primary-900 border border-primary-200
+           inline-flex items-center;
+  }
+  .tag-green {
+    @apply text-[10px] font-semibold text-signal-green tracking-wide uppercase
+           px-2 py-0.5 rounded
+           bg-signal-gBg border border-signal-green/20
+           inline-flex items-center gap-1;
+  }
+  /* Tag para tarjetas oscuras */
+  .tag-night {
+    @apply text-[10px] font-semibold tracking-wide uppercase
+           px-2 py-0.5 rounded
+           bg-night-3 text-white/80 border border-night-4
+           inline-flex items-center;
+  }
+
+  /* ── Meta label (uppercase pequeño) ──────────── */
+  .meta {
+    @apply text-[10px] font-semibold text-ink-muted tracking-widest uppercase
+           flex items-center gap-1.5;
+  }
+
+  /* ── Avatar ──────────────────────────────────── */
+  .avatar {
+    @apply rounded-lg bg-night-2 flex items-center justify-center
+           font-semibold text-white/80 flex-shrink-0 select-none;
+  }
+
+  /* ── Sidebar nav item ───────────────────────── */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
+  }
+  .nav-item-active {
+    @apply bg-night text-white;
+  }
+  .nav-item-inactive {
+    @apply text-ink-3 hover:text-ink hover:bg-dark-700;
+  }
+
+  /* ── Section header ──────────────────────────── */
+  .section-label {
+    @apply text-[10px] font-semibold text-ink-muted uppercase tracking-widest;
+  }
+
+  /* ── Divider ─────────────────────────────────── */
+  .divider { @apply border-t border-dark-600; }
+
+  /* ── Badge ───────────────────────────────────── */
+  .badge {
+    @apply absolute -top-1 -right-1 w-4 h-4 rounded-full
+           bg-primary-500 text-white text-[10px] font-bold
+           flex items-center justify-center;
+  }
+
+  /* ── Empty state ─────────────────────────────── */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-20 text-center px-6;
+  }
+
+  /* ── Section empty placeholder ───────────────── */
+  .section-empty {
+    @apply block text-center py-8 text-xs font-medium text-ink-muted
+           border border-dashed border-dark-600 rounded-xl
+           hover:border-primary-400 hover:text-primary-500
+           transition-colors cursor-pointer;
+  }
+
+  /* ── Serif display helper ────────────────────── */
+  .display-serif {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+  }
+
+  /* ── Search tab states ──────────────────────────── */
+  .tab-btn-active {
+    background-color: #17120c;
+    color: #ffffff;
+    border-color: rgba(23,18,12,0.8);
+  }
+  .tab-btn-active:hover { background-color: #271e14; }
+  .tab-btn-inactive { @apply text-ink-3; }
+  .tab-btn-inactive:hover { @apply bg-dark-700 text-ink; }
+
+  /* ── Genre pill states ───────────────────────────── */
+  .genre-pill-active {
+    background-color: #17120c;
+    color: #f7f4ee;
+    border-color: rgba(23,18,12,0.7);
+  }
+  .genre-pill-inactive { @apply border-dark-600 text-ink-muted; }
+  .genre-pill-inactive:hover { @apply text-ink-2 border-ink-muted/40; }
+
+  /* ── Event featured card ─────────────────────────── */
+  .event-featured { border-color: rgba(217,78,26,0.3); }
+  .event-featured-time-border { border-color: rgba(217,78,26,0.2); }
+
+  /* ── Chat ────────────────────────────────────── */
+  .text-white-muted { color: rgba(255,255,255,0.55); }
+}
+
+/* ── Animations ──────────────────────────────────── */
+@keyframes slide-in-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.animate-slide-in { animation: slide-in-up 0.18s ease-out; }

@@ -1,0 +1,294 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+
+  <!-- Mobile category tabs -->
+  <div class="lg:hidden flex border-b border-dark-600 overflow-x-auto bg-dark-800">
+    @for (tab of tabs; track tab.id) {
+      <button (click)="setTab(tab.id)"
+        class="px-4 py-3 text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0 border-b-2"
+        [class.text-primary-500]="activeTab() === tab.id"
+        [class.border-primary-500]="activeTab() === tab.id"
+        [class.text-ink-muted]="activeTab() !== tab.id"
+        [class.border-transparent]="activeTab() !== tab.id">
+        <app-icon [name]="tab.icon" [size]="13" class="shrink-0"/>
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Barra de filtros — solo móvil -->
+  <div class="lg:hidden sticky top-16 z-30 bg-dark-800 border-b border-dark-600 px-4 py-2 flex flex-wrap items-center gap-2">
+
+    <!-- Búsqueda -->
+    <div class="relative flex-1 min-w-32">
+      <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); loadData()"
+        placeholder="Buscar..."
+        class="w-full bg-dark-700 border border-dark-600 rounded-lg pl-7 pr-3 py-1.5 text-xs text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors"/>
+    </div>
+
+    <!-- Ciudad -->
+    <select [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event); loadData()"
+      class="bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors">
+      @for (city of cities; track city) { <option [value]="city">{{ city }}</option> }
+    </select>
+
+    <!-- Disponibles (solo músicos) -->
+    @if (activeTab() === 'musicians') {
+      <button (click)="filterAvailable.set(!filterAvailable()); loadData()"
+        class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors flex-shrink-0"
+        [class.bg-signal-gBg]="filterAvailable()"
+        [class.border-signal-green]="filterAvailable()"
+        [class.text-signal-green]="filterAvailable()"
+        [class.border-dark-600]="!filterAvailable()"
+        [class.text-ink-muted]="!filterAvailable()">
+        <span class="w-1.5 h-1.5 rounded-full"
+          [class.bg-signal-green]="filterAvailable()"
+          [class.bg-dark-500]="!filterAvailable()"></span>
+        Disponibles
+      </button>
+    }
+
+    <!-- Limpiar -->
+    @if (searchQuery() || selectedGenre() || selectedCity() !== 'Toda España' || filterAvailable()) {
+      <button (click)="selectedGenre.set(''); selectedCity.set('Toda España'); searchQuery.set(''); filterAvailable.set(false); loadData()"
+        class="text-xs text-ink-muted hover:text-ink transition-colors flex items-center gap-1">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    }
+  </div>
+
+  <!-- Contenido -->
+  <div class="px-5 lg:px-8 py-6 pb-20 lg:pb-6">
+
+    <!-- Cabecera -->
+    <div class="flex items-center justify-between mb-5">
+      <div>
+        <h1 class="text-xl font-bold text-ink">{{ tabLabel() }}</h1>
+        @if (!loading()) {
+          <p class="text-xs text-ink-muted mt-0.5">{{ currentCount() }} resultados</p>
+        }
+      </div>
+    </div>
+
+    <!-- Skeleton -->
+    @if (loading()) {
+      <div class="grid gap-3">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="card p-4 animate-pulse flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-dark-700 flex-shrink-0"></div>
+            <div class="flex-1">
+              <div class="h-3 bg-dark-700 rounded w-40 mb-2"></div>
+              <div class="h-2.5 bg-dark-600 rounded w-56"></div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- MÚSICOS -->
+    @if (activeTab() === 'musicians' && !loading()) {
+      @if (musicians().length === 0) {
+        <div class="empty-state">
+          <p class="text-sm font-medium text-ink-3 mb-1">No hay músicos aún</p>
+          <p class="text-xs text-ink-muted mb-5">Sé el primero en registrarte</p>
+          <button (click)="joinAs('musician')" class="btn-accent text-sm">Crear mi perfil</button>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-2">
+          @for (m of musicians(); track m.id) {
+            <a [routerLink]="['/musicians', m.id]" class="card p-4 flex items-center gap-4 cursor-pointer group">
+              <div class="w-11 h-11 rounded-full bg-primary-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                {{ m.name?.slice(0,2).toUpperCase() }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm font-semibold text-ink group-hover:text-primary-500 transition-colors">{{ m.name }}</span>
+                  @if (m.available) {
+                    <span class="tag-green"><span class="w-1 h-1 rounded-full bg-signal-green inline-block"></span>Disponible</span>
+                  }
+                </div>
+                <div class="text-xs text-ink-muted mt-0.5 truncate">
+                  @if (m.instrument) { {{ m.instrument }} · }{{ m.city }}@if (m.genre) { · {{ m.genre }} }
+                </div>
+                @if (m.description) {
+                  <p class="text-[11px] text-ink-3 mt-1 line-clamp-1">{{ m.description }}</p>
+                }
+              </div>
+              <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                <span class="btn-secondary text-xs px-3 py-1.5">Ver</span>
+                <span class="btn-accent text-xs px-3 py-1.5">Escribir</span>
+              </div>
+            </a>
+          }
+        </div>
+      }
+    }
+
+    <!-- BANDAS -->
+    @if (activeTab() === 'bands' && !loading()) {
+      @if (bands().length === 0) {
+        <div class="empty-state"><p class="text-sm font-medium text-ink-3">No hay bandas aún</p></div>
+      } @else {
+        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          @for (band of bands(); track band.id) {
+            <a [routerLink]="['/bands', band.id]" class="card p-5 cursor-pointer group">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-11 h-11 rounded-full bg-dark-600 flex items-center justify-center text-sm font-bold text-ink-3 flex-shrink-0 overflow-hidden">
+                  @if (band.avatar_url) {
+                    <img [src]="band.avatar_url" class="w-full h-full object-cover" alt=""/>
+                  } @else {
+                    {{ band.name?.slice(0,2).toUpperCase() }}
+                  }
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-sm font-semibold text-ink group-hover:text-primary-500 transition-colors truncate">{{ band.name }}</div>
+                  <div class="text-xs text-ink-muted mt-0.5 truncate">{{ band.city }}@if (band.genre) { · {{ band.genre }} }</div>
+                </div>
+              </div>
+              @if (band.description) { <p class="text-xs text-ink-3 mt-2 line-clamp-2 leading-relaxed">{{ band.description }}</p> }
+            </a>
+          }
+        </div>
+      }
+    }
+
+    <!-- ESPACIOS -->
+    @if (activeTab() === 'venues' && !loading()) {
+      @if (venues().length === 0) {
+        <div class="empty-state"><p class="text-sm font-medium text-ink-3">No hay espacios aún</p></div>
+      } @else {
+        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          @for (venue of venues(); track venue.id) {
+            <a [routerLink]="['/venues', venue.id]" class="card p-5 cursor-pointer group">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-11 h-11 rounded-xl bg-dark-600 flex items-center justify-center text-sm font-bold text-ink-3 flex-shrink-0">
+                  {{ venue.name?.slice(0,2).toUpperCase() }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-sm font-semibold text-ink group-hover:text-primary-500 transition-colors truncate">{{ venue.name }}</div>
+                  <div class="text-xs text-ink-muted mt-0.5">{{ venue.city }}</div>
+                </div>
+              </div>
+              @if (venue.capacity) { <span class="tag">Aforo: {{ venue.capacity }}</span> }
+              @if (venue.genres) { <p class="text-xs text-ink-3 mt-2 truncate">{{ venue.genres }}</p> }
+            </a>
+          }
+        </div>
+      }
+    }
+
+    <!-- EVENTOS -->
+    @if (activeTab() === 'events' && !loading()) {
+      @if (events().length === 0) {
+        <div class="empty-state">
+          <p class="text-sm font-medium text-ink-3 mb-5">No hay eventos aún</p>
+          <a routerLink="/events/create" class="btn-accent text-sm">Publicar evento</a>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-3">
+          @for (event of events(); track event.id; let i = $index) {
+            <a [routerLink]="['/events', event.id]"
+               class="card overflow-hidden flex cursor-pointer group"
+               [class.event-featured]="i === 0"
+               [class.bg-gradient-to-r]="i === 0"
+               [class.from-primary-900]="i === 0"
+               [class.to-dark-800]="i === 0">
+              <div class="w-20 flex flex-col items-center justify-center p-4 flex-shrink-0 border-r border-dark-600">
+                <span class="text-[10px] font-semibold uppercase tracking-widest mb-0.5"
+                      [class.text-primary-400]="i === 0" [class.text-ink-muted]="i !== 0">
+                  {{ event.date | date:'EEE' | uppercase }}
+                </span>
+                <span class="text-3xl font-black leading-none"
+                      [class.text-primary-500]="i === 0" [class.text-ink]="i !== 0">
+                  {{ event.date | date:'d' }}
+                </span>
+                <span class="text-[10px] font-medium mt-0.5"
+                      [class.text-primary-400]="i === 0" [class.text-ink-muted]="i !== 0">
+                  {{ event.date | date:'MMM' | uppercase }}
+                </span>
+                @if (event.time) {
+                  <span class="text-[10px] mt-2 pt-2 border-t w-full text-center"
+                        [class.event-featured-time-border]="i === 0" [class.border-dark-600]="i !== 0"
+                        [class.text-primary-400]="i === 0" [class.text-ink-muted]="i !== 0">
+                    {{ event.time?.slice(0,5) }}
+                  </span>
+                }
+              </div>
+              <div class="p-4 flex flex-col justify-between flex-1 min-w-0">
+                <div>
+                  <div class="text-base font-semibold text-ink group-hover:text-primary-500 transition-colors mb-1">{{ event.title }}</div>
+                  <div class="text-xs text-ink-muted truncate">{{ event.venue }}@if (event.city) { · {{ event.city }} }@if (event.price) { · {{ event.price }} }</div>
+                </div>
+                <div class="flex items-center justify-between mt-3 flex-wrap gap-2">
+                  @if (event.genre) { <span class="tag">{{ event.genre }}</span> }
+                  <span class="btn-accent text-xs px-3 py-1.5 ml-auto">Ver evento</span>
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+      }
+    }
+
+    <!-- CLASES -->
+    @if (activeTab() === 'teachers' && !loading()) {
+      @if (teachers().length === 0) {
+        <div class="empty-state">
+          <p class="text-sm font-medium text-ink-3 mb-5">No hay profesores aún</p>
+          <button (click)="joinAs('teacher')" class="btn-accent text-sm">Ofrecer clases</button>
+        </div>
+      } @else {
+        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          @for (t of teachers(); track t.id) {
+            <a [routerLink]="['/teachers', t.id]" class="card p-5 cursor-pointer group">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-11 h-11 rounded-full bg-dark-600 flex items-center justify-center text-sm font-bold text-ink-3 flex-shrink-0">
+                  {{ t.name?.slice(0,2).toUpperCase() }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-sm font-semibold text-ink group-hover:text-primary-500 transition-colors truncate">{{ t.name }}</div>
+                  <div class="text-xs text-ink-muted mt-0.5">{{ t.instrument }} · {{ t.city }}</div>
+                </div>
+              </div>
+              @if (t.hourly_rate) { <span class="tag-accent">{{ t.hourly_rate }}€/hora</span> }
+              @if (t.description) { <p class="text-xs text-ink-3 mt-3 line-clamp-2 leading-relaxed">{{ t.description }}</p> }
+            </a>
+          }
+        </div>
+      }
+    }
+
+    <!-- ENSAYO -->
+    @if (activeTab() === 'rehearsal' && !loading()) {
+      @if (rehearsals().length === 0) {
+        <div class="empty-state">
+          <p class="text-sm font-medium text-ink-3 mb-5">No hay locales de ensayo aún</p>
+          <button (click)="joinAs('rehearsal')" class="btn-accent text-sm">Añadir local</button>
+        </div>
+      } @else {
+        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          @for (r of rehearsals(); track r.id) {
+            <a [routerLink]="['/rehearsal', r.id]" class="card p-5 cursor-pointer group">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-11 h-11 rounded-xl bg-dark-600 flex items-center justify-center text-sm font-bold text-ink-3 flex-shrink-0">
+                  {{ r.name?.slice(0,2).toUpperCase() }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-sm font-semibold text-ink group-hover:text-primary-500 transition-colors truncate">{{ r.name }}</div>
+                  <div class="text-xs text-ink-muted mt-0.5">{{ r.city }}@if (r.hourly_rate) { · {{ r.hourly_rate }}€/h }</div>
+                </div>
+              </div>
+              @if (r.capacity) { <span class="tag">Aforo: {{ r.capacity }}</span> }
+              @if (r.description) { <p class="text-xs text-ink-3 mt-3 line-clamp-2 leading-relaxed">{{ r.description }}</p> }
+            </a>
+          }
+        </div>
+      }
+    }
+
+  </div>
+</div>

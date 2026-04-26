@@ -1,0 +1,115 @@
+<!-- HERO ─────────────────────────────────────────────── -->
+<section class="px-6 lg:px-14 pt-24 pb-20 max-w-7xl mx-auto">
+  <div class="max-w-3xl">
+
+    <!-- Chip -->
+    <div class="inline-flex items-center gap-2 bg-primary-900 border border-primary-500/25 rounded-full px-3 py-1 mb-8">
+      <span class="w-1.5 h-1.5 rounded-full bg-signal-green animate-pulse"></span>
+      <span class="text-xs font-medium text-primary-300">Ahora en España</span>
+    </div>
+
+    <!-- Headline -->
+    <h1 class="text-6xl sm:text-7xl lg:text-8xl font-extrabold text-ink leading-[0.88] tracking-tight mb-6">
+      La red musical<br>
+      <span class="text-primary-400">de España.</span>
+    </h1>
+
+    <p class="text-lg text-ink-3 max-w-xl leading-relaxed mb-10">
+      Directorio de músicos, bandas, salas y profesores. Mensajes directos,
+      agenda de eventos. Sin algoritmos, sin intermediarios.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-3">
+      <a routerLink="/auth/register" class="btn-accent px-7 py-3.5 text-base">Crear perfil</a>
+      <a routerLink="/search" class="btn-secondary px-7 py-3.5 text-base">Explorar directorio</a>
+    </div>
+
+    <p class="text-xs text-ink-muted mt-5 font-medium">Sin tarjeta · España</p>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA ────────────────────────────────────── -->
+<section class="px-6 lg:px-14 py-24 max-w-7xl mx-auto">
+  <div class="section-label mb-4">Cómo funciona</div>
+  <h2 class="text-4xl lg:text-5xl font-bold text-ink mb-16 leading-tight">
+    Simple, directo,<br>sin complicaciones.
+  </h2>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    @for (step of steps; track step.n) {
+      <div class="group">
+        <div class="text-5xl font-black text-primary-500/15 group-hover:text-primary-500/30 transition-colors mb-5 leading-none">
+          {{ step.n }}
+        </div>
+        <h3 class="text-base font-semibold text-ink mb-2">{{ step.title }}</h3>
+        <p class="text-sm text-ink-muted leading-relaxed">{{ step.desc }}</p>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- DIRECTORIO ───────────────────────────────────────── -->
+<section class="px-6 lg:px-14 py-20 border-y border-dark-600 bg-dark-800/30">
+  <div class="max-w-7xl mx-auto">
+    <div class="section-label mb-4">Directorio</div>
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
+      <h2 class="text-4xl font-bold text-ink">¿Qué buscas?</h2>
+      <a routerLink="/search" class="text-sm text-primary-400 hover:text-primary-300 font-medium transition-colors">
+        Ver todo el directorio →
+      </a>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      @for (cat of catalog; track cat.tab) {
+        <a [routerLink]="['/search']" [queryParams]="{tab: cat.tab}"
+           class="card p-5 flex flex-col gap-4 cursor-pointer group">
+          <div class="w-10 h-10 rounded-xl bg-primary-900/60 border border-primary-500/20 flex items-center justify-center text-primary-400 group-hover:bg-primary-900 transition-colors">
+            <app-icon [name]="cat.icon" [size]="18"/>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-ink group-hover:text-primary-500 transition-colors">{{ cat.label }}</div>
+            <p class="text-xs text-ink-3 leading-relaxed mt-1">{{ cat.desc }}</p>
+          </div>
+          <div class="text-xs font-semibold text-primary-400 group-hover:text-primary-300 transition-colors">
+            Explorar →
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL ────────────────────────────────────────── -->
+<section class="px-6 lg:px-14 py-28 border-t border-dark-600 bg-dark-800/40">
+  <div class="max-w-7xl mx-auto">
+    <div class="max-w-xl">
+      <div class="section-label mb-5">Empieza hoy</div>
+      <h2 class="text-5xl lg:text-6xl font-extrabold text-ink leading-tight mb-6">
+        ¿Listo para<br>
+        <span class="text-primary-400">conectar?</span>
+      </h2>
+      <p class="text-base text-ink-3 mb-8 leading-relaxed max-w-sm">
+        Crea tu perfil en minutos y empieza a conectar con la escena musical.
+      </p>
+      <div class="flex gap-3">
+        <a routerLink="/auth/register" class="btn-accent px-7 py-3.5 text-base">Registrarme</a>
+        <a routerLink="/auth/login" class="btn-ghost px-5 py-3.5 text-base">Ya tengo cuenta</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER ───────────────────────────────────────────── -->
+<footer class="px-6 lg:px-14 py-8 border-t border-dark-600">
+  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-4">
+      <span class="text-sm font-bold text-ink">Band<span class="text-primary-400">You</span></span>
+      <span class="text-xs text-ink-muted">© Madrid, 2026</span>
+    </div>
+    <div class="flex gap-6 text-xs text-ink-muted">
+      <a href="#" class="hover:text-ink transition-colors">Privacidad</a>
+      <a href="#" class="hover:text-ink transition-colors">Términos</a>
+      <a href="#" class="hover:text-ink transition-colors">Contacto</a>
+    </div>
+  </div>
+</footer>

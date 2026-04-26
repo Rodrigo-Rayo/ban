@@ -1,0 +1,77 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:64px">
+
+  <div class="border-b border-dark-600 bg-dark-800/50">
+    <div class="max-w-3xl mx-auto px-6 lg:px-10 py-6">
+      <div class="section-label mb-2">Mis guardados</div>
+      <h1 class="text-2xl font-bold text-ink">Favoritos</h1>
+      <p class="text-xs text-ink-muted mt-1">{{ favorites().length }} elemento{{ favorites().length !== 1 ? 's' : '' }} guardado{{ favorites().length !== 1 ? 's' : '' }}</p>
+    </div>
+  </div>
+
+  <div class="max-w-3xl mx-auto px-6 lg:px-10 py-8">
+
+    <!-- Tabs -->
+    <div class="flex gap-2 flex-wrap mb-6">
+      @for (tab of tabs; track tab.id) {
+        <button (click)="activeTab.set(tab.id)"
+          class="px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors"
+          [class.bg-night]="activeTab() === tab.id"
+          [class.text-white]="activeTab() === tab.id"
+          [class.border-transparent]="activeTab() === tab.id"
+          [class.text-ink-muted]="activeTab() !== tab.id"
+          [class.border-dark-600]="activeTab() !== tab.id"
+          [class.hover:text-ink]="activeTab() !== tab.id">
+          {{ tab.label }}
+          @if (tab.id !== 'all' && countFor(tab.id) > 0) {
+            <span class="ml-1 opacity-60">{{ countFor(tab.id) }}</span>
+          }
+        </button>
+      }
+    </div>
+
+    @if (loading()) {
+      <div class="flex items-center justify-center py-20">
+        <div class="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    } @else if (filteredFavs.length === 0) {
+      <div class="text-center py-20">
+        <div class="w-14 h-14 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mx-auto mb-4 text-ink-muted">
+          <app-icon name="heart" [size]="24"/>
+        </div>
+        <p class="text-sm font-medium text-ink-3 mb-1">Sin favoritos en esta categoría</p>
+        <p class="text-xs text-ink-muted mb-6">Toca el corazón en cualquier perfil para guardarlo aquí</p>
+        <a routerLink="/search" class="btn-accent text-sm">Explorar directorio</a>
+      </div>
+    } @else {
+      <div class="flex flex-col gap-2">
+        @for (fav of filteredFavs; track fav.id) {
+          @if (item(fav); as it) {
+            <a [routerLink]="route(fav)" class="card p-4 flex items-center gap-4 group cursor-pointer">
+              <div class="w-11 h-11 rounded-full bg-night flex items-center justify-center text-sm font-bold text-white flex-shrink-0 overflow-hidden">
+                @if (it.avatar_url) {
+                  <img [src]="it.avatar_url" [alt]="it.name || it.title" class="w-full h-full object-cover"/>
+                } @else {
+                  {{ (it.name || it.title)?.slice(0,2)?.toUpperCase() }}
+                }
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-ink group-hover:text-primary-500 transition-colors truncate">
+                  {{ it.name || it.title }}
+                </p>
+                <p class="text-xs text-ink-muted mt-0.5 truncate">
+                  {{ typeLabel(fav.entity_type) }}
+                  @if (it.city) { · {{ it.city }} }
+                  @if (it.instrument) { · {{ it.instrument }} }
+                  @if (it.genre || it.genres) { · {{ it.genre || it.genres }} }
+                </p>
+              </div>
+              <svg class="w-4 h-4 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </a>
+          }
+        }
+      </div>
+    }
+  </div>
+</div>
