@@ -65,6 +65,23 @@ export class FavoritesComponent implements OnInit {
     return map[type] || type;
   }
 
+  typeIcon(type: string) {
+    const map: Record<string, string> = {
+      musician: 'music', band: 'mic', venue: 'building',
+      event: 'calendar', teacher: 'book-open', rehearsal: 'headphones',
+    };
+    return map[type] || 'user';
+  }
+
+  private readonly AVATAR_COLORS = [
+    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
+  ];
+
+  avatarColor(name: string): string {
+    const code = name?.charCodeAt(0) ?? 65;
+    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
+  }
+
   async ngOnInit() {
     const { data: { session } } = await this.supabase.auth.getSession();
     if (!session) { this.loading.set(false); return; }

@@ -6,11 +6,12 @@ import { NotificationsService } from '../../../core/services/notifications.servi
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, CommonModule],
+  imports: [RouterLink, RouterLinkActive, CommonModule, IconComponent],
   templateUrl: './navbar.component.html',
 })
 export class NavbarComponent implements OnInit, OnDestroy {

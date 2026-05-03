@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { NotificationsService } from './notifications.service';
+import { Conversation, Message } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
@@ -43,7 +44,7 @@ export class MessagesService {
 
     if (error) {
       console.error('[conversations] insert error:', error.message, error.code);
-      return { error: `DB error ${error.code}: ${error.message}` };
+      return { error: 'No se pudo crear la conversación. Inténtalo de nuevo.' };
     }
     return created ? { id: created.id } : null;
   }
@@ -70,14 +71,14 @@ export class MessagesService {
     if (convErr) { console.error('Error borrando conversación:', convErr.message); return convErr.message; }
 
     if (convCount === 0) {
-      console.warn('deleteConversation: 0 filas eliminadas — RLS bloqueando DELETE. Ejecuta supabase-migration-v3.sql');
-      return 'Sin permisos para borrar. Ejecuta la migración v3 en Supabase.';
+      console.warn('deleteConversation: 0 rows deleted — check RLS policies on conversations table');
+      return 'No tienes permisos para borrar esta conversación.';
     }
 
     return null;
   }
 
-  async getConversations() {
+  async getConversations(): Promise<Conversation[]> {
     const user = await this.getCurrentUser();
     if (!user) return [];
 
@@ -87,26 +88,26 @@ export class MessagesService {
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
       .order('last_message_at', { ascending: false });
 
-    return data || [];
+    return (data || []) as Conversation[];
   }
 
-  async getMessages(conversationId: string) {
+  async getMessages(conversationId: string): Promise<Message[]> {
     const { data } = await this.supabase.client
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
 
-    return data || [];
+    return (data || []) as Message[];
   }
 
-  async sendMessage(conversationId: string, content: string): Promise<any | null> {
+  async sendMessage(conversationId: string, content: string): Promise<Message | null> {
     const user = await this.getCurrentUser();
     if (!user) return null;
 
     const { data, error } = await this.supabase.client
       .from('messages')
-      .insert({ conversation_id: conversationId, sender_id: user.id, content })
+      .insert({ conversation_id: conversationId, sender_id: user.id, text: content })
       .select()
       .single();
 
@@ -116,6 +117,7 @@ export class MessagesService {
       .from('conversations')
       .update({ last_message: content, last_message_at: new Date().toISOString() })
       .eq('id', conversationId);
+    // fire-and-forget update — non-critical if it fails
 
     this.createMessageNotification(conversationId, user.id, content);
 
@@ -136,11 +138,12 @@ export class MessagesService {
     const user = await this.getCurrentUser();
     if (!user) return;
 
-    await this.supabase.client
+    const { error } = await this.supabase.client
       .from('messages')
       .update({ read: true })
       .eq('conversation_id', conversationId)
       .neq('sender_id', user.id);
+    if (error) console.error('[messages] markAsRead error:', error.message);
   }
 
   async getUnreadCount(): Promise<number> {
@@ -192,7 +195,7 @@ export class MessagesService {
         const msg = payload.new as any;
         if (msg.sender_id !== currentUserId) {
           const name = await this.getUserName(msg.sender_id);
-          onNewMessage(name, msg.content, msg.conversation_id);
+          onNewMessage(name, msg.text, msg.conversation_id);
         }
       })
       .subscribe();

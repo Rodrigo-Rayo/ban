@@ -1,68 +1,166 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:64px">
 
+  @if (teacher()) {
+    <div class="h-1" [style.background]="avatarColor(teacher()!.name)"></div>
+  }
+
   <div class="px-6 lg:px-10 py-3 border-b border-dark-600 bg-dark-800/60">
     <a routerLink="/search" [queryParams]="{tab:'teachers'}"
-       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-ink transition-colors">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
+       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-400 transition-colors group">
+      <app-icon name="arrow-left" [size]="13" class="group-hover:-translate-x-0.5 transition-transform"/>
       Clases
     </a>
   </div>
 
   @if (loading()) {
-    <div class="flex items-center justify-center py-32">
-      <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+    <!-- Hero skeleton -->
+    <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600 animate-pulse">
+      <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8">
+        <div class="flex flex-col sm:flex-row gap-6 items-start">
+          <div class="w-24 h-24 rounded-2xl bg-dark-700 flex-shrink-0"></div>
+          <div class="flex-1 space-y-3 pt-1">
+            <div class="flex gap-2">
+              <div class="h-5 bg-dark-700 rounded-full w-20"></div>
+              <div class="h-5 bg-dark-700 rounded-full w-16"></div>
+            </div>
+            <div class="h-8 bg-dark-700 rounded w-52"></div>
+            <div class="h-4 bg-dark-600 rounded w-40"></div>
+            <div class="h-6 bg-dark-700 rounded w-24"></div>
+          </div>
+          <div class="flex flex-col gap-2 w-full sm:w-44">
+            <div class="h-10 bg-dark-700 rounded-lg"></div>
+            <div class="h-10 bg-dark-700 rounded-lg"></div>
+            <div class="h-10 bg-dark-700 rounded-lg"></div>
+            <div class="h-10 bg-dark-700 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Content skeleton -->
+    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8 animate-pulse">
+      <div class="grid md:grid-cols-3 gap-5">
+        <div class="md:col-span-2 flex flex-col gap-4">
+          <div class="h-28 bg-dark-800 rounded-2xl border border-dark-600"></div>
+          <div class="h-40 bg-dark-800 rounded-2xl border border-dark-600"></div>
+        </div>
+        <div class="flex flex-col gap-3">
+          <div class="h-20 bg-dark-800 rounded-2xl border border-dark-600"></div>
+          <div class="h-32 bg-dark-800 rounded-2xl border border-dark-600"></div>
+          <div class="h-10 bg-dark-700 rounded-lg"></div>
+        </div>
+      </div>
     </div>
   } @else if (!teacher()) {
-    <div class="empty-state"><p class="text-ink-3 font-semibold mb-4">Profesor no encontrado</p></div>
+    <div class="empty-state">
+      <div class="w-14 h-14 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
+        <app-icon name="user" [size]="24" class="text-ink-muted"/>
+      </div>
+      <h2 class="text-base font-bold text-ink mb-1">Profesor no encontrado</h2>
+      <p class="text-sm text-ink-muted mb-5">Puede que haya sido eliminado o el enlace sea incorrecto</p>
+      <a routerLink="/search" [queryParams]="{tab:'teachers'}" class="btn-primary text-sm px-5">Ver profesores</a>
+    </div>
   } @else {
-  <div class="max-w-4xl mx-auto px-6 lg:px-10 py-10">
 
-    <!-- HERO -->
-    <div class="flex flex-col sm:flex-row gap-6 items-start mb-8">
-      <div class="w-20 h-20 rounded-2xl bg-night flex items-center justify-center text-2xl font-black text-white flex-shrink-0 overflow-hidden">
-        @if (teacher()!.avatar_url) {
-          <img [src]="teacher()!.avatar_url" alt="" class="w-full h-full object-cover"/>
-        } @else {
-          {{ teacher()!.name?.slice(0,1).toUpperCase() }}
-        }
-      </div>
-      <div class="flex-1 min-w-0">
-        <div class="flex flex-wrap gap-2 mb-2">
-          @if (teacher()!.city) { <span class="tag">{{ teacher()!.city }}</span> }
-          @if (teacher()!.modality) { <span class="tag">{{ teacher()!.modality }}</span> }
-          @if (avgRating) { <span class="tag-accent">★ {{ avgRating }}</span> }
-        </div>
-        <h1 class="text-3xl font-bold text-ink leading-tight mb-1">{{ teacher()!.name }}</h1>
-        <p class="text-sm text-ink-3 mb-2">
-          Profesor de {{ teacher()!.instrument }}
-          @if (teacher()!.experience_years) { · {{ teacher()!.experience_years }} años de experiencia }
-        </p>
-        @if (teacher()!.hourly_rate) {
-          <p class="text-xl font-bold text-primary-500">{{ teacher()!.hourly_rate }}€<span class="text-sm font-normal text-ink-muted">/hora</span></p>
-        }
-      </div>
-      <div class="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
-        @if (teacher()!.user_id) {
-          <button (click)="sendMessage()" [disabled]="sending()" class="btn-accent disabled:opacity-50 disabled:cursor-not-allowed">{{ sending() ? 'Abriendo chat...' : 'Solicitar clase' }}</button>
-          @if (msgError()) {
-            <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
+  <!-- HERO -->
+  <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600">
+    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8">
+      <div class="flex flex-col sm:flex-row gap-6 items-start">
+
+        <!-- Avatar -->
+        <div class="w-24 h-24 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-lg"
+             [style.background]="avatarColor(teacher()!.name)">
+          @if (teacher()!.avatar_url) {
+            <img [src]="teacher()!.avatar_url" alt="" class="w-full h-full object-cover"/>
+          } @else {
+            {{ teacher()!.name?.slice(0,1).toUpperCase() }}
           }
-        }
-        @if (teacher()!.contact_email) {
-          <a [href]="'mailto:' + teacher()!.contact_email" class="btn-secondary text-sm text-center">Email directo</a>
-        }
-        <button (click)="toggleFav()" [disabled]="favLoading()"
-          class="btn-secondary text-sm flex items-center justify-center gap-2">
-          <svg class="w-4 h-4 transition-colors" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
-            [class.text-primary-500]="isFav()" [class.text-ink-muted]="!isFav()">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-          </svg>
-          {{ isFav() ? 'Guardado' : 'Guardar' }}
-        </button>
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap gap-2 mb-3">
+            @if (teacher()!.city) { <span class="tag"><app-icon name="map-pin" [size]="9" class="mr-0.5"/>{{ teacher()!.city }}</span> }
+            @if (teacher()!.modality) { <span class="tag">{{ teacher()!.modality }}</span> }
+            @if (avgRating) { <span class="tag-accent">★ {{ avgRating }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}</span> }
+          </div>
+          <h1 class="text-3xl font-bold text-ink leading-tight mb-1">{{ teacher()!.name }}</h1>
+          <p class="text-sm font-semibold text-primary-400 mb-2">
+            Profesor de {{ teacher()!.instrument }}
+            @if (teacher()!.experience_years) {<span class="text-ink-muted font-normal mx-1">·</span><span class="text-ink-muted font-normal">{{ teacher()!.experience_years }} años de experiencia</span>}
+          </p>
+          @if (teacher()!.hourly_rate) {
+            <p class="text-2xl font-black text-primary-400">{{ teacher()!.hourly_rate }}€<span class="text-sm font-normal text-ink-muted">/hora</span></p>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col gap-2 flex-shrink-0 w-full sm:w-44">
+          @if (teacher()!.user_id) {
+            @if (bookingSuccess()) {
+              <div class="text-sm text-signal-green font-semibold text-center py-2 bg-signal-gBg border border-signal-green/30 rounded-xl flex items-center justify-center gap-1.5"><app-icon name="check" [size]="14"/>Solicitud enviada</div>
+            } @else {
+              <button (click)="showBookingForm.set(!showBookingForm())" class="btn-accent">
+                {{ showBookingForm() ? 'Cancelar' : 'Solicitar clase' }}
+              </button>
+            }
+            @if (msgError()) {
+              <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
+            }
+          }
+          @if (teacher()!.contact_email) {
+            <a [href]="'mailto:' + teacher()!.contact_email" class="btn-secondary text-sm text-center">Email directo</a>
+          }
+          <button (click)="toggleFav()" [disabled]="favLoading()"
+            class="btn-secondary text-sm flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
+              [class.text-primary-500]="isFav()" [class.text-ink-muted]="!isFav()">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            {{ isFav() ? 'Guardado' : 'Guardar' }}
+          </button>
+          <button (click)="shareLink()"
+            class="btn-secondary text-sm flex items-center justify-center gap-2"
+            [class.text-signal-green]="linkShared()" [class.border-signal-green]="linkShared()">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            {{ linkShared() ? 'Copiado' : 'Compartir' }}
+          </button>
+        </div>
       </div>
     </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8">
+
+    <!-- Booking Form -->
+    @if (showBookingForm()) {
+      <div class="card-flat p-5 mb-6 border border-primary-500/20">
+        <h3 class="text-sm font-bold text-ink mb-4">Solicitar clase con {{ teacher()!.name?.split(' ')[0] }}</h3>
+        <div class="grid sm:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">Fecha <span class="text-signal-red">*</span></label>
+            <input type="date" [(ngModel)]="bookingDate" [min]="minDate"
+              class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2.5 text-sm text-ink outline-none focus:border-primary-500 transition-colors">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">Hora preferida</label>
+            <input type="time" [(ngModel)]="bookingTime"
+              class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2.5 text-sm text-ink outline-none focus:border-primary-500 transition-colors">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">Mensaje</label>
+          <textarea [(ngModel)]="bookingMessage" rows="2" placeholder="Nivel, objetivos, qué quieres aprender…"
+            class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2.5 text-sm text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors resize-none"></textarea>
+        </div>
+        <button (click)="submitBooking()" [disabled]="bookingLoading() || !bookingDate"
+          class="btn-accent text-sm py-2.5 disabled:opacity-50">
+          {{ bookingLoading() ? 'Enviando...' : 'Enviar solicitud' }}
+        </button>
+      </div>
+    }
 
     <div class="grid md:grid-cols-3 gap-5">
       <div class="md:col-span-2 flex flex-col gap-5">
@@ -78,12 +176,12 @@
         <div class="card-flat overflow-hidden">
           <div class="px-5 py-3 border-b border-dark-600 flex items-center justify-between">
             <h3 class="section-label">
-              Reseñas {{ reviews().length > 0 ? '(' + reviews().length + ')' : '' }}
+              Reseñas @if (reviews().length > 0) { <span class="text-ink-muted font-normal">({{ reviews().length }})</span> }
               @if (avgRating) { <span class="ml-2 text-primary-500 font-bold">★ {{ avgRating }}</span> }
             </h3>
             @if (currentUserId() && !myReview()) {
               <button (click)="showReviewForm.set(!showReviewForm())"
-                class="text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors">
+                class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">
                 + Dejar reseña
               </button>
             }
@@ -94,9 +192,10 @@
               <p class="text-xs font-semibold text-ink mb-2">Tu valoración</p>
               <div class="flex gap-1 mb-3">
                 @for (s of [1,2,3,4,5]; track s) {
-                  <button (click)="reviewRating = s" class="text-xl transition-colors"
+                  <button (click)="reviewRating = s" class="text-2xl transition-colors hover:scale-110"
                     [class.text-primary-500]="s <= reviewRating"
-                    [class.text-dark-600]="s > reviewRating">★</button>
+                    [class.text-ink-muted]="s > reviewRating"
+                    [class.opacity-40]="s > reviewRating">★</button>
                 }
               </div>
               <textarea [(ngModel)]="reviewComment" rows="2"
@@ -108,11 +207,14 @@
                 </button>
                 <button (click)="showReviewForm.set(false)" class="btn-secondary text-sm">Cancelar</button>
               </div>
+              @if (reviewError()) {
+                <p class="text-xs text-signal-red mt-2">{{ reviewError() }}</p>
+              }
             </div>
           }
 
           @if (reviews().length === 0) {
-            <p class="px-5 py-8 text-sm text-ink-muted text-center">Sin reseñas aún.</p>
+            <p class="px-5 py-8 text-sm text-ink-muted text-center">Sin reseñas aún. ¡Sé el primero!</p>
           } @else {
             <div class="divide-y divide-dark-600">
               @for (r of reviews(); track r.id) {
@@ -120,7 +222,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <span class="text-xs font-semibold text-ink">{{ r.author_name || 'Alumno' }}</span>
                     <span class="text-sm">
-                      <span class="text-primary-500">{{ '★'.repeat(r.rating) }}</span><span class="text-dark-600">{{ '★'.repeat(5 - r.rating) }}</span>
+                      <span class="text-primary-500">{{ '★'.repeat(r.rating) }}</span><span class="text-dark-500 opacity-50">{{ '★'.repeat(5 - r.rating) }}</span>
                     </span>
                   </div>
                   @if (r.comment) { <p class="text-xs text-ink-3 leading-relaxed">{{ r.comment }}</p> }
@@ -134,6 +236,12 @@
 
       <!-- Ficha -->
       <div class="flex flex-col gap-4">
+        @if (teacher()!.hourly_rate) {
+          <div class="card-flat p-5 text-center border border-primary-500/20">
+            <p class="text-xs text-ink-muted uppercase tracking-wider mb-1">Precio por hora</p>
+            <p class="text-4xl font-black text-primary-400">{{ teacher()!.hourly_rate }}€</p>
+          </div>
+        }
         <div class="card-flat overflow-hidden">
           <div class="px-4 py-3 border-b border-dark-600"><h3 class="section-label">Ficha</h3></div>
           <div class="divide-y divide-dark-600 text-sm">
@@ -144,24 +252,27 @@
               <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Ciudad</span><span class="font-medium text-ink">{{ teacher()!.city }}</span></div>
             }
             @if (teacher()!.modality) {
-              <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Modalidad</span><span class="font-medium text-ink">{{ teacher()!.modality }}</span></div>
+              <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Modalidad</span><span class="font-medium text-ink capitalize">{{ teacher()!.modality }}</span></div>
             }
             @if (teacher()!.experience_years) {
               <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Experiencia</span><span class="font-medium text-ink">{{ teacher()!.experience_years }} años</span></div>
             }
-            @if (teacher()!.hourly_rate) {
-              <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Precio</span><span class="font-bold text-primary-500">{{ teacher()!.hourly_rate }}€/h</span></div>
-            }
           </div>
         </div>
         @if (teacher()!.youtube_url) {
-          <a [href]="teacher()!.youtube_url" target="_blank" class="btn-secondary text-sm text-center">Ver clases en YouTube</a>
+          <a [href]="teacher()!.youtube_url" target="_blank"
+             class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-sm font-bold border border-red-500/25 hover:bg-red-500/20 transition-colors">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+            Clases en YouTube
+          </a>
         }
         @if (teacher()!.website_url) {
           <a [href]="teacher()!.website_url" target="_blank" class="btn-secondary text-sm text-center">Visitar web</a>
         }
         @if (teacher()!.user_id) {
-          <button (click)="sendMessage()" [disabled]="sending()" class="btn-accent w-full disabled:opacity-50 disabled:cursor-not-allowed">{{ sending() ? 'Abriendo chat...' : 'Solicitar clase' }}</button>
+          <button (click)="sendMessage()" [disabled]="sending()" class="btn-accent w-full disabled:opacity-50">
+            {{ sending() ? 'Abriendo chat...' : 'Abrir chat' }}
+          </button>
         }
       </div>
     </div>

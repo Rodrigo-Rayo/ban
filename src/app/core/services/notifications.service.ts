@@ -8,24 +8,25 @@ export class NotificationsService {
   private channel: any = null;
 
   async loadUnread(userId: string) {
-    const { count } = await this.supabase.client
+    const { count, error } = await this.supabase.client
       .from('notifications').select('*', { count: 'exact', head: true })
       .eq('user_id', userId).eq('read', false);
-    this.unreadCount.set(count || 0);
+    if (!error) this.unreadCount.set(count || 0);
   }
 
   async getAll(userId: string): Promise<any[]> {
-    const { data } = await this.supabase.client
+    const { data, error } = await this.supabase.client
       .from('notifications').select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }).limit(50);
+    if (error) return [];
     return data || [];
   }
 
   async markAllRead(userId: string) {
-    await this.supabase.client.from('notifications')
+    const { error } = await this.supabase.client.from('notifications')
       .update({ read: true }).eq('user_id', userId).eq('read', false);
-    this.unreadCount.set(0);
+    if (!error) this.unreadCount.set(0);
   }
 
   async create(userId: string, type: string, title: string, body?: string, entityType?: string, entityId?: string) {

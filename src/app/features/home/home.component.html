@@ -2,47 +2,54 @@
   <div class="flex flex-col lg:flex-row w-full">
 
     <!-- ══ MAIN CONTENT ══ -->
-    <div class="flex-1 min-w-0 px-5 lg:px-8 py-8">
+    <div class="flex-1 min-w-0 px-5 lg:px-8 py-7">
 
-      <!-- Cabecera -->
-      <div class="flex items-start justify-between mb-6 gap-4">
-        <div>
-          <p class="section-label mb-1">{{ today | date:'EEEE · d MMM' | uppercase }}</p>
-          <h1 class="text-2xl font-bold text-ink leading-tight">
-            Buenas, <span class="text-primary-400">{{ profileName() || auth.user()?.email?.split('@')?.[0] }}</span> 👋
-          </h1>
+      <!-- Cabecera editorial -->
+      <header class="mb-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="section-label mb-1.5">{{ today | date:'EEEE · d MMMM' | uppercase }}</p>
+            <h1 class="text-2xl font-extrabold text-ink leading-tight tracking-tight">
+              Buenas, <span class="text-primary-500">{{ profileName() || auth.user()?.email?.split('@')?.[0] }}</span>
+            </h1>
+          </div>
+          <a routerLink="/feed" class="btn-primary text-sm flex-shrink-0 mt-1 px-4 py-2">
+            <app-icon name="plus" [size]="14"/>
+            Publicar
+          </a>
         </div>
-        <a routerLink="/feed" class="btn-accent text-sm flex-shrink-0 mt-1 px-4 py-2">+ Publicar</a>
-      </div>
+      </header>
 
       <!-- ── NUDGE PERFIL INCOMPLETO ── -->
       @if (!loading() && userProfile() && profileScore() < 80 && !nudgeDismissed) {
-        <div class="bg-gradient-to-r from-primary-900/50 to-dark-800 border border-primary-500/30 rounded-2xl p-4 mb-6 relative">
+        <div class="bg-gradient-to-r from-primary-900/60 to-dark-800 border border-primary-500/25 rounded-2xl p-4 mb-5 relative overflow-hidden">
+          <!-- Accent strip -->
+          <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-primary-400/50"></div>
           <button (click)="dismissNudge()"
-            class="absolute top-3 right-3 w-6 h-6 flex items-center justify-center text-ink-muted hover:text-ink rounded-lg transition-colors">
+            class="absolute top-3 right-3 w-7 h-7 flex items-center justify-center text-ink-muted hover:text-ink rounded-lg hover:bg-dark-700 transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-xl bg-primary-900 border border-primary-500/30 flex items-center justify-center flex-shrink-0 text-lg">🎯</div>
-            <div class="flex-1 min-w-0 pr-4">
-              <div class="flex items-center gap-3 mb-1.5">
+          <div class="flex items-start gap-3 pr-6">
+            <div class="w-9 h-9 rounded-xl bg-primary-900 border border-primary-500/30 flex items-center justify-center flex-shrink-0 text-primary-500">
+              <app-icon name="user" [size]="16"/>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-3 mb-2 flex-wrap">
                 <p class="text-sm font-bold text-ink">Tu perfil está al {{ profileScore() }}%</p>
-                <span class="text-[10px] font-semibold text-primary-400 bg-primary-900/60 px-2 py-0.5 rounded-full border border-primary-500/20">
-                  +visibilidad en búsquedas
-                </span>
+                <span class="tag-accent">+visibilidad en búsquedas</span>
               </div>
-              <div class="h-1.5 bg-dark-600 rounded-full mb-2 overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-primary-600 to-primary-400 rounded-full transition-all"
+              <div class="h-1.5 bg-dark-600 rounded-full mb-2.5 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-primary-600 to-primary-400 rounded-full transition-all duration-500"
                      [style.width.%]="profileScore()"></div>
               </div>
               @if (missingFields().length > 0) {
                 <p class="text-xs text-ink-muted mb-3">
-                  Añade: <span class="text-ink-3">{{ missingFields().slice(0, 3).join(' · ') }}</span>
+                  Falta: <span class="text-ink-3">{{ missingFields().slice(0, 3).join(' · ') }}</span>
                 </p>
               }
-              <a routerLink="/onboarding" class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-400 hover:text-primary-300 transition-colors">
+              <a routerLink="/onboarding" class="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-primary-400 transition-colors">
                 Completar perfil
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -53,65 +60,73 @@
         </div>
       }
 
-      <!-- ── HERO: próximo evento ── -->
+      <!-- ── PRÓXIMO EVENTO DESTACADO ── -->
       @if (!loading() && recentEvents().length > 0) {
         <a [routerLink]="['/events', recentEvents()[0].id]"
-           class="block mb-6 rounded-2xl cursor-pointer group overflow-hidden relative"
-           style="background: linear-gradient(160deg, #f7f0e6 0%, #f0e8d8 100%); box-shadow: 0 4px 24px -4px rgba(217,78,26,0.18)">
-          <div class="absolute top-0 left-0 right-0 h-1 bg-primary-500"></div>
-          <div class="flex items-stretch pt-1">
-            <div class="flex-shrink-0 w-24 flex flex-col items-center justify-center py-6 border-r border-ink/10">
-              <span class="text-5xl font-black leading-none" style="color:#d94e1a">{{ recentEvents()[0].date | date:'d' }}</span>
-              <span class="text-xs font-bold uppercase tracking-widest text-ink-3 mt-1">{{ recentEvents()[0].date | date:'MMM yyyy' }}</span>
+           class="block mb-5 rounded-2xl cursor-pointer group overflow-hidden relative border border-primary-500/20 hover:border-primary-500/40 hover:shadow-card-md transition-all"
+           style="background: linear-gradient(135deg, #fffef9 0%, #fef0e8 100%)">
+          <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-600 via-primary-400 to-transparent"></div>
+          <div class="flex items-stretch">
+            <!-- Date block -->
+            <div class="flex-shrink-0 w-20 sm:w-24 flex flex-col items-center justify-center py-5 border-r border-primary-500/15">
+              <span class="text-[10px] font-black uppercase tracking-widest text-primary-400">{{ recentEvents()[0].date | date:'MMM' }}</span>
+              <span class="text-5xl font-black leading-none text-primary-500 mt-0.5">{{ recentEvents()[0].date | date:'d' }}</span>
+              <span class="text-[10px] font-semibold text-ink-muted mt-1">{{ recentEvents()[0].date | date:'yyyy' }}</span>
             </div>
-            <div class="flex-1 min-w-0 px-5 py-5">
+            <!-- Info -->
+            <div class="flex-1 min-w-0 px-5 py-4">
               <div class="flex items-center gap-2 mb-2">
                 <span class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary-500">
-                  <svg class="w-3 h-3 fill-primary-500" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                  Destacado
+                  <app-icon name="star" [size]="11"/>
+                  Próximo evento
                 </span>
-                <span class="text-[10px] uppercase tracking-widest text-ink-muted font-medium">Próximo evento</span>
               </div>
-              <h2 class="font-serif text-2xl font-bold text-ink leading-snug mb-1.5 group-hover:text-primary-600 transition-colors">
+              <h2 class="font-bold text-lg text-ink leading-snug mb-1.5 group-hover:text-primary-600 transition-colors line-clamp-1">
                 {{ recentEvents()[0].title }}
               </h2>
-              <p class="text-sm text-ink-3">
+              <p class="text-sm text-ink-3 truncate">
                 {{ recentEvents()[0].venue }}
-                @if (recentEvents()[0].city) { <span class="text-ink/30 mx-1">·</span>{{ recentEvents()[0].city }} }
+                @if (recentEvents()[0].city) {
+                  <span class="text-ink-muted/50 mx-1">·</span>{{ recentEvents()[0].city }}
+                }
               </p>
             </div>
-            <div class="flex-shrink-0 flex flex-col items-end justify-between p-5">
-              @if (recentEvents()[0].genre) {
-                <span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-primary-500/10 text-primary-600 border border-primary-500/20">{{ recentEvents()[0].genre }}</span>
-              }
-              <svg class="w-5 h-5 text-ink/20 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
+            <!-- Arrow -->
+            <div class="flex-shrink-0 flex items-center pr-4">
+              <div class="w-8 h-8 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center group-hover:bg-primary-500/20 transition-colors">
+                <svg class="w-4 h-4 text-primary-500 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
             </div>
           </div>
         </a>
       }
 
-      <!-- ── ANUNCIOS ── -->
-      <div class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden mb-5">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-dark-600">
+      <!-- ── ANUNCIOS RECIENTES ── -->
+      <section class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden mb-5">
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-dark-600">
           <div class="flex items-center gap-2.5">
-            <span class="w-7 h-7 rounded-lg bg-primary-900 flex items-center justify-center text-primary-400"><app-icon name="newspaper" [size]="15"/></span>
-            <h2 class="text-sm font-bold text-ink">Últimos anuncios</h2>
+            <span class="w-7 h-7 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+              <app-icon name="newspaper" [size]="14"/>
+            </span>
+            <h2 class="text-sm font-bold text-ink">Anuncios recientes</h2>
           </div>
           <div class="flex items-center gap-3">
-            <a routerLink="/feed" class="btn-accent text-xs px-3 py-1.5">+ Publicar</a>
+            <a routerLink="/feed" class="btn-primary text-xs px-3 py-1.5">+ Publicar</a>
             <a routerLink="/feed" class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver todos →</a>
           </div>
         </div>
+
         @if (loading()) {
           <div class="divide-y divide-dark-600">
             @for (i of [1,2,3]; track i) {
               <div class="flex items-start gap-3 px-5 py-3.5 animate-pulse">
-                <div class="w-7 h-7 rounded-full bg-dark-600 flex-shrink-0 mt-0.5"></div>
+                <div class="w-7 h-7 rounded-lg bg-dark-600 flex-shrink-0 mt-0.5"></div>
                 <div class="flex-1">
-                  <div class="h-2.5 bg-dark-600 rounded w-32 mb-2"></div>
-                  <div class="h-3.5 bg-dark-700 rounded w-full mb-1"></div>
+                  <div class="h-2 bg-dark-600 rounded w-28 mb-2"></div>
+                  <div class="h-3.5 bg-dark-700 rounded w-full mb-1.5"></div>
+                  <div class="h-2 bg-dark-600 rounded w-24"></div>
                 </div>
               </div>
             }
@@ -119,46 +134,46 @@
         } @else if (recentPosts().length === 0) {
           <div class="px-5 py-8 text-center">
             <p class="text-xs text-ink-muted mb-2">Sin anuncios aún — sé el primero</p>
-            <a routerLink="/feed" class="text-xs text-primary-500 hover:underline">Publicar anuncio</a>
+            <a routerLink="/feed" class="text-xs font-semibold text-primary-500 hover:underline">Publicar anuncio</a>
           </div>
         } @else {
           <div class="divide-y divide-dark-600">
             @for (post of recentPosts(); track post.id) {
-              <a routerLink="/feed" class="flex items-start gap-3 px-5 py-3.5 hover:bg-dark-700/50 transition-colors group/row">
-                <div class="w-8 h-8 rounded-xl bg-dark-700 border border-dark-600 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">
-                  {{ postInfo(post.post_type).emoji }}
+              <a routerLink="/feed" class="flex items-start gap-3 px-5 py-3.5 hover:bg-dark-750/50 transition-colors group/row">
+                <div class="w-7 h-7 rounded-lg bg-dark-750 border border-dark-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-ink-muted">
+                  <app-icon [name]="postInfo(post.type).icon" [size]="13"/>
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-0.5 flex-wrap">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-primary-400">
-                      {{ postInfo(post.post_type).label }}
+                    <span class="text-[10px] font-black uppercase tracking-wider text-primary-500">
+                      {{ postInfo(post.type).label }}
                     </span>
                     @if (post.city) { <span class="text-[10px] text-ink-muted">· {{ post.city }}</span> }
                   </div>
-                  <p class="text-sm text-ink leading-snug line-clamp-2 group-hover/row:text-primary-400 transition-colors">{{ post.body }}</p>
-                  <div class="flex items-center gap-2 mt-1">
-                    <span class="text-[10px] text-ink-muted">{{ post.author_name }}</span>
-                  </div>
+                  <p class="text-sm text-ink leading-snug line-clamp-2 group-hover/row:text-primary-400 transition-colors">{{ post.text }}</p>
+                  <span class="text-[10px] text-ink-muted mt-0.5 block">{{ post.author_name }}</span>
                 </div>
-                <span class="text-[10px] text-ink-muted flex-shrink-0 pt-0.5">{{ timeAgo(post.created_at) }}</span>
+                <span class="text-[10px] text-ink-muted flex-shrink-0 pt-0.5 whitespace-nowrap">{{ timeAgo(post.created_at) }}</span>
               </a>
             }
           </div>
         }
-      </div>
+      </section>
 
       <!-- ── MÚSICOS + BANDAS ── -->
-      <div class="grid md:grid-cols-2 gap-5">
+      <div class="grid md:grid-cols-2 gap-4">
 
         <!-- MÚSICOS -->
-        <div class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden">
+        <section class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden">
           <a routerLink="/search" [queryParams]="{tab:'musicians'}"
-             class="flex items-center justify-between px-5 py-4 border-b border-dark-600 hover:bg-dark-700/50 transition-colors group">
+             class="flex items-center justify-between px-5 py-3.5 border-b border-dark-600 hover:bg-dark-750/40 transition-colors group">
             <div class="flex items-center gap-2.5">
-              <span class="w-7 h-7 rounded-lg bg-primary-900 flex items-center justify-center text-primary-400"><app-icon name="music" [size]="15"/></span>
+              <span class="w-7 h-7 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+                <app-icon name="music" [size]="14"/>
+              </span>
               <h2 class="text-sm font-bold text-ink">Músicos</h2>
               @if (userCity()) {
-                <span class="text-[10px] text-ink-muted bg-dark-700 border border-dark-600 px-1.5 py-0.5 rounded-md">📍 {{ userCity() }}</span>
+                <span class="text-[10px] text-ink-muted bg-dark-700 border border-dark-600 px-1.5 py-0.5 rounded-md">{{ userCity() }}</span>
               }
             </div>
             <span class="text-xs font-semibold text-primary-500 group-hover:text-primary-400 transition-colors">Ver todos →</span>
@@ -168,47 +183,51 @@
               @for (i of [1,2,3]; track i) {
                 <div class="flex items-center gap-3 px-5 py-3.5 animate-pulse">
                   <div class="w-8 h-8 rounded-full bg-dark-600 flex-shrink-0"></div>
-                  <div class="flex-1"><div class="h-2.5 bg-dark-600 rounded w-28 mb-1.5"></div><div class="h-2 bg-dark-700 rounded w-40"></div></div>
+                  <div class="flex-1">
+                    <div class="h-2.5 bg-dark-600 rounded w-28 mb-1.5"></div>
+                    <div class="h-2 bg-dark-700 rounded w-20"></div>
+                  </div>
                 </div>
               }
             </div>
           } @else if (recentMusicians().length === 0) {
-            <div class="px-5 py-8 text-center text-xs text-ink-muted">Sin músicos aún</div>
+            <div class="px-5 py-8 text-center">
+              <p class="text-xs text-ink-muted mb-2">Aún no hay músicos en tu zona</p>
+              <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver directorio global →</a>
+            </div>
           } @else {
             <div class="divide-y divide-dark-600">
               @for (m of recentMusicians(); track m.id) {
-                <a [routerLink]="['/musicians', m.id]" class="flex items-center gap-3 px-5 py-3.5 hover:bg-dark-700/50 transition-colors group/row">
+                <a [routerLink]="['/musicians', m.id]" class="flex items-center gap-3 px-5 py-3 hover:bg-dark-750/40 transition-colors group/row">
                   <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
-                       [class.bg-primary-600]="!m.avatar_url" [class.bg-dark-600]="m.avatar_url">
+                       [style.background]="avatarColor(m.name)">
                     @if (m.avatar_url) {
-                      <img [src]="m.avatar_url" class="w-full h-full object-cover"/>
+                      <img [src]="m.avatar_url" class="w-full h-full object-cover" loading="lazy"/>
                     } @else {
                       {{ m.name?.slice(0,2).toUpperCase() }}
                     }
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="text-sm font-medium text-ink group-hover/row:text-primary-400 transition-colors truncate">{{ m.name }}</div>
+                    <div class="text-sm font-medium text-ink group-hover/row:text-primary-500 transition-colors truncate leading-snug">{{ m.name }}</div>
                     <div class="text-xs text-ink-muted truncate">{{ m.instrument }}@if (m.city) { · {{ m.city }} }</div>
-                  </div>
-                  <div class="flex items-center gap-1.5 flex-shrink-0">
-                    @if (isNearby(m)) { <span class="text-[10px] text-primary-500">📍</span> }
-                    @if (m.available) { <span class="w-2 h-2 rounded-full bg-signal-green"></span> }
                   </div>
                 </a>
               }
             </div>
           }
-        </div>
+        </section>
 
         <!-- BANDAS -->
-        <div class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden">
+        <section class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden">
           <a routerLink="/search" [queryParams]="{tab:'bands'}"
-             class="flex items-center justify-between px-5 py-4 border-b border-dark-600 hover:bg-dark-700/50 transition-colors group">
+             class="flex items-center justify-between px-5 py-3.5 border-b border-dark-600 hover:bg-dark-750/40 transition-colors group">
             <div class="flex items-center gap-2.5">
-              <span class="w-7 h-7 rounded-lg bg-primary-900 flex items-center justify-center text-primary-400"><app-icon name="mic" [size]="15"/></span>
+              <span class="w-7 h-7 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+                <app-icon name="mic" [size]="14"/>
+              </span>
               <h2 class="text-sm font-bold text-ink">Bandas</h2>
               @if (userCity()) {
-                <span class="text-[10px] text-ink-muted bg-dark-700 border border-dark-600 px-1.5 py-0.5 rounded-md">📍 {{ userCity() }}</span>
+                <span class="text-[10px] text-ink-muted bg-dark-700 border border-dark-600 px-1.5 py-0.5 rounded-md">{{ userCity() }}</span>
               }
             </div>
             <span class="text-xs font-semibold text-primary-500 group-hover:text-primary-400 transition-colors">Ver todas →</span>
@@ -218,83 +237,90 @@
               @for (i of [1,2,3]; track i) {
                 <div class="flex items-center gap-3 px-5 py-3.5 animate-pulse">
                   <div class="w-8 h-8 rounded-full bg-dark-600 flex-shrink-0"></div>
-                  <div class="flex-1"><div class="h-2.5 bg-dark-600 rounded w-28 mb-1.5"></div><div class="h-2 bg-dark-700 rounded w-40"></div></div>
+                  <div class="flex-1">
+                    <div class="h-2.5 bg-dark-600 rounded w-28 mb-1.5"></div>
+                    <div class="h-2 bg-dark-700 rounded w-20"></div>
+                  </div>
                 </div>
               }
             </div>
           } @else if (recentBands().length === 0) {
-            <div class="px-5 py-8 text-center text-xs text-ink-muted">Sin bandas aún</div>
+            <div class="px-5 py-8 text-center">
+              <p class="text-xs text-ink-muted mb-2">Aún no hay bandas en tu zona</p>
+              <a routerLink="/search" [queryParams]="{tab:'bands'}" class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver directorio global →</a>
+            </div>
           } @else {
             <div class="divide-y divide-dark-600">
               @for (band of recentBands(); track band.id) {
-                <a [routerLink]="['/bands', band.id]" class="flex items-center gap-3 px-5 py-3.5 hover:bg-dark-700/50 transition-colors group/row">
-                  <div class="w-8 h-8 rounded-full bg-dark-600 flex items-center justify-center text-xs font-bold text-ink-3 flex-shrink-0 overflow-hidden">
+                <a [routerLink]="['/bands', band.id]" class="flex items-center gap-3 px-5 py-3 hover:bg-dark-750/40 transition-colors group/row">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
+                       [style.background]="avatarColor(band.name)">
                     @if (band.avatar_url) {
-                      <img [src]="band.avatar_url" class="w-full h-full object-cover"/>
+                      <img [src]="band.avatar_url" class="w-full h-full object-cover" loading="lazy"/>
                     } @else {
                       {{ band.name?.slice(0,2).toUpperCase() }}
                     }
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="text-sm font-medium text-ink group-hover/row:text-primary-400 transition-colors truncate">{{ band.name }}</div>
+                    <div class="text-sm font-medium text-ink group-hover/row:text-primary-500 transition-colors truncate leading-snug">{{ band.name }}</div>
                     <div class="text-xs text-ink-muted truncate">{{ band.genre }}@if (band.city) { · {{ band.city }} }</div>
                   </div>
-                  <div class="flex items-center gap-1.5 flex-shrink-0">
-                    @if (isNearby(band)) { <span class="text-[10px] text-primary-500">📍</span> }
-                    @if (band.looking_for) { <span class="tag-accent text-[10px]">Busca</span> }
-                  </div>
+                  @if (band.looking_for) { <span class="tag-green flex-shrink-0">Busca</span> }
                 </a>
               }
             </div>
           }
-        </div>
+        </section>
 
       </div>
-      <!-- end músicos+bandas -->
-
     </div>
     <!-- end main -->
 
     <!-- ══ RIGHT SIDEBAR ══ -->
-    <aside class="flex flex-col w-full lg:w-80 lg:flex-shrink-0 border-t lg:border-t-0 lg:border-l border-dark-600 lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:overflow-y-auto py-6 px-5 gap-6">
+    <aside class="flex flex-col w-full lg:w-80 lg:flex-shrink-0 border-t lg:border-t-0 lg:border-l border-dark-600 lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:overflow-y-auto py-6 px-5 gap-7">
 
       <!-- PRÓXIMOS EVENTOS -->
       <div>
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-400"><app-icon name="calendar" [size]="13"/></span>
+            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+              <app-icon name="calendar" [size]="12"/>
+            </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Próximos eventos</p>
           </div>
-          <a routerLink="/events" class="text-[10px] text-primary-400 hover:text-primary-300 transition-colors">Ver agenda →</a>
+          <a routerLink="/events" class="text-[10px] font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver agenda →</a>
         </div>
         @if (loading()) {
           @for (i of [1,2,3]; track i) {
             <div class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 mb-2 animate-pulse">
               <div class="w-9 h-10 rounded-lg bg-dark-700 flex-shrink-0"></div>
-              <div class="flex-1"><div class="h-2.5 bg-dark-700 rounded w-24 mb-1.5"></div><div class="h-2 bg-dark-600 rounded w-16"></div></div>
+              <div class="flex-1">
+                <div class="h-2.5 bg-dark-700 rounded w-24 mb-1.5"></div>
+                <div class="h-2 bg-dark-600 rounded w-16"></div>
+              </div>
             </div>
           }
         } @else if (recentEvents().length === 0) {
-          <p class="text-xs text-ink-muted py-4 text-center">Sin eventos próximos</p>
+          <p class="text-xs text-ink-muted py-4 text-center">Sin eventos próximos — <a routerLink="/events/create" class="text-primary-500 hover:text-primary-400">publica el tuyo</a></p>
         } @else {
           <div class="flex flex-col gap-2">
             @for (event of recentEvents(); track event.id) {
               <a [routerLink]="['/events', event.id]"
-                 class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-700 transition-all group">
-                <div class="w-9 h-10 rounded-lg bg-primary-900 border border-primary-500/20 flex flex-col items-center justify-center flex-shrink-0">
-                  <span class="text-[8px] font-bold text-primary-400 uppercase leading-none">{{ event.date | date:'MMM' }}</span>
-                  <span class="text-sm font-black text-primary-300 leading-none mt-0.5">{{ event.date | date:'d' }}</span>
+                 class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
+                <div class="w-9 h-10 rounded-lg bg-primary-500 flex flex-col items-center justify-center flex-shrink-0">
+                  <span class="text-[8px] font-bold text-white/70 uppercase leading-none">{{ event.date | date:'MMM' }}</span>
+                  <span class="text-sm font-black text-white leading-none mt-0.5">{{ event.date | date:'d' }}</span>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-400 transition-colors">{{ event.title }}</p>
+                  <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ event.title }}</p>
                   @if (event.venue) { <p class="text-[10px] text-ink-muted mt-0.5 truncate">{{ event.venue }}</p> }
-                  @if (event.city) { <p class="text-[10px] text-ink-muted truncate">📍 {{ event.city }}</p> }
+                  @if (event.city) { <p class="text-[10px] text-ink-muted truncate">{{ event.city }}</p> }
                 </div>
               </a>
             }
           </div>
         }
-        <a routerLink="/events/create" class="mt-2 flex items-center justify-center gap-1.5 py-2 text-[11px] font-semibold text-primary-500 hover:text-primary-400 border border-dashed border-dark-600 hover:border-primary-500/40 rounded-xl transition-colors">
+        <a routerLink="/events/create" class="mt-2 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-primary-500 hover:text-primary-400 border border-dashed border-dark-600 hover:border-primary-500/40 rounded-xl transition-colors">
           + Publicar evento
         </a>
       </div>
@@ -303,10 +329,12 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-400"><app-icon name="shopping-cart" [size]="13"/></span>
+            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+              <app-icon name="shopping-cart" [size]="12"/>
+            </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Tienda</p>
           </div>
-          <a routerLink="/shop" class="text-[10px] text-primary-400 hover:text-primary-300 transition-colors">Ver todo →</a>
+          <a routerLink="/shop" class="text-[10px] font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver todo →</a>
         </div>
         @if (loading()) {
           <div class="grid grid-cols-2 gap-2">
@@ -321,25 +349,27 @@
             @for (item of recentListings(); track item.id) {
               <a [routerLink]="['/shop', item.id]"
                  class="bg-dark-800 border border-dark-600 rounded-xl overflow-hidden hover:border-primary-500/40 transition-all group/card">
-                <div class="aspect-square relative overflow-hidden bg-dark-700">
+                <div class="aspect-square relative overflow-hidden bg-dark-750">
                   @if (item.images?.length > 0) {
-                    <img [src]="item.images[0]" [alt]="item.title" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"/>
+                    <img [src]="item.images[0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"/>
                   } @else {
-                    <div class="w-full h-full flex items-center justify-center text-2xl">🎸</div>
+                    <div class="w-full h-full flex items-center justify-center text-ink-muted">
+                      <app-icon name="shopping-cart" [size]="24"/>
+                    </div>
                   }
                   <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                     <p class="text-xs font-black text-white">{{ item.price | number:'1.0-0' }} €</p>
                   </div>
                 </div>
                 <div class="p-2">
-                  <p class="text-[11px] font-medium text-ink truncate">{{ item.title }}</p>
+                  <p class="text-[11px] font-semibold text-ink truncate">{{ item.title }}</p>
                   <p class="text-[10px] text-ink-muted">{{ item.category }}</p>
                 </div>
               </a>
             }
           </div>
         }
-        <a routerLink="/shop/new" class="mt-2 flex items-center justify-center gap-1.5 py-2 text-[11px] font-semibold text-primary-500 hover:text-primary-400 border border-dashed border-dark-600 hover:border-primary-500/40 rounded-xl transition-colors">
+        <a routerLink="/shop/new" class="mt-2 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-primary-500 hover:text-primary-400 border border-dashed border-dark-600 hover:border-primary-500/40 rounded-xl transition-colors">
           + Vender equipamiento
         </a>
       </div>
@@ -348,26 +378,33 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-400"><app-icon name="headphones" [size]="13"/></span>
+            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+              <app-icon name="headphones" [size]="12"/>
+            </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Ensayo</p>
           </div>
-          <a routerLink="/search" [queryParams]="{tab:'rehearsal'}" class="text-[10px] text-primary-400 hover:text-primary-300 transition-colors">Ver todos →</a>
+          <a routerLink="/search" [queryParams]="{tab:'rehearsal'}" class="text-[10px] font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver todos →</a>
         </div>
         @if (!loading() && recentRehearsals().length === 0) {
-          <p class="text-xs text-ink-muted py-2 text-center">Sin locales aún</p>
+          <p class="text-xs text-ink-muted py-3 text-center">Sin locales aún — <a routerLink="/search" [queryParams]="{tab:'rehearsal'}" class="text-primary-500 hover:text-primary-400">explorar</a></p>
         } @else {
           <div class="flex flex-col gap-2">
             @for (r of recentRehearsals().slice(0,4); track r.id) {
               <a [routerLink]="['/rehearsal', r.id]"
-                 class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-700 transition-all group">
-                <div class="w-8 h-8 rounded-lg bg-dark-700 border border-dark-600 flex items-center justify-center text-xs font-bold text-ink-3 flex-shrink-0">
-                  {{ r.name?.slice(0,2).toUpperCase() }}
+                 class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
+                     [style.background]="avatarColor(r.name)">
+                  @if (r.avatar_url) {
+                    <img [src]="r.avatar_url" class="w-full h-full object-cover" loading="lazy"/>
+                  } @else {
+                    {{ r.name?.slice(0,2).toUpperCase() }}
+                  }
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-400 transition-colors">{{ r.name }}</p>
+                  <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ r.name }}</p>
                   <p class="text-[10px] text-ink-muted truncate">{{ r.city }}@if (r.capacity) { · {{ r.capacity }} pers. }</p>
                 </div>
-                @if (r.hourly_rate) { <span class="tag text-[10px] flex-shrink-0">{{ r.hourly_rate }}€/h</span> }
+                @if (r.hourly_rate) { <span class="tag flex-shrink-0">{{ r.hourly_rate }}€/h</span> }
               </a>
             }
           </div>
@@ -378,30 +415,33 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-400"><app-icon name="book-open" [size]="13"/></span>
+            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+              <app-icon name="book-open" [size]="12"/>
+            </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Clases</p>
           </div>
-          <a routerLink="/search" [queryParams]="{tab:'teachers'}" class="text-[10px] text-primary-400 hover:text-primary-300 transition-colors">Ver todos →</a>
+          <a routerLink="/search" [queryParams]="{tab:'teachers'}" class="text-[10px] font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver todos →</a>
         </div>
         @if (!loading() && recentTeachers().length === 0) {
-          <p class="text-xs text-ink-muted py-2 text-center">Sin profesores aún</p>
+          <p class="text-xs text-ink-muted py-3 text-center">Sin profesores aún — <a routerLink="/search" [queryParams]="{tab:'teachers'}" class="text-primary-500 hover:text-primary-400">explorar</a></p>
         } @else {
           <div class="flex flex-col gap-2">
             @for (t of recentTeachers().slice(0,4); track t.id) {
               <a [routerLink]="['/teachers', t.id]"
-                 class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-700 transition-all group">
-                <div class="w-8 h-8 rounded-full bg-dark-600 flex items-center justify-center text-xs font-bold text-ink-3 flex-shrink-0 overflow-hidden">
+                 class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
+                     [style.background]="avatarColor(t.name)">
                   @if (t.avatar_url) {
-                    <img [src]="t.avatar_url" class="w-full h-full object-cover"/>
+                    <img [src]="t.avatar_url" class="w-full h-full object-cover" loading="lazy"/>
                   } @else {
                     {{ t.name?.slice(0,2).toUpperCase() }}
                   }
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-400 transition-colors">{{ t.name }}</p>
+                  <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ t.name }}</p>
                   <p class="text-[10px] text-ink-muted truncate">{{ t.instrument }}@if (t.city) { · {{ t.city }} }</p>
                 </div>
-                @if (t.hourly_rate) { <span class="tag-accent text-[10px] flex-shrink-0">{{ t.hourly_rate }}€/h</span> }
+                @if (t.hourly_rate) { <span class="tag-accent flex-shrink-0">{{ t.hourly_rate }}€/h</span> }
               </a>
             }
           </div>
@@ -412,23 +452,30 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-400"><app-icon name="building" [size]="13"/></span>
+            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+              <app-icon name="building" [size]="12"/>
+            </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Salas</p>
           </div>
-          <a routerLink="/search" [queryParams]="{tab:'venues'}" class="text-[10px] text-primary-400 hover:text-primary-300 transition-colors">Ver todas →</a>
+          <a routerLink="/search" [queryParams]="{tab:'venues'}" class="text-[10px] font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver todas →</a>
         </div>
         @if (!loading() && recentVenues().length === 0) {
-          <p class="text-xs text-ink-muted py-2 text-center">Sin espacios aún</p>
+          <p class="text-xs text-ink-muted py-3 text-center">Sin salas aún — <a routerLink="/search" [queryParams]="{tab:'venues'}" class="text-primary-500 hover:text-primary-400">explorar</a></p>
         } @else {
           <div class="flex flex-col gap-2">
             @for (venue of recentVenues().slice(0,4); track venue.id) {
               <a [routerLink]="['/venues', venue.id]"
-                 class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-700 transition-all group">
-                <div class="w-8 h-8 rounded-lg bg-dark-700 border border-dark-600 flex items-center justify-center text-xs font-bold text-ink-3 flex-shrink-0">
-                  {{ venue.name?.slice(0,2).toUpperCase() }}
+                 class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
+                     [style.background]="avatarColor(venue.name)">
+                  @if (venue.avatar_url) {
+                    <img [src]="venue.avatar_url" class="w-full h-full object-cover" loading="lazy"/>
+                  } @else {
+                    {{ venue.name?.slice(0,2).toUpperCase() }}
+                  }
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-400 transition-colors">{{ venue.name }}</p>
+                  <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ venue.name }}</p>
                   <p class="text-[10px] text-ink-muted truncate">{{ venue.city }}@if (venue.capacity) { · {{ venue.capacity }} personas }</p>
                 </div>
               </a>
@@ -438,7 +485,5 @@
       </div>
 
     </aside>
-    <!-- end right sidebar -->
-
   </div>
 </div>

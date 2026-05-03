@@ -1,26 +1,29 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:64px">
 
+  <!-- Header -->
   <div class="border-b border-dark-600 bg-dark-800/50">
-    <div class="max-w-3xl mx-auto px-6 lg:px-10 py-6">
-      <div class="section-label mb-2">Mis guardados</div>
-      <h1 class="text-2xl font-bold text-ink">Favoritos</h1>
-      <p class="text-xs text-ink-muted mt-1">{{ favorites().length }} elemento{{ favorites().length !== 1 ? 's' : '' }} guardado{{ favorites().length !== 1 ? 's' : '' }}</p>
+    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-6">
+      <p class="section-label mb-1.5">Colección personal</p>
+      <div class="flex items-end justify-between gap-4">
+        <h1 class="text-2xl font-bold text-ink">Favoritos</h1>
+        @if (!loading() && favorites().length > 0) {
+          <span class="text-xs text-ink-muted bg-dark-700 border border-dark-600 px-2.5 py-1 rounded-full mb-0.5">
+            {{ favorites().length }} guardado{{ favorites().length !== 1 ? 's' : '' }}
+          </span>
+        }
+      </div>
     </div>
   </div>
 
-  <div class="max-w-3xl mx-auto px-6 lg:px-10 py-8">
+  <div class="max-w-4xl mx-auto px-6 lg:px-10 py-7">
 
     <!-- Tabs -->
-    <div class="flex gap-2 flex-wrap mb-6">
+    <div class="flex gap-1.5 flex-wrap mb-6 overflow-x-auto no-scrollbar">
       @for (tab of tabs; track tab.id) {
         <button (click)="activeTab.set(tab.id)"
-          class="px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors"
-          [class.bg-night]="activeTab() === tab.id"
-          [class.text-white]="activeTab() === tab.id"
-          [class.border-transparent]="activeTab() === tab.id"
-          [class.text-ink-muted]="activeTab() !== tab.id"
-          [class.border-dark-600]="activeTab() !== tab.id"
-          [class.hover:text-ink]="activeTab() !== tab.id">
+          class="px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors whitespace-nowrap flex-shrink-0"
+          [class.genre-pill-active]="activeTab() === tab.id"
+          [class.genre-pill-inactive]="activeTab() !== tab.id">
           {{ tab.label }}
           @if (tab.id !== 'all' && countFor(tab.id) > 0) {
             <span class="ml-1 opacity-60">{{ countFor(tab.id) }}</span>
@@ -30,44 +33,85 @@
     </div>
 
     @if (loading()) {
-      <div class="flex items-center justify-center py-20">
-        <div class="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      <!-- Skeleton -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden animate-pulse">
+            <div class="h-1 bg-dark-700"></div>
+            <div class="p-4 flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-dark-700 flex-shrink-0"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3.5 bg-dark-700 rounded w-3/4"></div>
+                <div class="h-2.5 bg-dark-600 rounded w-1/2"></div>
+              </div>
+            </div>
+          </div>
+        }
       </div>
     } @else if (filteredFavs.length === 0) {
-      <div class="text-center py-20">
-        <div class="w-14 h-14 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mx-auto mb-4 text-ink-muted">
-          <app-icon name="heart" [size]="24"/>
+      <div class="flex flex-col items-center justify-center py-20 gap-4 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center">
+          <app-icon name="heart" [size]="28" class="text-ink-muted"/>
         </div>
-        <p class="text-sm font-medium text-ink-3 mb-1">Sin favoritos en esta categoría</p>
-        <p class="text-xs text-ink-muted mb-6">Toca el corazón en cualquier perfil para guardarlo aquí</p>
-        <a routerLink="/search" class="btn-accent text-sm">Explorar directorio</a>
+        <div>
+          <p class="font-semibold text-ink text-[15px]">
+            @if (activeTab() === 'all') { Aún no tienes favoritos }
+            @else { Sin favoritos en esta categoría }
+          </p>
+          <p class="text-[13px] text-ink-muted mt-1">Toca el corazón en cualquier perfil para guardarlo aquí</p>
+        </div>
+        <a routerLink="/search" class="btn-primary text-sm">Explorar directorio</a>
       </div>
     } @else {
-      <div class="flex flex-col gap-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (fav of filteredFavs; track fav.id) {
           @if (item(fav); as it) {
-            <a [routerLink]="route(fav)" class="card p-4 flex items-center gap-4 group cursor-pointer">
-              <div class="w-11 h-11 rounded-full bg-night flex items-center justify-center text-sm font-bold text-white flex-shrink-0 overflow-hidden">
-                @if (it.avatar_url) {
-                  <img [src]="it.avatar_url" [alt]="it.name || it.title" class="w-full h-full object-cover"/>
-                } @else {
-                  {{ (it.name || it.title)?.slice(0,2)?.toUpperCase() }}
-                }
+            <a [routerLink]="route(fav)"
+               class="group flex flex-col bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden hover:border-primary-400/60 hover:shadow-card-md transition-all duration-200 cursor-pointer">
+              <!-- Color stripe -->
+              <div class="h-1 flex-shrink-0" [style.background]="avatarColor(it.name || it.title)"></div>
+
+              <div class="p-4 flex flex-col gap-3 flex-1">
+                <!-- Header -->
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-sm"
+                       [style.background]="avatarColor(it.name || it.title)">
+                    @if (it.avatar_url) {
+                      <img [src]="it.avatar_url" [alt]="it.name || it.title" class="w-full h-full object-cover" loading="lazy"/>
+                    } @else {
+                      {{ (it.name || it.title)?.slice(0,2)?.toUpperCase() }}
+                    }
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-bold text-ink group-hover:text-primary-500 transition-colors truncate leading-snug">
+                      {{ it.name || it.title }}
+                    </h3>
+                    @if (it.instrument || it.genre || it.genres) {
+                      <p class="text-[12px] text-ink-3 mt-0.5 truncate">
+                        {{ it.instrument || it.genre || it.genres }}
+                      </p>
+                    }
+                    @if (it.city) {
+                      <p class="text-[11px] text-ink-muted mt-0.5 flex items-center gap-1">
+                        <app-icon name="map-pin" [size]="10"/>
+                        {{ it.city }}
+                      </p>
+                    }
+                  </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex items-center justify-between mt-auto pt-2.5 border-t border-dark-600">
+                  <span class="text-[11px] font-semibold text-primary-500 bg-primary-900 border border-primary-500/25 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <app-icon [name]="typeIcon(fav.entity_type)" [size]="10"/>
+                    {{ typeLabel(fav.entity_type) }}
+                  </span>
+                  <span class="text-[11px] font-semibold text-primary-500 flex items-center gap-0.5 group-hover:gap-1 transition-all">
+                    Ver
+                    <app-icon name="arrow-right" [size]="11"/>
+                  </span>
+                </div>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-ink group-hover:text-primary-500 transition-colors truncate">
-                  {{ it.name || it.title }}
-                </p>
-                <p class="text-xs text-ink-muted mt-0.5 truncate">
-                  {{ typeLabel(fav.entity_type) }}
-                  @if (it.city) { · {{ it.city }} }
-                  @if (it.instrument) { · {{ it.instrument }} }
-                  @if (it.genre || it.genres) { · {{ it.genre || it.genres }} }
-                </p>
-              </div>
-              <svg class="w-4 h-4 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
             </a>
           }
         }

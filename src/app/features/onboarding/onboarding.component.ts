@@ -1,16 +1,17 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { CITIES } from '../../core/constants/cities';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal';
 
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, RouterLink, IconComponent],
+  imports: [ReactiveFormsModule, FormsModule, CommonModule, RouterLink, IconComponent],
   templateUrl: './onboarding.component.html',
 })
 export class OnboardingComponent implements OnInit {
@@ -20,6 +21,7 @@ export class OnboardingComponent implements OnInit {
 
   step = signal(0);
   role = signal<Role>('musician');
+  originalRole = signal<Role | null>(null);
   loading = signal(false);
   error = signal('');
   isEditing = signal(false);
@@ -27,6 +29,14 @@ export class OnboardingComponent implements OnInit {
   selectedInstruments = signal<string[]>([]);
   selectedGenres = signal<string[]>([]);
   selectedLevel = signal<string>('');
+
+  bandMembers: { name: string; instrument: string }[] = [];
+  selectedDays = signal<string[]>([]);
+  selectedSlots = signal<string[]>([]);
+
+  readonly DAYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+  readonly DAYS_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  readonly SLOTS = ['mañanas', 'tardes', 'noches'];
 
   roles: { id: Role; label: string; icon: string; desc: string }[] = [
     { id: 'musician',  label: 'Músico',         icon: 'music',      desc: 'Toco solo o busco banda' },
@@ -45,7 +55,7 @@ export class OnboardingComponent implements OnInit {
     { id: 'pro',          label: 'Profesional',  desc: 'Vivo de la música' },
     { id: 'experto',      label: 'Experto',      desc: 'Sesionista / maestro' },
   ];
-  cities = ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga', 'Zaragoza', 'Otra'];
+  cities = CITIES;
 
   nameForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -82,6 +92,16 @@ export class OnboardingComponent implements OnInit {
     if (cur.includes(g)) { this.selectedGenres.set(cur.filter(x => x !== g)); return; }
     if (cur.length < 5) this.selectedGenres.set([...cur, g]);
   }
+  toggleDay(d: string) {
+    const cur = this.selectedDays();
+    this.selectedDays.set(cur.includes(d) ? cur.filter(x => x !== d) : [...cur, d]);
+  }
+  toggleSlot(s: string) {
+    const cur = this.selectedSlots();
+    this.selectedSlots.set(cur.includes(s) ? cur.filter(x => x !== s) : [...cur, s]);
+  }
+  addMember() { this.bandMembers.push({ name: '', instrument: '' }); }
+  removeMember(i: number) { this.bandMembers.splice(i, 1); }
 
   next() { this.step.update(s => s + 1); }
   back() { this.step.update(s => Math.max(0, s - 1)); }
@@ -112,6 +132,7 @@ export class OnboardingComponent implements OnInit {
       const { data } = await this.supabase.client.from(table).select('*').eq('user_id', user.id).maybeSingle();
       if (data) {
         this.role.set(role);
+        this.originalRole.set(role);
         this.isEditing.set(true);
         this.nameForm.patchValue({ name: data.name });
         this.zoneForm.patchValue({
@@ -136,11 +157,22 @@ export class OnboardingComponent implements OnInit {
         if (data.genres)      this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
         if (data.instrument)  this.selectedInstruments.set([data.instrument]);
         if (data.level)       this.selectedLevel.set(data.level);
+        if (role === 'band') {
+          const { data: members } = await this.supabase.client
+            .from('band_members').select('name,instrument').eq('band_id', data.id);
+          if (members) this.bandMembers = members.map((m: any) => ({ name: m.name, instrument: m.instrument }));
+        }
+        if (role === 'musician') {
+          if (data.availability_days) this.selectedDays.set(data.availability_days.split(',').filter(Boolean));
+          if (data.availability_slots) this.selectedSlots.set(data.availability_slots.split(',').filter(Boolean));
+        }
         break;
       }
     }
     if (!this.isEditing()) {
-      const savedRole = (localStorage.getItem('bandyou_role') || 'musician') as Role;
+      const VALID_ROLES: Role[] = ['musician', 'band', 'venue', 'teacher', 'rehearsal'];
+      const stored = localStorage.getItem('bandyou_role');
+      const savedRole: Role = VALID_ROLES.includes(stored as Role) ? (stored as Role) : 'musician';
       this.role.set(savedRole);
     }
   }
@@ -157,6 +189,15 @@ export class OnboardingComponent implements OnInit {
 
     await this.supabase.client.from('profiles').update({ role }).eq('id', user.id);
 
+    const roleTableMap: Record<Role, string> = {
+      musician: 'musicians', band: 'bands', venue: 'venues',
+      teacher: 'teachers', rehearsal: 'rehearsal_spaces',
+    };
+    const prev = this.originalRole();
+    if (prev && prev !== role) {
+      await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', user.id);
+    }
+
     const genre = this.selectedGenres().join(', ');
     const instrument = this.selectedInstruments().join(', ');
     let saveError = null;
@@ -166,27 +207,38 @@ export class OnboardingComponent implements OnInit {
         user_id: user.id, name: this.nameForm.value.name,
         city: z.city, genre, instrument, level: this.selectedLevel(),
         description: z.description, contact_email: z.contactEmail || user.email,
-        available: true, spotify_url: z.spotify_url, youtube_url: z.youtube_url,
+        spotify_url: z.spotify_url, youtube_url: z.youtube_url,
         instagram_url: z.instagram_url, soundcloud_url: z.soundcloud_url,
         influences: z.influences, experience: z.experience,
+        availability_days: this.selectedDays().join(','),
+        availability_slots: this.selectedSlots().join(','),
       }, { onConflict: 'user_id' });
       saveError = error;
     } else if (role === 'band') {
-      const { error } = await this.supabase.client.from('bands').upsert({
+      const { data: bandRow, error } = await this.supabase.client.from('bands').upsert({
         user_id: user.id, name: this.nameForm.value.name,
         city: z.city, genre, description: z.description,
         contact_email: z.contactEmail || user.email,
         spotify_url: z.spotify_url, youtube_url: z.youtube_url,
         instagram_url: z.instagram_url, website_url: z.website_url,
-      }, { onConflict: 'user_id' });
+      }, { onConflict: 'user_id' }).select('id').single();
       saveError = error;
+      if (!error && bandRow) {
+        await this.supabase.client.from('band_members').delete().eq('band_id', bandRow.id);
+        const validMembers = this.bandMembers.filter(m => m.name.trim() && m.instrument);
+        if (validMembers.length > 0) {
+          await this.supabase.client.from('band_members').insert(
+            validMembers.map(m => ({ band_id: bandRow.id, name: m.name.trim(), instrument: m.instrument }))
+          );
+        }
+      }
     } else if (role === 'venue') {
       const { error } = await this.supabase.client.from('venues').upsert({
         user_id: user.id, name: this.nameForm.value.name,
         city: z.city, genres: genre, capacity: z.capacity,
         description: z.description, contact_email: z.contactEmail || user.email,
         instagram_url: z.instagram_url, website_url: z.website_url,
-        phone: z.phone, address: z.address, equipment: z.description,
+        phone: z.phone, address: z.address,
       }, { onConflict: 'user_id' });
       saveError = error;
     } else if (role === 'teacher') {

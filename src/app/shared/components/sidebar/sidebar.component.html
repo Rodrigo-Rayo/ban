@@ -168,23 +168,6 @@
       </div>
     }
 
-    <!-- Disponibles — solo músicos -->
-    @if (isSearch && currentTab === 'musicians') {
-      <div class="px-1 mt-1">
-        <button (click)="filterAvailable.set(!filterAvailable()); applyFilter()"
-          class="w-full flex items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors"
-          [class.bg-signal-gBg]="filterAvailable()"
-          [class.border-signal-green]="filterAvailable()"
-          [class.text-signal-green]="filterAvailable()"
-          [class.border-dark-600]="!filterAvailable()"
-          [class.text-ink-muted]="!filterAvailable()">
-          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-            [class.bg-signal-green]="filterAvailable()"
-            [class.bg-dark-500]="!filterAvailable()"></span>
-          Solo disponibles
-        </button>
-      </div>
-    }
 
     <div class="border-t border-dark-600 my-2"></div>
 
@@ -243,7 +226,9 @@
       <div class="absolute bottom-full left-3 right-3 mb-1 bg-dark-800 border border-dark-600 rounded-xl shadow-xl overflow-hidden z-50"
            (click)="publishOpen = false">
         <button (click)="router.navigate(['/feed'])" class="flex items-center gap-2.5 px-4 py-3 w-full text-left hover:bg-dark-700 transition-colors">
-          <span class="text-base">📢</span>
+          <div class="w-7 h-7 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center justify-center flex-shrink-0">
+            <app-icon name="newspaper" [size]="13" class="text-primary-400"/>
+          </div>
           <div>
             <div class="text-xs font-medium text-ink">Anuncio</div>
             <div class="text-[10px] text-ink-muted">Busca banda, colabora…</div>
@@ -251,7 +236,9 @@
         </button>
         <div class="border-t border-dark-600"></div>
         <button (click)="router.navigate(['/events/create'])" class="flex items-center gap-2.5 px-4 py-3 w-full text-left hover:bg-dark-700 transition-colors">
-          <span class="text-base">📅</span>
+          <div class="w-7 h-7 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center justify-center flex-shrink-0">
+            <app-icon name="calendar" [size]="13" class="text-primary-400"/>
+          </div>
           <div>
             <div class="text-xs font-medium text-ink">Evento</div>
             <div class="text-[10px] text-ink-muted">Concierto, jam session…</div>
@@ -259,7 +246,9 @@
         </button>
         <div class="border-t border-dark-600"></div>
         <button (click)="router.navigate(['/shop/new'])" class="flex items-center gap-2.5 px-4 py-3 w-full text-left hover:bg-dark-700 transition-colors">
-          <span class="text-base">🎸</span>
+          <div class="w-7 h-7 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center justify-center flex-shrink-0">
+            <app-icon name="shopping-cart" [size]="13" class="text-primary-400"/>
+          </div>
           <div>
             <div class="text-xs font-medium text-ink">Vender equipo</div>
             <div class="text-[10px] text-ink-muted">Instrumentos, efectos…</div>

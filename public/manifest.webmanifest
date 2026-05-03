@@ -1,0 +1,48 @@
+{
+  "name": "BandYou — La red musical de España",
+  "short_name": "BandYou",
+  "description": "Directorio de músicos, bandas, salas y profesores. Mensajes directos, agenda de eventos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#edeae2",
+  "theme_color": "#a0442a",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["music", "social", "entertainment"],
+  "shortcuts": [
+    {
+      "name": "Buscar músicos",
+      "url": "/search?tab=musicians",
+      "description": "Buscar músicos y bandas"
+    },
+    {
+      "name": "Tienda",
+      "url": "/shop",
+      "description": "Comprar y vender equipamiento"
+    },
+    {
+      "name": "Agenda",
+      "url": "/search?tab=events",
+      "description": "Ver eventos próximos"
+    }
+  ]
+}

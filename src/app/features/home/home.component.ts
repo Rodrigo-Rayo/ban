@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { SeoService } from '../../core/services/seo.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
@@ -14,6 +15,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 export class HomeComponent implements OnInit {
   auth = inject(AuthService);
   private supabase = inject(SupabaseService);
+  private seo = inject(SeoService);
 
   recentMusicians  = signal<any[]>([]);
   recentBands      = signal<any[]>([]);
@@ -35,18 +37,20 @@ export class HomeComponent implements OnInit {
 
   today = new Date();
 
-  readonly postTypeMap: Record<string, { label: string; emoji: string }> = {
-    musician_seeking_band: { label: 'Músico busca banda', emoji: '🎸' },
-    band_seeking_musician: { label: 'Banda busca músico', emoji: '🥁' },
-    event_announcement:    { label: 'Anuncia un evento',  emoji: '📅' },
-    session_offer:         { label: 'Ofrezco sesión',     emoji: '🎙️' },
-    gear_sale:             { label: 'Vendo equipamiento',  emoji: '🎛️' },
-    looking_for_rehearsal: { label: 'Busco local ensayo', emoji: '🏠' },
-    collab:                { label: 'Busco colaboración', emoji: '🤝' },
-    other:                 { label: 'Anuncio',            emoji: '📢' },
+  readonly postTypeMap: Record<string, { label: string; icon: string }> = {
+    musician_seeking_band: { label: 'Músico busca banda', icon: 'music'         },
+    band_seeking_musician: { label: 'Banda busca músico', icon: 'mic'           },
+    event_announcement:    { label: 'Anuncia un evento',  icon: 'calendar'      },
+    session_offer:         { label: 'Ofrezco sesión',     icon: 'mic'           },
+    gear_sale:             { label: 'Vendo equipamiento',  icon: 'shopping-cart' },
+    looking_for_rehearsal: { label: 'Busco local ensayo', icon: 'headphones'    },
+    collab:                { label: 'Busco colaboración', icon: 'users'         },
+    other:                 { label: 'Anuncio',            icon: 'newspaper'     },
   };
 
   async ngOnInit() {
+    this.seo.set({ title: 'Inicio', description: 'Músicos, bandas, salas y eventos cerca de ti. Conecta con la escena musical de España.' });
+
     const { data: { session } } = await this.supabase.auth.getSession();
 
     if (session) {
@@ -84,7 +88,7 @@ export class HomeComponent implements OnInit {
       city
         ? this.supabase.client.from('bands').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
         : this.supabase.client.from('bands').select('*').order('created_at', { ascending: false }).limit(5),
-      this.supabase.client.from('events').select('*').gte('date', new Date().toISOString().split('T')[0]).order('date', { ascending: true }).limit(5),
+      this.supabase.client.from('events').select('*').gte('date', (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()).order('date', { ascending: true }).limit(5),
       this.supabase.client.from('venues').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('rehearsal_spaces').select('*').order('created_at', { ascending: false }).limit(5),
@@ -135,6 +139,15 @@ export class HomeComponent implements OnInit {
     this.profileScore.set(Math.round(((checks.length - missing.length) / checks.length) * 100));
   }
 
+  private readonly AVATAR_COLORS = [
+    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
+  ];
+
+  avatarColor(name: string): string {
+    const code = name?.charCodeAt(0) ?? 65;
+    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
+  }
+
   dismissNudge() { this.nudgeDismissed = true; }
 
   timeAgo(dateStr: string): string {
@@ -148,7 +161,7 @@ export class HomeComponent implements OnInit {
   }
 
   postInfo(type: string) {
-    return this.postTypeMap[type] ?? { label: 'Anuncio', emoji: '📢' };
+    return this.postTypeMap[type] ?? { label: 'Anuncio', icon: 'newspaper' };
   }
 
   isNearby(item: any): boolean {

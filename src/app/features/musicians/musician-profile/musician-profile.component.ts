@@ -4,11 +4,13 @@ import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
+import { SeoService } from '../../../core/services/seo.service';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-musician-profile',
   standalone: true,
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, CommonModule, IconComponent],
   templateUrl: './musician-profile.component.html',
 })
 export class MusicianProfileComponent implements OnInit {
@@ -17,6 +19,7 @@ export class MusicianProfileComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private messagesService = inject(MessagesService);
   private favSvc = inject(FavoritesService);
+  private seo = inject(SeoService);
 
   musician = signal<any>(null);
   loading = signal(true);
@@ -25,19 +28,26 @@ export class MusicianProfileComponent implements OnInit {
   favLoading = signal(false);
   sending = signal(false);
   msgError = signal<string | null>(null);
+  linkShared = signal(false);
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    const [{ data }, { data: { session } }] = await Promise.all([
-      this.supabase.client.from('musicians').select('*').eq('id', id!).single(),
-      this.supabase.auth.getSession(),
-    ]);
-    this.musician.set(data);
-    if (session) {
-      this.currentUserId.set(session.user.id);
-      this.isFav.set(await this.favSvc.isFavorite(session.user.id, 'musician', id!));
+    try {
+      const [{ data }, { data: { session } }] = await Promise.all([
+        this.supabase.client.from('musicians').select('*').eq('id', id!).maybeSingle(),
+        this.supabase.auth.getSession(),
+      ]);
+      this.musician.set(data);
+      if (data) this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url);
+      if (session) {
+        this.currentUserId.set(session.user.id);
+        this.isFav.set(await this.favSvc.isFavorite(session.user.id, 'musician', id!));
+      }
+    } catch {
+      // Profile not found or network error — musician() stays null, template shows empty state
+    } finally {
+      this.loading.set(false);
     }
-    this.loading.set(false);
   }
 
   async toggleFav() {
@@ -60,5 +70,24 @@ export class MusicianProfileComponent implements OnInit {
     if (!result) return;
     if ('error' in result) { this.msgError.set(result.error); return; }
     this.router.navigate(['/inbox', result.id], { state: { name: this.musician()!.name } });
+  }
+
+  async shareLink() {
+    const url = `${window.location.origin}/musicians/${this.musician()!.id}`;
+    if (navigator.share) {
+      await navigator.share({ title: this.musician()!.name, url }).catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(url);
+      this.linkShared.set(true);
+      setTimeout(() => this.linkShared.set(false), 2000);
+    }
+  }
+
+  private readonly AVATAR_COLORS = [
+    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
+  ];
+  avatarColor(name: string): string {
+    const code = name?.charCodeAt(0) ?? 65;
+    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
   }
 }

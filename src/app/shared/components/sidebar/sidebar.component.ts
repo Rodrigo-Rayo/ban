@@ -2,12 +2,13 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
+import { IconComponent } from '../icon/icon.component';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, IconComponent],
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent implements OnInit {
@@ -24,7 +25,6 @@ export class SidebarComponent implements OnInit {
   readonly genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk'];
   readonly instruments = ['Guitarra', 'Bajo', 'Batería', 'Teclados', 'Voz', 'Violín', 'Trompeta', 'Saxofón', 'Piano', 'Percusión', 'Otro'];
   filterInstrument = signal('');
-  filterAvailable = signal(false);
   publishOpen = false;
 
   ngOnInit() {
@@ -56,12 +56,11 @@ export class SidebarComponent implements OnInit {
   }
 
   get hasFilter() {
-    return this.filterQuery() || this.filterGenre() || this.filterCity() !== 'Toda España' || this.filterInstrument() || this.filterAvailable();
+    return this.filterQuery() || this.filterGenre() || this.filterCity() !== 'Toda España' || this.filterInstrument();
   }
 
   goTab(tab: string) {
     this.filterInstrument.set('');
-    this.filterAvailable.set(false);
     this.router.navigate(['/search'], { queryParams: this.buildParams(tab) });
   }
 
@@ -74,7 +73,6 @@ export class SidebarComponent implements OnInit {
     this.filterCity.set('Toda España');
     this.filterGenre.set('');
     this.filterInstrument.set('');
-    this.filterAvailable.set(false);
     this.router.navigate(['/search'], { queryParams: { tab: this.currentTab } });
   }
 
@@ -84,7 +82,6 @@ export class SidebarComponent implements OnInit {
     if (this.filterGenre())                  p['genre']      = this.filterGenre();
     if (this.filterQuery())                  p['q']          = this.filterQuery();
     if (this.filterInstrument())             p['instrument'] = this.filterInstrument();
-    if (this.filterAvailable())              p['available']  = 'true';
     return p;
   }
 }

@@ -1,0 +1,175 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:64px">
+
+  @if (event()) {
+    <div class="h-1 bg-primary-500"></div>
+  }
+
+  <!-- Back nav -->
+  <div class="px-6 lg:px-10 py-3 border-b border-dark-600 bg-dark-800/60">
+    <a [routerLink]="['/search']" [queryParams]="{tab:'events'}"
+       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-400 transition-colors group">
+      <svg class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Agenda
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600 animate-pulse">
+      <div class="max-w-3xl mx-auto px-6 lg:px-10 py-8">
+        <div class="flex gap-5 items-start">
+          <div class="flex-shrink-0 w-20 h-28 rounded-2xl bg-dark-700"></div>
+          <div class="flex-1 space-y-3 pt-1">
+            <div class="flex gap-2">
+              <div class="h-5 bg-dark-700 rounded-full w-16"></div>
+              <div class="h-5 bg-dark-700 rounded-full w-12"></div>
+            </div>
+            <div class="h-8 bg-dark-700 rounded w-3/4"></div>
+            <div class="h-4 bg-dark-600 rounded w-48"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="max-w-3xl mx-auto px-6 lg:px-10 py-8 animate-pulse flex flex-col gap-5">
+      <div class="flex gap-3">
+        <div class="h-11 bg-dark-700 rounded-xl w-40"></div>
+        <div class="h-11 bg-dark-700 rounded-xl w-32"></div>
+      </div>
+      <div class="h-32 bg-dark-800 rounded-2xl border border-dark-600"></div>
+      <div class="h-40 bg-dark-800 rounded-2xl border border-dark-600"></div>
+    </div>
+  } @else if (!event()) {
+    <div class="empty-state">
+      <div class="w-14 h-14 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
+        <app-icon name="calendar" [size]="24" class="text-ink-muted"/>
+      </div>
+      <h2 class="text-base font-bold text-ink mb-1">Evento no encontrado</h2>
+      <p class="text-sm text-ink-muted mb-5">Puede que haya sido eliminado o el enlace sea incorrecto</p>
+      <a [routerLink]="['/search']" [queryParams]="{tab:'events'}" class="btn-primary text-sm px-5">Ver agenda</a>
+    </div>
+  } @else {
+
+  <!-- HERO -->
+  <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600">
+    <div class="max-w-3xl mx-auto px-6 lg:px-10 py-8">
+      <div class="flex gap-5 items-start">
+
+        <!-- Date block -->
+        <div class="flex-shrink-0 text-center bg-primary-600 rounded-2xl px-5 py-4 shadow-lg min-w-[80px]">
+          <p class="text-[10px] font-bold text-white/70 uppercase tracking-widest mb-0.5">{{ event()!.date | date:'EEE' | uppercase }}</p>
+          <p class="text-4xl font-black text-white leading-none">{{ event()!.date | date:'d' }}</p>
+          <p class="text-[10px] font-bold text-white/70 uppercase tracking-widest mt-0.5">{{ event()!.date | date:'MMM' | uppercase }}</p>
+          @if (event()!.time) {
+            <p class="text-xs font-medium text-white mt-2.5 pt-2.5 border-t border-white/20">{{ event()!.time?.slice(0,5) }}h</p>
+          }
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap gap-2 mb-3">
+            @if (event()!.genre) { <span class="tag">{{ event()!.genre }}</span> }
+            @if (event()!.price) { <span class="tag-accent">{{ event()!.price }}</span> }
+            @if (rsvpCount() > 0) {
+              <span class="tag">{{ rsvpCount() }} {{ rsvpCount() === 1 ? 'asistente' : 'asistentes' }}</span>
+            }
+          </div>
+          <h1 class="text-2xl lg:text-3xl font-bold text-ink leading-tight mb-2">{{ event()!.title }}</h1>
+          <p class="text-sm text-ink-muted flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            {{ event()!.venue }}@if (event()!.city) { · {{ event()!.city }} }
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="max-w-3xl mx-auto px-6 lg:px-10 py-8 flex flex-col gap-5">
+
+    <!-- Actions -->
+    <div class="flex gap-3 flex-wrap">
+      @if (event()!.ticket_url) {
+        <a [href]="event()!.ticket_url" target="_blank" class="btn-primary px-6 py-2.5 text-sm">
+          Comprar entradas
+        </a>
+      }
+      @if (currentUserId()) {
+        <button (click)="toggleRsvp()" [disabled]="rsvpLoading()"
+          class="px-5 py-2.5 text-sm font-semibold rounded-xl border transition-colors disabled:opacity-50 flex items-center gap-2"
+          [class.bg-primary-600]="isGoing()"
+          [class.border-primary-500]="isGoing()"
+          [class.text-white]="isGoing()"
+          [class.bg-dark-700]="!isGoing()"
+          [class.border-dark-600]="!isGoing()"
+          [class.text-ink]="!isGoing()">
+          @if (isGoing()) {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            Asistiré
+          } @else {
+            + Apuntarme
+          }
+        </button>
+      }
+      @if (event()!.contact_email) {
+        <a [href]="'mailto:' + event()!.contact_email" class="btn-secondary px-5 py-2.5 text-sm">
+          Contactar organizador
+        </a>
+      }
+    </div>
+
+    <!-- Description -->
+    @if (event()!.description) {
+      <div class="card-flat p-5">
+        <h3 class="section-label mb-3">Sobre el evento</h3>
+        <p class="text-sm text-ink-3 leading-relaxed">{{ event()!.description }}</p>
+      </div>
+    }
+
+    <!-- Details card -->
+    <div class="card-flat overflow-hidden">
+      <div class="px-5 py-3 border-b border-dark-600"><h3 class="section-label">Detalles</h3></div>
+      <div class="divide-y divide-dark-600 text-sm">
+        <div class="flex justify-between px-5 py-2.5">
+          <span class="text-ink-muted">Fecha</span>
+          <span class="font-medium text-ink">{{ event()!.date | date:'EEEE, d MMMM yyyy' }}</span>
+        </div>
+        @if (event()!.time) {
+          <div class="flex justify-between px-5 py-2.5">
+            <span class="text-ink-muted">Hora</span>
+            <span class="font-medium text-ink">{{ event()!.time?.slice(0,5) }}h</span>
+          </div>
+        }
+        @if (event()!.venue) {
+          <div class="flex justify-between px-5 py-2.5">
+            <span class="text-ink-muted">Lugar</span>
+            <span class="font-medium text-ink">{{ event()!.venue }}</span>
+          </div>
+        }
+        @if (event()!.city) {
+          <div class="flex justify-between px-5 py-2.5">
+            <span class="text-ink-muted">Ciudad</span>
+            <span class="font-medium text-ink">{{ event()!.city }}</span>
+          </div>
+        }
+        @if (event()!.price) {
+          <div class="flex justify-between px-5 py-2.5">
+            <span class="text-ink-muted">Precio</span>
+            <span class="font-medium text-ink">{{ event()!.price }}</span>
+          </div>
+        }
+        @if (rsvpCount() > 0) {
+          <div class="flex justify-between px-5 py-2.5">
+            <span class="text-ink-muted">Asistentes</span>
+            <span class="font-medium text-ink">{{ rsvpCount() }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+  }
+</div>

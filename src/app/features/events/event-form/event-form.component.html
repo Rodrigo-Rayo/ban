@@ -42,21 +42,33 @@
             <div>
               <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Nombre del evento *</label>
               <input formControlName="title" type="text" placeholder="Ej: Noche de Jazz en Sala Clamores" class="input-field"/>
+              @if (form.get('title')?.invalid && form.get('title')?.touched) {
+                <p class="text-xs text-signal-red mt-1">Mínimo 5 caracteres.</p>
+              }
             </div>
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Local / Sala *</label>
                 <input formControlName="venue" type="text" placeholder="Nombre del local" class="input-field"/>
+                @if (form.get('venue')?.invalid && form.get('venue')?.touched) {
+                  <p class="text-xs text-signal-red mt-1">El local es obligatorio.</p>
+                }
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Ciudad *</label>
                 <input formControlName="city" type="text" placeholder="Madrid" class="input-field"/>
+                @if (form.get('city')?.invalid && form.get('city')?.touched) {
+                  <p class="text-xs text-signal-red mt-1">La ciudad es obligatoria.</p>
+                }
               </div>
             </div>
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Fecha *</label>
                 <input formControlName="date" type="date" class="input-field"/>
+                @if (form.get('date')?.invalid && form.get('date')?.touched) {
+                  <p class="text-xs text-signal-red mt-1">La fecha es obligatoria.</p>
+                }
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Hora</label>
@@ -72,6 +84,9 @@
                     <option [value]="genre">{{ genre }}</option>
                   }
                 </select>
+                @if (form.get('genre')?.invalid && form.get('genre')?.touched) {
+                  <p class="text-xs text-signal-red mt-1">Selecciona un género.</p>
+                }
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Precio</label>

@@ -1,77 +1,146 @@
 <!-- HERO ─────────────────────────────────────────────── -->
-<section class="px-6 lg:px-14 pt-24 pb-20 max-w-7xl mx-auto">
-  <div class="max-w-3xl">
+<section class="relative overflow-hidden px-5 sm:px-8 lg:px-14 pt-20 pb-16 max-w-7xl mx-auto">
 
-    <!-- Chip -->
-    <div class="inline-flex items-center gap-2 bg-primary-900 border border-primary-500/25 rounded-full px-3 py-1 mb-8">
-      <span class="w-1.5 h-1.5 rounded-full bg-signal-green animate-pulse"></span>
-      <span class="text-xs font-medium text-primary-300">Ahora en España</span>
+  <!-- Background texture ring -->
+  <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full border border-primary-500/8 pointer-events-none"></div>
+  <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full border border-primary-500/6 pointer-events-none"></div>
+
+  <div class="grid lg:grid-cols-[1fr_auto] gap-10 items-start">
+    <div class="max-w-2xl">
+
+      <!-- Eyebrow -->
+      <div class="inline-flex items-center gap-2 bg-primary-900 border border-primary-500/25 rounded-full px-3 py-1 mb-7">
+        <span class="w-1.5 h-1.5 rounded-full bg-signal-green animate-pulse flex-shrink-0"></span>
+        <span class="text-xs font-semibold text-primary-600 tracking-wide">Comunidad musical de España</span>
+      </div>
+
+      <!-- Headline — editorial serif/sans mix -->
+      <h1 class="text-[clamp(3rem,8vw,5.5rem)] font-extrabold text-ink leading-[0.88] tracking-tighter mb-3">
+        La red musical
+      </h1>
+      <h1 class="text-[clamp(3rem,8vw,5.5rem)] font-extrabold leading-[0.88] tracking-tighter mb-6">
+        <span class="display-serif text-primary-500 not-italic" style="font-style:italic">de España.</span>
+      </h1>
+
+      <p class="text-base sm:text-lg text-ink-3 max-w-md leading-relaxed mb-8">
+        Músicos, bandas, salas y profesores — en un solo lugar.
+        Sin algoritmos, sin intermediarios, sin complicaciones.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-3 mb-6">
+        <a routerLink="/auth/register" class="btn-primary px-7 py-3.5 text-base">Crear perfil gratis</a>
+        <a routerLink="/search" class="btn-secondary px-7 py-3.5 text-base">Explorar directorio</a>
+      </div>
+
+      <p class="text-xs text-ink-muted font-medium">Sin tarjeta de crédito · Solo España</p>
     </div>
 
-    <!-- Headline -->
-    <h1 class="text-6xl sm:text-7xl lg:text-8xl font-extrabold text-ink leading-[0.88] tracking-tight mb-6">
-      La red musical<br>
-      <span class="text-primary-400">de España.</span>
-    </h1>
-
-    <p class="text-lg text-ink-3 max-w-xl leading-relaxed mb-10">
-      Directorio de músicos, bandas, salas y profesores. Mensajes directos,
-      agenda de eventos. Sin algoritmos, sin intermediarios.
-    </p>
-
-    <div class="flex flex-col sm:flex-row gap-3">
-      <a routerLink="/auth/register" class="btn-accent px-7 py-3.5 text-base">Crear perfil</a>
-      <a routerLink="/search" class="btn-secondary px-7 py-3.5 text-base">Explorar directorio</a>
+    <!-- Floating role pills — desktop only -->
+    <div class="hidden lg:flex flex-col gap-2 pt-2 flex-shrink-0">
+      @for (role of roles; track role.id) {
+        <a [routerLink]="['/auth/register']" [queryParams]="{role: role.id}"
+           class="flex items-center gap-3 px-4 py-3 bg-dark-800 border border-dark-600 rounded-xl hover:border-primary-500/40 hover:shadow-card-md transition-all group w-52">
+          <span class="w-8 h-8 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-400 flex-shrink-0 group-hover:bg-primary-900 transition-colors">
+            <app-icon [name]="role.icon" [size]="15"/>
+          </span>
+          <span class="text-sm font-semibold text-ink group-hover:text-primary-500 transition-colors">{{ role.label }}</span>
+          <svg class="w-4 h-4 text-ink-muted ml-auto group-hover:text-primary-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      }
     </div>
+  </div>
+</section>
 
-    <p class="text-xs text-ink-muted mt-5 font-medium">Sin tarjeta · España</p>
+<!-- STATS BAR ────────────────────────────────────────── -->
+<section class="border-y border-dark-600 bg-dark-800/60">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-14 py-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-0">
+      @for (stat of statItems(); track stat.label; let last = $last) {
+        <div class="text-center py-2" [class.border-r]="!last" [class.border-dark-600]="!last">
+          <p class="text-3xl sm:text-4xl font-black text-primary-500 tabular-nums">{{ stat.value || '—' }}</p>
+          <p class="text-[11px] text-ink-muted mt-1 font-semibold uppercase tracking-widest">{{ stat.label }}</p>
+        </div>
+      }
+    </div>
   </div>
 </section>
 
 <!-- CÓMO FUNCIONA ────────────────────────────────────── -->
-<section class="px-6 lg:px-14 py-24 max-w-7xl mx-auto">
-  <div class="section-label mb-4">Cómo funciona</div>
-  <h2 class="text-4xl lg:text-5xl font-bold text-ink mb-16 leading-tight">
-    Simple, directo,<br>sin complicaciones.
-  </h2>
+<section class="px-5 sm:px-8 lg:px-14 py-20 max-w-7xl mx-auto">
+  <div class="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
 
-  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-    @for (step of steps; track step.n) {
-      <div class="group">
-        <div class="text-5xl font-black text-primary-500/15 group-hover:text-primary-500/30 transition-colors mb-5 leading-none">
-          {{ step.n }}
+    <div class="lg:w-64 flex-shrink-0">
+      <div class="section-label mb-3">Cómo funciona</div>
+      <h2 class="text-3xl lg:text-4xl font-extrabold text-ink leading-tight">Simple.<br>Directo.</h2>
+      <div class="mt-6 h-px bg-gradient-to-r from-primary-500/40 to-transparent w-24"></div>
+    </div>
+
+    <div class="flex-1 grid sm:grid-cols-2 gap-x-10 gap-y-8">
+      @for (step of steps; track step.n) {
+        <div class="group">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="text-xs font-black text-primary-500 font-mono tracking-widest">{{ step.n }}</span>
+            <div class="flex-1 h-px bg-dark-600"></div>
+          </div>
+          <h3 class="text-base font-bold text-ink mb-1.5">{{ step.title }}</h3>
+          <p class="text-sm text-ink-muted leading-relaxed">{{ step.desc }}</p>
         </div>
-        <h3 class="text-base font-semibold text-ink mb-2">{{ step.title }}</h3>
-        <p class="text-sm text-ink-muted leading-relaxed">{{ step.desc }}</p>
-      </div>
-    }
+      }
+    </div>
   </div>
 </section>
 
-<!-- DIRECTORIO ───────────────────────────────────────── -->
-<section class="px-6 lg:px-14 py-20 border-y border-dark-600 bg-dark-800/30">
+<!-- DIRECTORIO BENTO ─────────────────────────────────── -->
+<section class="px-5 sm:px-8 lg:px-14 py-20 border-y border-dark-600 bg-dark-750/30">
   <div class="max-w-7xl mx-auto">
-    <div class="section-label mb-4">Directorio</div>
-    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
-      <h2 class="text-4xl font-bold text-ink">¿Qué buscas?</h2>
-      <a routerLink="/search" class="text-sm text-primary-400 hover:text-primary-300 font-medium transition-colors">
-        Ver todo el directorio →
+
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+      <div>
+        <div class="section-label mb-2">Directorio completo</div>
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-ink">¿Qué buscas?</h2>
+      </div>
+      <a routerLink="/search" class="text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors flex-shrink-0 flex items-center gap-1">
+        Ver todo
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
       </a>
     </div>
 
-    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-      @for (cat of catalog; track cat.tab) {
+    <!-- Bento grid — first card spans 2 rows on desktop -->
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+      @for (cat of catalog; track cat.tab; let i = $index) {
         <a [routerLink]="['/search']" [queryParams]="{tab: cat.tab}"
-           class="card p-5 flex flex-col gap-4 cursor-pointer group">
-          <div class="w-10 h-10 rounded-xl bg-primary-900/60 border border-primary-500/20 flex items-center justify-center text-primary-400 group-hover:bg-primary-900 transition-colors">
-            <app-icon [name]="cat.icon" [size]="18"/>
-          </div>
-          <div>
-            <div class="text-sm font-bold text-ink group-hover:text-primary-500 transition-colors">{{ cat.label }}</div>
-            <p class="text-xs text-ink-3 leading-relaxed mt-1">{{ cat.desc }}</p>
-          </div>
-          <div class="text-xs font-semibold text-primary-400 group-hover:text-primary-300 transition-colors">
-            Explorar →
+           class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden cursor-pointer group hover:border-primary-500/50 hover:shadow-card-md transition-all flex flex-col"
+           [class.lg:row-span-2]="i === 0"
+           [class.col-span-2]="i === 4"
+           [class.lg:col-span-1]="i === 4">
+
+          <!-- Accent strip -->
+          <div class="h-1 flex-shrink-0 bg-gradient-to-r"
+               [class.from-primary-600]="i === 0" [class.to-primary-400]="i === 0"
+               [class.from-primary-500]="i !== 0" [class.to-primary-400]="i !== 0"
+               [style.opacity]="i === 0 ? '1' : '0.5'"></div>
+
+          <div class="p-5 flex flex-col gap-4 flex-1" [class.lg:p-7]="i === 0">
+            <div class="w-10 h-10 rounded-xl bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500 group-hover:bg-primary-900 transition-colors"
+                 [class.w-12]="i === 0" [class.h-12]="i === 0">
+              <app-icon [name]="cat.icon" [size]="i === 0 ? 20 : 18"/>
+            </div>
+            <div>
+              <div class="font-bold text-ink group-hover:text-primary-500 transition-colors leading-snug"
+                   [class.text-lg]="i === 0" [class.text-sm]="i !== 0">{{ cat.label }}</div>
+              <p class="text-xs text-ink-3 leading-relaxed mt-1.5"
+                 [class.text-sm]="i === 0" [class.mt-2]="i === 0">{{ cat.desc }}</p>
+            </div>
+            <div class="text-xs font-semibold text-primary-400 group-hover:text-primary-600 transition-colors mt-auto flex items-center gap-1">
+              Explorar
+              <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
           </div>
         </a>
       }
@@ -79,31 +148,58 @@
   </div>
 </section>
 
+<!-- ROLES — mobile visible ───────────────────────────── -->
+<section class="px-5 sm:px-8 lg:px-14 py-20 max-w-7xl mx-auto lg:hidden">
+  <div class="section-label mb-3">Empieza como</div>
+  <h2 class="text-3xl font-extrabold text-ink mb-8">¿Qué eres tú?</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+    @for (role of roles; track role.id) {
+      <a [routerLink]="['/auth/register']" [queryParams]="{role: role.id}"
+         class="card p-4 flex flex-col gap-3 cursor-pointer group hover:border-primary-500/50">
+        <div class="w-9 h-9 rounded-xl bg-primary-900/70 border border-primary-500/20 flex items-center justify-center text-primary-500 group-hover:bg-primary-900 transition-colors">
+          <app-icon [name]="role.icon" [size]="16"/>
+        </div>
+        <div>
+          <div class="text-sm font-bold text-ink group-hover:text-primary-500 transition-colors">{{ role.label }}</div>
+          <p class="text-xs text-ink-muted mt-0.5">{{ role.desc }}</p>
+        </div>
+        <span class="text-xs font-semibold text-primary-500 mt-auto">Crear perfil →</span>
+      </a>
+    }
+  </div>
+</section>
+
 <!-- CTA FINAL ────────────────────────────────────────── -->
-<section class="px-6 lg:px-14 py-28 border-t border-dark-600 bg-dark-800/40">
+<section class="px-5 sm:px-8 lg:px-14 py-24 border-t border-dark-600">
   <div class="max-w-7xl mx-auto">
-    <div class="max-w-xl">
-      <div class="section-label mb-5">Empieza hoy</div>
-      <h2 class="text-5xl lg:text-6xl font-extrabold text-ink leading-tight mb-6">
-        ¿Listo para<br>
-        <span class="text-primary-400">conectar?</span>
-      </h2>
-      <p class="text-base text-ink-3 mb-8 leading-relaxed max-w-sm">
-        Crea tu perfil en minutos y empieza a conectar con la escena musical.
-      </p>
-      <div class="flex gap-3">
-        <a routerLink="/auth/register" class="btn-accent px-7 py-3.5 text-base">Registrarme</a>
-        <a routerLink="/auth/login" class="btn-ghost px-5 py-3.5 text-base">Ya tengo cuenta</a>
+    <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/30 border border-dark-600 rounded-2xl p-8 sm:p-12 lg:p-16 relative overflow-hidden">
+      <!-- Subtle ring decoration -->
+      <div class="absolute -bottom-20 -right-20 w-64 h-64 rounded-full border border-primary-500/10 pointer-events-none"></div>
+      <div class="absolute -bottom-10 -right-10 w-40 h-40 rounded-full border border-primary-500/8 pointer-events-none"></div>
+
+      <div class="relative max-w-xl">
+        <div class="section-label mb-4">Únete hoy</div>
+        <h2 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-ink leading-[0.9] tracking-tight mb-5">
+          ¿Listo para<br>
+          <span class="display-serif text-primary-500" style="font-style:italic">conectar?</span>
+        </h2>
+        <p class="text-base text-ink-3 mb-8 leading-relaxed max-w-sm">
+          Crea tu perfil en minutos y empieza a conectar con la escena musical española.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a routerLink="/auth/register" class="btn-primary px-8 py-3.5 text-base">Registrarme gratis</a>
+          <a routerLink="/auth/login" class="btn-ghost px-6 py-3.5 text-base">Ya tengo cuenta</a>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- FOOTER ───────────────────────────────────────────── -->
-<footer class="px-6 lg:px-14 py-8 border-t border-dark-600">
+<footer class="px-5 sm:px-8 lg:px-14 py-8 border-t border-dark-600">
   <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-4">
-      <span class="text-sm font-bold text-ink">Band<span class="text-primary-400">You</span></span>
+      <span class="text-sm font-black text-ink tracking-tight">Band<span class="text-primary-500">You</span></span>
       <span class="text-xs text-ink-muted">© Madrid, 2026</span>
     </div>
     <div class="flex gap-6 text-xs text-ink-muted">

@@ -1,10 +1,12 @@
-<div class="min-h-screen bg-dark-900 flex flex-col items-center justify-center px-4 py-16">
+<div class="min-h-screen bg-dark-900 flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+  <div class="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary-900/20 blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-32 -left-32 w-64 h-64 rounded-full bg-primary-900/15 blur-3xl pointer-events-none"></div>
 
-  <a routerLink="/" class="text-xl font-bold text-ink mb-10">
+  <a routerLink="/" class="text-xl font-bold text-ink mb-10 relative">
     Band<span class="text-primary-400">You</span>
   </a>
 
-  <div class="w-full max-w-sm">
+  <div class="w-full max-w-sm relative">
 
     @if (success()) {
       <div class="text-center py-10 animate-slide-in">
@@ -55,7 +57,7 @@
                 <input type="radio" formControlName="role" [value]="opt.val" class="sr-only peer"/>
                 <div class="text-center py-2.5 px-1 rounded-lg border text-[10px] font-semibold uppercase tracking-wide transition-all cursor-pointer
                             border-dark-600 text-ink-muted
-                            peer-checked:border-primary-500/50 peer-checked:bg-primary-900 peer-checked:text-primary-300">
+                            peer-checked:border-primary-500/50 peer-checked:bg-primary-900 peer-checked:text-primary-700">
                   {{ opt.label }}
                 </div>
               </label>
@@ -67,12 +69,18 @@
           <label class="block text-xs font-semibold text-ink-3 mb-2 uppercase tracking-wide">Email</label>
           <input formControlName="email" type="email" placeholder="tu@email.com"
             class="input-field" autocomplete="email"/>
+          @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            <p class="text-xs text-signal-red mt-1">Introduce un email válido.</p>
+          }
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-ink-3 mb-2 uppercase tracking-wide">Contraseña</label>
           <input formControlName="password" type="password" placeholder="Mínimo 6 caracteres"
             class="input-field" autocomplete="new-password"/>
+          @if (form.get('password')?.invalid && form.get('password')?.touched) {
+            <p class="text-xs text-signal-red mt-1">Mínimo 6 caracteres.</p>
+          }
         </div>
 
         @if (error()) {
@@ -95,7 +103,7 @@
 
       <p class="text-center text-xs text-ink-muted mt-6">
         ¿Ya tienes cuenta?
-        <a routerLink="/auth/login" class="text-primary-400 hover:text-primary-300 transition-colors font-medium ml-1">Inicia sesión</a>
+        <a routerLink="/auth/login" class="text-primary-400 hover:text-primary-600 transition-colors font-medium ml-1">Inicia sesión</a>
       </p>
     }
   </div>

@@ -1,81 +1,137 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:64px">
 
+  @if (musician()) {
+    <div class="h-1" [style.background]="avatarColor(musician()!.name)"></div>
+  }
+
   <!-- Back nav -->
   <div class="px-6 lg:px-10 py-3 border-b border-dark-600 bg-dark-800/60">
     <a routerLink="/search" [queryParams]="{tab:'musicians'}"
-       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-ink transition-colors">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
+       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-400 transition-colors group">
+      <app-icon name="arrow-left" [size]="13" class="group-hover:-translate-x-0.5 transition-transform"/>
       Músicos
     </a>
   </div>
 
   @if (loading()) {
-    <div class="flex items-center justify-center py-32">
-      <div class="w-7 h-7 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+    <!-- Hero skeleton -->
+    <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600 animate-pulse">
+      <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8">
+        <div class="flex flex-col sm:flex-row gap-6 items-start">
+          <div class="w-24 h-24 rounded-2xl bg-dark-700 flex-shrink-0"></div>
+          <div class="flex-1 space-y-3 pt-1">
+            <div class="flex gap-2 mb-1">
+              <div class="h-5 bg-dark-700 rounded-full w-20"></div>
+              <div class="h-5 bg-dark-700 rounded-full w-16"></div>
+            </div>
+            <div class="h-8 bg-dark-700 rounded w-56"></div>
+            <div class="h-4 bg-dark-600 rounded w-32"></div>
+            <div class="h-4 bg-dark-700 rounded w-80"></div>
+          </div>
+          <div class="flex flex-col gap-2 w-full sm:w-44">
+            <div class="h-10 bg-dark-700 rounded-lg"></div>
+            <div class="h-10 bg-dark-700 rounded-lg"></div>
+            <div class="h-10 bg-dark-700 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8 animate-pulse">
+      <div class="grid md:grid-cols-3 gap-5">
+        <div class="md:col-span-2 space-y-4">
+          <div class="h-32 bg-dark-800 rounded-2xl border border-dark-600"></div>
+          <div class="h-24 bg-dark-800 rounded-2xl border border-dark-600"></div>
+        </div>
+        <div class="space-y-4">
+          <div class="h-40 bg-dark-800 rounded-2xl border border-dark-600"></div>
+          <div class="h-10 bg-dark-700 rounded-lg"></div>
+        </div>
+      </div>
     </div>
   } @else if (!musician()) {
     <div class="empty-state">
       <p class="text-ink-3 font-semibold mb-4">Músico no encontrado</p>
-      <a routerLink="/search" class="btn-accent text-sm">Volver al directorio</a>
+      <a routerLink="/search" class="btn-primary text-sm">Volver al directorio</a>
     </div>
   } @else {
-  <div class="max-w-4xl mx-auto px-6 lg:px-10 py-10">
 
-    <!-- HERO -->
-    <div class="flex flex-col sm:flex-row gap-6 items-start mb-8">
-      <div class="w-20 h-20 rounded-2xl bg-night flex items-center justify-center text-2xl font-black text-white flex-shrink-0 overflow-hidden">
-        @if (musician()!.avatar_url) {
-          <img [src]="musician()!.avatar_url" alt="" class="w-full h-full object-cover"/>
-        } @else {
-          {{ musician()!.name?.slice(0,1).toUpperCase() }}
-        }
-      </div>
-      <div class="flex-1 min-w-0">
-        <div class="flex flex-wrap gap-2 mb-2">
-          @if (musician()!.available) {
-            <span class="tag-green"><span class="w-1.5 h-1.5 rounded-full bg-signal-green"></span>Disponible</span>
+  <!-- HERO -->
+  <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600">
+    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8">
+      <div class="flex flex-col sm:flex-row gap-6 items-start">
+
+        <!-- Avatar -->
+        <div class="w-24 h-24 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-lg"
+             [style.background]="avatarColor(musician()!.name)">
+          @if (musician()!.avatar_url) {
+            <img [src]="musician()!.avatar_url" alt="" class="w-full h-full object-cover"/>
+          } @else {
+            {{ musician()!.name?.slice(0,1).toUpperCase() }}
           }
-          @if (musician()!.city) { <span class="tag">{{ musician()!.city }}</span> }
-          @if (musician()!.experience) { <span class="tag">{{ musician()!.experience }}</span> }
         </div>
-        <h1 class="text-3xl font-bold text-ink leading-tight mb-1">{{ musician()!.name }}</h1>
-        <p class="text-sm text-ink-3 mb-3">
-          @if (musician()!.instrument) { {{ musician()!.instrument }} }
-          @if (musician()!.genre) { · {{ musician()!.genre }} }
-        </p>
-        @if (musician()!.description) {
-          <p class="text-sm text-ink-3 leading-relaxed max-w-xl">{{ musician()!.description }}</p>
-        }
-      </div>
-      <div class="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
-        @if (musician()!.user_id) {
-          <button (click)="sendMessage()" [disabled]="sending()" class="btn-accent disabled:opacity-50 disabled:cursor-not-allowed">{{ sending() ? 'Abriendo chat...' : 'Escribir mensaje' }}</button>
-          @if (msgError()) {
-            <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap gap-2 mb-3">
+            @if (musician()!.city) {
+              <span class="tag"><app-icon name="map-pin" [size]="9" class="mr-0.5"/>{{ musician()!.city }}</span>
+            }
+            @if (musician()!.experience) { <span class="tag">{{ musician()!.experience }}</span> }
+          </div>
+          <h1 class="text-3xl font-bold text-ink leading-tight mb-1">{{ musician()!.name }}</h1>
+          @if (musician()!.instrument || musician()!.genre) {
+            <p class="text-sm font-semibold text-primary-400 mb-2">
+              {{ musician()!.instrument }}
+              @if (musician()!.instrument && musician()!.genre) {<span class="text-ink-muted font-normal mx-1">·</span>}
+              {{ musician()!.genre }}
+            </p>
           }
-        }
-        @if (musician()!.contact_email) {
-          <a [href]="'mailto:' + musician()!.contact_email" class="btn-secondary text-sm text-center">Email directo</a>
-        }
-        <button (click)="toggleFav()" [disabled]="favLoading()"
-          class="btn-secondary text-sm flex items-center justify-center gap-2">
-          <svg class="w-4 h-4 transition-colors" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
-            [class.text-primary-500]="isFav()" [class.text-ink-muted]="!isFav()">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-          </svg>
-          {{ isFav() ? 'Guardado' : 'Guardar' }}
-        </button>
+          @if (musician()!.description) {
+            <p class="text-sm text-ink-3 leading-relaxed line-clamp-2 max-w-xl">{{ musician()!.description }}</p>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col gap-2 flex-shrink-0 w-full sm:w-44">
+          @if (musician()!.user_id) {
+            <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+              {{ sending() ? 'Abriendo...' : 'Escribir mensaje' }}
+            </button>
+            @if (msgError()) {
+              <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
+            }
+          }
+          @if (musician()!.contact_email) {
+            <a [href]="'mailto:' + musician()!.contact_email" class="btn-secondary text-sm text-center">Email directo</a>
+          }
+          <button (click)="toggleFav()" [disabled]="favLoading()"
+            class="btn-secondary text-sm flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
+              [class.text-primary-500]="isFav()" [class.text-ink-muted]="!isFav()">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            {{ isFav() ? 'Guardado' : 'Guardar' }}
+          </button>
+          <button (click)="shareLink()"
+            class="btn-secondary text-sm flex items-center justify-center gap-2"
+            [class.text-signal-green]="linkShared()" [class.border-signal-green]="linkShared()">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            {{ linkShared() ? 'Copiado' : 'Compartir' }}
+          </button>
+        </div>
       </div>
     </div>
+  </div>
 
+  <!-- CONTENT -->
+  <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8">
     <div class="grid md:grid-cols-3 gap-5">
 
       <!-- Columna izquierda -->
       <div class="md:col-span-2 flex flex-col gap-5">
 
-        <!-- Sobre el músico -->
         @if (musician()!.description || musician()!.influences) {
           <div class="card-flat p-5">
             <h3 class="section-label mb-3">Sobre mí</h3>
@@ -83,43 +139,42 @@
               <p class="text-sm text-ink-3 leading-relaxed mb-4">{{ musician()!.description }}</p>
             }
             @if (musician()!.influences) {
-              <div>
-                <p class="text-xs font-semibold text-ink-muted mb-1.5">Influencias</p>
+              <div class="pt-3 border-t border-dark-600">
+                <p class="text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">Influencias</p>
                 <p class="text-sm text-ink-3">{{ musician()!.influences }}</p>
               </div>
             }
           </div>
         }
 
-        <!-- Links / Portfolio -->
         @if (musician()!.spotify_url || musician()!.youtube_url || musician()!.soundcloud_url || musician()!.instagram_url) {
           <div class="card-flat p-5">
-            <h3 class="section-label mb-3">Portfolio & redes</h3>
+            <h3 class="section-label mb-4">Portfolio & redes</h3>
             <div class="flex flex-wrap gap-2">
               @if (musician()!.spotify_url) {
                 <a [href]="musician()!.spotify_url" target="_blank"
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1DB954]/10 text-[#1DB954] text-xs font-semibold border border-[#1DB954]/20 hover:bg-[#1DB954]/20 transition-colors">
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1DB954]/10 text-[#1DB954] text-xs font-bold border border-[#1DB954]/25 hover:bg-[#1DB954]/20 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
                   Spotify
                 </a>
               }
               @if (musician()!.youtube_url) {
                 <a [href]="musician()!.youtube_url" target="_blank"
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-semibold border border-red-100 hover:bg-red-100 transition-colors">
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/25 hover:bg-red-500/20 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
                   YouTube
                 </a>
               }
               @if (musician()!.soundcloud_url) {
                 <a [href]="musician()!.soundcloud_url" target="_blank"
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-50 text-orange-600 text-xs font-semibold border border-orange-100 hover:bg-orange-100 transition-colors">
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500/10 text-orange-400 text-xs font-bold border border-orange-500/25 hover:bg-orange-500/20 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M1.175 12.225c-.017 0-.034.002-.05.006a.914.914 0 0 0-.125.046V17.5c0 .348.261.609.609.609h20.782c.348 0 .609-.261.609-.609v-2.347a6.25 6.25 0 0 0-6.25-6.25 6.22 6.22 0 0 0-3.609 1.143A5 5 0 0 0 4.175 12.5a2.5 2.5 0 0 0-3 .375v-.65z"/></svg>
                   SoundCloud
                 </a>
               }
               @if (musician()!.instagram_url) {
                 <a [href]="musician()!.instagram_url" target="_blank"
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-xs font-semibold border border-pink-100 hover:bg-pink-100 transition-colors">
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-pink-500/10 text-pink-400 text-xs font-bold border border-pink-500/25 hover:bg-pink-500/20 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
                   Instagram
                 </a>
@@ -160,17 +215,31 @@
                 <span class="font-medium text-ink">{{ musician()!.experience }}</span>
               </div>
             }
-            <div class="flex justify-between px-4 py-2.5">
-              <span class="text-ink-muted">Estado</span>
-              <span class="font-semibold" [class.text-signal-green]="musician()!.available" [class.text-ink-muted]="!musician()!.available">
-                {{ musician()!.available ? 'Disponible' : 'No disponible' }}
-              </span>
-            </div>
           </div>
         </div>
 
+        @if (musician()!.availability_days || musician()!.availability_slots) {
+          <div class="card-flat p-4">
+            <h3 class="section-label mb-3">Disponibilidad</h3>
+            @if (musician()!.availability_days) {
+              <div class="flex flex-wrap gap-1.5 mb-2">
+                @for (d of musician()!.availability_days.split(','); track d) {
+                  <span class="tag text-xs capitalize">{{ d }}</span>
+                }
+              </div>
+            }
+            @if (musician()!.availability_slots) {
+              <div class="flex flex-wrap gap-1.5">
+                @for (s of musician()!.availability_slots.split(','); track s) {
+                  <span class="tag-accent text-xs capitalize">{{ s }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+
         @if (musician()!.user_id) {
-          <button (click)="sendMessage()" [disabled]="sending()" class="btn-accent w-full disabled:opacity-50 disabled:cursor-not-allowed">
+          <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
             {{ sending() ? 'Abriendo chat...' : 'Escribir a ' + musician()!.name?.split(' ')[0] }}
           </button>
         }

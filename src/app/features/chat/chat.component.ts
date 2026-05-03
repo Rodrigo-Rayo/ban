@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy, AfterViewChecked, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ElementRef, ViewChild, effect } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +11,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
   imports: [RouterLink, CommonModule, FormsModule],
   templateUrl: './chat.component.html',
 })
-export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('messagesEnd') private messagesEnd!: ElementRef;
 
   private route = inject(ActivatedRoute);
@@ -27,12 +27,21 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private subscription: any;
   private conversationId = '';
 
+  constructor() {
+    // Scroll to bottom only when message count changes, not on every CD cycle
+    effect(() => {
+      const count = this.messages().length;
+      if (count > 0) {
+        setTimeout(() => this.scrollToBottom(), 50);
+      }
+    });
+  }
+
   async ngOnInit() {
     this.conversationId = this.route.snapshot.paramMap.get('id')!;
 
-    // Use name passed from profile navigation immediately (no flicker)
     const navName = history.state?.name;
-    if (navName) this.otherName.set(navName);
+    if (navName && typeof navName === 'string') this.otherName.set(navName);
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.currentUserId = user?.id || '';
@@ -62,12 +71,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     );
   }
 
-  ngAfterViewChecked() {
-    this.scrollToBottom();
-  }
-
   ngOnDestroy() {
-    this.subscription?.unsubscribe();
+    if (this.subscription) {
+      this.supabase.client.removeChannel(this.subscription);
+    }
   }
 
   async send() {
@@ -97,7 +104,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   private scrollToBottom() {
     try {
-      this.messagesEnd?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+      this.messagesEnd?.nativeElement.scrollIntoView({ behavior: 'auto' });
     } catch {}
   }
 }

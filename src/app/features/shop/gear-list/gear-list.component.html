@@ -80,11 +80,13 @@
     <!-- Empty state -->
     @if (!loading() && filteredListings().length === 0) {
       <div class="empty-state">
-        <span class="text-4xl mb-3">🎸</span>
-        <p class="text-sm font-medium text-ink-3 mb-1">No hay anuncios</p>
-        <p class="text-xs text-ink-muted mb-4">Sé el primero en vender algo</p>
+        <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
+          <app-icon name="shopping-cart" [size]="28" class="text-ink-muted"/>
+        </div>
+        <p class="text-sm font-bold text-ink mb-1">No hay anuncios en esta categoría</p>
+        <p class="text-xs text-ink-muted mb-5">Instrumentos, amplificadores, efectos… vende lo que ya no usas</p>
         @if (auth.isLoggedIn()) {
-          <a routerLink="/shop/new" class="btn-accent text-sm px-4 py-2">+ Publicar anuncio</a>
+          <a routerLink="/shop/new" class="btn-primary text-sm px-5 py-2.5">Publicar mi primer anuncio</a>
         }
       </div>
     }
@@ -99,11 +101,11 @@
             <!-- Image -->
             <div class="aspect-[4/3] bg-dark-700 relative overflow-hidden">
               @if (item.images.length > 0) {
-                <img [src]="item.images[0]" [alt]="item.title"
+                <img [src]="item.images[0]" [alt]="item.title" loading="lazy"
                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
               } @else {
                 <div class="w-full h-full flex items-center justify-center bg-dark-750">
-                  <svg class="w-10 h-10 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-10 h-10 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                           d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
                   </svg>
@@ -131,7 +133,7 @@
             <!-- Info -->
             <div class="p-3 flex flex-col gap-1 flex-1">
               <p class="text-[10px] text-ink-muted font-medium uppercase tracking-wide">
-                {{ item.category }}@if (item.city) { <span class="text-dark-500 mx-0.5">·</span> {{ item.city }} }
+                {{ item.category }}@if (item.city) { <span class="text-ink-muted mx-0.5">·</span> {{ item.city }} }
               </p>
               <p class="text-sm font-semibold text-ink line-clamp-2 leading-snug group-hover:text-primary-400 transition-colors">{{ item.title }}</p>
               <p class="text-[11px] text-ink-muted mt-auto pt-1.5 truncate border-t border-dark-700">{{ item.seller_name }}</p>
@@ -139,6 +141,16 @@
           </a>
         }
       </div>
+
+      <!-- Load more -->
+      @if (hasMore() && !loading()) {
+        <div class="flex justify-center py-8">
+          <button (click)="loadMore()" [disabled]="loadingMore()"
+            class="btn-secondary text-sm px-8 disabled:opacity-50">
+            {{ loadingMore() ? 'Cargando...' : 'Ver más anuncios' }}
+          </button>
+        </div>
+      }
     }
 
   </div>

@@ -72,6 +72,15 @@ export class InboxComponent implements OnInit, OnDestroy {
     this.unreadIds.update(set => { set.delete(id); return new Set(set); });
   }
 
+  private readonly AVATAR_COLORS = [
+    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
+  ];
+
+  avatarColor(name: string): string {
+    const code = name?.charCodeAt(0) ?? 65;
+    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
+  }
+
   ngOnDestroy() {
     if (this.channel) this.supabase.client.removeChannel(this.channel);
   }

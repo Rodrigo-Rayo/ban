@@ -12,9 +12,9 @@ export class AuthService {
   readonly isLoggedIn = computed(() => !!this._session());
 
   constructor(private supabase: SupabaseService, private router: Router) {
-    this.supabase.getSession().then(({ data }) => {
-      this._session.set(data.session);
-    });
+    this.supabase.getSession()
+      .then(({ data }) => { this._session.set(data.session); })
+      .catch(() => {});
 
     this.supabase.authChanges((_, session) => {
       this._session.set(session);
@@ -24,7 +24,7 @@ export class AuthService {
   async signInWithEmail(email: string, password: string) {
     const { error } = await this.supabase.signInWithEmail(email, password);
     if (error) throw error;
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/home']);
   }
 
   async signUpWithEmail(email: string, password: string) {
@@ -38,7 +38,7 @@ export class AuthService {
   }
 
   async signOut() {
-    await this.supabase.signOut();
+    try { await this.supabase.signOut(); } catch { /* ignore */ }
     this.router.navigate(['/']);
   }
 }

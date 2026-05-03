@@ -5,58 +5,59 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50:  '#fdf4ef',
-          100: '#fde6d8',
-          200: '#fac8ae',
-          300: '#f49d76',
-          400: '#ed6e3c',
-          500: '#d94e1a',   // naranja óxido principal
-          600: '#bf3d0f',
-          700: '#9a2f0b',
-          800: '#7a2508',
-          900: '#fdf4ef',   // tinte claro para activos
+          50:  '#fef6f2',
+          100: '#fde8df',
+          200: '#fbd0be',
+          300: '#d4876a',
+          400: '#bf6040',
+          500: '#a0442a',   // terracota mate
+          600: '#883924',
+          700: '#702f1d',
+          800: '#5a2617',
+          900: '#fef0e8',   // fondo tintado activos
         },
         dark: {
-          900: '#edeae2',   // fondo página — crema cálida
-          800: '#f7f4ee',   // cards/sidebar — crema más clara
-          700: '#e8e3d8',   // inputs/hover
-          600: '#cec6b5',   // bordes cálidos
+          900: '#f4efe6',   // fondo — crema portada de disco
+          800: '#fffef9',   // cards — blanco cálido
+          750: '#f0e8d8',   // surfaces tintadas
+          700: '#ede3d0',   // inputs / hover
+          600: '#d8ccb8',   // bordes
         },
         night: {
-          DEFAULT: '#17120c',  // tarjeta hero oscura
-          2:       '#271e14',
-          3:       '#3a2e20',
-          4:       '#4f4232',
+          DEFAULT: '#111111',   // negro vinilo
+          2:       '#1c1c1c',
+          3:       '#282828',
+          4:       '#363636',
         },
         ink: {
-          DEFAULT: '#1a150e',
-          2:       '#4a3c30',
-          3:       '#7a6658',
-          muted:   '#a09080',
-          line:    '#cec6b5',
+          DEFAULT: '#111111',   // negro editorial
+          2:       '#3a3530',
+          3:       '#6b6358',
+          muted:   '#9c9088',
+          line:    '#d8ccb8',
         },
         signal: {
-          green:  '#2d7a3a',
-          gBg:    '#eef7ee',
-          amber:  '#c4880e',
-          aBg:    '#fef9ee',
-          red:    '#b91c1c',
-          rBg:    '#fef2f2',
+          green: '#1a7a3a',
+          gBg:   '#edf7ee',
+          amber: '#b87800',
+          aBg:   '#fef8e6',
+          red:   '#b91c1c',
+          rBg:   '#fef2f2',
         },
       },
       fontFamily: {
-        sans:    ['Inter', 'system-ui', 'sans-serif'],
-        serif:   ['"Instrument Serif"', 'Georgia', 'serif'],
-        mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        sans:  ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+        mono:  ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         'xl':  '10px',
         '2xl': '14px',
       },
       boxShadow: {
-        'card':    '0 1px 2px rgba(80,60,30,0.06), 0 1px 4px rgba(80,60,30,0.04)',
-        'card-md': '0 3px 10px rgba(80,60,30,0.10)',
-        'card-lg': '0 8px 24px rgba(80,60,30,0.14)',
+        'card':    '0 1px 2px rgba(30,20,10,0.07), 0 1px 4px rgba(30,20,10,0.05)',
+        'card-md': '0 3px 12px rgba(30,20,10,0.11)',
+        'card-lg': '0 8px 28px rgba(30,20,10,0.16)',
       },
       keyframes: {
         'slide-in': {

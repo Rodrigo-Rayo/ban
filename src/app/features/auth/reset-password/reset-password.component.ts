@@ -24,7 +24,10 @@ export class ResetPasswordComponent {
   });
 
   async onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     const { password, confirm } = this.form.value;
     if (password !== confirm) {
       this.error.set('Las contraseñas no coinciden');

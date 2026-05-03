@@ -101,6 +101,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/shop/gear-form/gear-form.component').then(m => m.GearFormComponent),
   },
   {
+    path: 'shop/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/shop/gear-form/gear-form.component').then(m => m.GearFormComponent),
+  },
+  {
     path: 'shop/:id',
     loadComponent: () => import('./features/shop/gear-detail/gear-detail.component').then(m => m.GearDetailComponent),
   },

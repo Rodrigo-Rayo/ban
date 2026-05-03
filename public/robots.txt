@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /auth/
+Disallow: /onboarding
+Disallow: /dashboard
+Disallow: /inbox
+Disallow: /notifications
+Disallow: /favorites
+
+Sitemap: https://bandyou.es/sitemap.xml

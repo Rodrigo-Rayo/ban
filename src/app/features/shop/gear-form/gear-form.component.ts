@@ -1,9 +1,11 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { CITIES } from '../../../core/constants/cities';
 
 @Component({
   selector: 'app-gear-form',
@@ -11,10 +13,11 @@ import { SupabaseService } from '../../../core/services/supabase.service';
   imports: [FormsModule, CommonModule],
   templateUrl: './gear-form.component.html',
 })
-export class GearFormComponent implements OnInit {
+export class GearFormComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private toast = inject(ToastService);
   auth = inject(AuthService);
 
   editId = signal<string | null>(null);
@@ -44,7 +47,7 @@ export class GearFormComponent implements OnInit {
     { id: 'good',      label: 'Bueno' },
     { id: 'acceptable', label: 'Aceptable' },
   ];
-  readonly cities = ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga', 'Zaragoza', 'Otra'];
+  readonly cities = CITIES;
 
   async ngOnInit() {
     const { data: { user } } = await this.supabase.auth.getUser();
@@ -79,10 +82,18 @@ export class GearFormComponent implements OnInit {
     this.existingImages.update(imgs => imgs.filter((_, i) => i !== idx));
   }
 
+  private readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  private readonly MAX_FILE_SIZE = 8 * 1024 * 1024; // 8 MB
+
   onFilesChange(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
-    const added = Array.from(input.files).slice(0, 4 - this.imageFiles.length);
+    const valid = Array.from(input.files).filter(f =>
+      this.ALLOWED_TYPES.includes(f.type) && f.size <= this.MAX_FILE_SIZE
+    );
+    const rejected = Array.from(input.files).length - valid.length;
+    if (rejected > 0) this.error.set(`${rejected} archivo(s) rechazado(s): solo imágenes hasta 8 MB.`);
+    const added = valid.slice(0, 4 - this.imageFiles.length);
     this.imageFiles = [...this.imageFiles, ...added].slice(0, 4);
     this.refreshPreviews();
   }
@@ -92,8 +103,17 @@ export class GearFormComponent implements OnInit {
     this.refreshPreviews();
   }
 
+  private currentPreviewUrls: string[] = [];
+
   private refreshPreviews() {
-    this.imagePreviews.set(this.imageFiles.map(f => URL.createObjectURL(f)));
+    // Revoke old object URLs to prevent memory leaks
+    this.currentPreviewUrls.forEach(url => URL.revokeObjectURL(url));
+    this.currentPreviewUrls = this.imageFiles.map(f => URL.createObjectURL(f));
+    this.imagePreviews.set([...this.currentPreviewUrls]);
+  }
+
+  ngOnDestroy() {
+    this.currentPreviewUrls.forEach(url => URL.revokeObjectURL(url));
   }
 
   get canSubmit() {
@@ -137,7 +157,8 @@ export class GearFormComponent implements OnInit {
         images:      allImages,
       }).eq('id', editId).eq('user_id', user.id);
       this.submitting.set(false);
-      if (error) { this.error.set(`Error: ${error.message}`); return; }
+      if (error) { this.toast.error(`Error al guardar: ${error.message}`); return; }
+      this.toast.success('Anuncio actualizado.');
       this.router.navigate(['/shop', editId]);
       return;
     }
@@ -158,7 +179,8 @@ export class GearFormComponent implements OnInit {
     }).select().single();
 
     this.submitting.set(false);
-    if (error) { console.error('Supabase insert error:', error); this.error.set(`Error: ${error.message} (${error.code})`); return; }
+    if (error) { this.toast.error(`Error al publicar: ${error.message}`); return; }
+    this.toast.success('Anuncio publicado.');
     this.router.navigate(['/shop', data.id]);
   }
 }

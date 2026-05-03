@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { CITIES_WITH_ALL, CITY_COORDS as SHARED_COORDS } from '../../core/constants/cities';
 
 type MapLayer = 'musicians' | 'venues' | 'rehearsal' | 'bands';
 
@@ -13,25 +14,16 @@ interface MapItem {
   city: string;
   type: MapLayer;
   subtitle?: string;
-  available?: boolean;
+
 }
 
-const CITY_COORDS: Record<string, [number, number]> = {
-  'Madrid':    [40.4168, -3.7038],
-  'Barcelona': [41.3874,  2.1686],
-  'Valencia':  [39.4699, -0.3763],
-  'Sevilla':   [37.3891, -5.9845],
-  'Bilbao':    [43.2630, -2.9350],
-  'Málaga':    [36.7213, -4.4214],
-  'Zaragoza':  [41.6561, -0.8773],
-  'Otra':      [40.2000, -3.5000],
-};
+const CITY_COORDS = SHARED_COORDS;
 
 const LAYER_COLORS: Record<MapLayer, string> = {
-  musicians: '#d94e1a',
-  bands:     '#7c3aed',
-  venues:    '#0891b2',
-  rehearsal: '#059669',
+  musicians: '#a0442a',   // terracota
+  bands:     '#8b6914',   // ámbar dorado
+  venues:    '#3d5a75',   // azul pizarra cálido
+  rehearsal: '#4a7c59',   // verde salvia
 };
 
 const LAYER_LABELS: Record<MapLayer, string> = {
@@ -66,7 +58,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   allItems = signal<MapItem[]>([]);
   selectedItem = signal<MapItem | null>(null);
 
-  readonly cities = ['Toda España', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao'];
+  readonly cities = CITIES_WITH_ALL;
   readonly layers: MapLayer[] = ['musicians', 'bands', 'venues', 'rehearsal'];
   readonly layerLabels = LAYER_LABELS;
   readonly layerColors = LAYER_COLORS;
@@ -108,14 +100,14 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       { data: venues },
       { data: rehearsals },
     ] = await Promise.all([
-      this.supabase.client.from('musicians').select('id,name,city,instrument,available'),
+      this.supabase.client.from('musicians').select('id,name,city,instrument'),
       this.supabase.client.from('bands').select('id,name,city,genre'),
       this.supabase.client.from('venues').select('id,name,city'),
       this.supabase.client.from('rehearsal_spaces').select('id,name,city,hourly_rate'),
     ]);
 
     const items: MapItem[] = [
-      ...(musicians || []).map((m: any) => ({ id: m.id, name: m.name, city: m.city, type: 'musicians' as MapLayer, subtitle: m.instrument, available: m.available })),
+      ...(musicians || []).map((m: any) => ({ id: m.id, name: m.name, city: m.city, type: 'musicians' as MapLayer, subtitle: m.instrument })),
       ...(bands || []).map((b: any) => ({ id: b.id, name: b.name, city: b.city, type: 'bands' as MapLayer, subtitle: b.genre })),
       ...(venues || []).map((v: any) => ({ id: v.id, name: v.name, city: v.city, type: 'venues' as MapLayer })),
       ...(rehearsals || []).map((r: any) => ({ id: r.id, name: r.name, city: r.city, type: 'rehearsal' as MapLayer, subtitle: r.hourly_rate ? `${r.hourly_rate}€/h` : undefined })),
@@ -189,12 +181,12 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         const listHtml = typeItems.slice(0, 8).map(item => {
           const route = this.getRoute(item);
           return `<div style="padding:3px 0;border-bottom:1px solid rgba(0,0,0,0.08)">
-            <a href="${route}" style="font-size:12px;font-weight:600;color:#1a150e;text-decoration:none">${item.name}</a>
-            ${item.subtitle ? `<span style="font-size:11px;color:#7a6a5a;margin-left:4px">${item.subtitle}</span>` : ''}
+            <a href="${route}" style="font-size:12px;font-weight:600;color:#111111;text-decoration:none">${item.name}</a>
+            ${item.subtitle ? `<span style="font-size:11px;color:#6b6358;margin-left:4px">${item.subtitle}</span>` : ''}
           </div>`;
         }).join('');
 
-        const more = typeItems.length > 8 ? `<p style="font-size:11px;color:#7a6a5a;margin-top:4px">+${typeItems.length - 8} más</p>` : '';
+        const more = typeItems.length > 8 ? `<p style="font-size:11px;color:#6b6358;margin-top:4px">+${typeItems.length - 8} más</p>` : '';
 
         const popup = L.popup({ maxWidth: 240 }).setContent(`
           <div style="font-family:system-ui;padding:2px">

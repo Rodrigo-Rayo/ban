@@ -1,0 +1,2 @@
+- [Design System & Palette](project_design_system.md) — Warm-tone light palette details, component classes, Angular template gotchas
+- [Page Redesign Status](project_page_status.md) — Which pages are done, patterns established, what remains

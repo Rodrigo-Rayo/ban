@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { CITIES_WITH_ALL } from '../../../core/constants/cities';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 export interface GearListing {
   id: string;
@@ -25,7 +27,7 @@ export interface GearListing {
 @Component({
   selector: 'app-gear-list',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
+  imports: [RouterLink, CommonModule, FormsModule, IconComponent],
   templateUrl: './gear-list.component.html',
 })
 export class GearListComponent implements OnInit {
@@ -34,6 +36,9 @@ export class GearListComponent implements OnInit {
 
   listings = signal<GearListing[]>([]);
   loading = signal(true);
+  loadingMore = signal(false);
+  hasMore = signal(true);
+  private readonly PAGE_SIZE = 24;
 
   filterCategory = signal('');
   filterCity = signal('Toda España');
@@ -46,7 +51,7 @@ export class GearListComponent implements OnInit {
     { id: 'good',      label: 'Bueno' },
     { id: 'acceptable', label: 'Aceptable' },
   ];
-  readonly cities = ['Toda España', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga', 'Zaragoza'];
+  readonly cities = CITIES_WITH_ALL;
 
   filteredListings = computed(() => {
     let list = this.listings();
@@ -62,9 +67,26 @@ export class GearListComponent implements OnInit {
       .select('*')
       .eq('status', 'active')
       .order('created_at', { ascending: false })
-      .limit(100);
+      .limit(this.PAGE_SIZE);
     this.listings.set(data || []);
+    this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
     this.loading.set(false);
+  }
+
+  async loadMore() {
+    if (this.loadingMore() || !this.hasMore()) return;
+    this.loadingMore.set(true);
+    const last = this.listings().at(-1);
+    const { data } = await this.supabase.client
+      .from('gear_listings')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .lt('created_at', last?.created_at ?? new Date().toISOString())
+      .limit(this.PAGE_SIZE);
+    this.listings.update(l => [...l, ...(data || [])]);
+    this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
+    this.loadingMore.set(false);
   }
 
   conditionLabel(c: string) {
@@ -76,9 +98,9 @@ export class GearListComponent implements OnInit {
       new:        'text-signal-green border-signal-green/30 bg-signal-gBg',
       like_new:   'text-signal-green border-signal-green/30 bg-signal-gBg',
       good:       'text-primary-400 border-primary-500/30 bg-primary-900',
-      acceptable: 'text-ink-muted border-dark-500 bg-dark-700',
+      acceptable: 'text-ink-muted border-dark-600 bg-dark-700',
     };
-    return map[c] ?? 'text-ink-muted border-dark-500 bg-dark-700';
+    return map[c] ?? 'text-ink-muted border-dark-600 bg-dark-700';
   }
 
   hasFilters() {

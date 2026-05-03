@@ -10,8 +10,8 @@
   * { @apply box-border; }
 
   select option {
-    background-color: #f7f4ee;
-    color: #1a150e;
+    background-color: #fffef9;
+    color: #111111;
   }
 
   ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -55,7 +55,6 @@
            transition-colors duration-150 cursor-pointer
            inline-flex items-center justify-center gap-2;
   }
-  /* Botón oscuro para tarjetas hero */
   .btn-night {
     @apply bg-night-3 text-white font-semibold text-sm
            px-5 py-2.5 rounded-lg border border-night-4
@@ -74,7 +73,6 @@
   .card-flat {
     @apply bg-dark-800 border border-dark-600 rounded-xl shadow-card;
   }
-  /* Tarjeta hero oscura */
   .card-night {
     @apply bg-night text-white rounded-xl overflow-hidden;
   }
@@ -82,7 +80,7 @@
   /* ── Form fields ─────────────────────────────── */
   .input-field {
     @apply w-full bg-dark-800 border border-dark-600
-           focus:border-primary-400 focus:ring-2 focus:ring-primary-500/10
+           focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15
            text-ink placeholder-ink-muted
            px-4 py-3 outline-none transition-all duration-150
            text-sm rounded-lg;
@@ -96,7 +94,7 @@
            inline-flex items-center;
   }
   .tag-accent {
-    @apply text-[10px] font-semibold text-primary-600 tracking-wide uppercase
+    @apply text-[10px] font-semibold text-primary-700 tracking-wide uppercase
            px-2 py-0.5 rounded
            bg-primary-900 border border-primary-200
            inline-flex items-center;
@@ -107,7 +105,6 @@
            bg-signal-gBg border border-signal-green/20
            inline-flex items-center gap-1;
   }
-  /* Tag para tarjetas oscuras */
   .tag-night {
     @apply text-[10px] font-semibold tracking-wide uppercase
            px-2 py-0.5 rounded
@@ -115,7 +112,7 @@
            inline-flex items-center;
   }
 
-  /* ── Meta label (uppercase pequeño) ──────────── */
+  /* ── Meta label ──────────────────────────────── */
   .meta {
     @apply text-[10px] font-semibold text-ink-muted tracking-widest uppercase
            flex items-center gap-1.5;
@@ -123,8 +120,8 @@
 
   /* ── Avatar ──────────────────────────────────── */
   .avatar {
-    @apply rounded-lg bg-night-2 flex items-center justify-center
-           font-semibold text-white/80 flex-shrink-0 select-none;
+    @apply rounded-lg bg-dark-750 border border-dark-600 flex items-center justify-center
+           font-semibold text-ink-2 flex-shrink-0 select-none;
   }
 
   /* ── Sidebar nav item ───────────────────────── */
@@ -132,7 +129,7 @@
     @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
   }
   .nav-item-active {
-    @apply bg-night text-white;
+    @apply bg-dark-700 text-primary-600 font-semibold;
   }
   .nav-item-inactive {
     @apply text-ink-3 hover:text-ink hover:bg-dark-700;
@@ -162,7 +159,7 @@
   .section-empty {
     @apply block text-center py-8 text-xs font-medium text-ink-muted
            border border-dashed border-dark-600 rounded-xl
-           hover:border-primary-400 hover:text-primary-500
+           hover:border-primary-500 hover:text-primary-600
            transition-colors cursor-pointer;
   }
 
@@ -174,29 +171,33 @@
 
   /* ── Search tab states ──────────────────────────── */
   .tab-btn-active {
-    background-color: #17120c;
+    background-color: #a0442a;
     color: #ffffff;
-    border-color: rgba(23,18,12,0.8);
+    border-color: rgba(160,68,42,0.9);
   }
-  .tab-btn-active:hover { background-color: #271e14; }
+  .tab-btn-active:hover { background-color: #883924; }
   .tab-btn-inactive { @apply text-ink-3; }
   .tab-btn-inactive:hover { @apply bg-dark-700 text-ink; }
 
   /* ── Genre pill states ───────────────────────────── */
   .genre-pill-active {
-    background-color: #17120c;
-    color: #f7f4ee;
-    border-color: rgba(23,18,12,0.7);
+    background-color: #a0442a;
+    color: #ffffff;
+    border-color: rgba(160,68,42,0.8);
   }
   .genre-pill-inactive { @apply border-dark-600 text-ink-muted; }
   .genre-pill-inactive:hover { @apply text-ink-2 border-ink-muted/40; }
 
   /* ── Event featured card ─────────────────────────── */
-  .event-featured { border-color: rgba(217,78,26,0.3); }
-  .event-featured-time-border { border-color: rgba(217,78,26,0.2); }
+  .event-featured { border-color: rgba(160,68,42,0.35); }
+  .event-featured-time-border { border-color: rgba(160,68,42,0.2); }
 
   /* ── Chat ────────────────────────────────────── */
   .text-white-muted { color: rgba(255,255,255,0.55); }
+
+  /* ── Scrollbar hidden ────────────────────────── */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 /* ── Animations ──────────────────────────────────── */

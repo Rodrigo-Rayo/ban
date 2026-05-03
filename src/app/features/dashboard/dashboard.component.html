@@ -5,33 +5,58 @@
   <div class="flex-1 min-w-0 px-4 lg:px-8 py-6">
 
     @if (loading()) {
-      <div class="flex items-center justify-center py-32">
-        <div class="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      <div class="flex flex-col gap-4">
+        <!-- Profile skeleton -->
+        <div class="bg-dark-800 border border-dark-600 rounded-2xl p-5 animate-pulse">
+          <div class="flex items-start gap-4">
+            <div class="w-16 h-16 rounded-2xl bg-dark-700 flex-shrink-0"></div>
+            <div class="flex-1">
+              <div class="h-5 bg-dark-700 rounded w-36 mb-2"></div>
+              <div class="h-3 bg-dark-600 rounded w-48"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Stats skeleton -->
+        <div class="grid grid-cols-4 gap-2">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="bg-dark-800 border border-dark-600 rounded-xl p-3 animate-pulse">
+              <div class="h-7 bg-dark-700 rounded w-8 mx-auto mb-1"></div>
+              <div class="h-2 bg-dark-600 rounded w-12 mx-auto"></div>
+            </div>
+          }
+        </div>
       </div>
     } @else {
 
       <!-- ── PROFILE HERO ── -->
       @if (profile()) {
         <div class="relative bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden mb-5">
-          <div class="h-1.5 bg-gradient-to-r from-primary-600 via-primary-400 to-primary-700"></div>
+          <!-- Top accent -->
+          <div class="h-1 bg-gradient-to-r from-primary-600 via-primary-400 to-primary-700"></div>
           <div class="p-5">
             <div class="flex items-start gap-4">
 
-              <!-- Avatar -->
-              <label class="relative flex-shrink-0 cursor-pointer group">
-                <div class="w-16 h-16 rounded-2xl bg-primary-700 flex items-center justify-center text-2xl font-black text-white overflow-hidden shadow-lg">
+              <!-- Clickable avatar -->
+              <label class="relative flex-shrink-0 cursor-pointer group" aria-label="Cambiar foto de perfil">
+                <div class="w-16 h-16 rounded-2xl bg-primary-500 flex items-center justify-center
+                             text-2xl font-black text-white overflow-hidden shadow-lg">
                   @if (profile().avatar_url) {
-                    <img [src]="profile().avatar_url" class="w-full h-full object-cover" alt="avatar"/>
+                    <img [src]="profile().avatar_url" class="w-full h-full object-cover" alt="avatar" loading="lazy"/>
                   } @else {
                     {{ profile().name?.slice(0,1).toUpperCase() }}
                   }
                 </div>
-                <div class="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div class="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100
+                             transition-opacity flex items-center justify-center">
                   @if (uploadingAvatar()) {
-                    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
                   } @else {
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                   }
@@ -39,108 +64,166 @@
                 <input type="file" accept="image/*" class="hidden" (change)="uploadAvatar($event)"/>
               </label>
 
-              <!-- Info -->
+              <!-- Name + meta -->
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap mb-1">
                   <h2 class="text-lg font-bold text-ink leading-tight">{{ profile().name }}</h2>
-                  <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-900 border border-primary-500/30 text-primary-400">{{ profileLabel() }}</span>
+                  <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full
+                               bg-primary-900 border border-primary-500/30 text-primary-400">
+                    {{ profileLabel() }}
+                  </span>
                 </div>
                 <div class="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-xs text-ink-muted">
-                  @if (profile().city) { <span>📍 {{ profile().city }}</span> }
-                  @if (profile().genre) { <span class="text-dark-500">·</span><span>{{ profile().genre }}</span> }
-                  @if (profile().instrument) { <span class="text-dark-500">·</span><span>{{ profile().instrument }}</span> }
-                  @if (profile().hourly_rate) { <span class="text-dark-500">·</span><span class="font-semibold text-primary-400">{{ profile().hourly_rate }}€/h</span> }
+                  @if (profile().city) {
+                    <span class="flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                      {{ profile().city }}
+                    </span>
+                  }
+                  @if (profile().genre) { <span class="text-ink-muted/40">·</span><span>{{ profile().genre }}</span> }
+                  @if (profile().instrument) { <span class="text-ink-muted/40">·</span><span>{{ profile().instrument }}</span> }
+                  @if (profile().hourly_rate) {
+                    <span class="text-ink-muted/40">·</span>
+                    <span class="font-semibold text-primary-400">{{ profile().hourly_rate }}€/h</span>
+                  }
                 </div>
-                @if (profileType() === 'musician') {
-                  <button (click)="toggleAvailability()"
-                    class="mt-2.5 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-all"
-                    [class.bg-signal-gBg]="profile().available"
-                    [class.border-signal-green]="profile().available"
-                    [class.text-signal-green]="profile().available"
-                    [class.bg-dark-700]="!profile().available"
-                    [class.border-dark-600]="!profile().available"
-                    [class.text-ink-muted]="!profile().available">
-                    <span class="w-1.5 h-1.5 rounded-full"
-                      [class.bg-signal-green]="profile().available"
-                      [class.bg-dark-500]="!profile().available"></span>
-                    {{ profile().available ? 'Disponible' : 'No disponible' }}
-                  </button>
-                }
               </div>
             </div>
 
-            <!-- Action row -->
-            <div class="flex gap-2 mt-4 pt-4 border-t border-dark-600/60">
-              <a routerLink="/onboarding" class="btn-secondary text-xs flex-1 text-center py-2">Editar perfil</a>
+            <!-- Actions -->
+            <div class="flex gap-2 mt-4 pt-4 border-t border-dark-600/60 flex-wrap">
+              <a routerLink="/onboarding" class="btn-secondary text-xs flex-1 py-2 min-w-0 text-center">
+                Editar perfil
+              </a>
               @if (publicProfilePath()) {
-                <a [routerLink]="publicProfilePath()" class="btn-secondary text-xs flex-1 text-center py-2">Ver perfil público</a>
+                <a [routerLink]="publicProfilePath()" class="btn-secondary text-xs flex-1 py-2 min-w-0 text-center">
+                  Ver perfil
+                </a>
               }
               <button (click)="copyProfileLink()"
-                class="btn-secondary text-xs px-4 py-2 transition-colors flex-shrink-0"
+                class="btn-secondary text-xs px-4 py-2 flex-shrink-0 transition-colors"
                 [class.text-signal-green]="linkCopied()"
                 [class.border-signal-green]="linkCopied()">
-                {{ linkCopied() ? '✓' : '🔗 Compartir' }}
+                @if (linkCopied()) {
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  Copiado
+                } @else {
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                  </svg>
+                  Compartir
+                }
               </button>
             </div>
           </div>
         </div>
       } @else {
-        <div class="bg-gradient-to-br from-primary-900/30 to-dark-800 border border-primary-500/20 rounded-2xl p-6 mb-5 text-center">
-          <div class="w-14 h-14 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mx-auto mb-3">
+        <!-- Empty profile CTA -->
+        <div class="bg-gradient-to-br from-primary-900/30 to-dark-800 border border-primary-500/20
+                     rounded-2xl p-6 mb-5 text-center">
+          <div class="w-14 h-14 rounded-2xl bg-dark-700 border border-dark-600
+                       flex items-center justify-center mx-auto mb-3">
             <svg class="w-6 h-6 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
           </div>
           <p class="text-sm font-bold text-ink mb-1">Crea tu perfil público</p>
           <p class="text-xs text-ink-muted mb-4">Aparece en las búsquedas y conecta con otros músicos</p>
-          <a routerLink="/onboarding" class="btn-accent text-sm px-6 py-2.5">Crear mi perfil</a>
+          <a routerLink="/onboarding" class="btn-primary text-sm px-6 py-2.5">Crear mi perfil</a>
+        </div>
+      }
+
+      <!-- ── PROFILE COMPLETION ── -->
+      @if (profile() && completionPct < 100) {
+        <div class="bg-gradient-to-r from-primary-900/40 to-dark-800 border border-primary-500/20 rounded-2xl p-4 mb-5 relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-primary-400/40"></div>
+          <div class="flex items-center justify-between mb-2.5">
+            <div class="flex items-center gap-2">
+              <p class="text-xs font-bold text-ink">Perfil al {{ completionPct }}%</p>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-900 border border-primary-500/30 text-primary-400">
+                +visibilidad
+              </span>
+            </div>
+            <a routerLink="/onboarding"
+              class="text-[11px] font-semibold text-primary-400 hover:text-primary-500 transition-colors">
+              Completar →
+            </a>
+          </div>
+          <div class="h-1.5 bg-dark-600 rounded-full overflow-hidden mb-2">
+            <div class="h-full rounded-full transition-all duration-500"
+              [style.width.%]="completionPct"
+              [class.bg-signal-green]="completionPct >= 80"
+              [class.bg-gradient-to-r]="completionPct >= 50 && completionPct < 80"
+              [class.from-primary-600]="completionPct >= 50 && completionPct < 80"
+              [class.to-primary-400]="completionPct >= 50 && completionPct < 80"
+              [class.bg-primary-500]="completionPct >= 50 && completionPct < 80"
+              [class.bg-signal-amber]="completionPct < 50"></div>
+          </div>
+          @if (completionItems.length > 0) {
+            <p class="text-[10px] text-ink-muted">Falta: <span class="text-ink-3">{{ completionItems.join(' · ') }}</span></p>
+          }
         </div>
       }
 
       <!-- ── STATS ROW ── -->
       <div class="grid grid-cols-4 gap-2 mb-5">
         <button (click)="activeTab.set('events')"
-          class="bg-dark-800 border rounded-xl p-3 text-center transition-all hover:border-primary-500/40"
+          class="bg-dark-800 border rounded-xl p-3 text-center transition-all hover:border-primary-500/40 cursor-pointer"
           [class.border-primary-500]="activeTab() === 'events'"
           [class.border-dark-600]="activeTab() !== 'events'">
-          <div class="text-2xl font-black mb-0.5"
+          <div class="text-2xl font-black mb-0.5 tabular-nums"
             [class.text-primary-400]="activeTab() === 'events'"
             [class.text-ink]="activeTab() !== 'events'">{{ events().length }}</div>
           <div class="text-[10px] text-ink-muted font-medium">Eventos</div>
         </button>
 
         <a routerLink="/inbox"
-          class="bg-dark-800 border border-dark-600 rounded-xl p-3 text-center hover:border-primary-500/40 transition-all block">
-          <div class="text-2xl font-black text-ink mb-0.5">{{ notifSvc.unreadCount() || 0 }}</div>
+          class="bg-dark-800 border border-dark-600 rounded-xl p-3 text-center
+                 hover:border-primary-500/40 transition-all block">
+          <div class="text-2xl font-black text-ink mb-0.5 tabular-nums relative">
+            {{ notifSvc.unreadCount() || 0 }}
+            @if ((notifSvc.unreadCount() || 0) > 0) {
+              <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary-500"></span>
+            }
+          </div>
           <div class="text-[10px] text-ink-muted font-medium">Mensajes</div>
         </a>
 
         <button (click)="activeTab.set('posts')"
-          class="bg-dark-800 border rounded-xl p-3 text-center transition-all hover:border-primary-500/40"
+          class="bg-dark-800 border rounded-xl p-3 text-center transition-all hover:border-primary-500/40 cursor-pointer"
           [class.border-primary-500]="activeTab() === 'posts'"
           [class.border-dark-600]="activeTab() !== 'posts'">
-          <div class="text-2xl font-black mb-0.5"
+          <div class="text-2xl font-black mb-0.5 tabular-nums"
             [class.text-primary-400]="activeTab() === 'posts'"
             [class.text-ink]="activeTab() !== 'posts'">{{ myPosts().length }}</div>
           <div class="text-[10px] text-ink-muted font-medium">Anuncios</div>
         </button>
 
         <button (click)="activeTab.set('gear')"
-          class="bg-dark-800 border rounded-xl p-3 text-center transition-all hover:border-primary-500/40"
+          class="bg-dark-800 border rounded-xl p-3 text-center transition-all hover:border-primary-500/40 cursor-pointer"
           [class.border-primary-500]="activeTab() === 'gear'"
           [class.border-dark-600]="activeTab() !== 'gear'">
-          <div class="text-2xl font-black mb-0.5"
+          <div class="text-2xl font-black mb-0.5 tabular-nums"
             [class.text-primary-400]="activeTab() === 'gear'"
             [class.text-ink]="activeTab() !== 'gear'">{{ myListings().length }}</div>
           <div class="text-[10px] text-ink-muted font-medium">Tienda</div>
         </button>
       </div>
 
-      <!-- ── TABS ── -->
+      <!-- ── TAB PANEL ── -->
       <div class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden">
 
+        <!-- Tab bar -->
         <div class="flex items-center border-b border-dark-600 px-1 gap-1">
-          <div class="flex-1 flex overflow-x-auto">
+          <div class="flex-1 flex overflow-x-auto no-scrollbar">
             @for (tab of (profileType() === 'rehearsal'
               ? [{id:'events',label:'Eventos'},{id:'posts',label:'Anuncios'},{id:'gear',label:'Tienda'},{id:'bookings',label:'Reservas'}]
               : [{id:'events',label:'Eventos'},{id:'posts',label:'Anuncios'},{id:'gear',label:'Tienda'}]); track tab.id) {
@@ -152,13 +235,17 @@
                 [class.border-transparent]="activeTab() !== tab.id">
                 {{ tab.label }}
                 @if (tab.id === 'bookings' && bookings().length > 0) {
-                  <span class="ml-1.5 bg-primary-500 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">{{ bookings().length }}</span>
+                  <span class="ml-1.5 bg-primary-500 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
+                    {{ bookings().length }}
+                  </span>
                 }
               </button>
             }
           </div>
           @if (tabNewRoute) {
-            <a [routerLink]="tabNewRoute" class="btn-accent text-xs px-3 py-1.5 mr-2 flex-shrink-0">{{ tabNewLabel }}</a>
+            <a [routerLink]="tabNewRoute" class="btn-primary text-xs px-3 py-1.5 mr-2 flex-shrink-0">
+              {{ tabNewLabel }}
+            </a>
           }
         </div>
 
@@ -166,34 +253,113 @@
         @if (activeTab() === 'events') {
           @if (events().length === 0) {
             <div class="flex flex-col items-center justify-center py-16 text-center px-6">
-              <div class="w-12 h-12 rounded-full bg-dark-700 flex items-center justify-center mb-3 text-xl">📅</div>
-              <p class="text-sm font-semibold text-ink-3 mb-1">Sin eventos publicados</p>
+              <div class="w-12 h-12 rounded-2xl bg-dark-700 border border-dark-600
+                           flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <p class="text-sm font-bold text-ink mb-1">Sin eventos publicados</p>
               <p class="text-xs text-ink-muted mb-4">Anuncia tu próximo bolo o concierto</p>
-              <a routerLink="/events/create" class="btn-accent text-xs px-5 py-2">Publicar evento</a>
+              <a routerLink="/events/create" class="btn-primary text-xs px-5 py-2">Publicar evento</a>
             </div>
           } @else {
             <div class="divide-y divide-dark-600">
               @for (event of events(); track event.id) {
-                <a [routerLink]="['/events', event.id]"
-                   class="flex items-center gap-4 px-5 py-3.5 hover:bg-dark-700/50 transition-colors group">
-                  <div class="w-10 h-12 rounded-xl bg-primary-900 border border-primary-500/20 flex flex-col items-center justify-center flex-shrink-0">
-                    <span class="text-[9px] font-bold text-primary-400 uppercase">{{ event.date | date:'MMM' }}</span>
-                    <span class="text-base font-black text-primary-300 leading-none">{{ event.date | date:'d' }}</span>
+                @if (editingEventId() === event.id) {
+                  <!-- Inline edit form -->
+                  <div class="px-5 py-4 bg-dark-750/50">
+                    <p class="section-label mb-3">Editar evento</p>
+                    <div class="flex flex-col gap-3">
+                      <input [(ngModel)]="editEventData.title" placeholder="Nombre del evento"
+                        class="input-field text-sm"/>
+                      <div class="grid grid-cols-2 gap-2">
+                        <input [(ngModel)]="editEventData.venue" placeholder="Local / Sala"
+                          class="input-field text-sm"/>
+                        <select [(ngModel)]="editEventData.city" class="input-field text-sm">
+                          @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
+                        </select>
+                      </div>
+                      <div class="grid grid-cols-2 gap-2">
+                        <input [(ngModel)]="editEventData.date" type="date" class="input-field text-sm"/>
+                        <input [(ngModel)]="editEventData.time" type="time" class="input-field text-sm"/>
+                      </div>
+                      <div class="grid grid-cols-2 gap-2">
+                        <select [(ngModel)]="editEventData.genre" class="input-field text-sm">
+                          @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
+                        </select>
+                        <input [(ngModel)]="editEventData.price" placeholder="Precio (ej: Gratis / 10€)"
+                          class="input-field text-sm"/>
+                      </div>
+                      <textarea [(ngModel)]="editEventData.description" rows="2"
+                        placeholder="Descripción (opcional)"
+                        class="input-field text-sm resize-none"></textarea>
+                      <div class="grid grid-cols-2 gap-2">
+                        <input [(ngModel)]="editEventData.contact_email" type="email"
+                          placeholder="Email contacto" class="input-field text-sm"/>
+                        <input [(ngModel)]="editEventData.ticket_url" type="url"
+                          placeholder="Link entradas" class="input-field text-sm"/>
+                      </div>
+                      <div class="flex gap-2 pt-1">
+                        <button (click)="saveEditEvent(event.id)"
+                          [disabled]="editSaving() || !editEventData.title"
+                          class="btn-primary text-xs px-4 py-2 disabled:opacity-50">
+                          {{ editSaving() ? 'Guardando…' : 'Guardar cambios' }}
+                        </button>
+                        <button (click)="cancelEditEvent()" class="btn-secondary text-xs px-4 py-2">
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-ink truncate group-hover:text-primary-400 transition-colors">{{ event.title }}</p>
-                    <p class="text-xs text-ink-muted mt-0.5 truncate">
-                      {{ event.venue }}@if (event.city) { · {{ event.city }} }
-                    </p>
-                  </div>
-                  @if (event.genre) { <span class="tag flex-shrink-0 hidden sm:inline-flex">{{ event.genre }}</span> }
-                  <button (click)="deleteEvent(event.id, $event)"
-                    class="opacity-0 group-hover:opacity-100 p-1.5 text-ink-muted hover:text-signal-red rounded-lg transition-all flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                  </button>
-                </a>
+                } @else {
+                  <a [routerLink]="['/events', event.id]"
+                     class="flex items-center gap-4 px-5 py-3.5 hover:bg-dark-750/50 transition-colors group">
+                    <div class="w-10 h-12 rounded-xl bg-primary-500 flex flex-col items-center
+                                 justify-center flex-shrink-0">
+                      <span class="text-[9px] font-bold text-white/70 uppercase leading-none">
+                        {{ event.date | date:'MMM' }}
+                      </span>
+                      <span class="text-base font-black text-white leading-none mt-0.5">
+                        {{ event.date | date:'d' }}
+                      </span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-semibold text-ink truncate
+                                 group-hover:text-primary-400 transition-colors">
+                        {{ event.title }}
+                      </p>
+                      <p class="text-xs text-ink-muted mt-0.5 truncate">
+                        {{ event.venue }}@if (event.city) { · {{ event.city }} }
+                      </p>
+                    </div>
+                    @if (event.genre) {
+                      <span class="tag flex-shrink-0 hidden sm:inline-flex">{{ event.genre }}</span>
+                    }
+                    <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100
+                                 transition-all flex-shrink-0">
+                      <button (click)="startEditEvent(event, $event)"
+                        class="p-1.5 text-ink-muted hover:text-primary-400 hover:bg-primary-500/10
+                               rounded-lg transition-colors"
+                        aria-label="Editar evento">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                      </button>
+                      <button (click)="deleteEvent(event.id, $event)"
+                        class="p-1.5 text-ink-muted hover:text-signal-red hover:bg-signal-red/10
+                               rounded-lg transition-colors"
+                        aria-label="Eliminar evento">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </a>
+                }
               }
             </div>
           }
@@ -203,30 +369,48 @@
         @if (activeTab() === 'posts') {
           @if (myPosts().length === 0) {
             <div class="flex flex-col items-center justify-center py-16 text-center px-6">
-              <div class="w-12 h-12 rounded-full bg-dark-700 flex items-center justify-center mb-3 text-xl">📢</div>
-              <p class="text-sm font-semibold text-ink-3 mb-1">Sin anuncios publicados</p>
+              <div class="w-12 h-12 rounded-2xl bg-dark-700 border border-dark-600
+                           flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                </svg>
+              </div>
+              <p class="text-sm font-bold text-ink mb-1">Sin anuncios publicados</p>
               <p class="text-xs text-ink-muted mb-4">Busca banda, colabora, ofrece sesiones…</p>
-              <a routerLink="/feed" class="btn-accent text-xs px-5 py-2">Publicar anuncio</a>
+              <a routerLink="/feed" class="btn-primary text-xs px-5 py-2">Publicar anuncio</a>
             </div>
           } @else {
             <div class="divide-y divide-dark-600">
               @for (post of myPosts(); track post.id) {
                 <div class="flex items-start gap-3 px-5 py-3.5 group">
-                  <div class="w-8 h-8 rounded-xl bg-dark-700 border border-dark-600 flex items-center justify-center flex-shrink-0 text-sm">
-                    {{ postInfo(post.post_type).emoji }}
+                  <div class="w-8 h-8 rounded-xl bg-primary-900 border border-primary-500/20
+                               flex items-center justify-center flex-shrink-0 text-primary-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                    </svg>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-0.5">
-                      <span class="text-[10px] font-semibold text-primary-400">{{ postInfo(post.post_type).label }}</span>
-                      @if (post.city) { <span class="text-[10px] text-ink-muted">· {{ post.city }}</span> }
-                      <span class="text-[10px] text-dark-500 ml-auto">{{ timeAgo(post.created_at) }}</span>
+                    <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <span class="text-[10px] font-semibold text-primary-400">
+                        {{ postInfo(post.post_type).label }}
+                      </span>
+                      @if (post.city) {
+                        <span class="text-[10px] text-ink-muted">· {{ post.city }}</span>
+                      }
+                      <span class="text-[10px] text-ink-muted ml-auto">{{ timeAgo(post.created_at) }}</span>
                     </div>
                     <p class="text-sm text-ink leading-snug line-clamp-2">{{ post.body }}</p>
                   </div>
                   <button (click)="deletePost(post.id, $event)"
-                    class="opacity-0 group-hover:opacity-100 p-1.5 text-ink-muted hover:text-signal-red rounded-lg transition-all flex-shrink-0 mt-0.5">
+                    class="opacity-0 group-hover:opacity-100 p-1.5 text-ink-muted
+                           hover:text-signal-red hover:bg-signal-red/10
+                           rounded-lg transition-all flex-shrink-0 mt-0.5"
+                    aria-label="Eliminar anuncio">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
                   </button>
                 </div>
@@ -239,28 +423,46 @@
         @if (activeTab() === 'gear') {
           @if (myListings().length === 0) {
             <div class="flex flex-col items-center justify-center py-16 text-center px-6">
-              <div class="w-12 h-12 rounded-full bg-dark-700 flex items-center justify-center mb-3 text-xl">🎸</div>
-              <p class="text-sm font-semibold text-ink-3 mb-1">Sin productos en venta</p>
+              <div class="w-12 h-12 rounded-2xl bg-dark-700 border border-dark-600
+                           flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                </svg>
+              </div>
+              <p class="text-sm font-bold text-ink mb-1">Sin productos en venta</p>
               <p class="text-xs text-ink-muted mb-4">Vende instrumentos y equipamiento</p>
-              <a routerLink="/shop/new" class="btn-accent text-xs px-5 py-2">Publicar producto</a>
+              <a routerLink="/shop/new" class="btn-primary text-xs px-5 py-2">Publicar producto</a>
             </div>
           } @else {
             <div class="divide-y divide-dark-600">
               @for (item of myListings(); track item.id) {
                 <a [routerLink]="['/shop', item.id]"
-                   class="flex items-center gap-3 px-5 py-3.5 hover:bg-dark-700/50 transition-colors group">
+                   class="flex items-center gap-3 px-5 py-3.5 hover:bg-dark-750/50 transition-colors group">
                   <div class="w-12 h-12 rounded-xl bg-dark-700 border border-dark-600 overflow-hidden flex-shrink-0">
                     @if (item.images?.length > 0) {
-                      <img [src]="item.images[0]" [alt]="item.title" class="w-full h-full object-cover"/>
+                      <img [src]="item.images[0]" [alt]="item.title"
+                           class="w-full h-full object-cover" loading="lazy"/>
                     } @else {
-                      <div class="w-full h-full flex items-center justify-center text-xl">🎸</div>
+                      <div class="w-full h-full flex items-center justify-center text-ink-muted">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                        </svg>
+                      </div>
                     }
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <p class="text-sm font-semibold text-ink truncate group-hover:text-primary-400 transition-colors">{{ item.title }}</p>
+                      <p class="text-sm font-semibold text-ink truncate
+                                 group-hover:text-primary-400 transition-colors">
+                        {{ item.title }}
+                      </p>
                       @if (item.status === 'sold') {
-                        <span class="text-[10px] font-bold text-signal-red bg-signal-red/10 border border-signal-red/20 px-1.5 py-0.5 rounded-full flex-shrink-0">Vendido</span>
+                        <span class="text-[10px] font-bold text-signal-red bg-signal-red/10
+                                     border border-signal-red/20 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                          Vendido
+                        </span>
                       }
                     </div>
                     <p class="text-xs text-ink-muted">{{ item.category }} · {{ conditionLabel(item.condition) }}</p>
@@ -270,14 +472,18 @@
                     <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                       @if (item.status === 'active') {
                         <button (click)="markListingSold(item.id, $event)"
-                          class="text-[10px] font-semibold text-signal-green border border-signal-green/30 px-2 py-0.5 rounded-lg hover:bg-signal-green/10 transition-colors">
+                          class="text-[10px] font-semibold text-signal-green border border-signal-green/30
+                                 px-2 py-0.5 rounded-lg hover:bg-signal-green/10 transition-colors">
                           Vendido
                         </button>
                       }
                       <button (click)="deleteListing(item.id, $event)"
-                        class="p-1 text-ink-muted hover:text-signal-red rounded-lg transition-colors">
+                        class="p-1 text-ink-muted hover:text-signal-red hover:bg-signal-red/10
+                               rounded-lg transition-colors"
+                        aria-label="Eliminar producto">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
                       </button>
                     </div>
@@ -292,8 +498,14 @@
         @if (activeTab() === 'bookings') {
           @if (bookings().length === 0) {
             <div class="flex flex-col items-center justify-center py-16 text-center px-6">
-              <div class="w-12 h-12 rounded-full bg-dark-700 flex items-center justify-center mb-3 text-xl">📋</div>
-              <p class="text-sm font-semibold text-ink-3">Sin solicitudes de reserva</p>
+              <div class="w-12 h-12 rounded-2xl bg-dark-700 border border-dark-600
+                           flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </div>
+              <p class="text-sm font-bold text-ink mb-1">Sin solicitudes de reserva</p>
               <p class="text-xs text-ink-muted mt-1">Las peticiones de ensayo aparecerán aquí</p>
             </div>
           } @else {
@@ -315,16 +527,27 @@
                   </div>
                   <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
                     @if (b.status === 'confirmed') {
-                      <span class="text-[11px] font-semibold text-signal-green bg-signal-gBg border border-signal-green/30 px-2.5 py-1 rounded-lg">✓ Confirmada</span>
+                      <span class="text-[11px] font-semibold text-signal-green bg-signal-gBg
+                                   border border-signal-green/30 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Confirmada
+                      </span>
                     } @else if (b.status === 'rejected') {
-                      <span class="text-[11px] font-semibold text-signal-red bg-signal-red/10 border border-signal-red/20 px-2.5 py-1 rounded-lg">✗ Rechazada</span>
+                      <span class="text-[11px] font-semibold text-signal-red bg-signal-red/10
+                                   border border-signal-red/20 px-2.5 py-1 rounded-lg">
+                        Rechazada
+                      </span>
                     } @else {
                       <button (click)="updateBookingStatus(b.id, 'confirmed')"
-                        class="text-xs font-semibold text-signal-green border border-signal-green/30 hover:bg-signal-green/10 px-2.5 py-1 rounded-lg transition-colors">
+                        class="text-xs font-semibold text-signal-green border border-signal-green/30
+                               hover:bg-signal-green/10 px-2.5 py-1 rounded-lg transition-colors">
                         Confirmar
                       </button>
                       <button (click)="updateBookingStatus(b.id, 'rejected')"
-                        class="text-xs text-ink-muted hover:text-signal-red border border-dark-600 hover:border-signal-red/30 px-2.5 py-1 rounded-lg transition-colors">
+                        class="text-xs text-ink-muted hover:text-signal-red border border-dark-600
+                               hover:border-signal-red/30 px-2.5 py-1 rounded-lg transition-colors">
                         Rechazar
                       </button>
                     }
@@ -336,20 +559,24 @@
         }
 
       </div>
-      <!-- end tabs -->
+      <!-- end tab panel -->
 
     }
   </div>
   <!-- end main content -->
 
   <!-- ══ RIGHT SIDEBAR ══ -->
-  <aside class="hidden lg:flex flex-col w-80 flex-shrink-0 border-l border-dark-600 sticky top-16 h-[calc(100vh-64px)] py-6 px-5 overflow-y-auto gap-6">
+  <aside class="hidden lg:flex flex-col w-80 flex-shrink-0 border-l border-dark-600
+                 sticky top-16 h-[calc(100vh-64px)] py-6 px-5 overflow-y-auto gap-6">
 
     <!-- Próximos eventos -->
     <div>
       <div class="flex items-center justify-between mb-3">
-        <p class="text-xs font-bold text-ink uppercase tracking-wide">Próximos eventos</p>
-        <a routerLink="/events" class="text-[10px] text-primary-400 hover:text-primary-300 transition-colors">Ver todos →</a>
+        <p class="section-label">Próximos eventos</p>
+        <a routerLink="/events"
+          class="text-[10px] font-semibold text-primary-400 hover:text-primary-500 transition-colors">
+          Ver todos
+        </a>
       </div>
       @if (sidebarEvents().length === 0) {
         <p class="text-xs text-ink-muted py-4 text-center">Sin eventos próximos</p>
@@ -357,15 +584,28 @@
         <div class="flex flex-col gap-2">
           @for (event of sidebarEvents(); track event.id) {
             <a [routerLink]="['/events', event.id]"
-               class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-700 transition-all group">
-              <div class="w-9 h-10 rounded-lg bg-primary-900 border border-primary-500/20 flex flex-col items-center justify-center flex-shrink-0">
-                <span class="text-[8px] font-bold text-primary-400 uppercase leading-none">{{ event.date | date:'MMM' }}</span>
-                <span class="text-sm font-black text-primary-300 leading-none mt-0.5">{{ event.date | date:'d' }}</span>
+               class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600
+                      hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
+              <div class="w-9 h-10 rounded-lg bg-primary-500 flex flex-col items-center
+                           justify-center flex-shrink-0">
+                <span class="text-[8px] font-bold text-white/70 uppercase leading-none">
+                  {{ event.date | date:'MMM' }}
+                </span>
+                <span class="text-sm font-black text-white leading-none mt-0.5">
+                  {{ event.date | date:'d' }}
+                </span>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-400 transition-colors">{{ event.title }}</p>
-                @if (event.venue) { <p class="text-[10px] text-ink-muted mt-0.5 truncate">{{ event.venue }}</p> }
-                @if (event.city) { <p class="text-[10px] text-ink-muted truncate">📍 {{ event.city }}</p> }
+                <p class="text-[11px] font-semibold text-ink truncate
+                           group-hover:text-primary-400 transition-colors">
+                  {{ event.title }}
+                </p>
+                @if (event.venue) {
+                  <p class="text-[10px] text-ink-muted mt-0.5 truncate">{{ event.venue }}</p>
+                }
+                @if (event.city) {
+                  <p class="text-[10px] text-ink-muted truncate">{{ event.city }}</p>
+                }
               </div>
             </a>
           }
@@ -376,8 +616,11 @@
     <!-- Últimos anuncios -->
     <div>
       <div class="flex items-center justify-between mb-3">
-        <p class="text-xs font-bold text-ink uppercase tracking-wide">Últimos anuncios</p>
-        <a routerLink="/feed" class="text-[10px] text-primary-400 hover:text-primary-300 transition-colors">Ver feed →</a>
+        <p class="section-label">Últimos anuncios</p>
+        <a routerLink="/feed"
+          class="text-[10px] font-semibold text-primary-400 hover:text-primary-500 transition-colors">
+          Ver feed
+        </a>
       </div>
       @if (sidebarPosts().length === 0) {
         <p class="text-xs text-ink-muted py-4 text-center">Sin anuncios aún</p>
@@ -385,12 +628,26 @@
         <div class="flex flex-col gap-2">
           @for (post of sidebarPosts(); track post.id) {
             <a routerLink="/feed"
-               class="flex items-start gap-2.5 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-700 transition-all group">
-              <span class="text-base flex-shrink-0">{{ postInfo(post.post_type).emoji }}</span>
+               class="flex items-start gap-2.5 p-3 rounded-xl bg-dark-800 border border-dark-600
+                      hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
+              <div class="w-7 h-7 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center
+                           justify-center flex-shrink-0 text-primary-400 mt-0.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                </svg>
+              </div>
               <div class="min-w-0">
-                <p class="text-[10px] font-semibold text-primary-400 mb-0.5">{{ postInfo(post.post_type).label }}</p>
-                <p class="text-[11px] text-ink-3 line-clamp-2 leading-snug group-hover:text-ink transition-colors">{{ post.body }}</p>
-                @if (post.city) { <p class="text-[10px] text-ink-muted mt-0.5">📍 {{ post.city }}</p> }
+                <p class="text-[10px] font-semibold text-primary-400 mb-0.5">
+                  {{ postInfo(post.post_type).label }}
+                </p>
+                <p class="text-[11px] text-ink-3 line-clamp-2 leading-snug
+                           group-hover:text-ink transition-colors">
+                  {{ post.body }}
+                </p>
+                @if (post.city) {
+                  <p class="text-[10px] text-ink-muted mt-0.5">{{ post.city }}</p>
+                }
               </div>
             </a>
           }
@@ -398,30 +655,45 @@
       }
     </div>
 
-    <!-- Mis productos destacados -->
+    <!-- Mis productos -->
     @if (myListings().length > 0) {
       <div>
         <div class="flex items-center justify-between mb-3">
-          <p class="text-xs font-bold text-ink uppercase tracking-wide">Mis productos</p>
-          <a routerLink="/shop" class="text-[10px] text-primary-400 hover:text-primary-300 transition-colors">Ver tienda →</a>
+          <p class="section-label">Mis productos</p>
+          <a routerLink="/shop"
+            class="text-[10px] font-semibold text-primary-400 hover:text-primary-500 transition-colors">
+            Ver tienda
+          </a>
         </div>
         <div class="flex flex-col gap-2">
           @for (item of myListings().slice(0,3); track item.id) {
             <a [routerLink]="['/shop', item.id]"
-               class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-700 transition-all group">
+               class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600
+                      hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
               <div class="w-9 h-9 rounded-lg bg-dark-700 border border-dark-600 overflow-hidden flex-shrink-0">
                 @if (item.images?.length > 0) {
                   <img [src]="item.images[0]" [alt]="item.title" class="w-full h-full object-cover"/>
                 } @else {
-                  <div class="w-full h-full flex items-center justify-center text-base">🎸</div>
+                  <div class="w-full h-full flex items-center justify-center text-ink-muted">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                            d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                    </svg>
+                  </div>
                 }
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-400 transition-colors">{{ item.title }}</p>
+                <p class="text-[11px] font-semibold text-ink truncate
+                           group-hover:text-primary-400 transition-colors">
+                  {{ item.title }}
+                </p>
                 <p class="text-[11px] font-bold text-primary-400">{{ item.price | number:'1.0-0' }} €</p>
               </div>
               @if (item.status === 'sold') {
-                <span class="text-[9px] font-bold text-signal-red bg-signal-red/10 border border-signal-red/20 px-1.5 py-0.5 rounded-full flex-shrink-0">Vendido</span>
+                <span class="text-[9px] font-bold text-signal-red bg-signal-red/10
+                             border border-signal-red/20 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                  Vendido
+                </span>
               }
             </a>
           }
