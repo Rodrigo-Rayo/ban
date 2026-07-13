@@ -347,20 +347,20 @@
         </div>
 
         @if (loading()) {
-          <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-            @for (i of [1,2,3,4]; track i) {
-              <div class="flex-shrink-0 w-28 card p-3 text-center animate-pulse">
+          <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+            @for (i of [1,2,3,4,5,6]; track i) {
+              <div class="card p-3 text-center animate-pulse">
                 <div class="w-14 h-14 rounded-full bg-dark-700 mx-auto mb-2"></div>
-                <div class="h-2.5 bg-dark-700 rounded w-16 mx-auto mb-1.5"></div>
-                <div class="h-2 bg-dark-600 rounded w-12 mx-auto"></div>
+                <div class="h-2.5 bg-dark-700 rounded w-3/4 mx-auto mb-1.5"></div>
+                <div class="h-2 bg-dark-600 rounded w-1/2 mx-auto"></div>
               </div>
             }
           </div>
         } @else if (recentMusicians().length > 0) {
-          <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+          <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
             @for (m of recentMusicians(); track m.id) {
               <a [routerLink]="['/musicians', m.id]"
-                 class="flex-shrink-0 w-28 card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
+                 class="card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
                 <div class="w-14 h-14 rounded-full mx-auto mb-2.5 flex items-center justify-center text-base font-black text-white overflow-hidden"
                      [style.background]="avatarColor(m.name)">
                   @if (m.avatar_url) {
@@ -374,49 +374,45 @@
                 @if (m.city) { <p class="text-[10px] text-ink-muted truncate mt-0.5">{{ m.city }}</p> }
               </a>
             }
-            <a routerLink="/search" [queryParams]="{tab:'musicians'}"
-               class="flex-shrink-0 w-16 card flex flex-col items-center justify-center gap-1.5 border-dashed hover:border-primary-500/40 transition-all">
-              <svg class="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              <span class="text-[10px] text-ink-muted font-medium text-center px-1">Ver más</span>
-            </a>
           </div>
         } @else {
           <!-- Hardcoded fallback musicians -->
-          <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="flex-shrink-0 w-28 card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
+          <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
               <div class="w-14 h-14 rounded-full mx-auto mb-2.5 flex items-center justify-center text-base font-black text-white" style="background:#a0442a">CM</div>
               <p class="text-[11px] font-semibold text-ink truncate">Carlos M.</p>
               <p class="text-[10px] text-primary-400 truncate mt-0.5">Guitarra</p>
               <p class="text-[10px] text-ink-muted truncate mt-0.5">Madrid</p>
             </a>
-            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="flex-shrink-0 w-28 card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
+            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
               <div class="w-14 h-14 rounded-full mx-auto mb-2.5 flex items-center justify-center text-base font-black text-white" style="background:#7a3320">LS</div>
               <p class="text-[11px] font-semibold text-ink truncate">Laura S.</p>
               <p class="text-[10px] text-primary-400 truncate mt-0.5">Voz</p>
               <p class="text-[10px] text-ink-muted truncate mt-0.5">Barcelona</p>
             </a>
-            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="flex-shrink-0 w-28 card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
+            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
               <div class="w-14 h-14 rounded-full mx-auto mb-2.5 flex items-center justify-center text-base font-black text-white" style="background:#c4623e">MR</div>
               <p class="text-[11px] font-semibold text-ink truncate">Miguel R.</p>
               <p class="text-[10px] text-primary-400 truncate mt-0.5">Bajo</p>
               <p class="text-[10px] text-ink-muted truncate mt-0.5">Valencia</p>
             </a>
-            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="flex-shrink-0 w-28 card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
+            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
               <div class="w-14 h-14 rounded-full mx-auto mb-2.5 flex items-center justify-center text-base font-black text-white" style="background:#8b3a2a">AT</div>
               <p class="text-[11px] font-semibold text-ink truncate">Ana T.</p>
               <p class="text-[10px] text-primary-400 truncate mt-0.5">Batería</p>
               <p class="text-[10px] text-ink-muted truncate mt-0.5">Sevilla</p>
             </a>
-            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="flex-shrink-0 w-28 card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
+            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
               <div class="w-14 h-14 rounded-full mx-auto mb-2.5 flex items-center justify-center text-base font-black text-white" style="background:#b85040">JP</div>
               <p class="text-[11px] font-semibold text-ink truncate">Javier P.</p>
               <p class="text-[10px] text-primary-400 truncate mt-0.5">Piano</p>
               <p class="text-[10px] text-ink-muted truncate mt-0.5">Bilbao</p>
             </a>
-            <a routerLink="/search" [queryParams]="{tab:'musicians'}"
-               class="flex-shrink-0 w-16 card flex flex-col items-center justify-center gap-1.5 border-dashed hover:border-primary-500/40 transition-all">
-              <svg class="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              <span class="text-[10px] text-ink-muted font-medium text-center px-1">Ver más</span>
+            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="card p-3 text-center hover:border-primary-500/50 transition-all active:scale-95">
+              <div class="w-14 h-14 rounded-full mx-auto mb-2.5 flex items-center justify-center text-base font-black text-white" style="background:#d4785a">SR</div>
+              <p class="text-[11px] font-semibold text-ink truncate">Sofía R.</p>
+              <p class="text-[10px] text-primary-400 truncate mt-0.5">Violín</p>
+              <p class="text-[10px] text-ink-muted truncate mt-0.5">Zaragoza</p>
             </a>
           </div>
         }
@@ -438,21 +434,21 @@
         </div>
 
         @if (loading()) {
-          <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-            @for (i of [1,2,3]; track i) {
-              <div class="flex-shrink-0 w-44 card p-3 animate-pulse">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="card p-3 animate-pulse">
                 <div class="flex items-center gap-2.5 mb-2">
                   <div class="w-10 h-10 rounded-xl bg-dark-700 flex-shrink-0"></div>
-                  <div class="flex-1"><div class="h-2.5 bg-dark-700 rounded w-20 mb-1.5"></div><div class="h-2 bg-dark-600 rounded w-14"></div></div>
+                  <div class="flex-1"><div class="h-2.5 bg-dark-700 rounded w-3/4 mb-1.5"></div><div class="h-2 bg-dark-600 rounded w-1/2"></div></div>
                 </div>
               </div>
             }
           </div>
         } @else if (recentBands().length > 0) {
-          <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             @for (band of recentBands(); track band.id) {
               <a [routerLink]="['/bands', band.id]"
-                 class="flex-shrink-0 w-44 card p-3 hover:border-primary-500/50 transition-all active:scale-95">
+                 class="card p-3 hover:border-primary-500/50 transition-all active:scale-95">
                 <div class="flex items-center gap-2.5 mb-2">
                   <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0 overflow-hidden"
                        [style.background]="avatarColor(band.name)">
@@ -477,16 +473,11 @@
                 </div>
               </a>
             }
-            <a routerLink="/search" [queryParams]="{tab:'bands'}"
-               class="flex-shrink-0 w-16 card flex flex-col items-center justify-center gap-1.5 border-dashed hover:border-primary-500/40 transition-all">
-              <svg class="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              <span class="text-[10px] text-ink-muted font-medium text-center px-1">Ver más</span>
-            </a>
           </div>
         } @else {
           <!-- Hardcoded fallback bands -->
-          <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-            <a routerLink="/search" [queryParams]="{tab:'bands'}" class="flex-shrink-0 w-44 card p-3 hover:border-primary-500/50 transition-all active:scale-95">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <a routerLink="/search" [queryParams]="{tab:'bands'}" class="card p-3 hover:border-primary-500/50 transition-all active:scale-95">
               <div class="flex items-center gap-2.5 mb-2">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0" style="background:#a0442a">LE</div>
                 <div class="flex-1 min-w-0">
@@ -499,7 +490,7 @@
                 <span class="tag-green text-[9px] ml-auto">Busca</span>
               </div>
             </a>
-            <a routerLink="/search" [queryParams]="{tab:'bands'}" class="flex-shrink-0 w-44 card p-3 hover:border-primary-500/50 transition-all active:scale-95">
+            <a routerLink="/search" [queryParams]="{tab:'bands'}" class="card p-3 hover:border-primary-500/50 transition-all active:scale-95">
               <div class="flex items-center gap-2.5 mb-2">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0" style="background:#7a3320">FF</div>
                 <div class="flex-1 min-w-0">
@@ -511,7 +502,7 @@
                 <span class="text-[10px] text-ink-muted flex items-center gap-0.5 truncate"><app-icon name="map-pin" [size]="9"/>Sevilla</span>
               </div>
             </a>
-            <a routerLink="/search" [queryParams]="{tab:'bands'}" class="flex-shrink-0 w-44 card p-3 hover:border-primary-500/50 transition-all active:scale-95">
+            <a routerLink="/search" [queryParams]="{tab:'bands'}" class="card p-3 hover:border-primary-500/50 transition-all active:scale-95">
               <div class="flex items-center gap-2.5 mb-2">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0" style="background:#1a0d2e">MJ</div>
                 <div class="flex-1 min-w-0">
@@ -524,7 +515,7 @@
                 <span class="tag-green text-[9px] ml-auto">Busca</span>
               </div>
             </a>
-            <a routerLink="/search" [queryParams]="{tab:'bands'}" class="flex-shrink-0 w-44 card p-3 hover:border-primary-500/50 transition-all active:scale-95">
+            <a routerLink="/search" [queryParams]="{tab:'bands'}" class="card p-3 hover:border-primary-500/50 transition-all active:scale-95">
               <div class="flex items-center gap-2.5 mb-2">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0" style="background:#2a0a0a">MS</div>
                 <div class="flex-1 min-w-0">
@@ -535,11 +526,6 @@
               <div class="flex items-center gap-1.5">
                 <span class="text-[10px] text-ink-muted flex items-center gap-0.5 truncate"><app-icon name="map-pin" [size]="9"/>Bilbao</span>
               </div>
-            </a>
-            <a routerLink="/search" [queryParams]="{tab:'bands'}"
-               class="flex-shrink-0 w-16 card flex flex-col items-center justify-center gap-1.5 border-dashed hover:border-primary-500/40 transition-all">
-              <svg class="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              <span class="text-[10px] text-ink-muted font-medium text-center px-1">Ver más</span>
             </a>
           </div>
         }
