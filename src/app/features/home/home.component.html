@@ -292,30 +292,33 @@
         </div>
 
         @if (loading()) {
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-4 gap-2">
             @for (i of [1,2,3,4]; track i) {
-              <div class="flex items-center gap-2.5 p-2 card animate-pulse">
-                <div class="w-10 h-10 rounded-lg bg-dark-700 flex-shrink-0"></div>
-                <div class="flex-1 space-y-1.5"><div class="h-2 bg-dark-700 rounded w-3/4"></div><div class="h-2 bg-dark-600 rounded w-1/2"></div></div>
+              <div class="card animate-pulse">
+                <div class="h-16 bg-dark-700 rounded-t-2xl"></div>
+                <div class="p-1.5 space-y-1"><div class="h-2 bg-dark-700 rounded w-3/4"></div><div class="h-1.5 bg-dark-600 rounded w-1/2"></div></div>
               </div>
             }
           </div>
         } @else {
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-4 gap-2">
             @for (item of recentListings(); track item.id) {
-              <a [routerLink]="['/shop', item.id]"
-                 class="flex items-center gap-2.5 p-2 card hover:border-primary-500/40 transition-all active:scale-95">
-                <div class="w-10 h-10 rounded-lg bg-dark-750 flex-shrink-0 overflow-hidden flex items-center justify-center">
+              <a [routerLink]="['/shop', item.id]" class="card overflow-hidden group/card hover:border-primary-500/40 transition-all active:scale-95">
+                <div class="h-16 relative overflow-hidden bg-dark-750">
                   @if (item.images?.length > 0) {
-                    <img [src]="item.images[0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover"/>
+                    <img [src]="item.images[0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"/>
                   } @else {
-                    <app-icon name="shopping-cart" [size]="16" class="text-ink-muted/30"/>
+                    <div class="w-full h-full flex items-center justify-center text-ink-muted/20">
+                      <app-icon name="shopping-cart" [size]="20"/>
+                    </div>
                   }
+                  <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-1.5 pb-1">
+                    <p class="text-[10px] font-black text-white">{{ item.price | number:'1.0-0' }} €</p>
+                  </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-[11px] font-semibold text-ink truncate">{{ item.title }}</p>
-                  <p class="text-[10px] text-primary-400 font-bold mt-0.5">{{ item.price | number:'1.0-0' }} €</p>
-                  <p class="text-[9px] text-ink-muted truncate">{{ item.condition || item.category }}</p>
+                <div class="p-1.5">
+                  <p class="text-[9px] font-semibold text-ink truncate leading-tight">{{ item.title }}</p>
+                  <p class="text-[8px] text-ink-muted mt-0.5 truncate">{{ item.condition || item.category }}</p>
                 </div>
               </a>
             }
