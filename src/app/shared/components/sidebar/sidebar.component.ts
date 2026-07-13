@@ -40,7 +40,6 @@ export class SidebarComponent implements OnInit {
   get isFavorites()     { return this.currentUrl().startsWith('/favorites'); }
   get isNotifications() { return this.currentUrl().startsWith('/notifications'); }
   get isFeed()          { return this.currentUrl().startsWith('/feed'); }
-  get isMap()           { return this.currentUrl().startsWith('/map'); }
   get isShop()          { return this.currentUrl().startsWith('/shop'); }
 
 

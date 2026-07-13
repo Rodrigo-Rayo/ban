@@ -87,10 +87,7 @@ export const routes: Routes = [
     path: 'feed',
     loadComponent: () => import('./features/feed/feed.component').then(m => m.FeedComponent),
   },
-  {
-    path: 'map',
-    loadComponent: () => import('./features/map/map.component').then(m => m.MapComponent),
-  },
+
   {
     path: 'shop',
     loadComponent: () => import('./features/shop/gear-list/gear-list.component').then(m => m.GearListComponent),
