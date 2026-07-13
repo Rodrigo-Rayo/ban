@@ -1,12 +1,17 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import { NotificationsService } from './notifications.service';
 import { Conversation, Message } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
   private supabase = inject(SupabaseService);
-  private notifSvc = inject(NotificationsService);
+
+  /** Tracks which conversation the user is currently viewing. */
+  activeChatConversationId = signal<string | null>(null);
+
+  setActiveChat(id: string | null) {
+    this.activeChatConversationId.set(id);
+  }
 
   private async getCurrentUser() {
     const { data: { user } } = await this.supabase.auth.getUser();
@@ -136,19 +141,7 @@ export class MessagesService {
       .eq('id', conversationId)
       .then(({ error: e }) => { if (e) console.error('[sendMessage] conversation update error:', e.message); });
 
-    this.createMessageNotification(conversationId, user.id, content);
-
     return data as Message;
-  }
-
-  private async createMessageNotification(conversationId: string, senderId: string, content: string) {
-    const conv = await this.getConversationById(conversationId);
-    if (!conv) return;
-    const recipientId = conv.user1_id === senderId ? conv.user2_id : conv.user1_id;
-    if (!recipientId) return;
-    const senderName = await this.getUserName(senderId);
-    const preview = content.length > 80 ? content.slice(0, 80) + '…' : content;
-    await this.notifSvc.create(recipientId, 'message', `Nuevo mensaje de ${senderName}`, preview, 'conversation', conversationId);
   }
 
   async markAsRead(conversationId: string) {
@@ -210,14 +203,17 @@ export class MessagesService {
     return new Set((data || []).map((m: any) => m.conversation_id));
   }
 
-  subscribeToInboxUpdates(currentUserId: string, onNewMessage: (senderName: string, preview: string, conversationId: string) => void) {
+  subscribeToInboxUpdates(currentUserId: string, onNewMessage: (senderName: string, preview: string, conversationId: string) => void, channelSuffix = '') {
+    const name = channelSuffix
+      ? `inbox-updates-${currentUserId}-${channelSuffix}`
+      : `inbox-updates-${currentUserId}`;
     return this.supabase.client
-      .channel(`inbox-updates-${currentUserId}`)
+      .channel(name)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
         const msg = payload.new as any;
         if (msg.sender_id !== currentUserId) {
-          const name = await this.getUserName(msg.sender_id);
-          onNewMessage(name, msg.text, msg.conversation_id);
+          const resolvedName = await this.getUserName(msg.sender_id);
+          onNewMessage(resolvedName, msg.text, msg.conversation_id);
         }
       })
       .subscribe();

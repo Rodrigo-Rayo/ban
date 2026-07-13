@@ -10,7 +10,7 @@ export class NotificationsService {
   async loadUnread(userId: string) {
     const { count, error } = await this.supabase.client
       .from('notifications').select('*', { count: 'exact', head: true })
-      .eq('user_id', userId).eq('read', false);
+      .eq('user_id', userId).eq('read', false).neq('type', 'message');
     if (!error) this.unreadCount.set(count || 0);
   }
 
@@ -18,6 +18,7 @@ export class NotificationsService {
     const { data, error } = await this.supabase.client
       .from('notifications').select('*')
       .eq('user_id', userId)
+      .neq('type', 'message')
       .order('created_at', { ascending: false }).limit(50);
     if (error) return [];
     return data || [];
@@ -40,7 +41,11 @@ export class NotificationsService {
       .channel(`notifications_${userId}`)
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}`,
-      }, () => { this.unreadCount.update(n => n + 1); onNew(); })
+      }, (payload: any) => {
+        if (payload.new?.type === 'message') return;
+        this.unreadCount.update(n => n + 1);
+        onNew();
+      })
       .subscribe();
     return this.channel;
   }

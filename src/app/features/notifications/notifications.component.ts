@@ -47,7 +47,7 @@ export class NotificationsComponent implements OnInit {
       this.notifSvc.getAll(session.user.id),
       this.notifSvc.markAllRead(session.user.id),
     ]);
-    this.notifications.set(notifs);
+    this.notifications.set(notifs.filter((n: any) => n.type !== 'message'));
     this.loading.set(false);
   }
 }

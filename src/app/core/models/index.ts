@@ -182,6 +182,8 @@ export interface Conversation {
   id: string;
   user1_id: string;
   user2_id: string;
+  user1_name: string | null;
+  user2_name: string | null;
   last_message: string | null;
   last_message_at: string | null;
   created_at: string;

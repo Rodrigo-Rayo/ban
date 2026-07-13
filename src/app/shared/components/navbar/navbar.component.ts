@@ -24,7 +24,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   publishOpen = false;
   unread = signal(0);
   avatarUrl = signal<string | null>(null);
-  toast = signal<{ name: string; preview: string } | null>(null);
+  toast = signal<{ name: string; preview: string; conversationId: string } | null>(null);
   private channel: any = null;
   private notifChannel: any = null;
   private toastTimer: any = null;
@@ -36,9 +36,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.loadAvatar(session.user.id);
       this.channel = this.messagesService.subscribeToInboxUpdates(
         session.user.id,
-        (senderName, preview, _convId) => {
+        (senderName, preview, convId) => {
+          // Don't toast or increment badge if the user is already in that chat
+          if (this.messagesService.activeChatConversationId() === convId) return;
           this.unread.update(n => n + 1);
-          this.showToast(senderName, preview);
+          this.showToast(senderName, preview, convId);
         }
       );
       await this.notifSvc.loadUnread(session.user.id);
@@ -49,11 +51,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
       filter(e => e instanceof NavigationEnd)
     ).subscribe(async (e: any) => {
       this.publishOpen = false;
-      if (e.url.startsWith('/inbox')) {
-        this.unread.set(0);
-      }
-      if (e.url.startsWith('/notifications')) {
-        this.notifSvc.unreadCount.set(0);
+      // Refresh real unread count when navigating to any chat or inbox route
+      if (e.url.startsWith('/inbox') || e.url.startsWith('/chat')) {
+        const freshCount = await this.messagesService.getUnreadCount();
+        this.unread.set(freshCount);
       }
       if (e.url.startsWith('/dashboard')) {
         const { data: { session } } = await this.supabase.auth.getSession();
@@ -71,15 +72,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
-  private showToast(name: string, preview: string) {
+  private showToast(name: string, preview: string, conversationId: string) {
     if (this.toastTimer) clearTimeout(this.toastTimer);
-    this.toast.set({ name, preview });
+    this.toast.set({ name, preview, conversationId });
     this.toastTimer = setTimeout(() => this.toast.set(null), 4000);
   }
 
-  goToInbox() {
+  goToChat() {
+    const t = this.toast();
     this.toast.set(null);
-    this.router.navigate(['/inbox']);
+    if (t?.conversationId) {
+      this.router.navigate(['/chat', t.conversationId], { state: { name: t.name } });
+    }
   }
 
   ngOnDestroy() {

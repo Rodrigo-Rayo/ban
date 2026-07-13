@@ -40,6 +40,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.conversationId = this.route.snapshot.paramMap.get('id')!;
+    this.messagesService.setActiveChat(this.conversationId);
 
     const navName = history.state?.name;
     if (navName && typeof navName === 'string') this.otherName.set(navName);
@@ -73,6 +74,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.messagesService.setActiveChat(null);
     if (this.subscription) {
       this.supabase.client.removeChannel(this.subscription);
     }
@@ -96,9 +98,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       } else {
         this.sendError.set('Error desconocido al enviar.');
       }
-    } catch (e: any) {
+    } catch {
       this.sending.set(false);
-      this.sendError.set(e?.message ?? 'Error al enviar');
+      this.sendError.set('No se pudo enviar. Inténtalo de nuevo.');
     }
   }
 

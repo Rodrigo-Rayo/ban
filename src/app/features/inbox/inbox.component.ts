@@ -25,11 +25,10 @@ export class InboxComponent implements OnInit, OnDestroy {
     const convs = await this.messagesService.getConversations();
     this.conversations.set(convs);
 
-    const nameMap: Record<string, string> = {};
-    for (const conv of convs) {
-      nameMap[conv.id] = await this.messagesService.getOtherUserProfile(conv);
-    }
-    this.names.set(nameMap);
+    const nameEntries = await Promise.all(
+      convs.map(async conv => [conv.id, await this.messagesService.getOtherUserProfile(conv)] as const)
+    );
+    this.names.set(Object.fromEntries(nameEntries));
     this.unreadIds.set(await this.messagesService.getUnreadConversationIds());
     this.loading.set(false);
 
@@ -54,7 +53,8 @@ export class InboxComponent implements OnInit, OnDestroy {
         if (!this.names()[convId]) {
           this.names.update(n => ({ ...n, [convId]: senderName }));
         }
-      }
+      },
+      'list'
     );
   }
 
