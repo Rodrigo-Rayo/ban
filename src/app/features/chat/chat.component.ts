@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy, ElementRef, ViewChild, effect } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +12,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
   templateUrl: './chat.component.html',
 })
 export class ChatComponent implements OnInit, OnDestroy {
-  @ViewChild('messagesEnd') private messagesEnd!: ElementRef;
+  @ViewChild('messagesList') private messagesList!: ElementRef;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -25,17 +25,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   currentUserId = '';
   loading = signal(true);
   sending = signal(false);
+  sendError = signal('');
   private subscription: any;
   private conversationId = '';
-
-  constructor() {
-    effect(() => {
-      const count = this.messages().length;
-      if (count > 0) {
-        requestAnimationFrame(() => this.scrollToBottom());
-      }
-    });
-  }
 
   async ngOnInit() {
     this.conversationId = this.route.snapshot.paramMap.get('id')!;
@@ -52,6 +44,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.messagesService.getConversationById(this.conversationId),
     ]);
     this.messages.set(msgs);
+
+    // Scroll after Angular renders the message list
+    setTimeout(() => this.scrollToBottom(), 0);
+
     await this.messagesService.markAsRead(this.conversationId);
 
     if (conv) {
@@ -64,9 +60,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subscription = this.messagesService.subscribeToMessages(
       this.conversationId,
       (msg) => {
-        this.messages.update(msgs =>
-          msgs.some(m => m.id === msg.id) ? msgs : [...msgs, msg]
+        this.messages.update(list =>
+          list.some(m => m.id === msg.id) ? list : [...list, msg]
         );
+        setTimeout(() => this.scrollToBottom(), 0);
         this.messagesService.markAsRead(this.conversationId);
       }
     );
@@ -79,8 +76,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  sendError = signal('');
-
   async send() {
     const content = this.newMessage.trim();
     if (!content || this.sending()) return;
@@ -91,9 +86,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.sending.set(false);
       if (msg) {
         this.newMessage = '';
-        this.messages.update(msgs =>
-          msgs.some(m => m.id === msg.id) ? msgs : [...msgs, msg]
+        this.messages.update(list =>
+          list.some(m => m.id === msg.id) ? list : [...list, msg]
         );
+        setTimeout(() => this.scrollToBottom(), 0);
       } else {
         this.sendError.set('Error desconocido al enviar.');
       }
@@ -118,7 +114,8 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private scrollToBottom() {
     try {
-      this.messagesEnd?.nativeElement.scrollIntoView({ behavior: 'auto' });
+      const el = this.messagesList?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
     } catch {}
   }
 }

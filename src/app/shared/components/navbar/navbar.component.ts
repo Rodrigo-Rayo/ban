@@ -76,6 +76,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.toast.set(null);
     if (t?.conversationId) {
       this.router.navigate(['/inbox', t.conversationId], { state: { name: t.name } });
+      // Refresh badge after markAsRead in chat component completes (~500ms)
+      setTimeout(() => this.messagesService.refreshUnreadCount(), 600);
     }
   }
 
