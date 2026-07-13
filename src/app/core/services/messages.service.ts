@@ -9,8 +9,8 @@ export class MessagesService {
   private notifSvc = inject(NotificationsService);
 
   private async getCurrentUser() {
-    const { data: { session } } = await this.supabase.auth.getSession();
-    return session?.user ?? null;
+    const { data: { user } } = await this.supabase.auth.getUser();
+    return user ?? null;
   }
 
   async getOrCreateConversation(otherUserId: string, otherName?: string): Promise<{ id: string } | { error: string } | null> {
@@ -113,7 +113,7 @@ export class MessagesService {
 
     if (error) {
       console.error('[sendMessage] insert error:', error.message, error.code, error.details);
-      return null;
+      throw new Error(`${error.code}: ${error.message}`);
     }
 
     if (!data) {

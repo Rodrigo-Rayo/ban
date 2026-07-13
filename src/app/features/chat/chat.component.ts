@@ -85,16 +85,20 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (!content || this.sending()) return;
     this.sending.set(true);
     this.sendError.set('');
-    const msg = await this.messagesService.sendMessage(this.conversationId, content);
-    this.sending.set(false);
-    if (msg) {
-      this.newMessage = '';
-      this.messages.update(msgs =>
-        msgs.some(m => m.id === msg.id) ? msgs : [...msgs, msg]
-      );
-    } else {
-      this.sendError.set('No se pudo enviar. Inténtalo de nuevo.');
-      setTimeout(() => this.sendError.set(''), 3000);
+    try {
+      const msg = await this.messagesService.sendMessage(this.conversationId, content);
+      this.sending.set(false);
+      if (msg) {
+        this.newMessage = '';
+        this.messages.update(msgs =>
+          msgs.some(m => m.id === msg.id) ? msgs : [...msgs, msg]
+        );
+      } else {
+        this.sendError.set('Error desconocido al enviar.');
+      }
+    } catch (e: any) {
+      this.sending.set(false);
+      this.sendError.set(e?.message ?? 'Error al enviar');
     }
   }
 
