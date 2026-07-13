@@ -82,7 +82,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     const t = this.toast();
     this.toast.set(null);
     if (t?.conversationId) {
-      this.router.navigate(['/chat', t.conversationId], { state: { name: t.name } });
+      this.router.navigate(['/inbox', t.conversationId], { state: { name: t.name } });
     }
   }
 

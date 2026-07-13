@@ -15,7 +15,7 @@ import { CookieBannerComponent } from './shared/components/cookie-banner/cookie-
   template: `
     <app-navbar />
     <app-sidebar />
-    <div class="lg:pl-56">
+    <div class="lg:pl-56 pb-16 md:pb-0">
       <router-outlet />
     </div>
     <app-toast />
