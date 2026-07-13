@@ -246,7 +246,7 @@
           </div>
         } @else if (recentPosts().length > 0) {
           <div class="divide-y divide-dark-600">
-            @for (post of recentPosts(); track post.id) {
+            @for (post of recentPosts().slice(0,4); track post.id) {
               <a routerLink="/feed" class="flex items-start gap-3 px-5 py-4 hover:bg-dark-750/50 transition-colors group/row">
                 <div class="w-8 h-8 rounded-xl bg-dark-750 border border-dark-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-ink-muted">
                   <app-icon [name]="postInfo(post.type).icon" [size]="14"/>

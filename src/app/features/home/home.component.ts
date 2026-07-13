@@ -92,7 +92,7 @@ export class HomeComponent implements OnInit {
       this.supabase.client.from('venues').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('rehearsal_spaces').select('*').order('created_at', { ascending: false }).limit(5),
-      this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(6),
+      this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(4),
       this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(4),
     ]);
 
