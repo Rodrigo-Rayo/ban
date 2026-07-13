@@ -7,6 +7,7 @@ import { MessagesService } from '../../../core/services/messages.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { NotificationsService } from '../../../core/services/notifications.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 @Component({
@@ -23,6 +24,7 @@ export class RehearsalProfileComponent implements OnInit {
   private favSvc = inject(FavoritesService);
   private notifSvc = inject(NotificationsService);
   private seo = inject(SeoService);
+  private toast = inject(ToastService);
 
   space = signal<any>(null);
   reviews = signal<any[]>([]);
@@ -83,8 +85,13 @@ export class RehearsalProfileComponent implements OnInit {
   async toggleFav() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     this.favLoading.set(true);
-    this.isFav.set(await this.favSvc.toggle(this.currentUserId()!, 'rehearsal', this.space()!.id));
-    this.favLoading.set(false);
+    try {
+      this.isFav.set(await this.favSvc.toggle(this.currentUserId()!, 'rehearsal', this.space()!.id));
+    } catch {
+      this.toast.error('No se pudo actualizar favoritos. Inténtalo de nuevo.');
+    } finally {
+      this.favLoading.set(false);
+    }
   }
 
   async submitBooking() {

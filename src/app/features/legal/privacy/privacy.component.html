@@ -1,0 +1,131 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+  <div class="max-w-3xl mx-auto px-5 lg:px-8 py-10">
+
+    <a routerLink="/" class="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-ink mb-8 transition-colors">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Volver al inicio
+    </a>
+
+    <div class="mb-10">
+      <p class="text-xs font-bold text-primary-500 uppercase tracking-widest mb-2">Legal</p>
+      <h1 class="text-3xl font-black text-ink tracking-tight mb-3">Política de Privacidad</h1>
+      <p class="text-sm text-ink-muted">Última actualización: {{ updated }}</p>
+    </div>
+
+    <div class="prose-legal">
+
+      <section>
+        <h2>1. Responsable del tratamiento</h2>
+        <p>
+          El responsable del tratamiento de los datos personales recabados a través de <strong>BandYou</strong>
+          (en adelante, "la Plataforma") es <strong>BandYou S.L.</strong>, con domicilio en Madrid, España
+          y dirección de contacto: <a href="mailto:privacidad@bandyou.es">privacidad&#64;bandyou.es</a>.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Datos que recabamos</h2>
+        <p>Recopilamos los siguientes datos:</p>
+        <ul>
+          <li><strong>Datos de cuenta:</strong> dirección de correo electrónico y contraseña (almacenada con hash).</li>
+          <li><strong>Datos de perfil:</strong> nombre artístico, ciudad, instrumentos, géneros, descripción biográfica, foto de perfil y enlaces externos que el usuario introduce voluntariamente.</li>
+          <li><strong>Datos de uso:</strong> mensajes entre usuarios, publicaciones en el tablón, favoritos y eventos creados.</li>
+          <li><strong>Datos técnicos:</strong> dirección IP, tipo de dispositivo y navegador, con fines de seguridad y diagnóstico.</li>
+        </ul>
+        <p>No recabamos datos de categorías especiales (salud, ideología, origen étnico, etc.).</p>
+      </section>
+
+      <section>
+        <h2>3. Finalidad y base jurídica del tratamiento</h2>
+        <ul>
+          <li><strong>Prestación del servicio</strong> — creación de cuenta, perfil público, mensajes y funcionalidades de la Plataforma. Base: ejecución de contrato (art. 6.1.b RGPD).</li>
+          <li><strong>Seguridad</strong> — prevención de fraude, accesos no autorizados y abusos. Base: interés legítimo (art. 6.1.f RGPD).</li>
+          <li><strong>Mejora del producto</strong> — análisis de uso agregado y anónimo. Base: interés legítimo (art. 6.1.f RGPD).</li>
+          <li><strong>Comunicaciones del servicio</strong> — notificaciones transaccionales (mensajes nuevos, confirmaciones). Base: ejecución de contrato.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>4. Destinatarios de los datos</h2>
+        <p>
+          Los datos son procesados por <strong>Supabase Inc.</strong> (infraestructura cloud, servidores en la UE)
+          como encargado del tratamiento bajo Acuerdo de Encargado de Tratamiento (DPA) conforme al RGPD.
+          No vendemos ni cedemos datos personales a terceros con fines comerciales.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Transferencias internacionales</h2>
+        <p>
+          Los servidores de base de datos están ubicados en la Unión Europea (región eu-west).
+          Cuando datos se transfieran fuera del EEE (por ejemplo, servicios de soporte técnico),
+          se aplicarán las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Plazo de conservación</h2>
+        <p>
+          Los datos de cuenta y perfil se conservan mientras la cuenta esté activa.
+          Tras la eliminación de la cuenta, los datos se borran en un plazo máximo de <strong>30 días</strong>,
+          salvo que la ley exija conservarlos por más tiempo (p. ej., datos de facturación: 5 años).
+          Los mensajes borrados por el usuario se eliminan de forma permanente.
+        </p>
+      </section>
+
+      <section>
+        <h2>7. Derechos de los usuarios</h2>
+        <p>Puedes ejercer en cualquier momento los siguientes derechos enviando un email a <a href="mailto:privacidad@bandyou.es">privacidad&#64;bandyou.es</a>:</p>
+        <ul>
+          <li><strong>Acceso:</strong> obtener confirmación sobre si tratamos tus datos y recibir una copia.</li>
+          <li><strong>Rectificación:</strong> corregir datos inexactos o incompletos.</li>
+          <li><strong>Supresión ("derecho al olvido"):</strong> solicitar la eliminación de tus datos.</li>
+          <li><strong>Limitación:</strong> solicitar que suspendamos el tratamiento en determinadas circunstancias.</li>
+          <li><strong>Portabilidad:</strong> recibir tus datos en formato estructurado y legible por máquina.</li>
+          <li><strong>Oposición:</strong> oponerte al tratamiento basado en interés legítimo.</li>
+        </ul>
+        <p>
+          Tienes también derecho a presentar una reclamación ante la
+          <strong>Agencia Española de Protección de Datos (AEPD)</strong> en <a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>.
+        </p>
+      </section>
+
+      <section>
+        <h2>8. Seguridad</h2>
+        <p>
+          Implementamos medidas técnicas y organizativas adecuadas: cifrado TLS en tránsito,
+          contraseñas almacenadas con bcrypt, Row Level Security en base de datos y acceso
+          restringido por roles. No obstante, ningún sistema es completamente infalible.
+        </p>
+      </section>
+
+      <section>
+        <h2>9. Cookies</h2>
+        <p>
+          Usamos únicamente cookies técnicas necesarias para el funcionamiento de la sesión.
+          No usamos cookies de publicidad ni de seguimiento de terceros.
+          Consulta nuestra <a routerLink="/legal/cookies">Política de Cookies</a> para más información.
+        </p>
+      </section>
+
+      <section>
+        <h2>10. Cambios en esta política</h2>
+        <p>
+          Podemos actualizar esta política periódicamente. Notificaremos cambios significativos
+          por email o mediante un aviso en la Plataforma con al menos 15 días de antelación.
+          El uso continuado de la Plataforma tras la notificación implica la aceptación de los cambios.
+        </p>
+      </section>
+
+    </div>
+
+    <div class="mt-12 pt-8 border-t border-dark-600 flex flex-wrap gap-4">
+      <a routerLink="/legal/terminos" class="text-sm text-primary-500 hover:underline font-medium">Términos de uso</a>
+      <a routerLink="/legal/cookies" class="text-sm text-primary-500 hover:underline font-medium">Política de cookies</a>
+      <a href="mailto:privacidad@bandyou.es" class="text-sm text-ink-muted hover:text-ink transition-colors">privacidad&#64;bandyou.es</a>
+    </div>
+
+  </div>
+</div>

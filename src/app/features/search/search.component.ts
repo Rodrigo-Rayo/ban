@@ -1,7 +1,8 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -15,7 +16,7 @@ type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 're
   imports: [FormsModule, RouterLink, CommonModule, DatePipe, IconComponent],
   templateUrl: './search.component.html',
 })
-export class SearchComponent implements OnInit {
+export class SearchComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
@@ -32,6 +33,8 @@ export class SearchComponent implements OnInit {
   hasMore = signal(false);
   private offset = 0;
   private readonly LIMIT = 30;
+  private paramsSub?: Subscription;
+  private fetchSeq = 0;
 
   musicians = signal<any[]>([]);
   events = signal<any[]>([]);
@@ -56,7 +59,7 @@ export class SearchComponent implements OnInit {
   ngOnInit() {
     this.seo.set({ title: 'Buscar', description: 'Busca músicos, bandas, salas, eventos, profesores y locales de ensayo en España.' });
 
-    this.route.queryParams.subscribe(params => {
+    this.paramsSub = this.route.queryParams.subscribe(params => {
       const tab = (params['tab'] as SearchType) || 'musicians';
       this.activeTab.set(tab);
       if (params['city'])                  this.selectedCity.set(params['city']);
@@ -66,6 +69,10 @@ export class SearchComponent implements OnInit {
 
       this.loadData();
     });
+  }
+
+  ngOnDestroy() {
+    this.paramsSub?.unsubscribe();
   }
 
   tabLabel() {
@@ -93,14 +100,16 @@ export class SearchComponent implements OnInit {
     this.offset = 0;
     this.hasMore.set(false);
     this.loading.set(true);
+    const seq = ++this.fetchSeq;
     try {
       const data = await this.fetchPage(0);
+      if (seq !== this.fetchSeq) return;
       this.setResults(data);
       this.hasMore.set(data.length === this.LIMIT);
     } catch {
       // Results stay as empty arrays — user sees empty state instead of crash
     } finally {
-      this.loading.set(false);
+      if (seq === this.fetchSeq) this.loading.set(false);
     }
   }
 
@@ -151,8 +160,9 @@ export class SearchComponent implements OnInit {
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
+      if (query) q = q.or(`name.ilike.%${query}%,instrument.ilike.%${query}%`);
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
-      return (data || []).filter((m: any) => !query || m.name?.toLowerCase().includes(query) || m.instrument?.toLowerCase().includes(query));
+      return data || [];
     }
 
     if (tab === 'events') {
@@ -161,23 +171,26 @@ export class SearchComponent implements OnInit {
       let q = this.supabase.client.from('events').select('*').gte('date', todayStr);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.eq('genre', genre);
+      if (query) q = q.ilike('title', `%${query}%`);
       const { data } = await q.order('date', { ascending: true }).range(offset, offset + this.LIMIT - 1);
-      return (data || []).filter((e: any) => !query || e.title?.toLowerCase().includes(query));
+      return data || [];
     }
 
     if (tab === 'bands') {
       let q = this.supabase.client.from('bands').select('*');
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.eq('genre', genre);
+      if (query) q = q.ilike('name', `%${query}%`);
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
-      return (data || []).filter((b: any) => !query || b.name?.toLowerCase().includes(query));
+      return data || [];
     }
 
     if (tab === 'venues') {
       let q = this.supabase.client.from('venues').select('*');
       if (city !== 'Toda España') q = q.eq('city', city);
+      if (query) q = q.ilike('name', `%${query}%`);
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
-      return (data || []).filter((v: any) => !query || v.name?.toLowerCase().includes(query));
+      return data || [];
     }
 
     if (tab === 'teachers') {
@@ -185,15 +198,17 @@ export class SearchComponent implements OnInit {
       let q = this.supabase.client.from('teachers').select('*');
       if (city !== 'Toda España') q = q.eq('city', city);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
+      if (query) q = q.or(`name.ilike.%${query}%,instrument.ilike.%${query}%`);
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
-      return (data || []).filter((t: any) => !query || t.name?.toLowerCase().includes(query) || t.instrument?.toLowerCase().includes(query));
+      return data || [];
     }
 
     if (tab === 'rehearsal') {
       let q = this.supabase.client.from('rehearsal_spaces').select('*');
       if (city !== 'Toda España') q = q.eq('city', city);
+      if (query) q = q.ilike('name', `%${query}%`);
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
-      return (data || []).filter((r: any) => !query || r.name?.toLowerCase().includes(query));
+      return data || [];
     }
 
     return [];

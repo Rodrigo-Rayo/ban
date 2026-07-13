@@ -36,7 +36,7 @@
       @if (activeTab() === 'musicians' || activeTab() === 'teachers') {
         <input [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); loadData()"
           placeholder="Instrumento..."
-          class="hidden sm:block bg-dark-700 border border-dark-600 rounded-lg px-3 py-1.5 text-xs text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors w-36"/>
+          class="bg-dark-700 border border-dark-600 rounded-lg px-3 py-1.5 text-xs text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors w-36"/>
       }
       <!-- Reset button -->
       @if (searchQuery() || selectedGenre() || selectedCity() !== 'Toda España' || selectedInstrument()) {

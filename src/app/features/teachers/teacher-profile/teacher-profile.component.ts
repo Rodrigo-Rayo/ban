@@ -6,6 +6,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 @Component({
@@ -21,6 +22,7 @@ export class TeacherProfileComponent implements OnInit {
   private messagesService = inject(MessagesService);
   private favSvc = inject(FavoritesService);
   private seo = inject(SeoService);
+  private toast = inject(ToastService);
 
   teacher = signal<any>(null);
   reviews = signal<any[]>([]);
@@ -71,8 +73,13 @@ export class TeacherProfileComponent implements OnInit {
   async toggleFav() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     this.favLoading.set(true);
-    this.isFav.set(await this.favSvc.toggle(this.currentUserId()!, 'teacher', this.teacher()!.id));
-    this.favLoading.set(false);
+    try {
+      this.isFav.set(await this.favSvc.toggle(this.currentUserId()!, 'teacher', this.teacher()!.id));
+    } catch {
+      this.toast.error('No se pudo actualizar favoritos. Inténtalo de nuevo.');
+    } finally {
+      this.favLoading.set(false);
+    }
   }
 
   private async getAuthorName(): Promise<string> {

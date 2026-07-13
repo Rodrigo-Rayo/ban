@@ -25,6 +25,7 @@ export class DashboardComponent implements OnInit {
   myPosts    = signal<any[]>([]);
   myListings = signal<any[]>([]);
   bookings      = signal<any[]>([]);
+  myBookings    = signal<any[]>([]);
   sidebarPosts  = signal<any[]>([]);
   sidebarEvents = signal<any[]>([]);
   loading    = signal(true);
@@ -44,8 +45,8 @@ export class DashboardComponent implements OnInit {
       const uid = session.user.id;
 
       const [
-        { data: musician }, { data: band }, { data: venue },
-        { data: teacher }, { data: rehearsal }, { data: evs },
+        { data: musician, error: e1 }, { data: band, error: e2 }, { data: venue, error: e3 },
+        { data: teacher, error: e4 }, { data: rehearsal, error: e5 }, { data: evs },
         { data: posts },   { data: listings },
         { data: sbPosts }, { data: sbEvents },
       ] = await Promise.all([
@@ -60,6 +61,10 @@ export class DashboardComponent implements OnInit {
         this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(5),
         this.supabase.client.from('events').select('*').gte('date', new Date().toISOString().split('T')[0]).order('date', { ascending: true }).limit(4),
       ]);
+      if (e1 || e2 || e3 || e4 || e5) {
+        this.toast.error('Error al cargar el panel. Recarga la página.');
+        return;
+      }
 
       if (musician)       { this.profile.set(musician);  this.profileType.set('musician'); }
       else if (band)      { this.profile.set(band);       this.profileType.set('band'); }
@@ -76,6 +81,13 @@ export class DashboardComponent implements OnInit {
       if (this.profileType() === 'rehearsal' && this.profile()) {
         this.activeTab.set('bookings');
         await this.loadBookings();
+      } else {
+        const { data: userBookings } = await this.supabase.client
+          .from('rehearsal_bookings')
+          .select('*, rehearsal_spaces(name, city)')
+          .eq('user_id', uid)
+          .order('date', { ascending: true });
+        this.myBookings.set(userBookings || []);
       }
     } catch {
       this.toast.error('Error al cargar el panel. Recarga la página.');
@@ -266,11 +278,22 @@ export class DashboardComponent implements OnInit {
     return `${Math.floor(mins / 1440)}d`;
   }
 
+  async cancelMyBooking(id: string) {
+    if (!confirm('¿Cancelar esta reserva?')) return;
+    const { error } = await this.supabase.client
+      .from('rehearsal_bookings').update({ status: 'cancelled' }).eq('id', id);
+    if (error) { this.toast.error('No se pudo cancelar la reserva.'); return; }
+    this.myBookings.update(bs => bs.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
+    this.toast.success('Reserva cancelada.');
+  }
+
   get tabNewRoute() {
-    return { events: '/events/create', posts: '/feed', gear: '/shop/new', bookings: '' }[this.activeTab()] ?? '';
+    const map: Record<string, string> = { events: '/events/create', posts: '/feed', gear: '/shop/new', bookings: '', reservas: '' };
+    return map[this.activeTab()] ?? '';
   }
 
   get tabNewLabel() {
-    return { events: '+ Evento', posts: '+ Anuncio', gear: '+ Vender', bookings: '' }[this.activeTab()] ?? '';
+    const map: Record<string, string> = { events: '+ Evento', posts: '+ Anuncio', gear: '+ Vender', bookings: '', reservas: '' };
+    return map[this.activeTab()] ?? '';
   }
 }

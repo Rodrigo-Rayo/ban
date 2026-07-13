@@ -1,11 +1,11 @@
 <div class="min-h-screen bg-dark-900 flex flex-col" style="padding-top:64px">
 
   <!-- Top bar -->
-  <div class="bg-dark-800 border-b border-dark-600 px-4 py-3 flex flex-wrap items-center gap-3 flex-shrink-0">
+  <div class="bg-dark-800 border-b border-dark-600 px-4 py-3 flex flex-wrap items-center gap-2 flex-shrink-0">
 
     <!-- Ciudad -->
     <select [ngModel]="selectedCity()" (ngModelChange)="onCityChange($event)"
-      class="bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors">
+      class="bg-dark-700 border border-dark-600 rounded-full px-3 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors font-medium">
       @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
     </select>
 
@@ -13,7 +13,7 @@
     <div class="flex flex-wrap gap-1.5">
       @for (layer of layers; track layer) {
         <button (click)="toggleLayer(layer)"
-          class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-all"
+          class="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200"
           [style.borderColor]="activeLayers().has(layer) ? layerColors[layer] : ''"
           [style.color]="activeLayers().has(layer) ? layerColors[layer] : ''"
           [class.border-dark-600]="!activeLayers().has(layer)"
@@ -27,7 +27,7 @@
 
     <!-- Count -->
     @if (!loading()) {
-      <span class="text-xs text-ink-muted ml-auto">{{ totalVisible() }} en el mapa</span>
+      <span class="text-xs text-ink-muted ml-auto font-medium">{{ totalVisible() }} en el mapa</span>
     }
   </div>
 

@@ -1,12 +1,12 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
   <!-- Sticky header -->
-  <header class="border-b border-dark-600 bg-dark-900/95 backdrop-blur-sm sticky top-16 z-20">
+  <header class="border-b border-dark-600 bg-dark-900/98 backdrop-blur-md sticky top-16 z-20">
     <div class="px-5 lg:px-8 py-4">
       <div class="flex items-center justify-between gap-4">
         <div>
-          <h1 class="text-lg font-extrabold text-ink tracking-tight">Anuncios</h1>
-          <p class="text-[11px] text-ink-muted mt-0.5">Músicos, bandas y colaboraciones en España</p>
+          <h1 class="text-lg font-black text-ink tracking-tight">Anuncios</h1>
+          <p class="text-[11px] text-ink-muted mt-0.5 font-medium">Músicos, bandas y colaboraciones en España</p>
         </div>
         @if (currentUser()) {
           <button (click)="showForm.set(!showForm())"
@@ -236,9 +236,8 @@
                   }
                   @if (currentUser()?.id === post.user_id) {
                     <button (click)="deletePost(post.id)"
-                      class="p-1.5 text-ink-muted hover:text-signal-red hover:bg-signal-red/10
-                             rounded-lg transition-colors">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                       </svg>

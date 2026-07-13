@@ -180,17 +180,22 @@ export class MessagesService {
   async getUnreadConversationIds(): Promise<Set<string>> {
     const user = await this.getCurrentUser();
     if (!user) return new Set();
+    const convs = await this.getConversations();
+    if (!convs.length) return new Set();
+    const ids = convs.map((c: any) => c.id);
     const { data } = await this.supabase.client
       .from('messages')
       .select('conversation_id')
+      .in('conversation_id', ids)
       .eq('read', false)
-      .neq('sender_id', user.id);
+      .neq('sender_id', user.id)
+      .limit(500);
     return new Set((data || []).map((m: any) => m.conversation_id));
   }
 
   subscribeToInboxUpdates(currentUserId: string, onNewMessage: (senderName: string, preview: string, conversationId: string) => void) {
     return this.supabase.client
-      .channel(`inbox-updates-${Math.random().toString(36).slice(2)}`)
+      .channel(`inbox-updates-${currentUserId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
         const msg = payload.new as any;
         if (msg.sender_id !== currentUserId) {

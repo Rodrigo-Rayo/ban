@@ -6,11 +6,12 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { InstallBannerComponent } from './shared/components/install-banner/install-banner.component';
+import { CookieBannerComponent } from './shared/components/cookie-banner/cookie-banner.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, SidebarComponent, ToastComponent, InstallBannerComponent],
+  imports: [RouterOutlet, NavbarComponent, SidebarComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent],
   template: `
     <app-navbar />
     <app-sidebar />
@@ -19,6 +20,7 @@ import { InstallBannerComponent } from './shared/components/install-banner/insta
     </div>
     <app-toast />
     <app-install-banner />
+    <app-cookie-banner />
   `,
 })
 export class AppComponent {

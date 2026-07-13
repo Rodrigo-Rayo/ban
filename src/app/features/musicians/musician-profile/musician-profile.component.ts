@@ -5,6 +5,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 @Component({
@@ -20,6 +21,7 @@ export class MusicianProfileComponent implements OnInit {
   private messagesService = inject(MessagesService);
   private favSvc = inject(FavoritesService);
   private seo = inject(SeoService);
+  private toast = inject(ToastService);
 
   musician = signal<any>(null);
   loading = signal(true);
@@ -53,9 +55,14 @@ export class MusicianProfileComponent implements OnInit {
   async toggleFav() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     this.favLoading.set(true);
-    const result = await this.favSvc.toggle(this.currentUserId()!, 'musician', this.musician()!.id);
-    this.isFav.set(result);
-    this.favLoading.set(false);
+    try {
+      const result = await this.favSvc.toggle(this.currentUserId()!, 'musician', this.musician()!.id);
+      this.isFav.set(result);
+    } catch {
+      this.toast.error('No se pudo actualizar favoritos. Inténtalo de nuevo.');
+    } finally {
+      this.favLoading.set(false);
+    }
   }
 
   async sendMessage() {

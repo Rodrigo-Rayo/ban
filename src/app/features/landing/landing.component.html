@@ -1,50 +1,55 @@
 <!-- HERO ─────────────────────────────────────────────── -->
-<section class="relative overflow-hidden px-5 sm:px-8 lg:px-14 pt-20 pb-16 max-w-7xl mx-auto">
+<section class="relative overflow-hidden px-5 sm:px-8 lg:px-14 pt-20 pb-20 max-w-7xl mx-auto">
 
-  <!-- Background texture ring -->
-  <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full border border-primary-500/8 pointer-events-none"></div>
-  <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full border border-primary-500/6 pointer-events-none"></div>
+  <!-- Decorative elements -->
+  <div class="absolute top-10 right-0 w-64 h-64 rounded-full bg-primary-500/5 blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-10 -left-20 w-80 h-80 rounded-full bg-primary-900/40 blur-3xl pointer-events-none"></div>
 
-  <div class="grid lg:grid-cols-[1fr_auto] gap-10 items-start">
+  <div class="grid lg:grid-cols-[1fr_auto] gap-12 items-start">
     <div class="max-w-2xl">
 
       <!-- Eyebrow -->
-      <div class="inline-flex items-center gap-2 bg-primary-900 border border-primary-500/25 rounded-full px-3 py-1 mb-7">
+      <div class="inline-flex items-center gap-2 bg-primary-900 border border-primary-500/30 rounded-full px-3.5 py-1.5 mb-8">
         <span class="w-1.5 h-1.5 rounded-full bg-signal-green animate-pulse flex-shrink-0"></span>
-        <span class="text-xs font-semibold text-primary-600 tracking-wide">Comunidad musical de España</span>
+        <span class="text-xs font-bold text-primary-600 tracking-wide">Comunidad musical de España</span>
       </div>
 
       <!-- Headline — editorial serif/sans mix -->
-      <h1 class="text-[clamp(3rem,8vw,5.5rem)] font-extrabold text-ink leading-[0.88] tracking-tighter mb-3">
+      <h1 class="text-[clamp(3rem,8vw,5.5rem)] font-black text-ink leading-[0.88] tracking-tighter mb-3">
         La red musical
       </h1>
-      <h1 class="text-[clamp(3rem,8vw,5.5rem)] font-extrabold leading-[0.88] tracking-tighter mb-6">
-        <span class="display-serif text-primary-500 not-italic" style="font-style:italic">de España.</span>
+      <h1 class="text-[clamp(3rem,8vw,5.5rem)] font-black leading-[0.88] tracking-tighter mb-7">
+        <span class="display-serif text-primary-500" style="font-style:italic">de España.</span>
       </h1>
 
-      <p class="text-base sm:text-lg text-ink-3 max-w-md leading-relaxed mb-8">
+      <p class="text-base sm:text-lg text-ink-muted max-w-md leading-relaxed mb-9">
         Músicos, bandas, salas y profesores — en un solo lugar.
         Sin algoritmos, sin intermediarios, sin complicaciones.
       </p>
 
-      <div class="flex flex-col sm:flex-row gap-3 mb-6">
-        <a routerLink="/auth/register" class="btn-primary px-7 py-3.5 text-base">Crear perfil gratis</a>
-        <a routerLink="/search" class="btn-secondary px-7 py-3.5 text-base">Explorar directorio</a>
+      <div class="flex flex-col sm:flex-row gap-3 mb-7">
+        <a routerLink="/auth/register" class="btn-primary px-8 py-3.5 text-base">Crear perfil gratis</a>
+        <a routerLink="/search" class="btn-secondary px-8 py-3.5 text-base">Explorar directorio</a>
       </div>
 
-      <p class="text-xs text-ink-muted font-medium">Sin tarjeta de crédito · Solo España</p>
+      <p class="text-xs text-ink-muted font-medium flex items-center gap-2">
+        <svg class="w-3.5 h-3.5 text-signal-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+        </svg>
+        Sin tarjeta de crédito · Solo España
+      </p>
     </div>
 
     <!-- Floating role pills — desktop only -->
-    <div class="hidden lg:flex flex-col gap-2 pt-2 flex-shrink-0">
+    <div class="hidden lg:flex flex-col gap-2 pt-4 flex-shrink-0">
       @for (role of roles; track role.id) {
         <a [routerLink]="['/auth/register']" [queryParams]="{role: role.id}"
-           class="flex items-center gap-3 px-4 py-3 bg-dark-800 border border-dark-600 rounded-xl hover:border-primary-500/40 hover:shadow-card-md transition-all group w-52">
-          <span class="w-8 h-8 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-400 flex-shrink-0 group-hover:bg-primary-900 transition-colors">
+           class="flex items-center gap-3 px-4 py-3.5 bg-dark-800 border border-dark-600 rounded-2xl hover:border-primary-500/50 hover:shadow-md hover:-translate-y-px transition-all duration-200 group w-52">
+          <span class="w-9 h-9 rounded-xl bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500 flex-shrink-0 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200">
             <app-icon [name]="role.icon" [size]="15"/>
           </span>
-          <span class="text-sm font-semibold text-ink group-hover:text-primary-500 transition-colors">{{ role.label }}</span>
-          <svg class="w-4 h-4 text-ink-muted ml-auto group-hover:text-primary-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span class="text-sm font-semibold text-ink group-hover:text-primary-600 transition-colors">{{ role.label }}</span>
+          <svg class="w-4 h-4 text-ink-muted ml-auto group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
         </a>
@@ -54,13 +59,13 @@
 </section>
 
 <!-- STATS BAR ────────────────────────────────────────── -->
-<section class="border-y border-dark-600 bg-dark-800/60">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-14 py-6">
+<section class="border-y border-dark-600 bg-dark-800">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-14 py-8">
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-0">
       @for (stat of statItems(); track stat.label; let last = $last) {
-        <div class="text-center py-2" [class.border-r]="!last" [class.border-dark-600]="!last">
-          <p class="text-3xl sm:text-4xl font-black text-primary-500 tabular-nums">{{ stat.value || '—' }}</p>
-          <p class="text-[11px] text-ink-muted mt-1 font-semibold uppercase tracking-widest">{{ stat.label }}</p>
+        <div class="text-center py-3" [class.border-r]="!last" [class.border-dark-600]="!last">
+          <p class="text-3xl sm:text-4xl font-black text-primary-500 tabular-nums tracking-tight">{{ stat.value || '—' }}</p>
+          <p class="text-[10px] text-ink-muted mt-1.5 font-bold uppercase tracking-widest">{{ stat.label }}</p>
         </div>
       }
     </div>
@@ -93,17 +98,17 @@
 </section>
 
 <!-- DIRECTORIO BENTO ─────────────────────────────────── -->
-<section class="px-5 sm:px-8 lg:px-14 py-20 border-y border-dark-600 bg-dark-750/30">
+<section class="px-5 sm:px-8 lg:px-14 py-20 border-y border-dark-600 bg-dark-800/40">
   <div class="max-w-7xl mx-auto">
 
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
       <div>
         <div class="section-label mb-2">Directorio completo</div>
-        <h2 class="text-3xl lg:text-4xl font-extrabold text-ink">¿Qué buscas?</h2>
+        <h2 class="text-3xl lg:text-4xl font-black text-ink tracking-tight">¿Qué buscas?</h2>
       </div>
-      <a routerLink="/search" class="text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors flex-shrink-0 flex items-center gap-1">
+      <a routerLink="/search" class="text-sm font-bold text-primary-500 hover:text-primary-600 transition-colors flex-shrink-0 flex items-center gap-1.5 group">
         Ver todo
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
       </a>
@@ -113,29 +118,28 @@
     <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
       @for (cat of catalog; track cat.tab; let i = $index) {
         <a [routerLink]="['/search']" [queryParams]="{tab: cat.tab}"
-           class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden cursor-pointer group hover:border-primary-500/50 hover:shadow-card-md transition-all flex flex-col"
+           class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden cursor-pointer group hover:border-primary-500/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
            [class.lg:row-span-2]="i === 0"
            [class.col-span-2]="i === 4"
            [class.lg:col-span-1]="i === 4">
 
           <!-- Accent strip -->
-          <div class="h-1 flex-shrink-0 bg-gradient-to-r"
-               [class.from-primary-600]="i === 0" [class.to-primary-400]="i === 0"
-               [class.from-primary-500]="i !== 0" [class.to-primary-400]="i !== 0"
-               [style.opacity]="i === 0 ? '1' : '0.5'"></div>
+          <div class="h-1 flex-shrink-0 bg-gradient-to-r from-primary-600 to-primary-400"
+               [style.opacity]="i === 0 ? '1' : '0.6'"></div>
 
-          <div class="p-5 flex flex-col gap-4 flex-1" [class.lg:p-7]="i === 0">
-            <div class="w-10 h-10 rounded-xl bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500 group-hover:bg-primary-900 transition-colors"
-                 [class.w-12]="i === 0" [class.h-12]="i === 0">
-              <app-icon [name]="cat.icon" [size]="i === 0 ? 20 : 18"/>
+          <div class="p-5 flex flex-col gap-4 flex-1" [class.lg:p-8]="i === 0">
+            <div class="flex-shrink-0 rounded-2xl bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500 transition-all duration-200"
+                 [class.w-14]="i === 0" [class.h-14]="i === 0"
+                 [class.w-10]="i !== 0" [class.h-10]="i !== 0">
+              <app-icon [name]="cat.icon" [size]="i === 0 ? 24 : 18"/>
             </div>
             <div>
-              <div class="font-bold text-ink group-hover:text-primary-500 transition-colors leading-snug"
-                   [class.text-lg]="i === 0" [class.text-sm]="i !== 0">{{ cat.label }}</div>
-              <p class="text-xs text-ink-3 leading-relaxed mt-1.5"
+              <div class="font-bold text-ink group-hover:text-primary-600 transition-colors leading-snug"
+                   [class.text-xl]="i === 0" [class.text-sm]="i !== 0">{{ cat.label }}</div>
+              <p class="text-xs text-ink-muted leading-relaxed mt-1.5"
                  [class.text-sm]="i === 0" [class.mt-2]="i === 0">{{ cat.desc }}</p>
             </div>
-            <div class="text-xs font-semibold text-primary-400 group-hover:text-primary-600 transition-colors mt-auto flex items-center gap-1">
+            <div class="text-xs font-bold text-primary-500 group-hover:text-primary-600 transition-colors mt-auto flex items-center gap-1">
               Explorar
               <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -172,23 +176,23 @@
 <!-- CTA FINAL ────────────────────────────────────────── -->
 <section class="px-5 sm:px-8 lg:px-14 py-24 border-t border-dark-600">
   <div class="max-w-7xl mx-auto">
-    <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/30 border border-dark-600 rounded-2xl p-8 sm:p-12 lg:p-16 relative overflow-hidden">
-      <!-- Subtle ring decoration -->
-      <div class="absolute -bottom-20 -right-20 w-64 h-64 rounded-full border border-primary-500/10 pointer-events-none"></div>
-      <div class="absolute -bottom-10 -right-10 w-40 h-40 rounded-full border border-primary-500/8 pointer-events-none"></div>
+    <div class="bg-gradient-to-br from-primary-900/50 via-dark-800 to-dark-800 border border-primary-500/20 rounded-3xl p-8 sm:p-12 lg:p-16 relative overflow-hidden">
+      <!-- Decorative blobs -->
+      <div class="absolute -bottom-16 -right-16 w-64 h-64 rounded-full bg-primary-500/8 blur-3xl pointer-events-none"></div>
+      <div class="absolute top-8 right-8 w-32 h-32 rounded-full border border-primary-500/15 pointer-events-none"></div>
 
       <div class="relative max-w-xl">
         <div class="section-label mb-4">Únete hoy</div>
-        <h2 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-ink leading-[0.9] tracking-tight mb-5">
+        <h2 class="text-4xl sm:text-5xl lg:text-6xl font-black text-ink leading-[0.9] tracking-tight mb-6">
           ¿Listo para<br>
           <span class="display-serif text-primary-500" style="font-style:italic">conectar?</span>
         </h2>
-        <p class="text-base text-ink-3 mb-8 leading-relaxed max-w-sm">
+        <p class="text-base text-ink-muted mb-9 leading-relaxed max-w-sm">
           Crea tu perfil en minutos y empieza a conectar con la escena musical española.
         </p>
         <div class="flex flex-col sm:flex-row gap-3">
           <a routerLink="/auth/register" class="btn-primary px-8 py-3.5 text-base">Registrarme gratis</a>
-          <a routerLink="/auth/login" class="btn-ghost px-6 py-3.5 text-base">Ya tengo cuenta</a>
+          <a routerLink="/auth/login" class="btn-secondary px-6 py-3.5 text-base">Ya tengo cuenta</a>
         </div>
       </div>
     </div>

@@ -55,13 +55,22 @@
     </div>
   } @else {
 
-  <!-- HERO -->
-  <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600">
-    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8">
-      <div class="flex flex-col sm:flex-row gap-6 items-start">
+  <!-- HERO — cover + overlapping avatar -->
+  <div class="relative border-b border-dark-600">
+    <!-- Cover band -->
+    <div class="h-32 sm:h-44 w-full relative overflow-hidden"
+         [style.background]="'linear-gradient(135deg, ' + avatarColor(musician()!.name) + '30 0%, #fef0e8 100%)'">
+      <div class="absolute inset-0 bg-gradient-to-r from-dark-800/30 to-transparent"></div>
+      <!-- Pattern overlay -->
+      <div class="absolute inset-0 opacity-5"
+           style="background-image: repeating-linear-gradient(45deg, transparent, transparent 20px, currentColor 20px, currentColor 21px)"></div>
+    </div>
 
-        <!-- Avatar -->
-        <div class="w-24 h-24 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-lg"
+    <div class="max-w-4xl mx-auto px-6 lg:px-10">
+      <div class="flex flex-col sm:flex-row gap-5 items-start -mt-12 sm:-mt-14 pb-6 relative">
+
+        <!-- Avatar overlapping cover -->
+        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-xl border-4 border-dark-900"
              [style.background]="avatarColor(musician()!.name)">
           @if (musician()!.avatar_url) {
             <img [src]="musician()!.avatar_url" alt="" class="w-full h-full object-cover"/>
@@ -70,31 +79,28 @@
           }
         </div>
 
-        <!-- Info -->
-        <div class="flex-1 min-w-0">
-          <div class="flex flex-wrap gap-2 mb-3">
+        <!-- Info — pushed down to align with bottom of avatar -->
+        <div class="flex-1 min-w-0 pt-14 sm:pt-16">
+          <div class="flex flex-wrap gap-1.5 mb-2">
             @if (musician()!.city) {
               <span class="tag"><app-icon name="map-pin" [size]="9" class="mr-0.5"/>{{ musician()!.city }}</span>
             }
             @if (musician()!.experience) { <span class="tag">{{ musician()!.experience }}</span> }
           </div>
-          <h1 class="text-3xl font-bold text-ink leading-tight mb-1">{{ musician()!.name }}</h1>
+          <h1 class="text-2xl sm:text-3xl font-black text-ink leading-tight mb-1 tracking-tight">{{ musician()!.name }}</h1>
           @if (musician()!.instrument || musician()!.genre) {
-            <p class="text-sm font-semibold text-primary-400 mb-2">
+            <p class="text-sm font-bold text-primary-500 mb-2">
               {{ musician()!.instrument }}
               @if (musician()!.instrument && musician()!.genre) {<span class="text-ink-muted font-normal mx-1">·</span>}
               {{ musician()!.genre }}
             </p>
           }
-          @if (musician()!.description) {
-            <p class="text-sm text-ink-3 leading-relaxed line-clamp-2 max-w-xl">{{ musician()!.description }}</p>
-          }
         </div>
 
-        <!-- Actions -->
-        <div class="flex flex-col gap-2 flex-shrink-0 w-full sm:w-44">
+        <!-- Actions — right aligned on desktop -->
+        <div class="flex flex-row sm:flex-col gap-2 flex-shrink-0 sm:pt-14 w-full sm:w-44">
           @if (musician()!.user_id) {
-            <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+            <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary text-sm flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed">
               {{ sending() ? 'Abriendo...' : 'Escribir mensaje' }}
             </button>
             @if (msgError()) {
@@ -102,7 +108,7 @@
             }
           }
           @if (musician()!.contact_email) {
-            <a [href]="'mailto:' + musician()!.contact_email" class="btn-secondary text-sm text-center">Email directo</a>
+            <a [href]="'mailto:' + musician()!.contact_email" class="btn-secondary text-sm text-center flex-1 sm:flex-none">Email</a>
           }
           <button (click)="toggleFav()" [disabled]="favLoading()"
             class="btn-secondary text-sm flex items-center justify-center gap-2">

@@ -31,15 +31,15 @@
       <!-- ── PROFILE HERO ── -->
       @if (profile()) {
         <div class="relative bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden mb-5">
-          <!-- Top accent -->
-          <div class="h-1 bg-gradient-to-r from-primary-600 via-primary-400 to-primary-700"></div>
+          <!-- Top accent strip -->
+          <div class="h-1.5 bg-gradient-to-r from-primary-600 via-primary-400 to-primary-700"></div>
           <div class="p-5">
             <div class="flex items-start gap-4">
 
               <!-- Clickable avatar -->
               <label class="relative flex-shrink-0 cursor-pointer group" aria-label="Cambiar foto de perfil">
                 <div class="w-16 h-16 rounded-2xl bg-primary-500 flex items-center justify-center
-                             text-2xl font-black text-white overflow-hidden shadow-lg">
+                             text-2xl font-black text-white overflow-hidden shadow-md">
                   @if (profile().avatar_url) {
                     <img [src]="profile().avatar_url" class="w-full h-full object-cover" alt="avatar" loading="lazy"/>
                   } @else {
@@ -67,7 +67,7 @@
               <!-- Name + meta -->
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap mb-1">
-                  <h2 class="text-lg font-bold text-ink leading-tight">{{ profile().name }}</h2>
+                  <h2 class="text-lg font-black text-ink leading-tight tracking-tight">{{ profile().name }}</h2>
                   <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full
                                bg-primary-900 border border-primary-500/30 text-primary-400">
                     {{ profileLabel() }}
@@ -176,45 +176,48 @@
       <!-- ── STATS ROW ── -->
       <div class="grid grid-cols-4 gap-2 mb-5">
         <button (click)="activeTab.set('events')"
-          class="bg-dark-800 border rounded-xl p-3 text-center transition-all hover:border-primary-500/40 cursor-pointer"
+          class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer"
           [class.border-primary-500]="activeTab() === 'events'"
+          [class.bg-primary-900]="activeTab() === 'events'"
           [class.border-dark-600]="activeTab() !== 'events'">
           <div class="text-2xl font-black mb-0.5 tabular-nums"
-            [class.text-primary-400]="activeTab() === 'events'"
+            [class.text-primary-500]="activeTab() === 'events'"
             [class.text-ink]="activeTab() !== 'events'">{{ events().length }}</div>
-          <div class="text-[10px] text-ink-muted font-medium">Eventos</div>
+          <div class="text-[10px] text-ink-muted font-bold tracking-wide">Eventos</div>
         </button>
 
         <a routerLink="/inbox"
-          class="bg-dark-800 border border-dark-600 rounded-xl p-3 text-center
-                 hover:border-primary-500/40 transition-all block">
+          class="bg-dark-800 border border-dark-600 rounded-2xl p-3 text-center
+                 hover:border-primary-500/40 hover:shadow-sm transition-all duration-200 block">
           <div class="text-2xl font-black text-ink mb-0.5 tabular-nums relative">
             {{ notifSvc.unreadCount() || 0 }}
             @if ((notifSvc.unreadCount() || 0) > 0) {
               <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary-500"></span>
             }
           </div>
-          <div class="text-[10px] text-ink-muted font-medium">Mensajes</div>
+          <div class="text-[10px] text-ink-muted font-bold tracking-wide">Mensajes</div>
         </a>
 
         <button (click)="activeTab.set('posts')"
-          class="bg-dark-800 border rounded-xl p-3 text-center transition-all hover:border-primary-500/40 cursor-pointer"
+          class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer"
           [class.border-primary-500]="activeTab() === 'posts'"
+          [class.bg-primary-900]="activeTab() === 'posts'"
           [class.border-dark-600]="activeTab() !== 'posts'">
           <div class="text-2xl font-black mb-0.5 tabular-nums"
-            [class.text-primary-400]="activeTab() === 'posts'"
+            [class.text-primary-500]="activeTab() === 'posts'"
             [class.text-ink]="activeTab() !== 'posts'">{{ myPosts().length }}</div>
-          <div class="text-[10px] text-ink-muted font-medium">Anuncios</div>
+          <div class="text-[10px] text-ink-muted font-bold tracking-wide">Anuncios</div>
         </button>
 
         <button (click)="activeTab.set('gear')"
-          class="bg-dark-800 border rounded-xl p-3 text-center transition-all hover:border-primary-500/40 cursor-pointer"
+          class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer"
           [class.border-primary-500]="activeTab() === 'gear'"
+          [class.bg-primary-900]="activeTab() === 'gear'"
           [class.border-dark-600]="activeTab() !== 'gear'">
           <div class="text-2xl font-black mb-0.5 tabular-nums"
-            [class.text-primary-400]="activeTab() === 'gear'"
+            [class.text-primary-500]="activeTab() === 'gear'"
             [class.text-ink]="activeTab() !== 'gear'">{{ myListings().length }}</div>
-          <div class="text-[10px] text-ink-muted font-medium">Tienda</div>
+          <div class="text-[10px] text-ink-muted font-bold tracking-wide">Tienda</div>
         </button>
       </div>
 
@@ -226,7 +229,9 @@
           <div class="flex-1 flex overflow-x-auto no-scrollbar">
             @for (tab of (profileType() === 'rehearsal'
               ? [{id:'events',label:'Eventos'},{id:'posts',label:'Anuncios'},{id:'gear',label:'Tienda'},{id:'bookings',label:'Reservas'}]
-              : [{id:'events',label:'Eventos'},{id:'posts',label:'Anuncios'},{id:'gear',label:'Tienda'}]); track tab.id) {
+              : myBookings().length > 0
+                ? [{id:'events',label:'Eventos'},{id:'posts',label:'Anuncios'},{id:'gear',label:'Tienda'},{id:'reservas',label:'Mis reservas'}]
+                : [{id:'events',label:'Eventos'},{id:'posts',label:'Anuncios'},{id:'gear',label:'Tienda'}]); track tab.id) {
               <button (click)="activeTab.set(tab.id)"
                 class="px-4 py-3.5 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px"
                 [class.text-primary-400]="activeTab() === tab.id"
@@ -237,6 +242,11 @@
                 @if (tab.id === 'bookings' && bookings().length > 0) {
                   <span class="ml-1.5 bg-primary-500 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
                     {{ bookings().length }}
+                  </span>
+                }
+                @if (tab.id === 'reservas' && myBookings().length > 0) {
+                  <span class="ml-1.5 bg-primary-500 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
+                    {{ myBookings().length }}
                   </span>
                 }
               </button>
@@ -349,8 +359,7 @@
                         </svg>
                       </button>
                       <button (click)="deleteEvent(event.id, $event)"
-                        class="p-1.5 text-ink-muted hover:text-signal-red hover:bg-signal-red/10
-                               rounded-lg transition-colors"
+                        class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-colors"
                         aria-label="Eliminar evento">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -394,19 +403,17 @@
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-0.5 flex-wrap">
                       <span class="text-[10px] font-semibold text-primary-400">
-                        {{ postInfo(post.post_type).label }}
+                        {{ postInfo(post.type).label }}
                       </span>
                       @if (post.city) {
                         <span class="text-[10px] text-ink-muted">· {{ post.city }}</span>
                       }
                       <span class="text-[10px] text-ink-muted ml-auto">{{ timeAgo(post.created_at) }}</span>
                     </div>
-                    <p class="text-sm text-ink leading-snug line-clamp-2">{{ post.body }}</p>
+                    <p class="text-sm text-ink leading-snug line-clamp-2">{{ post.text }}</p>
                   </div>
                   <button (click)="deletePost(post.id, $event)"
-                    class="opacity-0 group-hover:opacity-100 p-1.5 text-ink-muted
-                           hover:text-signal-red hover:bg-signal-red/10
-                           rounded-lg transition-all flex-shrink-0 mt-0.5"
+                    class="opacity-0 group-hover:opacity-100 min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-all flex-shrink-0"
                     aria-label="Eliminar anuncio">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -478,10 +485,9 @@
                         </button>
                       }
                       <button (click)="deleteListing(item.id, $event)"
-                        class="p-1 text-ink-muted hover:text-signal-red hover:bg-signal-red/10
-                               rounded-lg transition-colors"
+                        class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-colors"
                         aria-label="Eliminar producto">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
@@ -489,6 +495,68 @@
                     </div>
                   </div>
                 </a>
+              }
+            </div>
+          }
+        }
+
+        <!-- TAB: MIS RESERVAS (usuario como cliente) -->
+        @if (activeTab() === 'reservas') {
+          @if (myBookings().length === 0) {
+            <div class="flex flex-col items-center justify-center py-16 text-center px-6">
+              <div class="w-12 h-12 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </div>
+              <p class="text-sm font-bold text-ink mb-1">Sin reservas</p>
+              <p class="text-xs text-ink-muted mt-1">Tus solicitudes de ensayo aparecerán aquí</p>
+            </div>
+          } @else {
+            <div class="divide-y divide-dark-600">
+              @for (b of myBookings(); track b.id) {
+                <div class="px-5 py-4 flex items-start gap-3">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-ink">{{ b.rehearsal_spaces?.name || 'Local de ensayo' }}</p>
+                    @if (b.rehearsal_spaces?.city) {
+                      <p class="text-xs text-ink-muted mb-1">{{ b.rehearsal_spaces.city }}</p>
+                    }
+                    <p class="text-xs text-ink-muted">
+                      {{ b.date | date:'dd/MM/yyyy' }}
+                      @if (b.start_time && b.end_time) { · {{ b.start_time }} – {{ b.end_time }} }
+                    </p>
+                    @if (b.message) {
+                      <p class="text-xs text-ink-3 mt-1 leading-relaxed line-clamp-2">{{ b.message }}</p>
+                    }
+                  </div>
+                  <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+                    @if (b.status === 'confirmed') {
+                      <span class="text-[11px] font-semibold text-signal-green bg-signal-gBg border border-signal-green/30 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Confirmada
+                      </span>
+                    } @else if (b.status === 'rejected') {
+                      <span class="text-[11px] font-semibold text-signal-red bg-signal-red/10 border border-signal-red/20 px-2.5 py-1 rounded-lg">
+                        Rechazada
+                      </span>
+                    } @else if (b.status === 'cancelled') {
+                      <span class="text-[11px] font-semibold text-ink-muted bg-dark-700 border border-dark-600 px-2.5 py-1 rounded-lg">
+                        Cancelada
+                      </span>
+                    } @else {
+                      <span class="text-[11px] font-semibold text-signal-amber bg-signal-amber/10 border border-signal-amber/30 px-2.5 py-1 rounded-lg">
+                        Pendiente
+                      </span>
+                      <button (click)="cancelMyBooking(b.id)"
+                        class="text-xs text-ink-muted hover:text-signal-red border border-dark-600 hover:border-signal-red/30 px-2.5 py-1 rounded-lg transition-colors">
+                        Cancelar
+                      </button>
+                    }
+                  </div>
+                </div>
               }
             </div>
           }
@@ -639,11 +707,11 @@
               </div>
               <div class="min-w-0">
                 <p class="text-[10px] font-semibold text-primary-400 mb-0.5">
-                  {{ postInfo(post.post_type).label }}
+                  {{ postInfo(post.type).label }}
                 </p>
                 <p class="text-[11px] text-ink-3 line-clamp-2 leading-snug
                            group-hover:text-ink transition-colors">
-                  {{ post.body }}
+                  {{ post.text }}
                 </p>
                 @if (post.city) {
                   <p class="text-[10px] text-ink-muted mt-0.5">{{ post.city }}</p>

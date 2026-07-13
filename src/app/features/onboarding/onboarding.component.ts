@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule, FormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
@@ -7,6 +7,17 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES } from '../../core/constants/cities';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal';
+
+function optionalUrl(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) return null;
+  try { new URL(control.value); return null; } catch { return { url: true }; }
+}
+
+function optionalPositiveNumber(control: AbstractControl): ValidationErrors | null {
+  if (!control.value && control.value !== 0) return null;
+  const n = Number(control.value);
+  return isNaN(n) || n < 0 ? { positiveNumber: true } : null;
+}
 
 @Component({
   selector: 'app-onboarding',
@@ -61,22 +72,22 @@ export class OnboardingComponent implements OnInit {
     name: ['', [Validators.required, Validators.minLength(2)]],
   });
   zoneForm = this.fb.group({
-    city:          ['Madrid', Validators.required],
-    description:   [''],
-    contactEmail:  ['', Validators.email],
-    capacity:      [''],
-    hourly_rate:   [''],
-    experience:    [''],
-    spotify_url:   [''],
-    youtube_url:   [''],
-    instagram_url: [''],
-    soundcloud_url:[''],
-    website_url:   [''],
-    phone:         [''],
-    address:       [''],
-    influences:    [''],
-    modality:      ['presencial'],
-    experience_years: [''],
+    city:             ['Madrid', Validators.required],
+    description:      [''],
+    contactEmail:     ['', Validators.email],
+    capacity:         ['', optionalPositiveNumber],
+    hourly_rate:      ['', optionalPositiveNumber],
+    experience:       [''],
+    spotify_url:      ['', optionalUrl],
+    youtube_url:      ['', optionalUrl],
+    instagram_url:    ['', optionalUrl],
+    soundcloud_url:   ['', optionalUrl],
+    website_url:      ['', optionalUrl],
+    phone:            ['', Validators.pattern(/^[+\d\s\-().]{0,20}$/)],
+    address:          [''],
+    influences:       [''],
+    modality:         ['presencial'],
+    experience_years: ['', optionalPositiveNumber],
   });
 
   hasInstrumentStep = computed(() => this.role() === 'musician' || this.role() === 'teacher');

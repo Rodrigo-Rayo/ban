@@ -1,11 +1,13 @@
 @import 'leaflet/dist/leaflet.css';
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-dark-900 text-ink font-sans antialiased;
+    @apply bg-dark-900 text-ink antialiased;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
   }
   * { @apply box-border; }
 
@@ -25,119 +27,121 @@
   /* ── Buttons ─────────────────────────────────── */
   .btn-primary {
     @apply bg-primary-500 text-white font-semibold text-sm
-           px-5 py-2.5 rounded-lg
+           px-5 py-2.5 rounded-full
            hover:bg-primary-600 active:bg-primary-700
-           transition-colors duration-150 cursor-pointer
+           hover:-translate-y-px hover:shadow-md
+           transition-all duration-200 cursor-pointer
            inline-flex items-center justify-center gap-2
            disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .btn-accent {
     @apply bg-primary-500 text-white font-semibold text-sm
-           px-5 py-2.5 rounded-lg
+           px-5 py-2.5 rounded-full
            hover:bg-primary-600 active:bg-primary-700
-           transition-colors duration-150 cursor-pointer
+           hover:-translate-y-px hover:shadow-md
+           transition-all duration-200 cursor-pointer
            inline-flex items-center justify-center gap-2
            disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply bg-dark-800 text-ink-2 font-medium text-sm
-           px-5 py-2.5 rounded-lg
+    @apply bg-transparent text-ink font-medium text-sm
+           px-5 py-2.5 rounded-full
            border border-dark-600
-           hover:border-ink-muted/50 hover:text-ink
-           transition-colors duration-150 cursor-pointer
+           hover:border-primary-500 hover:text-primary-600
+           transition-all duration-200 cursor-pointer
            inline-flex items-center justify-center gap-2
            disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .btn-ghost {
     @apply bg-transparent text-ink-muted font-medium text-sm
-           px-4 py-2 rounded-lg
+           px-4 py-2 rounded-xl
            hover:text-ink hover:bg-dark-700
            transition-colors duration-150 cursor-pointer
            inline-flex items-center justify-center gap-2;
   }
   .btn-night {
     @apply bg-night-3 text-white font-semibold text-sm
-           px-5 py-2.5 rounded-lg border border-night-4
-           hover:bg-night-4
-           transition-colors duration-150 cursor-pointer
+           px-5 py-2.5 rounded-full border border-night-4
+           hover:bg-night-4 hover:-translate-y-px
+           transition-all duration-200 cursor-pointer
            inline-flex items-center justify-center gap-2;
   }
 
   /* ── Card ────────────────────────────────────── */
   .card {
-    @apply bg-dark-800 border border-dark-600 rounded-xl
-           shadow-card
-           hover:shadow-card-md hover:border-ink-line/80
+    @apply bg-dark-800 border border-dark-600 rounded-2xl
+           shadow-sm
+           hover:shadow-md hover:border-primary-500/30
            transition-all duration-200;
   }
   .card-flat {
-    @apply bg-dark-800 border border-dark-600 rounded-xl shadow-card;
+    @apply bg-dark-800 border border-dark-600 rounded-2xl shadow-sm;
   }
   .card-night {
-    @apply bg-night text-white rounded-xl overflow-hidden;
+    @apply bg-night text-white rounded-2xl overflow-hidden;
   }
 
   /* ── Form fields ─────────────────────────────── */
   .input-field {
-    @apply w-full bg-dark-800 border border-dark-600
+    @apply w-full bg-dark-700 border border-dark-600
            focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15
            text-ink placeholder-ink-muted
            px-4 py-3 outline-none transition-all duration-150
-           text-sm rounded-lg;
+           text-sm rounded-xl;
   }
 
   /* ── Tags / Pills ────────────────────────────── */
   .tag {
     @apply text-[10px] font-semibold text-ink-3 tracking-wide uppercase
-           px-2 py-0.5 rounded
+           px-2.5 py-0.5 rounded-full
            bg-dark-700 border border-dark-600
            inline-flex items-center;
   }
   .tag-accent {
     @apply text-[10px] font-semibold text-primary-700 tracking-wide uppercase
-           px-2 py-0.5 rounded
+           px-2.5 py-0.5 rounded-full
            bg-primary-900 border border-primary-200
            inline-flex items-center;
   }
   .tag-green {
     @apply text-[10px] font-semibold text-signal-green tracking-wide uppercase
-           px-2 py-0.5 rounded
+           px-2.5 py-0.5 rounded-full
            bg-signal-gBg border border-signal-green/20
            inline-flex items-center gap-1;
   }
   .tag-night {
     @apply text-[10px] font-semibold tracking-wide uppercase
-           px-2 py-0.5 rounded
+           px-2.5 py-0.5 rounded-full
            bg-night-3 text-white/80 border border-night-4
            inline-flex items-center;
   }
 
   /* ── Meta label ──────────────────────────────── */
   .meta {
-    @apply text-[10px] font-semibold text-ink-muted tracking-widest uppercase
+    @apply text-[10px] font-bold text-ink-muted tracking-widest uppercase
            flex items-center gap-1.5;
   }
 
   /* ── Avatar ──────────────────────────────────── */
   .avatar {
-    @apply rounded-lg bg-dark-750 border border-dark-600 flex items-center justify-center
-           font-semibold text-ink-2 flex-shrink-0 select-none;
+    @apply rounded-xl bg-dark-750 border border-dark-600 flex items-center justify-center
+           font-bold text-ink-2 flex-shrink-0 select-none;
   }
 
   /* ── Sidebar nav item ───────────────────────── */
   .nav-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150;
   }
   .nav-item-active {
-    @apply bg-dark-700 text-primary-600 font-semibold;
+    @apply bg-primary-900 text-primary-600 font-semibold border-l-2 border-primary-500;
   }
   .nav-item-inactive {
-    @apply text-ink-3 hover:text-ink hover:bg-dark-700;
+    @apply text-ink-muted hover:text-ink hover:bg-dark-700;
   }
 
   /* ── Section header ──────────────────────────── */
   .section-label {
-    @apply text-[10px] font-semibold text-ink-muted uppercase tracking-widest;
+    @apply text-[10px] font-bold text-ink-muted uppercase tracking-widest;
   }
 
   /* ── Divider ─────────────────────────────────── */
@@ -158,7 +162,7 @@
   /* ── Section empty placeholder ───────────────── */
   .section-empty {
     @apply block text-center py-8 text-xs font-medium text-ink-muted
-           border border-dashed border-dark-600 rounded-xl
+           border border-dashed border-dark-600 rounded-2xl
            hover:border-primary-500 hover:text-primary-600
            transition-colors cursor-pointer;
   }
@@ -167,6 +171,12 @@
   .display-serif {
     font-family: 'Instrument Serif', Georgia, serif;
     font-style: italic;
+  }
+
+  /* ── Profile cover area ──────────────────────── */
+  .profile-cover {
+    @apply relative overflow-hidden bg-gradient-to-br from-dark-700 via-dark-800 to-primary-900/30;
+    min-height: 180px;
   }
 
   /* ── Search tab states ──────────────────────────── */
@@ -206,3 +216,17 @@
   to   { transform: translateY(0);    opacity: 1; }
 }
 .animate-slide-in { animation: slide-in-up 0.18s ease-out; }
+
+/* ── Legal prose ─────────────────────────────────── */
+.prose-legal section { margin-bottom: 2rem; }
+.prose-legal h2 {
+  @apply text-base font-bold text-ink mb-3 mt-6;
+}
+.prose-legal p { @apply text-sm text-ink-muted leading-relaxed mb-3; }
+.prose-legal ul { @apply text-sm text-ink-muted leading-relaxed mb-3 list-disc list-inside space-y-1; }
+.prose-legal a { @apply text-primary-500 hover:underline; }
+.prose-legal strong { @apply text-ink font-semibold; }
+.prose-legal table { @apply w-full text-sm border-collapse mb-3; }
+.prose-legal th { @apply text-left text-xs font-bold text-ink-muted uppercase tracking-widest py-2 px-3 border-b border-dark-600; }
+.prose-legal td { @apply text-xs text-ink-muted py-2 px-3 border-b border-dark-700; }
+.prose-legal code { @apply text-[11px] bg-dark-700 text-primary-400 px-1.5 py-0.5 rounded font-mono; }

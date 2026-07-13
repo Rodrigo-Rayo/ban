@@ -37,12 +37,15 @@ export class IconComponent {
   private sanitizer = inject(DomSanitizer);
 
   @Input() name = 'user';
-  @Input() size = 20;
-  @Input() strokeWidth = 1.75;
+  @Input() size: number = 20;
+  @Input() strokeWidth: number = 1.75;
 
   get svg() {
-    const path = ICONS[this.name] ?? ICONS['user'];
-    const html = `<svg width="${this.size}" height="${this.size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${this.strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+    const safeName = typeof this.name === 'string' && /^[\w-]+$/.test(this.name) ? this.name : 'user';
+    const safeSize = Number.isFinite(+this.size) ? +this.size : 20;
+    const safeStroke = Number.isFinite(+this.strokeWidth) ? +this.strokeWidth : 1.75;
+    const path = ICONS[safeName] ?? ICONS['user'];
+    const html = `<svg width="${safeSize}" height="${safeSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${safeStroke}" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 }

@@ -16,12 +16,14 @@ export class FavoritesService {
   async toggle(userId: string, entityType: string, entityId: string): Promise<boolean> {
     const isFav = await this.isFavorite(userId, entityType, entityId);
     if (isFav) {
-      await this.supabase.client.from('favorites').delete()
+      const { error } = await this.supabase.client.from('favorites').delete()
         .eq('user_id', userId).eq('entity_type', entityType).eq('entity_id', entityId);
+      if (error) throw new Error(error.message);
       return false;
     }
-    await this.supabase.client.from('favorites')
+    const { error } = await this.supabase.client.from('favorites')
       .insert({ user_id: userId, entity_type: entityType, entity_id: entityId });
+    if (error) throw new Error(error.message);
     return true;
   }
 

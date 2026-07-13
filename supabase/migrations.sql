@@ -179,7 +179,7 @@ DO $$ BEGIN
     SELECT 1 FROM pg_policies WHERE tablename = 'rehearsal_bookings' AND policyname = 'Authenticated users can book'
   ) THEN
     CREATE POLICY "Authenticated users can book"
-      ON rehearsal_bookings FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+      ON rehearsal_bookings FOR INSERT WITH CHECK (user_id = auth.uid());
   END IF;
 END $$;
 
@@ -447,3 +447,221 @@ ALTER TABLE rehearsal_spaces ADD COLUMN IF NOT EXISTS phone          TEXT;
 -- INSERT INTO storage.buckets (id, name, public)
 -- VALUES ('avatars', 'avatars', true)
 -- ON CONFLICT (id) DO NOTHING;
+
+
+-- ──────────────────────────────────────────────
+-- 13. CONVERSATIONS
+-- ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS conversations (
+  id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user1_id        UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user2_id        UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user1_name      TEXT,
+  user2_name      TEXT,
+  last_message    TEXT,
+  last_message_at TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user1_id, user2_id)
+);
+
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'conversations' AND policyname = 'Users can view their conversations'
+  ) THEN
+    CREATE POLICY "Users can view their conversations"
+      ON conversations FOR SELECT USING (user1_id = auth.uid() OR user2_id = auth.uid());
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'conversations' AND policyname = 'Users can create conversations'
+  ) THEN
+    CREATE POLICY "Users can create conversations"
+      ON conversations FOR INSERT WITH CHECK (user1_id = auth.uid() OR user2_id = auth.uid());
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'conversations' AND policyname = 'Users can delete their conversations'
+  ) THEN
+    CREATE POLICY "Users can delete their conversations"
+      ON conversations FOR DELETE USING (user1_id = auth.uid() OR user2_id = auth.uid());
+  END IF;
+END $$;
+
+
+-- ──────────────────────────────────────────────
+-- 14. MESSAGES
+-- ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS messages (
+  id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  text            TEXT NOT NULL,
+  read            BOOLEAN DEFAULT false,
+  created_at      TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Conversation participants can view messages'
+  ) THEN
+    CREATE POLICY "Conversation participants can view messages"
+      ON messages FOR SELECT USING (
+        EXISTS (
+          SELECT 1 FROM conversations
+          WHERE conversations.id = messages.conversation_id
+          AND (conversations.user1_id = auth.uid() OR conversations.user2_id = auth.uid())
+        )
+      );
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Authenticated users can send messages'
+  ) THEN
+    CREATE POLICY "Authenticated users can send messages"
+      ON messages FOR INSERT WITH CHECK (sender_id = auth.uid());
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Participants can update message read status'
+  ) THEN
+    CREATE POLICY "Participants can update message read status"
+      ON messages FOR UPDATE USING (
+        EXISTS (
+          SELECT 1 FROM conversations
+          WHERE conversations.id = messages.conversation_id
+          AND (conversations.user1_id = auth.uid() OR conversations.user2_id = auth.uid())
+        )
+      );
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Participants can delete messages'
+  ) THEN
+    CREATE POLICY "Participants can delete messages"
+      ON messages FOR DELETE USING (
+        EXISTS (
+          SELECT 1 FROM conversations
+          WHERE conversations.id = messages.conversation_id
+          AND (conversations.user1_id = auth.uid() OR conversations.user2_id = auth.uid())
+        )
+      );
+  END IF;
+END $$;
+
+
+-- ──────────────────────────────────────────────
+-- 15. NOTIFICATIONS
+-- ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS notifications (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  type        TEXT NOT NULL,
+  title       TEXT NOT NULL,
+  body        TEXT,
+  entity_type TEXT,
+  entity_id   UUID,
+  read        BOOLEAN DEFAULT false,
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'Users can view their notifications'
+  ) THEN
+    CREATE POLICY "Users can view their notifications"
+      ON notifications FOR SELECT USING (user_id = auth.uid());
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'System can create notifications'
+  ) THEN
+    CREATE POLICY "System can create notifications"
+      ON notifications FOR INSERT WITH CHECK (user_id = auth.uid());
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'Users can update their notifications'
+  ) THEN
+    CREATE POLICY "Users can update their notifications"
+      ON notifications FOR UPDATE USING (user_id = auth.uid());
+  END IF;
+END $$;
+
+
+-- ──────────────────────────────────────────────
+-- 16. RLS: usuarios ven y cancelan sus propias reservas de ensayo
+-- ──────────────────────────────────────────────
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'rehearsal_bookings' AND policyname = 'Users can view their own bookings'
+  ) THEN
+    CREATE POLICY "Users can view their own bookings"
+      ON rehearsal_bookings FOR SELECT USING (user_id = auth.uid());
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'rehearsal_bookings' AND policyname = 'Users can cancel their own bookings'
+  ) THEN
+    CREATE POLICY "Users can cancel their own bookings"
+      ON rehearsal_bookings FOR UPDATE
+      USING (user_id = auth.uid())
+      WITH CHECK (status = 'cancelled');
+  END IF;
+END $$;
+
+
+-- ──────────────────────────────────────────────
+-- 17. Storage bucket para imágenes de tienda
+-- Ejecutar SOLO si el bucket 'gear-images' no existe todavía
+-- ──────────────────────────────────────────────
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('gear-images', 'gear-images', true)
+-- ON CONFLICT (id) DO NOTHING;
+
+
+-- ──────────────────────────────────────────────
+-- 18. Conversations UPDATE policy (participants can update last_message)
+-- ──────────────────────────────────────────────
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'conversations' AND policyname = 'Participants can update conversation'
+  ) THEN
+    CREATE POLICY "Participants can update conversation"
+      ON conversations FOR UPDATE USING (user1_id = auth.uid() OR user2_id = auth.uid());
+  END IF;
+END $$;
+
+
+-- ──────────────────────────────────────────────
+-- 19. Performance indexes
+-- ──────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id   ON messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_read       ON messages(sender_id, read);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read    ON notifications(user_id, read);
+CREATE INDEX IF NOT EXISTS idx_conversations_user2_id     ON conversations(user2_id);
+CREATE INDEX IF NOT EXISTS idx_band_members_band_id       ON band_members(band_id);
+CREATE INDEX IF NOT EXISTS idx_band_vacancies_band_id     ON band_vacancies(band_id);
+CREATE INDEX IF NOT EXISTS idx_vacancy_apps_musician_id   ON vacancy_applications(musician_id);
+CREATE INDEX IF NOT EXISTS idx_vacancy_apps_vacancy_id    ON vacancy_applications(vacancy_id);

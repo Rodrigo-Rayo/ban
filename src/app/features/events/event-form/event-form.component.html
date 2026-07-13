@@ -1,83 +1,92 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:64px">
 
-  <!-- Header -->
-  <div class="px-6 lg:px-10 py-5 border-b border-dark-600 bg-dark-800/50 flex items-center gap-4">
+  <!-- Header bar -->
+  <div class="px-6 lg:px-10 py-4 border-b border-dark-700/60 bg-dark-800/80 backdrop-blur-sm flex items-center gap-4 sticky top-16 z-10">
     <a routerLink="/dashboard"
-       class="p-1.5 text-ink-muted hover:text-ink hover:bg-dark-700 rounded-lg transition-colors">
+       class="p-2 text-ink-muted hover:text-ink hover:bg-dark-700 rounded-xl transition-colors">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
     </a>
-    <div>
-      <div class="section-label mb-0.5">Publicar</div>
-      <h1 class="text-xl font-bold text-ink">Nuevo evento</h1>
+    <div class="flex-1">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted leading-none mb-0.5">Publicar</p>
+      <h1 class="text-base font-semibold text-ink leading-none">Nuevo evento</h1>
     </div>
   </div>
 
-  <div class="px-6 lg:px-10 py-8 max-w-2xl">
+  <div class="px-6 lg:px-10 py-10 max-w-2xl mx-auto">
 
     @if (success()) {
-      <div class="text-center py-16 animate-slide-in">
-        <div class="w-16 h-16 rounded-full bg-signal-gBg border border-signal-green/30 flex items-center justify-center mx-auto mb-6">
-          <svg class="w-8 h-8 text-signal-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="text-center py-20 animate-slide-in">
+        <div class="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto mb-8">
+          <svg class="w-9 h-9 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
           </svg>
         </div>
-        <h2 class="text-3xl font-bold text-ink mb-2">¡Evento publicado!</h2>
-        <p class="text-sm text-ink-muted mb-8">Tu evento ya está visible en BandYou.</p>
+        <h2 class="text-4xl font-bold text-ink mb-3">¡Evento publicado!</h2>
+        <p class="text-sm text-ink-muted mb-10 max-w-xs mx-auto leading-relaxed">Tu evento ya está visible para toda la comunidad de BandYou.</p>
         <div class="flex gap-3 justify-center">
-          <a routerLink="/search" [queryParams]="{tab:'events'}" class="btn-accent text-sm px-6">Ver todos los eventos</a>
-          <a routerLink="/dashboard" class="btn-secondary text-sm px-6">Mi panel</a>
+          <a routerLink="/search" [queryParams]="{tab:'events'}" class="btn-accent text-sm px-7 py-3">Ver todos los eventos</a>
+          <a routerLink="/dashboard" class="btn-secondary text-sm px-7 py-3">Mi panel</a>
         </div>
       </div>
     } @else {
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
 
-        <!-- Event info -->
+        <!-- Section: Información -->
         <div class="card-flat overflow-hidden">
-          <div class="px-5 py-3.5 border-b border-dark-600">
-            <h2 class="text-xs font-bold text-ink-3 uppercase tracking-widest">Información del evento</h2>
+          <div class="px-6 py-4 border-b border-dark-700/60 flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-primary-500/15 flex items-center justify-center flex-shrink-0">
+              <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-widest">Información del evento</h2>
           </div>
-          <div class="p-5 flex flex-col gap-4">
+          <div class="p-6 flex flex-col gap-5">
+
             <div>
-              <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Nombre del evento *</label>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Nombre del evento *</label>
               <input formControlName="title" type="text" placeholder="Ej: Noche de Jazz en Sala Clamores" class="input-field"/>
               @if (form.get('title')?.invalid && form.get('title')?.touched) {
-                <p class="text-xs text-signal-red mt-1">Mínimo 5 caracteres.</p>
+                <p class="text-xs text-signal-red mt-1.5">Mínimo 5 caracteres.</p>
               }
             </div>
+
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Local / Sala *</label>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Local / Sala *</label>
                 <input formControlName="venue" type="text" placeholder="Nombre del local" class="input-field"/>
                 @if (form.get('venue')?.invalid && form.get('venue')?.touched) {
-                  <p class="text-xs text-signal-red mt-1">El local es obligatorio.</p>
+                  <p class="text-xs text-signal-red mt-1.5">El local es obligatorio.</p>
                 }
               </div>
               <div>
-                <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Ciudad *</label>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad *</label>
                 <input formControlName="city" type="text" placeholder="Madrid" class="input-field"/>
                 @if (form.get('city')?.invalid && form.get('city')?.touched) {
-                  <p class="text-xs text-signal-red mt-1">La ciudad es obligatoria.</p>
+                  <p class="text-xs text-signal-red mt-1.5">La ciudad es obligatoria.</p>
                 }
               </div>
             </div>
+
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Fecha *</label>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Fecha *</label>
                 <input formControlName="date" type="date" class="input-field"/>
                 @if (form.get('date')?.invalid && form.get('date')?.touched) {
-                  <p class="text-xs text-signal-red mt-1">La fecha es obligatoria.</p>
+                  <p class="text-xs text-signal-red mt-1.5">La fecha es obligatoria.</p>
                 }
               </div>
               <div>
-                <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Hora</label>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Hora</label>
                 <input formControlName="time" type="time" class="input-field"/>
               </div>
             </div>
+
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Género *</label>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Género *</label>
                 <select formControlName="genre" class="input-field">
                   <option value="" disabled>Selecciona género</option>
                   @for (genre of genres; track genre) {
@@ -85,50 +94,72 @@
                   }
                 </select>
                 @if (form.get('genre')?.invalid && form.get('genre')?.touched) {
-                  <p class="text-xs text-signal-red mt-1">Selecciona un género.</p>
+                  <p class="text-xs text-signal-red mt-1.5">Selecciona un género.</p>
                 }
               </div>
               <div>
-                <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">Precio</label>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Precio</label>
                 <input formControlName="price" type="text" placeholder="Gratis / 10€" class="input-field"/>
               </div>
             </div>
+
             <div>
-              <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">
-                Descripción <span class="opacity-50 normal-case font-normal">(opcional)</span>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">
+                Descripción <span class="opacity-50 normal-case">(opcional)</span>
               </label>
-              <textarea formControlName="description" rows="3" placeholder="Cuéntanos más sobre el evento..."
+              <textarea formControlName="description" rows="3"
+                placeholder="Cuéntanos más sobre el evento..."
                 class="input-field resize-none"></textarea>
             </div>
+
           </div>
         </div>
 
-        <!-- Contact -->
+        <!-- Section: Contacto -->
         <div class="card-flat overflow-hidden">
-          <div class="px-5 py-3.5 border-b border-dark-600">
-            <h2 class="text-xs font-bold text-ink-3 uppercase tracking-widest">Contacto y entradas</h2>
+          <div class="px-6 py-4 border-b border-dark-700/60 flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-primary-500/15 flex items-center justify-center flex-shrink-0">
+              <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-widest">Contacto y entradas</h2>
           </div>
-          <div class="p-5 flex flex-col gap-4">
+          <div class="p-6 flex flex-col gap-5">
             <div>
-              <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">
-                Email de contacto <span class="opacity-50 normal-case font-normal">(opcional)</span>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">
+                Email de contacto <span class="opacity-50 normal-case">(opcional)</span>
               </label>
               <input formControlName="contactEmail" type="email" placeholder="booking@tulocal.com" class="input-field"/>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2">
-                Link de entradas <span class="opacity-50 normal-case font-normal">(opcional)</span>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">
+                Link de entradas <span class="opacity-50 normal-case">(opcional)</span>
               </label>
               <input formControlName="ticketUrl" type="url" placeholder="https://..." class="input-field"/>
             </div>
           </div>
         </div>
 
+        @if (error()) {
+          <p class="text-sm text-signal-red text-center">{{ error() }}</p>
+        }
+
         <button type="submit" [disabled]="loading() || form.invalid"
           class="btn-accent py-4 w-full text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-          @if (loading()) { Publicando... } @else { Publicar evento }
+          @if (loading()) {
+            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Publicando...
+          } @else {
+            Publicar evento
+          }
         </button>
+
       </form>
     }
+
   </div>
 </div>

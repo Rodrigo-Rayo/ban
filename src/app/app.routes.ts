@@ -110,6 +110,23 @@ export const routes: Routes = [
     loadComponent: () => import('./features/shop/gear-detail/gear-detail.component').then(m => m.GearDetailComponent),
   },
   {
+    path: 'legal',
+    children: [
+      {
+        path: 'privacidad',
+        loadComponent: () => import('./features/legal/privacy/privacy.component').then(m => m.PrivacyComponent),
+      },
+      {
+        path: 'terminos',
+        loadComponent: () => import('./features/legal/terms/terms.component').then(m => m.TermsComponent),
+      },
+      {
+        path: 'cookies',
+        loadComponent: () => import('./features/legal/cookies/cookies.component').then(m => m.CookiesComponent),
+      },
+    ],
+  },
+  {
     path: '**',
     loadComponent: () => import('./features/not-found/not-found.component').then(m => m.NotFoundComponent),
   },
