@@ -293,10 +293,10 @@
 
         @if (loading()) {
           <div class="grid grid-cols-4 gap-2">
-            @for (i of [1,2,3,4]; track i) {
+            @for (i of [1,2,3,4,5,6,7,8]; track i) {
               <div class="card animate-pulse">
-                <div class="h-16 bg-dark-700 rounded-t-2xl"></div>
-                <div class="p-1.5 space-y-1"><div class="h-2 bg-dark-700 rounded w-3/4"></div><div class="h-1.5 bg-dark-600 rounded w-1/2"></div></div>
+                <div class="h-24 bg-dark-700 rounded-t-2xl"></div>
+                <div class="p-2 space-y-1"><div class="h-2 bg-dark-700 rounded w-3/4"></div><div class="h-1.5 bg-dark-600 rounded w-1/2"></div></div>
               </div>
             }
           </div>
@@ -304,21 +304,21 @@
           <div class="grid grid-cols-4 gap-2">
             @for (item of recentListings(); track item.id) {
               <a [routerLink]="['/shop', item.id]" class="card overflow-hidden group/card hover:border-primary-500/40 transition-all active:scale-95">
-                <div class="h-16 relative overflow-hidden bg-dark-750">
+                <div class="h-24 relative overflow-hidden bg-dark-750">
                   @if (item.images?.length > 0) {
                     <img [src]="item.images[0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"/>
                   } @else {
                     <div class="w-full h-full flex items-center justify-center text-ink-muted/20">
-                      <app-icon name="shopping-cart" [size]="20"/>
+                      <app-icon name="shopping-cart" [size]="24"/>
                     </div>
                   }
-                  <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-1.5 pb-1">
-                    <p class="text-[10px] font-black text-white">{{ item.price | number:'1.0-0' }} €</p>
+                  <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-2 pb-1.5">
+                    <p class="text-[11px] font-black text-white">{{ item.price | number:'1.0-0' }} €</p>
                   </div>
                 </div>
-                <div class="p-1.5">
-                  <p class="text-[9px] font-semibold text-ink truncate leading-tight">{{ item.title }}</p>
-                  <p class="text-[8px] text-ink-muted mt-0.5 truncate">{{ item.condition || item.category }}</p>
+                <div class="p-2">
+                  <p class="text-[10px] font-semibold text-ink truncate leading-tight">{{ item.title }}</p>
+                  <p class="text-[9px] text-ink-muted mt-0.5 truncate">{{ item.condition || item.category }}</p>
                 </div>
               </a>
             }

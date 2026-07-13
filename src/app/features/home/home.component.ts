@@ -93,7 +93,7 @@ export class HomeComponent implements OnInit {
       this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('rehearsal_spaces').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(4),
-      this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(4),
+      this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(8),
     ]);
 
     // If city-filtered results are too few, fall back to global
@@ -125,9 +125,13 @@ export class HomeComponent implements OnInit {
       { id: '_f2', title: 'Roland TD-17KVX', price: 850, condition: 'Usado', category: 'Batería electrónica', images: [] },
       { id: '_f3', title: 'Fender Stratocaster MIM', price: 650, condition: 'Nuevo', category: 'Guitarras eléctricas', images: [] },
       { id: '_f4', title: 'Marshall JCM800 Head', price: 950, condition: 'Usado', category: 'Amplificadores', images: [] },
+      { id: '_f5', title: 'Boss GT-1000 Core', price: 380, condition: 'Nuevo', category: 'Efectos', images: [] },
+      { id: '_f6', title: 'Shure SM58', price: 95, condition: 'Usado', category: 'Micrófonos', images: [] },
+      { id: '_f7', title: 'Ibanez RG550', price: 720, condition: 'Usado', category: 'Guitarras eléctricas', images: [] },
+      { id: '_f8', title: 'Focusrite Scarlett 2i2', price: 140, condition: 'Nuevo', category: 'Interfaces de audio', images: [] },
     ];
     const real = listings || [];
-    const padded = [...real, ...fallbackListings].slice(0, 4);
+    const padded = [...real, ...fallbackListings].slice(0, 8);
     this.recentListings.set(padded);
 
     this.loading.set(false);
