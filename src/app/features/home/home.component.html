@@ -244,9 +244,9 @@
               </div>
             }
           </div>
-        } @else if (recentPosts().length > 0) {
+        } @else {
           <div class="divide-y divide-dark-600">
-            @for (post of recentPosts().slice(0,4); track post.id) {
+            @for (post of recentPosts(); track post.id) {
               <a routerLink="/feed" class="flex items-start gap-3 px-5 py-4 hover:bg-dark-750/50 transition-colors group/row">
                 <div class="w-8 h-8 rounded-xl bg-dark-750 border border-dark-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-ink-muted">
                   <app-icon [name]="postInfo(post.type).icon" [size]="14"/>
@@ -265,78 +265,6 @@
                 </div>
               </a>
             }
-          </div>
-        } @else {
-          <!-- Hardcoded fallback anuncios -->
-          <div class="divide-y divide-dark-600">
-            <a routerLink="/feed" class="flex items-start gap-3 px-5 py-4 hover:bg-dark-750/50 transition-colors group/row">
-              <div class="w-8 h-8 rounded-xl bg-primary-900 border border-primary-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-primary-500">
-                <app-icon name="mic" [size]="14"/>
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="text-[10px] font-black uppercase tracking-wider text-primary-500">Banda busca músico</span>
-                  <span class="text-[10px] text-ink-muted">· Madrid</span>
-                </div>
-                <p class="text-sm text-ink leading-snug line-clamp-2 group-hover/row:text-primary-400 transition-colors">Banda de rock alternativo busca batería con experiencia en directo. Tocamos indie y alternativo. Mínimo 2 años de experiencia.</p>
-                <div class="flex items-center gap-2 mt-1">
-                  <span class="text-[10px] text-ink-muted">Los Eternos</span>
-                  <span class="text-[10px] text-ink-muted/50">·</span>
-                  <span class="text-[10px] text-ink-muted">hace 2h</span>
-                </div>
-              </div>
-            </a>
-            <a routerLink="/feed" class="flex items-start gap-3 px-5 py-4 hover:bg-dark-750/50 transition-colors group/row">
-              <div class="w-8 h-8 rounded-xl bg-dark-750 border border-dark-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-ink-muted">
-                <app-icon name="music" [size]="14"/>
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="text-[10px] font-black uppercase tracking-wider text-primary-500">Músico busca banda</span>
-                  <span class="text-[10px] text-ink-muted">· Barcelona</span>
-                </div>
-                <p class="text-sm text-ink leading-snug line-clamp-2 group-hover/row:text-primary-400 transition-colors">Guitarrista con 8 años de experiencia busca proyecto serio. Estilos: blues, rock clásico, jazz. Disponible fines de semana.</p>
-                <div class="flex items-center gap-2 mt-1">
-                  <span class="text-[10px] text-ink-muted">Carlos M.</span>
-                  <span class="text-[10px] text-ink-muted/50">·</span>
-                  <span class="text-[10px] text-ink-muted">hace 5h</span>
-                </div>
-              </div>
-            </a>
-            <a routerLink="/feed" class="flex items-start gap-3 px-5 py-4 hover:bg-dark-750/50 transition-colors group/row">
-              <div class="w-8 h-8 rounded-xl bg-dark-750 border border-dark-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-ink-muted">
-                <app-icon name="headphones" [size]="14"/>
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="text-[10px] font-black uppercase tracking-wider text-primary-500">Busco sala de ensayo</span>
-                  <span class="text-[10px] text-ink-muted">· Valencia</span>
-                </div>
-                <p class="text-sm text-ink leading-snug line-clamp-2 group-hover/row:text-primary-400 transition-colors">Cuarteto de jazz busca sala de ensayo para ensayos semanales. Preferiblemente con piano o teclado disponible. Zona centro.</p>
-                <div class="flex items-center gap-2 mt-1">
-                  <span class="text-[10px] text-ink-muted">Jazz Quartet VLC</span>
-                  <span class="text-[10px] text-ink-muted/50">·</span>
-                  <span class="text-[10px] text-ink-muted">hace 1d</span>
-                </div>
-              </div>
-            </a>
-            <a routerLink="/feed" class="flex items-start gap-3 px-5 py-4 hover:bg-dark-750/50 transition-colors group/row">
-              <div class="w-8 h-8 rounded-xl bg-dark-750 border border-dark-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-ink-muted">
-                <app-icon name="star" [size]="14"/>
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="text-[10px] font-black uppercase tracking-wider text-primary-500">Ofrezco clases</span>
-                  <span class="text-[10px] text-ink-muted">· Sevilla</span>
-                </div>
-                <p class="text-sm text-ink leading-snug line-clamp-2 group-hover/row:text-primary-400 transition-colors">Profesor de piano con 15 años de experiencia ofrece clases online y presenciales. Todos los niveles. Lectura musical incluida.</p>
-                <div class="flex items-center gap-2 mt-1">
-                  <span class="text-[10px] text-ink-muted">Roberto Alonso</span>
-                  <span class="text-[10px] text-ink-muted/50">·</span>
-                  <span class="text-[10px] text-ink-muted">hace 2d</span>
-                </div>
-              </div>
-            </a>
           </div>
         }
 

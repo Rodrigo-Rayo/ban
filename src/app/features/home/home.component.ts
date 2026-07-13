@@ -112,7 +112,14 @@ export class HomeComponent implements OnInit {
     this.recentVenues.set(venues || []);
     this.recentTeachers.set(teachers || []);
     this.recentRehearsals.set(rehearsals || []);
-    this.recentPosts.set(posts || []);
+    const fallbackPosts = [
+      { id: '_p1', type: 'band_seeks_musician', text: 'Banda de rock alternativo busca batería con experiencia en directo. Tocamos indie y alternativo. Mínimo 2 años de experiencia.', city: 'Madrid', author_name: 'Los Eternos', created_at: new Date(Date.now() - 2*3600000).toISOString() },
+      { id: '_p2', type: 'musician_seeks_band', text: 'Guitarrista con 8 años de experiencia busca proyecto serio. Estilos: blues, rock clásico, jazz. Disponible fines de semana.', city: 'Barcelona', author_name: 'Carlos M.', created_at: new Date(Date.now() - 5*3600000).toISOString() },
+      { id: '_p3', type: 'seeks_rehearsal', text: 'Cuarteto de jazz busca sala de ensayo para ensayos semanales. Preferiblemente con piano o teclado disponible. Zona centro.', city: 'Valencia', author_name: 'Jazz Quartet VLC', created_at: new Date(Date.now() - 24*3600000).toISOString() },
+      { id: '_p4', type: 'offers_lessons', text: 'Profesor de piano con 15 años de experiencia ofrece clases online y presenciales. Todos los niveles. Lectura musical incluida.', city: 'Sevilla', author_name: 'Roberto Alonso', created_at: new Date(Date.now() - 48*3600000).toISOString() },
+    ];
+    const realPosts = posts || [];
+    this.recentPosts.set([...realPosts, ...fallbackPosts].slice(0, 4));
     const fallbackListings = [
       { id: '_f1', title: 'Gibson Les Paul Standard', price: 1200, condition: 'Usado', category: 'Guitarras eléctricas', images: [] },
       { id: '_f2', title: 'Roland TD-17KVX', price: 850, condition: 'Usado', category: 'Batería electrónica', images: [] },
