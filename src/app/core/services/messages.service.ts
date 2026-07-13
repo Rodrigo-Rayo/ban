@@ -103,7 +103,7 @@ export class MessagesService {
 
   async sendMessage(conversationId: string, content: string): Promise<Message | null> {
     const user = await this.getCurrentUser();
-    if (!user) return null;
+    if (!user) { console.error('[sendMessage] no authenticated user'); return null; }
 
     const { data, error } = await this.supabase.client
       .from('messages')
@@ -111,17 +111,34 @@ export class MessagesService {
       .select()
       .single();
 
-    if (error) { console.error('Error enviando mensaje:', error.message); return null; }
+    if (error) {
+      console.error('[sendMessage] insert error:', error.message, error.code, error.details);
+      return null;
+    }
 
-    await this.supabase.client
+    if (!data) {
+      // insert succeeded but select returned nothing — fetch last inserted message as fallback
+      const { data: fallback } = await this.supabase.client
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .eq('sender_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (!fallback) { console.error('[sendMessage] insert ok but could not fetch message'); return null; }
+      return fallback as Message;
+    }
+
+    this.supabase.client
       .from('conversations')
       .update({ last_message: content, last_message_at: new Date().toISOString() })
-      .eq('id', conversationId);
-    // fire-and-forget update — non-critical if it fails
+      .eq('id', conversationId)
+      .then(({ error: e }) => { if (e) console.error('[sendMessage] conversation update error:', e.message); });
 
     this.createMessageNotification(conversationId, user.id, content);
 
-    return data;
+    return data as Message;
   }
 
   private async createMessageNotification(conversationId: string, senderId: string, content: string) {

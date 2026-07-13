@@ -66,6 +66,13 @@
     }
   </div>
 
+  <!-- Send error -->
+  @if (sendError()) {
+    <div class="px-4 py-2 bg-signal-red/10 border-t border-signal-red/20 flex-shrink-0">
+      <p class="text-xs text-signal-red text-center">{{ sendError() }}</p>
+    </div>
+  }
+
   <!-- Input -->
   <div class="flex items-end gap-2 px-4 py-3 border-t border-dark-600 bg-dark-800 flex-shrink-0">
     <textarea

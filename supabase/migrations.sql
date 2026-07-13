@@ -589,12 +589,13 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- Allows any authenticated user to create notifications for anyone (needed for message notifications)
 DO $$ BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'System can create notifications'
+    SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'Authenticated users can create notifications'
   ) THEN
-    CREATE POLICY "System can create notifications"
-      ON notifications FOR INSERT WITH CHECK (user_id = auth.uid());
+    CREATE POLICY "Authenticated users can create notifications"
+      ON notifications FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
   END IF;
 END $$;
 
@@ -665,3 +666,25 @@ CREATE INDEX IF NOT EXISTS idx_band_members_band_id       ON band_members(band_i
 CREATE INDEX IF NOT EXISTS idx_band_vacancies_band_id     ON band_vacancies(band_id);
 CREATE INDEX IF NOT EXISTS idx_vacancy_apps_musician_id   ON vacancy_applications(musician_id);
 CREATE INDEX IF NOT EXISTS idx_vacancy_apps_vacancy_id    ON vacancy_applications(vacancy_id);
+
+
+-- ──────────────────────────────────────────────
+-- 20. Realtime: REPLICA IDENTITY FULL for filtered subscriptions
+-- Required for postgres_changes with filter= to work correctly
+-- ──────────────────────────────────────────────
+ALTER TABLE messages       REPLICA IDENTITY FULL;
+ALTER TABLE conversations  REPLICA IDENTITY FULL;
+ALTER TABLE notifications  REPLICA IDENTITY FULL;
+
+
+-- ──────────────────────────────────────────────
+-- 21. Fix notification INSERT policy
+-- Drop old restrictive policy (only allowed self-notifications)
+-- ──────────────────────────────────────────────
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'System can create notifications'
+  ) THEN
+    DROP POLICY "System can create notifications" ON notifications;
+  END IF;
+END $$;
