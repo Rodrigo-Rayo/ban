@@ -113,7 +113,15 @@ export class HomeComponent implements OnInit {
     this.recentTeachers.set(teachers || []);
     this.recentRehearsals.set(rehearsals || []);
     this.recentPosts.set(posts || []);
-    this.recentListings.set(listings || []);
+    const fallbackListings = [
+      { id: '_f1', title: 'Gibson Les Paul Standard', price: 1200, condition: 'Usado', category: 'Guitarras eléctricas', images: [] },
+      { id: '_f2', title: 'Roland TD-17KVX', price: 850, condition: 'Usado', category: 'Batería electrónica', images: [] },
+      { id: '_f3', title: 'Fender Stratocaster MIM', price: 650, condition: 'Nuevo', category: 'Guitarras eléctricas', images: [] },
+      { id: '_f4', title: 'Marshall JCM800 Head', price: 950, condition: 'Usado', category: 'Amplificadores', images: [] },
+    ];
+    const real = listings || [];
+    const padded = [...real, ...fallbackListings].slice(0, 4);
+    this.recentListings.set(padded);
 
     this.loading.set(false);
   }
