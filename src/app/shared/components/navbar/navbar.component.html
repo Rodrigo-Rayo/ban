@@ -86,8 +86,8 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"/>
           </svg>
-          @if (unread() > 0) {
-            <span class="absolute top-0.5 right-0.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">{{ unread() }}</span>
+          @if (messagesService.unreadCount() > 0) {
+            <span class="absolute top-0.5 right-0.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">{{ messagesService.unreadCount() }}</span>
           }
         </a>
         <a routerLink="/dashboard"
@@ -122,8 +122,8 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"/>
           </svg>
-          @if (unread() > 0) {
-            <span class="absolute top-0.5 right-0.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">{{ unread() }}</span>
+          @if (messagesService.unreadCount() > 0) {
+            <span class="absolute top-0.5 right-0.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">{{ messagesService.unreadCount() }}</span>
           }
         </a>
       }
@@ -184,8 +184,8 @@
       <a routerLink="/inbox" routerLinkActive="text-primary-500"
          class="relative flex flex-col items-center gap-1 text-ink-muted hover:text-ink transition-colors py-2 px-3 rounded-xl min-w-[44px] min-h-[44px] justify-center">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"/></svg>
-        @if (unread() > 0) {
-          <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">{{ unread() }}</span>
+        @if (messagesService.unreadCount() > 0) {
+          <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-primary-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">{{ messagesService.unreadCount() }}</span>
         }
         <span class="text-[9px] font-bold tracking-wide">Mensajes</span>
       </a>

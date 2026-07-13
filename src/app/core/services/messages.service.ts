@@ -9,8 +9,16 @@ export class MessagesService {
   /** Tracks which conversation the user is currently viewing. */
   activeChatConversationId = signal<string | null>(null);
 
+  /** Shared unread message count — updated by markAsRead and real-time events. */
+  unreadCount = signal(0);
+
   setActiveChat(id: string | null) {
     this.activeChatConversationId.set(id);
+  }
+
+  async refreshUnreadCount() {
+    const count = await this.getUnreadCount();
+    this.unreadCount.set(count);
   }
 
   private async getCurrentUser() {
@@ -154,6 +162,7 @@ export class MessagesService {
       .eq('conversation_id', conversationId)
       .neq('sender_id', user.id);
     if (error) console.error('[messages] markAsRead error:', error.message);
+    await this.refreshUnreadCount();
   }
 
   async getUnreadCount(): Promise<number> {

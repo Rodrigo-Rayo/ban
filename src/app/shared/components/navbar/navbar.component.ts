@@ -17,12 +17,11 @@ import { IconComponent } from '../icon/icon.component';
 export class NavbarComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
   notifSvc = inject(NotificationsService);
-  private messagesService = inject(MessagesService);
+  messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   menuOpen = false;
   publishOpen = false;
-  unread = signal(0);
   avatarUrl = signal<string | null>(null);
   toast = signal<{ name: string; preview: string; conversationId: string } | null>(null);
   private channel: any = null;
@@ -32,14 +31,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     const { data: { session } } = await this.supabase.auth.getSession();
     if (session) {
-      this.unread.set(await this.messagesService.getUnreadCount());
+      await this.messagesService.refreshUnreadCount();
       this.loadAvatar(session.user.id);
       this.channel = this.messagesService.subscribeToInboxUpdates(
         session.user.id,
         (senderName, preview, convId) => {
-          // Don't toast or increment badge if the user is already in that chat
           if (this.messagesService.activeChatConversationId() === convId) return;
-          this.unread.update(n => n + 1);
+          this.messagesService.unreadCount.update(n => n + 1);
           this.showToast(senderName, preview, convId);
         }
       );
@@ -51,11 +49,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
       filter(e => e instanceof NavigationEnd)
     ).subscribe(async (e: any) => {
       this.publishOpen = false;
-      // Refresh real unread count when navigating to any chat or inbox route
-      if (e.url.startsWith('/inbox') || e.url.startsWith('/chat')) {
-        const freshCount = await this.messagesService.getUnreadCount();
-        this.unread.set(freshCount);
-      }
       if (e.url.startsWith('/dashboard')) {
         const { data: { session } } = await this.supabase.auth.getSession();
         if (session) this.loadAvatar(session.user.id);

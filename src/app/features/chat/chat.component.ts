@@ -29,11 +29,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   private conversationId = '';
 
   constructor() {
-    // Scroll to bottom only when message count changes, not on every CD cycle
     effect(() => {
       const count = this.messages().length;
       if (count > 0) {
-        setTimeout(() => this.scrollToBottom(), 50);
+        requestAnimationFrame(() => this.scrollToBottom());
       }
     });
   }
