@@ -347,19 +347,19 @@
         </div>
 
         @if (loading()) {
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="grid grid-cols-3 lg:grid-cols-4 gap-2">
             @for (i of [1,2,3,4]; track i) {
               <div class="card animate-pulse">
-                <div class="aspect-square bg-dark-700 rounded-t-2xl"></div>
+                <div class="aspect-[4/3] bg-dark-700 rounded-t-2xl"></div>
                 <div class="p-2.5 space-y-1.5"><div class="h-2.5 bg-dark-700 rounded w-3/4"></div><div class="h-2 bg-dark-600 rounded w-1/2"></div></div>
               </div>
             }
           </div>
         } @else if (recentListings().length > 0) {
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="grid grid-cols-3 lg:grid-cols-4 gap-2">
             @for (item of recentListings(); track item.id) {
               <a [routerLink]="['/shop', item.id]" class="card overflow-hidden group/card">
-                <div class="aspect-square relative overflow-hidden bg-dark-750">
+                <div class="aspect-[4/3] relative overflow-hidden bg-dark-750">
                   @if (item.images?.length > 0) {
                     <img [src]="item.images[0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"/>
                   } @else {
@@ -380,9 +380,9 @@
           </div>
         } @else {
           <!-- Hardcoded fallback gear -->
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="grid grid-cols-3 lg:grid-cols-4 gap-2">
             <a routerLink="/shop" class="card overflow-hidden group/card">
-              <div class="aspect-square relative overflow-hidden" style="background: linear-gradient(135deg, #131520 0%, #1e2240 100%)">
+              <div class="aspect-[4/3] relative overflow-hidden" style="background: linear-gradient(135deg, #131520 0%, #1e2240 100%)">
                 <div class="w-full h-full flex items-center justify-center opacity-20">
                   <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
                 </div>
@@ -397,7 +397,7 @@
               </div>
             </a>
             <a routerLink="/shop" class="card overflow-hidden group/card">
-              <div class="aspect-square relative overflow-hidden" style="background: linear-gradient(135deg, #1a1208 0%, #2e200e 100%)">
+              <div class="aspect-[4/3] relative overflow-hidden" style="background: linear-gradient(135deg, #1a1208 0%, #2e200e 100%)">
                 <div class="w-full h-full flex items-center justify-center opacity-20">
                   <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/></svg>
                 </div>
@@ -412,7 +412,7 @@
               </div>
             </a>
             <a routerLink="/shop" class="card overflow-hidden group/card">
-              <div class="aspect-square relative overflow-hidden" style="background: linear-gradient(135deg, #0a1a0d 0%, #102e18 100%)">
+              <div class="aspect-[4/3] relative overflow-hidden" style="background: linear-gradient(135deg, #0a1a0d 0%, #102e18 100%)">
                 <div class="w-full h-full flex items-center justify-center opacity-20">
                   <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
                 </div>
@@ -429,7 +429,7 @@
               </div>
             </a>
             <a routerLink="/shop" class="card overflow-hidden group/card">
-              <div class="aspect-square relative overflow-hidden" style="background: linear-gradient(135deg, #150808 0%, #2a1010 100%)">
+              <div class="aspect-[4/3] relative overflow-hidden" style="background: linear-gradient(135deg, #150808 0%, #2a1010 100%)">
                 <div class="w-full h-full flex items-center justify-center opacity-20">
                   <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2" stroke-width="1"/><line x1="9" y1="8" x2="15" y2="8" stroke-width="1"/><line x1="9" y1="12" x2="15" y2="12" stroke-width="1"/></svg>
                 </div>
