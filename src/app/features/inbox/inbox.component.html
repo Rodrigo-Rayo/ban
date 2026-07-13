@@ -53,7 +53,7 @@
         <div class="flex items-center group hover:bg-dark-700/50 transition-colors"
              [ngClass]="{'bg-primary-500/5': unreadIds().has(conv.id)}">
           <a [routerLink]="['/inbox', conv.id]"
-             class="flex items-center gap-3 px-5 py-4 flex-1 min-w-0 cursor-pointer">
+             class="flex items-center gap-3 px-5 py-4 flex-1 min-w-0 cursor-pointer min-h-[64px]">
             <!-- Avatar -->
             <div class="relative flex-shrink-0">
               <div class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white"

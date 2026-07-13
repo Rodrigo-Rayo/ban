@@ -53,7 +53,7 @@
                [class.border]="msg.sender_id !== currentUserId"
                [class.border-dark-600]="msg.sender_id !== currentUserId"
                [class.rounded-bl-sm]="msg.sender_id !== currentUserId">
-            {{ msg.content }}
+            {{ msg.text }}
             <div class="text-[10px] mt-1 text-right"
                  [class.text-white-muted]="msg.sender_id === currentUserId"
                  [class.text-ink-muted]="msg.sender_id !== currentUserId">

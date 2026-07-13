@@ -8,7 +8,7 @@
     </div>
   }
 
-  <div class="flex-1 px-6 py-12 max-w-xl mx-auto w-full">
+  <div class="flex-1 px-5 py-8 sm:py-12 max-w-xl mx-auto w-full">
 
     <!-- ── STEP 0: Role selection ──────────────────────────────── -->
     @if (step() === 0) {
@@ -16,7 +16,7 @@
         <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
           <span>01 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Tu rol</span>
         </p>
-        <h1 class="text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
           ¿Cómo quieres<br><span class="text-primary-400">aparecer en la escena?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Elige el perfil que mejor te define. Podrás cambiarlo después.</p>
@@ -57,7 +57,7 @@
         <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
           <span>02 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Identidad</span>
         </p>
-        <h1 class="text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
           @if (role() === 'band') { ¿Cómo se llama <span class="text-primary-400">la banda?</span> }
           @else if (role() === 'venue') { ¿Cómo se llama <span class="text-primary-400">la sala?</span> }
           @else if (role() === 'rehearsal') { ¿Cómo se llama <span class="text-primary-400">el local?</span> }
@@ -90,7 +90,7 @@
         <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
           <span>03 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Instrumento</span>
         </p>
-        <h1 class="text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
           ¿Qué <span class="text-primary-400">instrumentos</span> tocas?
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Puedes seleccionar varios.</p>
@@ -98,7 +98,7 @@
         <div class="flex flex-wrap gap-2 mb-8">
           @for (inst of instruments; track inst) {
             <button type="button" (click)="toggleInstrument(inst)"
-              class="text-xs font-medium px-4 py-2 rounded-full border transition-all duration-150 focus:outline-none"
+              class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 focus:outline-none"
               [class.border-ink]="selectedInstruments().includes(inst)"
               [class.bg-ink]="selectedInstruments().includes(inst)"
               [class.text-dark-900]="selectedInstruments().includes(inst)"
@@ -127,7 +127,7 @@
         <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
           <span>03 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Estilos</span>
         </p>
-        <h1 class="text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
           ¿Qué <span class="text-primary-400">estilos</span> programas?
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Hasta 5 géneros que definen tu espacio.</p>
@@ -136,7 +136,7 @@
           @for (g of genres; track g) {
             <button type="button" (click)="toggleGenre(g)"
               [disabled]="!selectedGenres().includes(g) && selectedGenres().length >= 5"
-              class="text-xs font-medium px-4 py-2 rounded-full border transition-all duration-150 disabled:opacity-30 focus:outline-none"
+              class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 disabled:opacity-30 focus:outline-none"
               [class.border-primary-500]="selectedGenres().includes(g)"
               [class.bg-primary-500]="selectedGenres().includes(g)"
               [class.text-white]="selectedGenres().includes(g)"
@@ -167,7 +167,7 @@
         <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
           <span>04 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Estilos</span>
         </p>
-        <h1 class="text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
           ¿Qué <span class="text-primary-400">estilos</span> te definen?
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Elige hasta 5 géneros. Cuanto más preciso, mejor el match.</p>
@@ -176,7 +176,7 @@
           @for (g of genres; track g) {
             <button type="button" (click)="toggleGenre(g)"
               [disabled]="!selectedGenres().includes(g) && selectedGenres().length >= 5"
-              class="text-xs font-medium px-4 py-2 rounded-full border transition-all duration-150 disabled:opacity-30 focus:outline-none"
+              class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 disabled:opacity-30 focus:outline-none"
               [class.border-primary-500]="selectedGenres().includes(g)"
               [class.bg-primary-500]="selectedGenres().includes(g)"
               [class.text-white]="selectedGenres().includes(g)"
@@ -207,7 +207,7 @@
         <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
           <span>04 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Zona</span>
         </p>
-        <h1 class="text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
           ¿Dónde <span class="text-primary-400">estás?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">La ciudad y datos de contacto.</p>
@@ -325,7 +325,7 @@
         <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
           <span>05 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Nivel</span>
         </p>
-        <h1 class="text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
           ¿Cuál es tu <span class="text-primary-400">nivel?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Sé honesto — los matches son mejores así.</p>
@@ -368,7 +368,7 @@
         <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
           <span>06 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Zona</span>
         </p>
-        <h1 class="text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
           ¿Dónde <span class="text-primary-400">tocas?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Tu ciudad y datos de contacto para completar el perfil.</p>

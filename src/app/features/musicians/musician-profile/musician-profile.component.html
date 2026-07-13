@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:64px">
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:144px">
 
   @if (musician()) {
     <div class="h-1" [style.background]="avatarColor(musician()!.name)"></div>
@@ -97,10 +97,10 @@
           }
         </div>
 
-        <!-- Actions — right aligned on desktop -->
-        <div class="flex flex-row sm:flex-col gap-2 flex-shrink-0 sm:pt-14 w-full sm:w-44">
+        <!-- Actions — right aligned on desktop, hidden on mobile (see fixed bar below) -->
+        <div class="hidden sm:flex sm:flex-col gap-2 flex-shrink-0 sm:pt-14 sm:w-44">
           @if (musician()!.user_id) {
-            <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary text-sm flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed">
+            <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed">
               {{ sending() ? 'Abriendo...' : 'Escribir mensaje' }}
             </button>
             @if (msgError()) {
@@ -108,7 +108,7 @@
             }
           }
           @if (musician()!.contact_email) {
-            <a [href]="'mailto:' + musician()!.contact_email" class="btn-secondary text-sm text-center flex-1 sm:flex-none">Email</a>
+            <a [href]="'mailto:' + musician()!.contact_email" class="btn-secondary text-sm text-center">Email</a>
           }
           <button (click)="toggleFav()" [disabled]="favLoading()"
             class="btn-secondary text-sm flex items-center justify-center gap-2">
@@ -245,13 +245,39 @@
         }
 
         @if (musician()!.user_id) {
-          <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
+          <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed hidden sm:block">
             {{ sending() ? 'Abriendo chat...' : 'Escribir a ' + musician()!.name?.split(' ')[0] }}
           </button>
         }
       </div>
 
     </div>
+  </div>
+
+  <!-- Mobile fixed CTA bar — above the bottom nav -->
+  <div class="fixed bottom-16 left-0 right-0 z-30 bg-dark-800/98 backdrop-blur-md border-t border-dark-600 px-4 py-3 flex gap-3 sm:hidden">
+    @if (musician()!.user_id) {
+      <button (click)="sendMessage()" [disabled]="sending()"
+        class="btn-primary text-sm flex-1 disabled:opacity-50 disabled:cursor-not-allowed">
+        {{ sending() ? 'Abriendo...' : 'Mensaje' }}
+      </button>
+    }
+    <button (click)="toggleFav()" [disabled]="favLoading()"
+      class="btn-secondary text-sm flex items-center justify-center gap-1.5 min-w-[44px]"
+      [class.text-primary-500]="isFav()" [class.border-primary-500]="isFav()">
+      <svg class="w-4 h-4" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+      </svg>
+      {{ isFav() ? 'Guardado' : 'Guardar' }}
+    </button>
+    <button (click)="shareLink()"
+      class="btn-secondary text-sm flex items-center justify-center gap-1.5 min-w-[44px]"
+      [class.text-signal-green]="linkShared()" [class.border-signal-green]="linkShared()">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+      </svg>
+      {{ linkShared() ? 'Copiado' : 'Compartir' }}
+    </button>
   </div>
   }
 </div>

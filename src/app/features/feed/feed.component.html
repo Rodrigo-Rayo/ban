@@ -31,10 +31,10 @@
           <p class="text-[10px] font-semibold text-ink-muted uppercase tracking-widest mb-4">Nuevo anuncio</p>
 
           <!-- Type selector -->
-          <div class="flex flex-wrap gap-1.5 mb-4">
+          <div class="flex gap-1.5 mb-4 overflow-x-auto pb-1 no-scrollbar snap-x">
             @for (t of postTypes; track t.id) {
               <button (click)="newPost.type = t.id"
-                class="text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-all duration-150 flex items-center gap-1.5"
+                class="text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-all duration-150 flex items-center gap-1.5 flex-shrink-0 snap-start"
                 [class.bg-primary-500]="newPost.type === t.id"
                 [class.border-primary-500]="newPost.type === t.id"
                 [class.text-white]="newPost.type === t.id"
@@ -56,7 +56,7 @@
           </p>
 
           <!-- Meta fields -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
             <select [(ngModel)]="newPost.city" class="input-field text-xs py-2.5">
               @for (c of cities.slice(1); track c) { <option [value]="c">{{ c }}</option> }
             </select>
@@ -64,7 +64,7 @@
               <option value="">Sin instrumento</option>
               @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
             </select>
-            <select [(ngModel)]="newPost.genre" class="input-field text-xs py-2.5 col-span-2 sm:col-span-1">
+            <select [(ngModel)]="newPost.genre" class="input-field text-xs py-2.5">
               <option value="">Sin género</option>
               @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
             </select>
