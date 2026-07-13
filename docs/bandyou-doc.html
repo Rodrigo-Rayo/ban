@@ -1,0 +1,1649 @@
+
+<title>Bandyou — Documentación del Proyecto</title>
+<style>
+  /* ── Tokens ── */
+  :root {
+    --bg:        #faf9f7;
+    --bg-2:      #f2f0ec;
+    --surface:   #ffffff;
+    --border:    #e0dcd5;
+    --border-2:  #ccc8c0;
+    --text:      #1a1917;
+    --text-2:    #4a4845;
+    --text-3:    #8a8580;
+    --accent:    #a0442a;
+    --accent-hi: #c4623e;
+    --accent-lo: #f5ede9;
+    --green:     #1e6641;
+    --green-bg:  #eaf5ee;
+    --yellow:    #7a5f18;
+    --yellow-bg: #fdf4de;
+    --red:       #8a2a2a;
+    --red-bg:    #faeaea;
+    --code-bg:   #f0ede8;
+    --mono:      'Courier New', 'Lucida Console', monospace;
+    --serif:     Georgia, 'Times New Roman', serif;
+    --sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #111110;
+      --bg-2:      #1a1917;
+      --surface:   #1f1e1c;
+      --border:    #2e2c28;
+      --border-2:  #3d3b36;
+      --text:      #e8e4dd;
+      --text-2:    #aaa59d;
+      --text-3:    #6b6660;
+      --accent:    #c4623e;
+      --accent-hi: #d47a55;
+      --accent-lo: #2a1a12;
+      --green:     #5db882;
+      --green-bg:  #0e2318;
+      --yellow:    #c9a84c;
+      --yellow-bg: #1f1a0a;
+      --red:       #d47070;
+      --red-bg:    #220e0e;
+      --code-bg:   #1a1917;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg:#faf9f7;--bg-2:#f2f0ec;--surface:#ffffff;--border:#e0dcd5;--border-2:#ccc8c0;
+    --text:#1a1917;--text-2:#4a4845;--text-3:#8a8580;--accent:#a0442a;--accent-hi:#c4623e;
+    --accent-lo:#f5ede9;--green:#1e6641;--green-bg:#eaf5ee;--yellow:#7a5f18;--yellow-bg:#fdf4de;
+    --red:#8a2a2a;--red-bg:#faeaea;--code-bg:#f0ede8;
+  }
+  :root[data-theme="dark"] {
+    --bg:#111110;--bg-2:#1a1917;--surface:#1f1e1c;--border:#2e2c28;--border-2:#3d3b36;
+    --text:#e8e4dd;--text-2:#aaa59d;--text-3:#6b6660;--accent:#c4623e;--accent-hi:#d47a55;
+    --accent-lo:#2a1a12;--green:#5db882;--green-bg:#0e2318;--yellow:#c9a84c;--yellow-bg:#1f1a0a;
+    --red:#d47070;--red-bg:#220e0e;--code-bg:#1a1917;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-hi); text-decoration: underline; }
+
+  /* ── Layout ── */
+  .shell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+    max-width: 1100px;
+    margin: 0 auto;
+    gap: 0;
+  }
+  @media (max-width: 700px) {
+    .shell { grid-template-columns: 1fr; }
+    .nav { display: none; }
+  }
+
+  /* ── Sidebar nav ── */
+  .nav {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    padding: 32px 0 32px;
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  .nav-logo {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .nav-logo-name {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: normal;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .nav-logo-sub {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+  .nav-section { margin-bottom: 4px; }
+  .nav-section-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-3);
+    padding: 8px 20px 4px;
+    display: block;
+    font-weight: 600;
+  }
+  .nav a {
+    display: block;
+    padding: 5px 20px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    border-left: 2px solid transparent;
+    transition: color 0.12s, border-color 0.12s, background 0.12s;
+  }
+  .nav a:hover {
+    color: var(--text);
+    background: var(--bg-2);
+    border-left-color: var(--accent);
+    text-decoration: none;
+  }
+
+  /* ── Main content ── */
+  main {
+    padding: 48px 52px;
+    min-width: 0;
+  }
+  @media (max-width: 900px) { main { padding: 32px 24px; } }
+
+  /* ── Page header ── */
+  .page-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+    margin-bottom: 48px;
+  }
+  .page-eyebrow {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .page-title {
+    font-family: var(--serif);
+    font-size: 34px;
+    font-weight: normal;
+    color: var(--text);
+    text-wrap: balance;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+  .page-meta {
+    font-size: 12px;
+    color: var(--text-3);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .page-meta span { display: flex; align-items: center; gap: 4px; }
+
+  /* ── Sections ── */
+  section {
+    margin-bottom: 52px;
+    scroll-margin-top: 24px;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: normal;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+  h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    margin-top: 24px;
+  }
+
+  p { color: var(--text-2); margin-bottom: 12px; line-height: 1.75; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── Cards / boxes ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-3);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
+  }
+  .stat-note { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  /* ── Status badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-grey { background: var(--bg-2); color: var(--text-3); }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th {
+    text-align: left;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-3);
+    font-weight: 700;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-2);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-2);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg-2); }
+  .td-name { font-weight: 600; color: var(--text); font-family: var(--mono); font-size: 12px; }
+  .td-desc { color: var(--text-2); font-size: 12px; }
+
+  /* ── Code / path ── */
+  code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: var(--code-bg);
+    color: var(--accent);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    color: var(--text-2);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  /* ── Route list ── */
+  .route-list { display: flex; flex-direction: column; gap: 4px; }
+  .route-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12.5px;
+  }
+  .route-path {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 600;
+    min-width: 200px;
+  }
+  .route-desc { color: var(--text-2); flex: 1; }
+  .route-lock {
+    font-size: 10px;
+    color: var(--text-3);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    flex-shrink: 0;
+  }
+
+  /* ── Feature list ── */
+  .feature-list { display: flex; flex-direction: column; gap: 6px; }
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .feature-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+  .feature-note { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+  /* ── Service cards ── */
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+  }
+  .service-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .service-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .service-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+
+  /* ── Pill tags ── */
+  .pill-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .pill {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11.5px;
+    color: var(--text-2);
+  }
+  .pill-accent {
+    background: var(--accent-lo);
+    border-color: transparent;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ── Info callout ── */
+  .callout {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border-left: 3px solid;
+    margin-bottom: 16px;
+    font-size: 12.5px;
+  }
+  .callout-warn {
+    background: var(--yellow-bg);
+    border-color: var(--yellow);
+    color: var(--yellow);
+  }
+  .callout-info {
+    background: var(--accent-lo);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .callout-body { color: var(--text-2); }
+  .callout-title { font-weight: 700; margin-bottom: 2px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── Progress bar ── */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); margin-bottom: 5px; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 10px; transition: width 0.3s; }
+
+  /* ── DB table schema ── */
+  .schema-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .schema-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .schema-header {
+    padding: 10px 14px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .schema-name { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); }
+  .schema-rls { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--green); font-weight: 700; }
+  .schema-fields { padding: 10px 14px; }
+  .schema-field { font-size: 11.5px; color: var(--text-2); padding: 2px 0; display: flex; gap: 6px; }
+  .field-name { font-family: var(--mono); color: var(--text); font-size: 11px; }
+  .field-type { color: var(--text-3); font-size: 10px; }
+
+  /* ── Divider ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+</style>
+
+<div class="shell">
+  <!-- ── Sidebar ── -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <div class="nav-logo-name">Bandyou</div>
+      <div class="nav-logo-sub">Documentación técnica</div>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Visión general</span>
+      <a href="#overview">Resumen</a>
+      <a href="#stack">Stack tecnológico</a>
+      <a href="#stats">Estado en números</a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Arquitectura</span>
+      <a href="#architecture">Estructura</a>
+      <a href="#services">Servicios core</a>
+      <a href="#auth">Flujo de autenticación</a>
+      <a href="#realtime">Tiempo real</a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Producto</span>
+      <a href="#routes">Rutas y pantallas</a>
+      <a href="#features">Funcionalidades</a>
+      <a href="#profiles">Tipos de perfil</a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Base de datos</span>
+      <a href="#schema">Esquema de tablas</a>
+      <a href="#rls">Políticas RLS</a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">UI / Diseño</span>
+      <a href="#design">Sistema de diseño</a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Hoja de ruta</span>
+      <a href="#gaps">Gaps detectados</a>
+      <a href="#next">Próximos pasos</a>
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main>
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-eyebrow">Documentación del proyecto</div>
+      <h1 class="page-title">Bandyou — Estado actual del proyecto</h1>
+      <div class="page-meta">
+        <span>📅 Julio 2026</span>
+        <span>🏗️ Angular 18 + Supabase</span>
+        <span>🌍 España</span>
+        <span>🎵 Comunidad musical</span>
+      </div>
+    </div>
+
+    <!-- ── 1. OVERVIEW ── -->
+    <section id="overview">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2>Resumen del proyecto</h2>
+      </div>
+      <p>
+        <strong>Bandyou</strong> es una red social y directorio para la comunidad musical española. Conecta músicos independientes, bandas, salas de conciertos, profesores de música y locales de ensayo en un solo lugar. El objetivo es que cualquier músico pueda encontrar lo que necesita — compañeros de banda, salas donde tocar, clases, o vender su equipo — sin salir de la plataforma.
+      </p>
+      <p>
+        Es un proyecto personal (SPA sin backend propio) que utiliza Supabase como capa de datos y autenticación, con Angular 18 en el frontend. Está diseñado para poder escalar a producción real con usuarios sin necesidad de infraestructura propia.
+      </p>
+
+      <div class="card-grid" style="margin-top:20px">
+        <div class="stat-card">
+          <div class="stat-label">Pantallas</div>
+          <div class="stat-value">24+</div>
+          <div class="stat-note">Rutas únicas implementadas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tipos de perfil</div>
+          <div class="stat-value">5</div>
+          <div class="stat-note">Músico · Banda · Local · Profesor · Ensayo</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tablas en BD</div>
+          <div class="stat-value">15</div>
+          <div class="stat-note">Con RLS habilitado</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Estado</div>
+          <div class="stat-value" style="font-size:16px;line-height:1.3">Beta<br>privada</div>
+          <div class="stat-note">Listo para usuarios reales</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. STACK ── -->
+    <section id="stack">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <h2>Stack tecnológico</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Capa</th>
+              <th>Tecnología</th>
+              <th>Versión</th>
+              <th>Rol</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-name">Frontend framework</td>
+              <td><code>Angular</code></td>
+              <td>18.1</td>
+              <td class="td-desc">SPA con standalone components, lazy loading, signals</td>
+            </tr>
+            <tr>
+              <td class="td-name">Backend / BaaS</td>
+              <td><code>Supabase</code></td>
+              <td>2.104</td>
+              <td class="td-desc">Auth, PostgreSQL, Storage, Realtime</td>
+            </tr>
+            <tr>
+              <td class="td-name">CSS</td>
+              <td><code>Tailwind CSS</code></td>
+              <td>3.4</td>
+              <td class="td-desc">Utilidades + sistema de componentes personalizado</td>
+            </tr>
+            <tr>
+              <td class="td-name">Mapas</td>
+              <td><code>Leaflet</code></td>
+              <td>1.9</td>
+              <td class="td-desc">Mapa interactivo de locales y salas</td>
+            </tr>
+            <tr>
+              <td class="td-name">PWA</td>
+              <td><code>@angular/service-worker</code></td>
+              <td>18.2</td>
+              <td class="td-desc">Instalable en móvil, banner de instalación</td>
+            </tr>
+            <tr>
+              <td class="td-name">Tipografía</td>
+              <td><code>DM Sans</code></td>
+              <td>—</td>
+              <td class="td-desc">Fuente principal vía Google Fonts</td>
+            </tr>
+            <tr>
+              <td class="td-name">Testing</td>
+              <td><code>Karma + Jasmine</code></td>
+              <td>6.4 / 5.1</td>
+              <td class="td-desc">Tests unitarios (cobertura baja actualmente)</td>
+            </tr>
+            <tr>
+              <td class="td-name">Build</td>
+              <td><code>Angular CLI</code></td>
+              <td>18.1</td>
+              <td class="td-desc">ng build / ng serve</td>
+            </tr>
+            <tr>
+              <td class="td-name">Lenguaje</td>
+              <td><code>TypeScript</code></td>
+              <td>5.5</td>
+              <td class="td-desc">Tipado estricto habilitado</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 3. STATS ── -->
+    <section id="stats">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <h2>Estado en números</h2>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Pantallas implementadas</span><span>100%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Funcionalidades core</span><span>85%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:85%"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Diseño visual (modernizado julio 2026)</span><span>100%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Cobertura de tests</span><span>~15%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:15%;background:var(--yellow)"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Seguridad / RLS</span><span>90%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:90%;background:var(--green)"></div></div>
+      </div>
+    </section>
+
+    <!-- ── 4. ARCHITECTURE ── -->
+    <section id="architecture">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <h2>Arquitectura y estructura</h2>
+      </div>
+
+      <p>El proyecto sigue una arquitectura Angular moderna con <strong>standalone components</strong> (sin NgModules), <strong>lazy loading</strong> en cada ruta, y gestión de estado local mediante <strong>Angular Signals</strong>. No hay estado global centralizado (sin NgRx), lo que simplifica el código a costa de algo de coordinación entre componentes.</p>
+
+      <pre>src/app/
+├── core/
+│   ├── services/       # Servicios singleton inyectados globalmente
+│   ├── guards/         # authGuard para rutas protegidas
+│   ├── models/         # Interfaces TypeScript de todos los modelos
+│   └── constants/      # Ciudades, géneros, etc.
+├── features/           # Una carpeta por pantalla / feature
+│   ├── auth/           # login, register, forgot-password, reset-password
+│   ├── landing/        # Página de inicio pública
+│   ├── home/           # Dashboard post-login
+│   ├── search/         # Directorio con tabs y filtros
+│   ├── musicians/      # Perfil público de músico
+│   ├── bands/          # Perfil público de banda
+│   ├── venues/         # Perfil público de sala
+│   ├── teachers/       # Perfil público de profesor
+│   ├── rehearsal-spaces/ # Perfil público de local de ensayo
+│   ├── events/         # Formulario + detalle de evento
+│   ├── feed/           # Feed de anuncios de la comunidad
+│   ├── inbox/          # Lista de conversaciones
+│   ├── chat/           # Chat individual en tiempo real
+│   ├── dashboard/      # Panel de gestión del usuario
+│   ├── favorites/      # Favoritos del usuario
+│   ├── notifications/  # Centro de notificaciones
+│   ├── map/            # Mapa de locales
+│   ├── shop/           # Tienda de equipo musical
+│   └── onboarding/     # Creación / edición de perfil
+└── shared/
+    └── components/     # NavbarComponent, SidebarComponent, Toast, etc.</pre>
+
+      <div class="callout callout-info">
+        <div>
+          <div class="callout-title">Patrón de routing</div>
+          <div class="callout-body">Todas las rutas usan <code>loadComponent()</code> con imports dinámicos. Las rutas protegidas tienen <code>canActivate: [authGuard]</code>. No existe módulo de routing separado — todo está en <code>app.routes.ts</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 5. SERVICES ── -->
+    <section id="services">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <h2>Servicios core</h2>
+      </div>
+      <p>Todos los servicios son <code>providedIn: 'root'</code> (singletons). Ninguno usa stores externos — el estado vive en signals o se recarga on-demand.</p>
+
+      <div class="service-grid">
+        <div class="service-card">
+          <div class="service-name">SupabaseService</div>
+          <div class="service-desc">Singleton que wrappea el cliente Supabase. Todas las demás clases usan <code>this.supabase.client</code> para acceder a la BD y <code>this.supabase.auth</code> para autenticación.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-name">AuthService</div>
+          <div class="service-desc">Gestiona la sesión con signals: <code>session</code>, <code>user</code>, <code>isLoggedIn</code>. Escucha cambios de estado con <code>onAuthStateChange</code>. Métodos: login, register, Google OAuth, logout.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-name">MessagesService</div>
+          <div class="service-desc">CRUD completo de conversaciones y mensajes. Convenciones de clave: <code>user1_id &lt; user2_id</code> (lexicográfico). Incluye subscripción Realtime, marcado como leído, y creación automática de notificación al enviar.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-name">NotificationsService</div>
+          <div class="service-desc">Tabla <code>notifications</code> + canal Realtime. Expone <code>unreadCount</code> como signal reactivo. Tipos soportados: <code>message</code>, <code>application</code>, <code>rsvp</code>, <code>review</code>, <code>system</code>.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-name">FavoritesService</div>
+          <div class="service-desc">Toggle de favoritos para cualquier entidad (<code>musician</code>, <code>band</code>, <code>venue</code>, <code>teacher</code>, <code>rehearsal</code>). Constraint único <code>(user_id, entity_type, entity_id)</code>.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-name">ToastService</div>
+          <div class="service-desc">Notificaciones de UI (éxito / error / info). Componente <code>ToastComponent</code> renderiza la cola de toasts en la esquina de la pantalla.</div>
+        </div>
+        <div class="service-card">
+          <div class="service-name">SeoService</div>
+          <div class="service-desc">Gestiona <code>&lt;title&gt;</code> y meta tags (<code>description</code>, OG) para cada ruta. Se llama en el <code>ngOnInit</code> de cada componente que lo necesite.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 6. AUTH FLOW ── -->
+    <section id="auth">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <h2>Flujo de autenticación</h2>
+      </div>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Registro con email/password</div>
+            <div class="feature-note">Supabase Auth. Tras registrarse, el usuario es redirigido a <code>/onboarding</code> para crear su perfil.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Login con email/password</div>
+            <div class="feature-note">Redirige a <code>/home</code> tras autenticarse correctamente.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Login con Google (OAuth)</div>
+            <div class="feature-note">Redirect a <code>/home</code>. Configurado en SupabaseService con <code>redirectTo: origin/home</code>.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Recuperación de contraseña</div>
+            <div class="feature-note">Flujo completo: forgot-password → email → reset-password con token.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Guard de rutas protegidas</div>
+            <div class="feature-note"><code>authGuard</code> redirige a <code>/auth/login</code> si el usuario no está autenticado. Rutas protegidas: home, dashboard, inbox, chat, favorites, notifications, events/create, shop/new, onboarding.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Onboarding de perfil</div>
+            <div class="feature-note">El rol se guarda en <code>localStorage</code> antes de registrarse. <code>OnboardingComponent</code> detecta si el usuario ya tiene perfil (<code>isEditing</code>) y permite editarlo o crearlo por primera vez.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 7. REALTIME ── -->
+    <section id="realtime">
+      <div class="section-header">
+        <span class="section-num">07</span>
+        <h2>Funcionalidad en tiempo real</h2>
+      </div>
+      <p>Supabase Realtime se usa mediante canales de <code>postgres_changes</code>. Se suscriben automáticamente al entrar a la pantalla y se destruyen al salir.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Funcionalidad</th><th>Canal</th><th>Tabla escuchada</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-name">Chat en tiempo real</td>
+              <td><code>messages:{conversationId}</code></td>
+              <td><code>messages</code> — INSERT filtrado por conversación</td>
+            </tr>
+            <tr>
+              <td class="td-name">Notificaciones en vivo</td>
+              <td><code>notifications:{userId}</code></td>
+              <td><code>notifications</code> — INSERT filtrado por destinatario</td>
+            </tr>
+            <tr>
+              <td class="td-name">Inbox (nuevos mensajes)</td>
+              <td><code>inbox-updates-{random}</code></td>
+              <td><code>messages</code> — INSERT global, filtra por remitente</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-warn">
+        <div>
+          <div class="callout-title">Punto a mejorar</div>
+          <div class="callout-body">El canal de inbox usa un nombre aleatorio (<code>Math.random()</code>), lo que puede crear múltiples canales huérfanos si el componente se re-renderiza. Sería mejor un ID estable basado en el <code>userId</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 8. ROUTES ── -->
+    <section id="routes">
+      <div class="section-header">
+        <span class="section-num">08</span>
+        <h2>Rutas y pantallas</h2>
+      </div>
+
+      <div class="route-list">
+        <div class="route-item">
+          <span class="route-path">/</span>
+          <span class="route-desc">Landing page pública — hero, propuesta de valor, CTAs</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/home</span>
+          <span class="route-desc">Dashboard post-login — feed rápido, accesos directos</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/auth/login</span>
+          <span class="route-desc">Inicio de sesión (email + Google)</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/auth/register</span>
+          <span class="route-desc">Registro de nueva cuenta</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/auth/forgot-password</span>
+          <span class="route-desc">Solicitar email de recuperación</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/auth/reset-password</span>
+          <span class="route-desc">Establecer nueva contraseña</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/search</span>
+          <span class="route-desc">Directorio con tabs: Músicos / Bandas / Salas / Eventos / Clases / Locales ensayo</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/musicians/:id</span>
+          <span class="route-desc">Perfil público de músico</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/bands/:id</span>
+          <span class="route-desc">Perfil público de banda con vacantes y miembros</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/venues/:id</span>
+          <span class="route-desc">Perfil de sala de conciertos con reseñas</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/teachers/:id</span>
+          <span class="route-desc">Perfil de profesor con reseñas</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/rehearsal/:id</span>
+          <span class="route-desc">Perfil de local de ensayo con reservas y reseñas</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/events/create</span>
+          <span class="route-desc">Formulario para publicar un nuevo evento</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/events/:id</span>
+          <span class="route-desc">Detalle de evento con RSVP</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/feed</span>
+          <span class="route-desc">Feed de anuncios de la comunidad (posts)</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/map</span>
+          <span class="route-desc">Mapa interactivo con Leaflet de locales y salas</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/inbox</span>
+          <span class="route-desc">Lista de conversaciones con indicador de no leídos</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/inbox/:id</span>
+          <span class="route-desc">Chat individual en tiempo real</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/dashboard</span>
+          <span class="route-desc">Panel del usuario: perfil, eventos, posts, tienda, reservas</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/favorites</span>
+          <span class="route-desc">Perfiles guardados como favoritos</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/notifications</span>
+          <span class="route-desc">Centro de notificaciones con marcado como leído</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/onboarding</span>
+          <span class="route-desc">Creación y edición del perfil público (multi-step)</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/shop</span>
+          <span class="route-desc">Listado de equipo musical en venta</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/shop/new</span>
+          <span class="route-desc">Publicar un nuevo producto</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/shop/:id</span>
+          <span class="route-desc">Detalle de producto en venta</span>
+        </div>
+        <div class="route-item">
+          <span class="route-path">/shop/:id/edit</span>
+          <span class="route-desc">Editar un producto propio</span>
+          <span class="route-lock">🔒 auth</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 9. FEATURES ── -->
+    <section id="features">
+      <div class="section-header">
+        <span class="section-num">09</span>
+        <h2>Funcionalidades implementadas</h2>
+      </div>
+
+      <h3>Directorio y búsqueda</h3>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Búsqueda con filtros por ciudad, género e instrumento</div>
+            <div class="feature-note">Paginación lazy load (30 resultados por página). Filtros sincronizados con query params de URL (compartibles).</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">6 tabs de búsqueda</div>
+            <div class="feature-note">Músicos, Bandas, Salas, Eventos, Clases, Locales de ensayo.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Mapa interactivo</div>
+            <div class="feature-note">Leaflet con marcadores para locales y salas que tienen coordenadas GPS.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Perfiles públicos</h3>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">5 tipos de perfil completos</div>
+            <div class="feature-note">Músico, Banda, Sala, Profesor, Local de ensayo. Cada uno con avatar, redes sociales, descripción, género/ciudad.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Favoritos en perfiles</div>
+            <div class="feature-note">Toggle de corazón visible en todos los perfiles públicos.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Botón de mensaje directo</div>
+            <div class="feature-note">Desde cualquier perfil, crea la conversación y redirige al chat.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Sistema de reseñas (Salas, Profesores, Locales)</div>
+            <div class="feature-note">Rating de 1–5 estrellas, comentario, una reseña por usuario por entidad.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Vacantes de banda</div>
+            <div class="feature-note">Las bandas pueden publicar plazas buscadas. Los músicos pueden aplicar.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Reservas de local de ensayo</div>
+            <div class="feature-note">Formulario de reserva con fecha/hora. El dueño puede aceptar/rechazar desde el dashboard.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Comunicación</h3>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Chat en tiempo real</div>
+            <div class="feature-note">Mensajes con Supabase Realtime. Indicador de mensajes no leídos en inbox y navbar.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Sistema de notificaciones</div>
+            <div class="feature-note">Push en tiempo real vía Realtime. Badge de unread en navbar. Centro de notificaciones con marcado como leído.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Eliminar conversaciones</div>
+            <div class="feature-note">Elimina la conversación y todos sus mensajes.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Contenido y comunidad</h3>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Feed de anuncios</div>
+            <div class="feature-note">Posts tipados: búsqueda de músico/banda, evento, sesión, venta equipo, busco local, colaboración, otro.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Eventos musicales</div>
+            <div class="feature-note">Publicación con título, sala, ciudad, fecha, hora, género, precio, descripción, email y link de entradas.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">RSVP en eventos</div>
+            <div class="feature-note">Botón de asistencia en detalle de evento. Contador de asistentes.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Tienda de equipo</div>
+            <div class="feature-note">Listado, detalle, publicar y editar productos. Estados: activo / vendido / reservado. Condición: nuevo, como nuevo, bueno, aceptable.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Panel de usuario (Dashboard)</h3>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Gestión completa del perfil</div>
+            <div class="feature-note">Editar, subir avatar, copiar link público. Barra de completitud del perfil.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">CRUD de eventos propios</div>
+            <div class="feature-note">Crear, editar inline y eliminar eventos. Tabs de gestión.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">CRUD de anuncios y productos</div>
+            <div class="feature-note">Gestión de posts del feed y productos de la tienda. Marcar producto como vendido.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-green">✓</span>
+          <div>
+            <div class="feature-name">Gestión de reservas (para locales de ensayo)</div>
+            <div class="feature-note">Vista de reservas entrantes con estado pendiente/confirmada/rechazada/cancelada.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 10. PROFILES ── -->
+    <section id="profiles">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <h2>Tipos de perfil</h2>
+      </div>
+      <p>Un usuario tiene exactamente un perfil en una de las cinco tablas. Se detecta consultando las cinco en paralelo. El tipo se guarda en <code>profiles.role</code> y en <code>localStorage</code> durante el onboarding.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Tipo</th><th>Tabla</th><th>Campos únicos</th><th>Funcionalidades extra</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-name">Músico</td>
+              <td><code>musicians</code></td>
+              <td>instrumento, nivel, experiencia, influencias, disponibilidad (días/slots), SoundCloud</td>
+              <td>Puede aplicar a vacantes de banda</td>
+            </tr>
+            <tr>
+              <td class="td-name">Banda</td>
+              <td><code>bands</code></td>
+              <td>nº miembros, buscando instrumento, website</td>
+              <td>Vacantes, miembros, aplicaciones recibidas</td>
+            </tr>
+            <tr>
+              <td class="td-name">Sala / Local</td>
+              <td><code>venues</code></td>
+              <td>aforo, géneros, teléfono, dirección, lat/lng</td>
+              <td>Reseñas, mapa, perfil geolocalizado</td>
+            </tr>
+            <tr>
+              <td class="td-name">Profesor</td>
+              <td><code>teachers</code></td>
+              <td>precio/hora, años experiencia, modalidad (presencial/online/ambas)</td>
+              <td>Reseñas, perfil con redes</td>
+            </tr>
+            <tr>
+              <td class="td-name">Local de ensayo</td>
+              <td><code>rehearsal_spaces</code></td>
+              <td>precio/hora, nº salas, aforo, equipamiento, lat/lng</td>
+              <td>Reservas con estado, reseñas, mapa</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 11. SCHEMA ── -->
+    <section id="schema">
+      <div class="section-header">
+        <span class="section-num">11</span>
+        <h2>Esquema de base de datos</h2>
+      </div>
+      <p>Todas las tablas tienen Row Level Security activado. Las credenciales se acceden únicamente a través de variables de entorno en <code>src/environments/environment.ts</code>.</p>
+
+      <div class="schema-grid">
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">musicians</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">id</span><span class="field-type">UUID PK</span></div>
+            <div class="schema-field"><span class="field-name">user_id</span><span class="field-type">→ auth.users</span></div>
+            <div class="schema-field"><span class="field-name">name, instrument, genre, city</span></div>
+            <div class="schema-field"><span class="field-name">level, experience, influences</span></div>
+            <div class="schema-field"><span class="field-name">availability_days/slots</span></div>
+            <div class="schema-field"><span class="field-name">spotify/youtube/instagram/soundcloud_url</span></div>
+            <div class="schema-field"><span class="field-name">avatar_url, contact_email</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">bands</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">id</span><span class="field-type">UUID PK</span></div>
+            <div class="schema-field"><span class="field-name">user_id</span><span class="field-type">→ auth.users</span></div>
+            <div class="schema-field"><span class="field-name">name, genre, city</span></div>
+            <div class="schema-field"><span class="field-name">members_count, looking_for</span></div>
+            <div class="schema-field"><span class="field-name">spotify/youtube/instagram/website_url</span></div>
+            <div class="schema-field"><span class="field-name">avatar_url, contact_email</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">venues</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">id</span><span class="field-type">UUID PK</span></div>
+            <div class="schema-field"><span class="field-name">user_id</span><span class="field-type">→ auth.users</span></div>
+            <div class="schema-field"><span class="field-name">name, city, address</span></div>
+            <div class="schema-field"><span class="field-name">capacity, genres, phone</span></div>
+            <div class="schema-field"><span class="field-name">lat, lng</span><span class="field-type">geoloc</span></div>
+            <div class="schema-field"><span class="field-name">instagram_url, website_url</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">teachers</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">id</span><span class="field-type">UUID PK</span></div>
+            <div class="schema-field"><span class="field-name">user_id</span><span class="field-type">→ auth.users</span></div>
+            <div class="schema-field"><span class="field-name">name, instrument, city</span></div>
+            <div class="schema-field"><span class="field-name">hourly_rate, experience_years, level</span></div>
+            <div class="schema-field"><span class="field-name">modality</span><span class="field-type">presencial|online|ambas</span></div>
+            <div class="schema-field"><span class="field-name">instagram/youtube/website_url</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">rehearsal_spaces</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">id</span><span class="field-type">UUID PK</span></div>
+            <div class="schema-field"><span class="field-name">user_id</span><span class="field-type">→ auth.users</span></div>
+            <div class="schema-field"><span class="field-name">name, city, address</span></div>
+            <div class="schema-field"><span class="field-name">hourly_rate, rooms_count, capacity</span></div>
+            <div class="schema-field"><span class="field-name">equipment</span></div>
+            <div class="schema-field"><span class="field-name">lat, lng</span><span class="field-type">geoloc</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">conversations</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">id</span><span class="field-type">UUID PK</span></div>
+            <div class="schema-field"><span class="field-name">user1_id, user2_id</span><span class="field-type">← ordenados lex.</span></div>
+            <div class="schema-field"><span class="field-name">user1_name, user2_name</span><span class="field-type">cache de nombre</span></div>
+            <div class="schema-field"><span class="field-name">last_message, last_message_at</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">messages</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">id</span><span class="field-type">UUID PK</span></div>
+            <div class="schema-field"><span class="field-name">conversation_id</span><span class="field-type">→ conversations</span></div>
+            <div class="schema-field"><span class="field-name">sender_id</span><span class="field-type">→ auth.users</span></div>
+            <div class="schema-field"><span class="field-name">text</span></div>
+            <div class="schema-field"><span class="field-name">read</span><span class="field-type">boolean</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">notifications</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">user_id, type, title, body</span></div>
+            <div class="schema-field"><span class="field-name">entity_type, entity_id</span><span class="field-type">link contextual</span></div>
+            <div class="schema-field"><span class="field-name">read</span><span class="field-type">boolean</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">events</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">title, venue, city, date, time</span></div>
+            <div class="schema-field"><span class="field-name">genre, price, description</span></div>
+            <div class="schema-field"><span class="field-name">contact_email, ticket_url</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">posts (feed)</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">type</span><span class="field-type">8 tipos</span></div>
+            <div class="schema-field"><span class="field-name">text, city, instrument, genre</span></div>
+            <div class="schema-field"><span class="field-name">author_name, author_profile_type/id</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">gear_listings</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">title, description, price</span></div>
+            <div class="schema-field"><span class="field-name">category, condition, city</span></div>
+            <div class="schema-field"><span class="field-name">images</span><span class="field-type">TEXT[]</span></div>
+            <div class="schema-field"><span class="field-name">status</span><span class="field-type">active|sold|reserved</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">reviews</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">entity_type</span><span class="field-type">venue|teacher|rehearsal</span></div>
+            <div class="schema-field"><span class="field-name">entity_id</span></div>
+            <div class="schema-field"><span class="field-name">rating</span><span class="field-type">1–5</span></div>
+            <div class="schema-field"><span class="field-name">comment, author_name</span></div>
+            <div class="schema-field"><span class="field-name">UNIQUE(user_id, entity_type, entity_id)</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">favorites</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">entity_type, entity_id</span><span class="field-type">polimórfico</span></div>
+            <div class="schema-field"><span class="field-name">UNIQUE(user_id, entity_type, entity_id)</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">band_vacancies / band_members</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">band_id</span><span class="field-type">→ bands</span></div>
+            <div class="schema-field"><span class="field-name">instrument, description, open</span></div>
+          </div>
+        </div>
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-name">rehearsal_bookings</span>
+            <span class="schema-rls">RLS ✓</span>
+          </div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="field-name">space_id</span><span class="field-type">→ rehearsal_spaces</span></div>
+            <div class="schema-field"><span class="field-name">date, start_time, end_time</span></div>
+            <div class="schema-field"><span class="field-name">status</span><span class="field-type">pending|confirmed|rejected|cancelled</span></div>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin-top:8px;font-size:12px;color:var(--text-3)">Storage bucket: <code>avatars</code> (público). Las imágenes de productos de la tienda también usan este bucket en algunos casos.</p>
+    </section>
+
+    <!-- ── 12. RLS ── -->
+    <section id="rls">
+      <div class="section-header">
+        <span class="section-num">12</span>
+        <h2>Políticas de seguridad (RLS)</h2>
+      </div>
+      <p>Patrón general aplicado en todas las tablas:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Operación</th><th>Política</th></tr></thead>
+          <tbody>
+            <tr><td class="td-name">SELECT</td><td class="td-desc">Público (<code>USING (true)</code>) para perfiles, eventos, posts, gear. Privado (<code>user_id = auth.uid()</code>) para favoritos, notificaciones, mensajes.</td></tr>
+            <tr><td class="td-name">INSERT</td><td class="td-desc">Requiere autenticación. Se valida <code>user_id = auth.uid()</code>.</td></tr>
+            <tr><td class="td-name">UPDATE/DELETE</td><td class="td-desc">Solo el propietario del recurso. En tablas relacionadas (e.g. band_members), se valida via JOIN que el usuario sea dueño de la banda.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-warn">
+        <div>
+          <div class="callout-title">Punto a revisar</div>
+          <div class="callout-body">La política de DELETE en <code>conversations</code> puede no estar configurada correctamente — hay un warning en <code>MessagesService.deleteConversation()</code> que detecta cuando se eliminan 0 filas. Revisar las políticas RLS de la tabla <code>conversations</code> en Supabase.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 13. DESIGN ── -->
+    <section id="design">
+      <div class="section-header">
+        <span class="section-num">13</span>
+        <h2>Sistema de diseño</h2>
+      </div>
+
+      <p>Diseño propio construido sobre Tailwind CSS con paleta terracota / cremas / negros editoriales. Actualizado en julio 2026 con un rediseño completo de todas las pantallas.</p>
+
+      <h3>Paleta de color</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="width:48px;height:48px;border-radius:8px;background:#a0442a;border:1px solid var(--border)"></div>
+          <span style="font-size:10px;color:var(--text-3);font-family:var(--mono)">primary-500</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="width:48px;height:48px;border-radius:8px;background:#1a1815;border:1px solid var(--border)"></div>
+          <span style="font-size:10px;color:var(--text-3);font-family:var(--mono)">dark-900</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="width:48px;height:48px;border-radius:8px;background:#2a2825;border:1px solid var(--border)"></div>
+          <span style="font-size:10px;color:var(--text-3);font-family:var(--mono)">dark-800</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="width:48px;height:48px;border-radius:8px;background:#fffef9;border:1px solid var(--border)"></div>
+          <span style="font-size:10px;color:var(--text-3);font-family:var(--mono)">ink (text)</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="width:48px;height:48px;border-radius:8px;background:#22c55e;border:1px solid var(--border)"></div>
+          <span style="font-size:10px;color:var(--text-3);font-family:var(--mono)">signal-green</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="width:48px;height:48px;border-radius:8px;background:#ef4444;border:1px solid var(--border)"></div>
+          <span style="font-size:10px;color:var(--text-3);font-family:var(--mono)">signal-red</span>
+        </div>
+      </div>
+
+      <h3>Clases de componente</h3>
+      <div class="pill-list">
+        <span class="pill pill-accent">btn-primary</span>
+        <span class="pill pill-accent">btn-secondary</span>
+        <span class="pill pill-accent">btn-ghost</span>
+        <span class="pill pill-accent">btn-night</span>
+        <span class="pill pill-accent">btn-accent</span>
+        <span class="pill">card</span>
+        <span class="pill">card-flat</span>
+        <span class="pill">card-night</span>
+        <span class="pill">input-field</span>
+        <span class="pill">tag</span>
+        <span class="pill">tag-accent</span>
+        <span class="pill">tag-green</span>
+        <span class="pill">tag-night</span>
+        <span class="pill">avatar</span>
+        <span class="pill">nav-item</span>
+        <span class="pill">nav-item-active</span>
+        <span class="pill">meta</span>
+        <span class="pill">section-label</span>
+        <span class="pill">badge</span>
+        <span class="pill">empty-state</span>
+        <span class="pill">section-empty</span>
+        <span class="pill">divider</span>
+        <span class="pill">display-serif</span>
+        <span class="pill">profile-cover</span>
+        <span class="pill">tab-btn-active/inactive</span>
+        <span class="pill">genre-pill-active/inactive</span>
+        <span class="pill">animate-slide-in</span>
+        <span class="pill">no-scrollbar</span>
+      </div>
+
+      <h3>Shell de layout</h3>
+      <p><code>NavbarComponent</code> (top, <code>h-16</code>, sticky) + <code>SidebarComponent</code> (<code>lg:w-56</code>, lateral izquierdo solo en desktop) + <code>&lt;router-outlet&gt;</code> con <code>class="lg:pl-56"</code>. El padding top/bottom de 64px en las páginas cubre la navbar y bottom nav en móvil.</p>
+    </section>
+
+    <!-- ── 14. GAPS ── -->
+    <section id="gaps">
+      <div class="section-header">
+        <span class="section-num">14</span>
+        <h2>Gaps y puntos de mejora detectados</h2>
+      </div>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="badge badge-red">⚠</span>
+          <div>
+            <div class="feature-name">Cobertura de tests muy baja (~15%)</div>
+            <div class="feature-note">Solo existen tests unitarios para los servicios core. No hay tests de componentes ni E2E. Riesgo real en producción.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-red">⚠</span>
+          <div>
+            <div class="feature-name">Bug RLS en delete de conversaciones</div>
+            <div class="feature-note">La tabla <code>conversations</code> puede tener una política de DELETE incompleta. Hay un warning en <code>deleteConversation()</code> que lo indica.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-yellow">!</span>
+          <div>
+            <div class="feature-name">Canal Realtime de inbox con nombre aleatorio</div>
+            <div class="feature-note">Puede crear canales huérfanos si el componente se destruye y recrea. Solución: usar <code>userId</code> como ID del canal.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-yellow">!</span>
+          <div>
+            <div class="feature-name">Búsqueda textual del lado cliente</div>
+            <div class="feature-note">El filtro por <code>query</code> en <code>fetchPage()</code> se aplica en JS sobre los resultados ya paginados. Si el resultado que coincide está en la página 3, no aparece. Solución: usar <code>ilike</code> en la query de Supabase.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-yellow">!</span>
+          <div>
+            <div class="feature-name">Sin validación de imágenes en la tienda</div>
+            <div class="feature-note">El campo <code>images</code> acepta URLs de texto libre sin validar. No hay upload de imágenes real en la tienda (solo en avatar del perfil).</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-yellow">!</span>
+          <div>
+            <div class="feature-name">Uso de <code>any</code> en varios componentes</div>
+            <div class="feature-note">El dashboard y otros componentes usan <code>any</code> para datos de Supabase en lugar de los tipos de <code>core/models/index.ts</code>.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-grey">i</span>
+          <div>
+            <div class="feature-name">Plan gratuito de Supabase</div>
+            <div class="feature-note">La base de datos se pausa a los 7 días de inactividad. Para producción real, migrar al plan Pro (~$25/mes).</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-grey">i</span>
+          <div>
+            <div class="feature-name">Sin sistema de moderación de contenido</div>
+            <div class="feature-note">No hay forma de reportar perfiles, posts o mensajes inapropiados. Necesario antes de abrir al público.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-grey">i</span>
+          <div>
+            <div class="feature-name">Sin rate limiting en cliente</div>
+            <div class="feature-note">Supabase provee rate limiting en su capa, pero no hay throttling explícito en acciones como envío de mensajes o creación de posts.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 15. NEXT STEPS ── -->
+    <section id="next">
+      <div class="section-header">
+        <span class="section-num">15</span>
+        <h2>Próximos pasos recomendados</h2>
+      </div>
+
+      <h3>Prioridad alta (antes de lanzar a usuarios)</h3>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="badge badge-red">1</span>
+          <div>
+            <div class="feature-name">Corregir RLS de conversaciones</div>
+            <div class="feature-note">Verificar y añadir política DELETE en la tabla <code>conversations</code> en el dashboard de Supabase.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-red">2</span>
+          <div>
+            <div class="feature-name">Mover búsqueda textual a Supabase</div>
+            <div class="feature-note">Cambiar el filtrado de JS a <code>.ilike('name', '%query%')</code> directamente en la query para que la paginación funcione correctamente.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-red">3</span>
+          <div>
+            <div class="feature-name">Plan Pro de Supabase</div>
+            <div class="feature-note">Migrar cuando haya usuarios activos para evitar la pausa por inactividad.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Prioridad media</h3>
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="badge badge-yellow">4</span>
+          <div>
+            <div class="feature-name">Upload de imágenes en tienda</div>
+            <div class="feature-note">Permitir subir fotos al bucket de Supabase Storage para los productos de la tienda.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-yellow">5</span>
+          <div>
+            <div class="feature-name">Sistema de reporte de contenido</div>
+            <div class="feature-note">Botón de reportar en perfiles, posts y mensajes. Tabla <code>reports</code> en la BD.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-yellow">6</span>
+          <div>
+            <div class="feature-name">Tipado estricto en dashboards</div>
+            <div class="feature-note">Reemplazar <code>any</code> por los tipos de <code>core/models/index.ts</code> en dashboard y otros componentes.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="badge badge-yellow">7</span>
+          <div>
+            <div class="feature-name">Tests E2E de flujos críticos</div>
+            <div class="feature-note">Registro → onboarding → publicar evento → enviar mensaje. Al menos con Playwright para los 3 flujos principales.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Ideas de funcionalidad nueva</h3>
+      <div class="pill-list">
+        <span class="pill">Audios / demos en perfiles</span>
+        <span class="pill">Sistema de seguimiento (follow)</span>
+        <span class="pill">Grupos / comunidades locales</span>
+        <span class="pill">Agendas de conciertos por ciudad</span>
+        <span class="pill">Perfil verificado (check)</span>
+        <span class="pill">Mensajes de voz</span>
+        <span class="pill">Exportar agenda de ensayos</span>
+        <span class="pill">App nativa (Capacitor)</span>
+        <span class="pill">Email digest semanal</span>
+      </div>
+
+      <hr>
+      <p style="font-size:12px;color:var(--text-3);text-align:center;margin:0">
+        Documento generado el 13 de julio de 2026 · Bandyou v0.1 · Angular 18 + Supabase
+      </p>
+    </section>
+  </main>
+</div>
