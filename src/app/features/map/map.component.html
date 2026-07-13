@@ -32,7 +32,7 @@
   </div>
 
   <!-- Map container -->
-  <div class="relative" [style.height]="mapHeight">
+  <div class="relative" [style.height]="mapHeight()">
 
     @if (loading()) {
       <div class="absolute inset-0 flex items-center justify-center bg-dark-800 z-10">
@@ -43,7 +43,7 @@
       </div>
     }
 
-    <div #mapContainer [style.height]="mapHeight" style="width:100%"></div>
+    <div #mapContainer [style.height]="mapHeight()" style="width:100%"></div>
   </div>
 
 </div>

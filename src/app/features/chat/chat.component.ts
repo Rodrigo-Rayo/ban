@@ -24,6 +24,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   newMessage = '';
   currentUserId = '';
   loading = signal(true);
+  sending = signal(false);
   private subscription: any;
   private conversationId = '';
 
@@ -79,9 +80,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async send() {
     const content = this.newMessage.trim();
-    if (!content) return;
+    if (!content || this.sending()) return;
+    this.sending.set(true);
     this.newMessage = '';
     const msg = await this.messagesService.sendMessage(this.conversationId, content);
+    this.sending.set(false);
     if (msg) {
       this.messages.update(msgs =>
         msgs.some(m => m.id === msg.id) ? msgs : [...msgs, msg]

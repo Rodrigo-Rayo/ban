@@ -52,7 +52,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loading = signal(true);
   selectedCity = signal('Toda España');
-  mapHeight = `${window.innerHeight - 128}px`;
+  mapHeight = signal(`${window.innerHeight - 128}px`);
+  private readonly onResize = () => this.mapHeight.set(`${window.innerHeight - 128}px`);
   activeLayers = signal<Set<MapLayer>>(new Set(['musicians', 'bands', 'venues', 'rehearsal']));
 
   allItems = signal<MapItem[]>([]);
@@ -69,6 +70,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
+      window.addEventListener('resize', this.onResize);
       await this.initMap();
     }
   }
@@ -239,6 +241,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    window.removeEventListener('resize', this.onResize);
     if (this.map) {
       this.map.remove();
       this.map = null;

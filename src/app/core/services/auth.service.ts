@@ -16,8 +16,12 @@ export class AuthService {
       .then(({ data }) => { this._session.set(data.session); })
       .catch(() => {});
 
-    this.supabase.authChanges((_, session) => {
+    this.supabase.authChanges((event, session) => {
       this._session.set(session);
+      if (event === 'SIGNED_IN' && session && localStorage.getItem('bandyou_needs_onboarding') === 'true') {
+        localStorage.removeItem('bandyou_needs_onboarding');
+        this.router.navigate(['/onboarding']);
+      }
     });
   }
 

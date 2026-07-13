@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -28,6 +28,8 @@ export class FeedComponent implements OnInit {
   showForm = signal(false);
   error = signal('');
   private readonly PAGE_SIZE = 20;
+  readonly MAX_POST_LENGTH = 500;
+  private instrumentTimeout: any;
 
   filterCity = signal('Toda España');
   filterType = signal<PostType | ''>('');
@@ -59,13 +61,11 @@ export class FeedComponent implements OnInit {
     { id: 'other',                  label: 'Otro',                  emoji: '📢', icon: 'newspaper'      },
   ];
 
-  filteredPosts = computed(() => {
-    let list = this.posts();
-    if (this.filterCity() !== 'Toda España') list = list.filter(p => p.city === this.filterCity());
-    if (this.filterType()) list = list.filter(p => p.type === this.filterType());
-    if (this.filterInstrument()) list = list.filter(p => p.instrument?.toLowerCase().includes(this.filterInstrument().toLowerCase()));
-    return list;
-  });
+  onInstrumentChange(val: string) {
+    this.filterInstrument.set(val);
+    clearTimeout(this.instrumentTimeout);
+    this.instrumentTimeout = setTimeout(() => this.loadPosts(), 400);
+  }
 
   async ngOnInit() {
     this.seo.set({ title: 'Tablón', description: 'Anuncios de músicos, bandas y profesionales de la música en España. Publica y encuentra colaboraciones.' });
@@ -91,11 +91,11 @@ export class FeedComponent implements OnInit {
   async loadPosts() {
     this.loading.set(true);
     this.hasMore.set(true);
-    const { data } = await this.supabase.client
-      .from('posts')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(this.PAGE_SIZE);
+    let q = this.supabase.client.from('posts').select('*').order('created_at', { ascending: false });
+    if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+    if (this.filterType()) q = q.eq('type', this.filterType() as string);
+    if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
+    const { data } = await q.limit(this.PAGE_SIZE);
     this.posts.set(data || []);
     this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
     this.loading.set(false);
@@ -105,12 +105,13 @@ export class FeedComponent implements OnInit {
     if (this.loadingMore() || !this.hasMore()) return;
     this.loadingMore.set(true);
     const last = this.posts().at(-1);
-    const { data } = await this.supabase.client
-      .from('posts')
-      .select('*')
+    let q = this.supabase.client.from('posts').select('*')
       .order('created_at', { ascending: false })
-      .lt('created_at', last?.created_at ?? new Date().toISOString())
-      .limit(this.PAGE_SIZE);
+      .lt('created_at', last?.created_at ?? new Date().toISOString());
+    if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+    if (this.filterType()) q = q.eq('type', this.filterType() as string);
+    if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
+    const { data } = await q.limit(this.PAGE_SIZE);
     this.posts.update(p => [...p, ...(data || [])]);
     this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
     this.loadingMore.set(false);
@@ -118,6 +119,7 @@ export class FeedComponent implements OnInit {
 
   async submitPost() {
     if (!this.newPost.text.trim()) return;
+    if (this.newPost.text.trim().length > this.MAX_POST_LENGTH) return;
     const user = this.currentUser();
     if (!user) return;
 

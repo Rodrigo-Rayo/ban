@@ -114,6 +114,15 @@ export class DashboardComponent implements OnInit {
   async uploadAvatar(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!ALLOWED.includes(file.type)) {
+      this.toast.error('Solo se permiten imágenes JPG, PNG o WebP.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.error('La imagen no puede superar 5 MB.');
+      return;
+    }
     const { data: { session } } = await this.supabase.auth.getSession();
     if (!session) return;
     this.uploadingAvatar.set(true);

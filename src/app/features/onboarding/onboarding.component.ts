@@ -132,54 +132,67 @@ export class OnboardingComponent implements OnInit {
     const { data: { user } } = await this.supabase.auth.getUser();
     if (!user) return;
 
-    const checks: { table: string; role: Role }[] = [
-      { table: 'musicians',        role: 'musician'  },
-      { table: 'bands',            role: 'band'      },
-      { table: 'venues',           role: 'venue'     },
-      { table: 'teachers',         role: 'teacher'   },
-      { table: 'rehearsal_spaces', role: 'rehearsal' },
-    ];
-    for (const { table, role } of checks) {
-      const { data } = await this.supabase.client.from(table).select('*').eq('user_id', user.id).maybeSingle();
-      if (data) {
-        this.role.set(role);
-        this.originalRole.set(role);
-        this.isEditing.set(true);
-        this.nameForm.patchValue({ name: data.name });
-        this.zoneForm.patchValue({
-          city:           data.city ?? 'Madrid',
-          description:    data.description ?? '',
-          contactEmail:   data.contact_email ?? '',
-          capacity:       data.capacity ?? '',
-          hourly_rate:    data.hourly_rate ?? '',
-          experience:     data.experience ?? '',
-          spotify_url:    data.spotify_url ?? '',
-          youtube_url:    data.youtube_url ?? '',
-          instagram_url:  data.instagram_url ?? '',
-          soundcloud_url: data.soundcloud_url ?? '',
-          website_url:    data.website_url ?? '',
-          phone:          data.phone ?? '',
-          address:        data.address ?? '',
-          influences:     data.influences ?? '',
-          modality:       data.modality ?? 'presencial',
-          experience_years: data.experience_years ?? '',
-        });
-        if (data.genre)       this.selectedGenres.set(data.genre.split(',').map((s: string) => s.trim()).filter(Boolean));
-        if (data.genres)      this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
-        if (data.instrument)  this.selectedInstruments.set([data.instrument]);
-        if (data.level)       this.selectedLevel.set(data.level);
-        if (role === 'band') {
-          const { data: members } = await this.supabase.client
-            .from('band_members').select('name,instrument').eq('band_id', data.id);
-          if (members) this.bandMembers = members.map((m: any) => ({ name: m.name, instrument: m.instrument }));
-        }
-        if (role === 'musician') {
-          if (data.availability_days) this.selectedDays.set(data.availability_days.split(',').filter(Boolean));
-          if (data.availability_slots) this.selectedSlots.set(data.availability_slots.split(',').filter(Boolean));
-        }
-        break;
+    const [
+      { data: musicianData },
+      { data: bandData },
+      { data: venueData },
+      { data: teacherData },
+      { data: rehearsalData },
+    ] = await Promise.all([
+      this.supabase.client.from('musicians').select('*').eq('user_id', user.id).maybeSingle(),
+      this.supabase.client.from('bands').select('*').eq('user_id', user.id).maybeSingle(),
+      this.supabase.client.from('venues').select('*').eq('user_id', user.id).maybeSingle(),
+      this.supabase.client.from('teachers').select('*').eq('user_id', user.id).maybeSingle(),
+      this.supabase.client.from('rehearsal_spaces').select('*').eq('user_id', user.id).maybeSingle(),
+    ]);
+
+    const found = [
+      { data: musicianData, role: 'musician' as Role },
+      { data: bandData,     role: 'band'     as Role },
+      { data: venueData,    role: 'venue'    as Role },
+      { data: teacherData,  role: 'teacher'  as Role },
+      { data: rehearsalData, role: 'rehearsal' as Role },
+    ].find(r => r.data !== null);
+
+    if (found) {
+      const { data, role } = found;
+      this.role.set(role);
+      this.originalRole.set(role);
+      this.isEditing.set(true);
+      this.nameForm.patchValue({ name: data.name });
+      this.zoneForm.patchValue({
+        city:           data.city ?? 'Madrid',
+        description:    data.description ?? '',
+        contactEmail:   data.contact_email ?? '',
+        capacity:       data.capacity ?? '',
+        hourly_rate:    data.hourly_rate ?? '',
+        experience:     data.experience ?? '',
+        spotify_url:    data.spotify_url ?? '',
+        youtube_url:    data.youtube_url ?? '',
+        instagram_url:  data.instagram_url ?? '',
+        soundcloud_url: data.soundcloud_url ?? '',
+        website_url:    data.website_url ?? '',
+        phone:          data.phone ?? '',
+        address:        data.address ?? '',
+        influences:     data.influences ?? '',
+        modality:       data.modality ?? 'presencial',
+        experience_years: data.experience_years ?? '',
+      });
+      if (data.genre)       this.selectedGenres.set(data.genre.split(',').map((s: string) => s.trim()).filter(Boolean));
+      if (data.genres)      this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
+      if (data.instrument)  this.selectedInstruments.set([data.instrument]);
+      if (data.level)       this.selectedLevel.set(data.level);
+      if (role === 'band') {
+        const { data: members } = await this.supabase.client
+          .from('band_members').select('name,instrument').eq('band_id', data.id);
+        if (members) this.bandMembers = members.map((m: any) => ({ name: m.name, instrument: m.instrument }));
+      }
+      if (role === 'musician') {
+        if (data.availability_days)  this.selectedDays.set(data.availability_days.split(',').filter(Boolean));
+        if (data.availability_slots) this.selectedSlots.set(data.availability_slots.split(',').filter(Boolean));
       }
     }
+
     if (!this.isEditing()) {
       const VALID_ROLES: Role[] = ['musician', 'band', 'venue', 'teacher', 'rehearsal'];
       const stored = localStorage.getItem('bandyou_role');
@@ -276,8 +289,7 @@ export class OnboardingComponent implements OnInit {
 
     this.loading.set(false);
     if (saveError) {
-      console.error('[onboarding] save error:', saveError.code, saveError.message, saveError.details);
-      this.error.set(`Error al guardar: ${saveError.message} (${saveError.code})`);
+      this.error.set('No se pudo guardar el perfil. Por favor, inténtalo de nuevo.');
     } else {
       localStorage.removeItem('bandyou_role');
       this.step.set(this.totalSteps());

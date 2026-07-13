@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -53,21 +53,17 @@ export class GearListComponent implements OnInit {
   ];
   readonly cities = CITIES_WITH_ALL;
 
-  filteredListings = computed(() => {
-    let list = this.listings();
-    if (this.filterCategory()) list = list.filter(l => l.category === this.filterCategory());
-    if (this.filterCity() !== 'Toda España') list = list.filter(l => l.city === this.filterCity());
-    if (this.filterCondition()) list = list.filter(l => l.condition === this.filterCondition());
-    return list;
-  });
-
   async ngOnInit() {
-    const { data } = await this.supabase.client
-      .from('gear_listings')
-      .select('*')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(this.PAGE_SIZE);
+    await this.loadListings();
+  }
+
+  async loadListings() {
+    this.loading.set(true);
+    let q = this.supabase.client.from('gear_listings').select('*').eq('status', 'active');
+    if (this.filterCategory()) q = q.eq('category', this.filterCategory());
+    if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+    if (this.filterCondition()) q = q.eq('condition', this.filterCondition());
+    const { data } = await q.order('created_at', { ascending: false }).limit(this.PAGE_SIZE);
     this.listings.set(data || []);
     this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
     this.loading.set(false);
@@ -77,13 +73,13 @@ export class GearListComponent implements OnInit {
     if (this.loadingMore() || !this.hasMore()) return;
     this.loadingMore.set(true);
     const last = this.listings().at(-1);
-    const { data } = await this.supabase.client
-      .from('gear_listings')
-      .select('*')
+    let q = this.supabase.client.from('gear_listings').select('*')
       .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .lt('created_at', last?.created_at ?? new Date().toISOString())
-      .limit(this.PAGE_SIZE);
+      .lt('created_at', last?.created_at ?? new Date().toISOString());
+    if (this.filterCategory()) q = q.eq('category', this.filterCategory());
+    if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+    if (this.filterCondition()) q = q.eq('condition', this.filterCondition());
+    const { data } = await q.order('created_at', { ascending: false }).limit(this.PAGE_SIZE);
     this.listings.update(l => [...l, ...(data || [])]);
     this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
     this.loadingMore.set(false);
@@ -107,9 +103,10 @@ export class GearListComponent implements OnInit {
     return this.filterCategory() || this.filterCity() !== 'Toda España' || this.filterCondition();
   }
 
-  clearFilters() {
+  async clearFilters() {
     this.filterCategory.set('');
     this.filterCity.set('Toda España');
     this.filterCondition.set('');
+    await this.loadListings();
   }
 }

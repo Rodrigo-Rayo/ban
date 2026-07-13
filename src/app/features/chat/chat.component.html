@@ -75,7 +75,7 @@
       rows="1"
       class="flex-1 bg-dark-700 border border-dark-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/10 text-ink text-sm px-4 py-3 rounded-2xl resize-none outline-none transition-all placeholder-ink-muted"
       style="min-height:44px;max-height:120px"></textarea>
-    <button (click)="send()" [disabled]="!newMessage.trim()"
+    <button (click)="send()" [disabled]="!newMessage.trim() || sending()"
       class="btn-primary text-sm px-4 py-3 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px]">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>

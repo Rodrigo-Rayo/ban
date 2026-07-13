@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -11,7 +11,6 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class RegisterComponent {
   private fb = inject(FormBuilder);
-  private router = inject(Router);
   auth = inject(AuthService);
 
   loading = signal(false);
@@ -31,8 +30,9 @@ export class RegisterComponent {
     try {
       const { email, password, role } = this.form.value;
       localStorage.setItem('bandyou_role', role || 'musician');
+      localStorage.setItem('bandyou_needs_onboarding', 'true');
       await this.auth.signUpWithEmail(email!, password!);
-      this.router.navigate(['/onboarding']);
+      this.success.set(true);
     } catch (e: any) {
       this.error.set(e.message ?? 'Error al registrarse');
     } finally {

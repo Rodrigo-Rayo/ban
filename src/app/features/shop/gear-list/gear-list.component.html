@@ -19,14 +19,14 @@
     <div class="flex flex-wrap gap-2 mb-6">
 
       <!-- Category -->
-      <select [(ngModel)]="filterCategory" [ngModel]="filterCategory()" (ngModelChange)="filterCategory.set($event)"
+      <select [ngModel]="filterCategory()" (ngModelChange)="filterCategory.set($event); loadListings()"
         class="bg-dark-800 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors">
         <option value="">Todas las categorías</option>
         @for (cat of categories; track cat) { <option [value]="cat">{{ cat }}</option> }
       </select>
 
       <!-- City -->
-      <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event)"
+      <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadListings()"
         class="bg-dark-800 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors">
         @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
       </select>
@@ -34,7 +34,7 @@
       <!-- Condition pills -->
       <div class="flex flex-wrap gap-1.5">
         @for (cond of conditions; track cond.id) {
-          <button (click)="filterCondition.set(filterCondition() === cond.id ? '' : cond.id)"
+          <button (click)="filterCondition.set(filterCondition() === cond.id ? '' : cond.id); loadListings()"
             class="text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-all"
             [class.border-primary-500]="filterCondition() === cond.id"
             [class.text-primary-400]="filterCondition() === cond.id"
@@ -57,7 +57,7 @@
       }
 
       <span class="text-xs text-ink-muted ml-auto self-center">
-        @if (!loading()) { {{ filteredListings().length }} anuncios }
+        @if (!loading()) { {{ listings().length }} anuncios }
       </span>
     </div>
 
@@ -78,7 +78,7 @@
     }
 
     <!-- Empty state -->
-    @if (!loading() && filteredListings().length === 0) {
+    @if (!loading() && listings().length === 0) {
       <div class="empty-state">
         <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
           <app-icon name="shopping-cart" [size]="28" class="text-ink-muted"/>
@@ -92,9 +92,9 @@
     }
 
     <!-- Grid -->
-    @if (!loading() && filteredListings().length > 0) {
+    @if (!loading() && listings().length > 0) {
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        @for (item of filteredListings(); track item.id) {
+        @for (item of listings(); track item.id) {
           <a [routerLink]="['/shop', item.id]"
              class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden hover:border-primary-500/50 hover:shadow-lg hover:shadow-black/20 transition-all duration-200 group flex flex-col">
 
