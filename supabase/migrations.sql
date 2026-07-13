@@ -669,7 +669,22 @@ CREATE INDEX IF NOT EXISTS idx_vacancy_apps_vacancy_id    ON vacancy_application
 
 
 -- ──────────────────────────────────────────────
--- 20. Realtime: REPLICA IDENTITY FULL for filtered subscriptions
+-- 20. Fix messages column name (may have been created as 'content' instead of 'text')
+-- ──────────────────────────────────────────────
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'messages' AND column_name = 'content'
+  ) THEN
+    ALTER TABLE messages RENAME COLUMN content TO text;
+  END IF;
+END $$;
+
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS text TEXT;
+
+
+-- ──────────────────────────────────────────────
+-- 21. Realtime: REPLICA IDENTITY FULL for filtered subscriptions
 -- Required for postgres_changes with filter= to work correctly
 -- ──────────────────────────────────────────────
 ALTER TABLE messages       REPLICA IDENTITY FULL;
