@@ -86,8 +86,8 @@ export class HomeComponent implements OnInit {
         ? this.supabase.client.from('musicians').select('*').eq('city', city).order('created_at', { ascending: false }).limit(6)
         : this.supabase.client.from('musicians').select('*').order('created_at', { ascending: false }).limit(6),
       city
-        ? this.supabase.client.from('bands').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
-        : this.supabase.client.from('bands').select('*').order('created_at', { ascending: false }).limit(5),
+        ? this.supabase.client.from('bands').select('*').eq('city', city).order('created_at', { ascending: false }).limit(6)
+        : this.supabase.client.from('bands').select('*').order('created_at', { ascending: false }).limit(6),
       this.supabase.client.from('events').select('*').gte('date', (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()).order('date', { ascending: true }).limit(5),
       this.supabase.client.from('venues').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),

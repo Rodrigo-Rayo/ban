@@ -416,8 +416,8 @@
         </div>
 
         @if (loading()) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-5 lg:overflow-visible">
-            @for (i of [1,2,3,4,5]; track i) {
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
+            @for (i of [1,2,3,4,5,6]; track i) {
               <div class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center animate-pulse">
                 <div class="w-12 h-12 rounded-full bg-dark-700 mx-auto mb-2 ring-2 ring-dark-600"></div>
                 <div class="h-2 bg-dark-700 rounded w-3/4 mx-auto mb-1.5"></div>
@@ -426,7 +426,7 @@
             }
           </div>
         } @else if (recentBands().length > 0) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-5 lg:overflow-visible">
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
             @for (band of recentBands(); track band.id) {
               <a [routerLink]="['/bands', band.id]"
                  class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group relative">
@@ -448,13 +448,14 @@
             }
           </div>
         } @else {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-5 lg:overflow-visible">
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
             @for (item of [
               {initials:'LE', color:'#a0442a', name:'Los Eternos',    tag:'Rock alt.',  city:'Madrid',    busca:true},
               {initials:'FF', color:'#7a3320', name:'Flamenco Fusion', tag:'Flamenco',  city:'Sevilla',   busca:false},
               {initials:'MJ', color:'#1a0d2e', name:'Midnight Jazz',   tag:'Jazz',      city:'Barcelona', busca:true},
               {initials:'MS', color:'#2a0a0a', name:'Metal Storm',     tag:'Heavy metal',city:'Bilbao',   busca:false},
-              {initials:'IB', color:'#3a1a05', name:'Indie Bros',      tag:'Indie',     city:'Valencia',  busca:true}
+              {initials:'IB', color:'#3a1a05', name:'Indie Bros',      tag:'Indie',     city:'Valencia',  busca:true},
+              {initials:'SN', color:'#1a2a1a', name:'Soul Nights',     tag:'Soul / R&B', city:'Granada',  busca:false}
             ]; track item.name) {
               <a routerLink="/search" [queryParams]="{tab:'bands'}"
                  class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group relative">
