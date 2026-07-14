@@ -102,12 +102,10 @@ export class HomeComponent implements OnInit {
       return data || [];
     };
 
-    this.recentMusicians.set(
-      musicians && musicians.length >= 6 ? musicians : await globalFallback('musicians', 12)
-    );
-    this.recentBands.set(
-      bands && bands.length >= 6 ? bands : await globalFallback('bands', 12)
-    );
+    const musicianList = musicians && musicians.length >= 6 ? musicians : await globalFallback('musicians', 12);
+    this.recentMusicians.set(musicianList.slice(0, 6));
+    const bandList = bands && bands.length >= 6 ? bands : await globalFallback('bands', 12);
+    this.recentBands.set(bandList.slice(0, 6));
     this.recentEvents.set(events || []);
     this.recentVenues.set(venues || []);
     this.recentTeachers.set(teachers || []);
