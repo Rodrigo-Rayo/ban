@@ -93,7 +93,7 @@ export class HomeComponent implements OnInit {
       this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('rehearsal_spaces').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(4),
-      this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(8),
+      this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(6),
     ]);
 
     // If city-filtered results are too few, fall back to global
@@ -131,7 +131,7 @@ export class HomeComponent implements OnInit {
       { id: '_f8', title: 'Focusrite Scarlett 2i2', price: 140, condition: 'Nuevo', category: 'Interfaces de audio', images: [] },
     ];
     const real = listings || [];
-    const padded = [...real, ...fallbackListings].slice(0, 8);
+    const padded = [...real, ...fallbackListings].slice(0, 6);
     this.recentListings.set(padded);
 
     this.loading.set(false);
