@@ -43,7 +43,8 @@ export class MusicianProfileComponent implements OnInit {
       if (data) this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url);
       if (session) {
         this.currentUserId.set(session.user.id);
-        this.isFav.set(await this.favSvc.isFavorite(session.user.id, 'musician', id!));
+        // isFav runs in background — doesn't block UI
+        this.favSvc.isFavorite(session.user.id, 'musician', id!).then(v => this.isFav.set(v));
       }
     } catch {
       // Profile not found or network error — musician() stays null, template shows empty state
@@ -66,10 +67,9 @@ export class MusicianProfileComponent implements OnInit {
   }
 
   async sendMessage() {
-    const { data } = await this.supabase.auth.getSession();
-    const session = data.session;
-    if (!session) { this.router.navigate(['/auth/login']); return; }
-    if (session.user.id === this.musician()!.user_id) { this.router.navigate(['/inbox']); return; }
+    const uid = this.currentUserId();
+    if (!uid) { this.router.navigate(['/auth/login']); return; }
+    if (uid === this.musician()!.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);
     this.msgError.set(null);
     const result = await this.messagesService.getOrCreateConversation(this.musician()!.user_id, this.musician()!.name);

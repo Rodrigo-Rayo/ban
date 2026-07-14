@@ -49,6 +49,7 @@ export class DashboardComponent implements OnInit {
         { data: teacher, error: e4 }, { data: rehearsal, error: e5 }, { data: evs },
         { data: posts },   { data: listings },
         { data: sbPosts }, { data: sbEvents },
+        { data: userBookings },
       ] = await Promise.all([
         this.supabase.client.from('musicians').select('*').eq('user_id', uid).maybeSingle(),
         this.supabase.client.from('bands').select('*').eq('user_id', uid).maybeSingle(),
@@ -56,10 +57,11 @@ export class DashboardComponent implements OnInit {
         this.supabase.client.from('teachers').select('*').eq('user_id', uid).maybeSingle(),
         this.supabase.client.from('rehearsal_spaces').select('*').eq('user_id', uid).maybeSingle(),
         this.supabase.client.from('events').select('*').eq('user_id', uid).order('date', { ascending: false }),
-        this.supabase.client.from('posts').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-        this.supabase.client.from('gear_listings').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-        this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(5),
-        this.supabase.client.from('events').select('*').gte('date', new Date().toISOString().split('T')[0]).order('date', { ascending: true }).limit(4),
+        this.supabase.client.from('posts').select('id, type, text, city, created_at').eq('user_id', uid).order('created_at', { ascending: false }),
+        this.supabase.client.from('gear_listings').select('id, title, price, status, condition, category, created_at').eq('user_id', uid).order('created_at', { ascending: false }),
+        this.supabase.client.from('posts').select('id, type, text, city, author_name, created_at').order('created_at', { ascending: false }).limit(5),
+        this.supabase.client.from('events').select('id, title, venue, city, date, time, genre').gte('date', new Date().toISOString().split('T')[0]).order('date', { ascending: true }).limit(4),
+        this.supabase.client.from('rehearsal_bookings').select('id, date, start_time, end_time, name, status, space_id, rehearsal_spaces(name, city)').eq('user_id', uid).order('date', { ascending: true }),
       ]);
       if (e1 || e2 || e3 || e4 || e5) {
         this.toast.error('Error al cargar el panel. Recarga la página.');
@@ -77,17 +79,11 @@ export class DashboardComponent implements OnInit {
       this.myListings.set(listings || []);
       this.sidebarPosts.set(sbPosts || []);
       this.sidebarEvents.set(sbEvents || []);
+      this.myBookings.set(userBookings || []);
 
       if (this.profileType() === 'rehearsal' && this.profile()) {
         this.activeTab.set('bookings');
-        await this.loadBookings();
-      } else {
-        const { data: userBookings } = await this.supabase.client
-          .from('rehearsal_bookings')
-          .select('*, rehearsal_spaces(name, city)')
-          .eq('user_id', uid)
-          .order('date', { ascending: true });
-        this.myBookings.set(userBookings || []);
+        this.loadBookings(); // fire in background for rehearsal space owners
       }
     } catch {
       this.toast.error('Error al cargar el panel. Recarga la página.');

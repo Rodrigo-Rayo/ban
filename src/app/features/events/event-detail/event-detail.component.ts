@@ -33,18 +33,18 @@ export class EventDetailComponent implements OnInit {
     ]);
     this.event.set(data);
     if (data) this.seo.setEvent(data.title, data.date, data.city, data.description);
-
-    const { count } = await this.supabase.client
-      .from('event_rsvps').select('*', { count: 'exact', head: true }).eq('event_id', id!);
-    this.rsvpCount.set(count ?? 0);
-
-    if (session) {
-      this.currentUserId.set(session.user.id);
-      const { data: myRsvp } = await this.supabase.client
-        .from('event_rsvps').select('id').eq('event_id', id!).eq('user_id', session.user.id).maybeSingle();
-      this.isGoing.set(!!myRsvp);
-    }
+    if (session) this.currentUserId.set(session.user.id);
     this.loading.set(false);
+
+    // RSVP count and user RSVP status run in parallel after render
+    const [{ count }, { data: myRsvp }] = await Promise.all([
+      this.supabase.client.from('event_rsvps').select('id', { count: 'exact', head: true }).eq('event_id', id!),
+      session
+        ? this.supabase.client.from('event_rsvps').select('id').eq('event_id', id!).eq('user_id', session.user.id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    this.rsvpCount.set(count ?? 0);
+    this.isGoing.set(!!myRsvp);
   }
 
   async toggleRsvp() {

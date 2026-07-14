@@ -28,7 +28,7 @@ export class FavoritesService {
   }
 
   async getByUser(userId: string): Promise<any[]> {
-    const { data } = await this.supabase.client.from('favorites').select('*')
+    const { data } = await this.supabase.client.from('favorites').select('entity_type, entity_id, created_at')
       .eq('user_id', userId).order('created_at', { ascending: false });
     return data || [];
   }

@@ -25,14 +25,16 @@ export class InboxComponent implements OnInit, OnDestroy {
     const convs = await this.messagesService.getConversations();
     this.conversations.set(convs);
 
-    const nameEntries = await Promise.all(
-      convs.map(async conv => [conv.id, await this.messagesService.getOtherUserProfile(conv)] as const)
-    );
+    // Resolve names, unread IDs, and session all in parallel
+    const [nameEntries, unreadIds, { data: { session } }] = await Promise.all([
+      Promise.all(convs.map(async conv => [conv.id, await this.messagesService.getOtherUserProfile(conv)] as const)),
+      this.messagesService.getUnreadConversationIds(),
+      this.supabase.auth.getSession(),
+    ]);
     this.names.set(Object.fromEntries(nameEntries));
-    this.unreadIds.set(await this.messagesService.getUnreadConversationIds());
+    this.unreadIds.set(unreadIds);
     this.loading.set(false);
 
-    const { data: { session } } = await this.supabase.auth.getSession();
     if (!session) return;
 
     this.channel = this.messagesService.subscribeToInboxUpdates(

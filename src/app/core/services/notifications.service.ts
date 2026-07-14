@@ -16,7 +16,7 @@ export class NotificationsService {
 
   async getAll(userId: string): Promise<any[]> {
     const { data, error } = await this.supabase.client
-      .from('notifications').select('*')
+      .from('notifications').select('id, type, title, body, entity_type, entity_id, read, created_at')
       .eq('user_id', userId)
       .neq('type', 'message')
       .order('created_at', { ascending: false }).limit(50);

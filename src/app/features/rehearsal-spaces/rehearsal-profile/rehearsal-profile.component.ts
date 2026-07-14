@@ -77,7 +77,8 @@ export class RehearsalProfileComponent implements OnInit {
     if (session) {
       this.currentUserId.set(session.user.id);
       this.myReview.set(reviews?.find((r: any) => r.user_id === session.user.id) || null);
-      if (space) this.isFav.set(await this.favSvc.isFavorite(session.user.id, 'rehearsal', space.id));
+      // isFav runs in background — doesn't block the UI
+      if (space) this.favSvc.isFavorite(session.user.id, 'rehearsal', space.id).then(v => this.isFav.set(v));
     }
     this.loading.set(false);
   }
@@ -129,16 +130,15 @@ export class RehearsalProfileComponent implements OnInit {
   }
 
   private async getAuthorName(): Promise<string> {
-    const { data: { session } } = await this.supabase.auth.getSession();
-    if (!session) return 'Usuario';
-    const meta = session.user.user_metadata;
-    if (meta?.['full_name']) return meta['full_name'];
-    if (meta?.['name']) return meta['name'];
-    for (const table of ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces']) {
-      const { data } = await this.supabase.client.from(table).select('name').eq('user_id', session.user.id).maybeSingle();
-      if (data?.name) return data.name;
-    }
-    return session.user.email?.split('@')[0] || 'Usuario';
+    const uid = this.currentUserId();
+    if (!uid) return 'Usuario';
+    const results = await Promise.all(
+      (['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'] as const).map(t =>
+        this.supabase.client.from(t).select('name').eq('user_id', uid).maybeSingle()
+      )
+    );
+    for (const { data } of results) { if (data?.name) return data.name; }
+    return 'Usuario';
   }
 
   async submitReview() {
@@ -155,7 +155,6 @@ export class RehearsalProfileComponent implements OnInit {
       author_name: authorName,
     }, { onConflict: 'user_id,entity_type,entity_id' });
     if (error) {
-      console.error('[reviews] upsert error:', error.code, error.message, error.details, error.hint);
       this.reviewError.set(error.message || 'Error al guardar la reseña');
     } else {
       const { data } = await this.supabase.client.from('reviews').select('*').eq('entity_type', 'rehearsal').eq('entity_id', this.space()!.id).order('created_at', { ascending: false });
@@ -167,9 +166,9 @@ export class RehearsalProfileComponent implements OnInit {
   }
 
   async sendMessage() {
-    const session = (await this.supabase.auth.getSession()).data.session;
-    if (!session) { this.router.navigate(['/auth/login']); return; }
-    if (session.user.id === this.space()!.user_id) { this.router.navigate(['/inbox']); return; }
+    const uid = this.currentUserId();
+    if (!uid) { this.router.navigate(['/auth/login']); return; }
+    if (uid === this.space()!.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);
     this.msgError.set(null);
     const result = await this.messagesService.getOrCreateConversation(this.space()!.user_id, this.space()!.name);
