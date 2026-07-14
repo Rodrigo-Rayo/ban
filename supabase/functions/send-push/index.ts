@@ -74,7 +74,7 @@ serve(async (req) => {
         body: text,
         icon: '/favicon.svg',
         badge: '/favicon.svg',
-        data: { url: `/chat/${conversationId}` },
+        data: { url: `/inbox/${conversationId}` },
       },
     });
 
