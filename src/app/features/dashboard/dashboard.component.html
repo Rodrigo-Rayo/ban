@@ -176,48 +176,70 @@
       <!-- ── STATS ROW ── -->
       <div class="grid grid-cols-4 gap-2 mb-5">
         <button (click)="activeTab.set('events')"
-          class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer"
+          class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer flex flex-col items-center gap-0.5"
           [class.border-primary-500]="activeTab() === 'events'"
           [class.bg-primary-900]="activeTab() === 'events'"
           [class.border-dark-600]="activeTab() !== 'events'">
-          <div class="text-2xl font-black mb-0.5 tabular-nums"
+          <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+               [attr.stroke]="activeTab() === 'events' ? 'var(--color-primary-500, #a0442a)' : 'currentColor'"
+               [class.text-primary-500]="activeTab() === 'events'"
+               [class.text-ink-muted]="activeTab() !== 'events'">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <div class="text-xl font-black tabular-nums leading-tight"
             [class.text-primary-500]="activeTab() === 'events'"
             [class.text-ink]="activeTab() !== 'events'">{{ events().length }}</div>
-          <div class="text-[10px] text-ink-muted font-bold tracking-wide">Eventos</div>
+          <div class="text-[9px] text-ink-muted font-bold tracking-wide">Eventos</div>
         </button>
 
         <a routerLink="/inbox"
-          class="bg-dark-800 border border-dark-600 rounded-2xl p-3 text-center
-                 hover:border-primary-500/40 hover:shadow-sm transition-all duration-200 block">
-          <div class="text-2xl font-black text-ink mb-0.5 tabular-nums relative">
+          class="bg-dark-800 border border-dark-600 rounded-2xl p-3 text-center hover:border-primary-500/40 hover:shadow-sm transition-all duration-200 flex flex-col items-center gap-0.5">
+          <svg class="w-4 h-4 mb-0.5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"/>
+          </svg>
+          <div class="text-xl font-black text-ink tabular-nums leading-tight relative">
             {{ notifSvc.unreadCount() || 0 }}
             @if ((notifSvc.unreadCount() || 0) > 0) {
-              <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary-500"></span>
+              <span class="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-primary-500"></span>
             }
           </div>
-          <div class="text-[10px] text-ink-muted font-bold tracking-wide">Mensajes</div>
+          <div class="text-[9px] text-ink-muted font-bold tracking-wide">Mensajes</div>
         </a>
 
         <button (click)="activeTab.set('posts')"
-          class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer"
+          class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer flex flex-col items-center gap-0.5"
           [class.border-primary-500]="activeTab() === 'posts'"
           [class.bg-primary-900]="activeTab() === 'posts'"
           [class.border-dark-600]="activeTab() !== 'posts'">
-          <div class="text-2xl font-black mb-0.5 tabular-nums"
+          <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+               [class.text-primary-500]="activeTab() === 'posts'"
+               [class.text-ink-muted]="activeTab() !== 'posts'">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+          </svg>
+          <div class="text-xl font-black tabular-nums leading-tight"
             [class.text-primary-500]="activeTab() === 'posts'"
             [class.text-ink]="activeTab() !== 'posts'">{{ myPosts().length }}</div>
-          <div class="text-[10px] text-ink-muted font-bold tracking-wide">Anuncios</div>
+          <div class="text-[9px] text-ink-muted font-bold tracking-wide">Anuncios</div>
         </button>
 
         <button (click)="activeTab.set('gear')"
-          class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer"
+          class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer flex flex-col items-center gap-0.5"
           [class.border-primary-500]="activeTab() === 'gear'"
           [class.bg-primary-900]="activeTab() === 'gear'"
           [class.border-dark-600]="activeTab() !== 'gear'">
-          <div class="text-2xl font-black mb-0.5 tabular-nums"
+          <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+               [class.text-primary-500]="activeTab() === 'gear'"
+               [class.text-ink-muted]="activeTab() !== 'gear'">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+          </svg>
+          <div class="text-xl font-black tabular-nums leading-tight"
             [class.text-primary-500]="activeTab() === 'gear'"
             [class.text-ink]="activeTab() !== 'gear'">{{ myListings().length }}</div>
-          <div class="text-[10px] text-ink-muted font-bold tracking-wide">Tienda</div>
+          <div class="text-[9px] text-ink-muted font-bold tracking-wide">Tienda</div>
         </button>
       </div>
 

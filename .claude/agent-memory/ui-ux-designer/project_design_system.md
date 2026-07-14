@@ -43,3 +43,6 @@ Pages use: `style="padding-top:64px; padding-bottom:80px"` for mobile nav cleara
 - Never use escaped slashes in `[class.]` bindings: `[class.hover:border-primary-500\/40]` will break compilation
 - Never use `!` prefix in `[class.!text-...]` bindings — use direct class names without `!`
 - Tailwind classes with `/` opacity modifiers (e.g. `primary-500/30`) work fine in static `class=""` attributes
+- `app-icon` is NOT imported in `register.component.ts` — must use inline SVG in that file
+- Color consistency: use `signal-green`/`signal-gBg` for success states, NOT Tailwind's `emerald-*`
+- Section header borders in cards: always `border-dark-600`, not `border-dark-700/60`

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { MessagesService } from '../../../core/services/messages.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -19,6 +20,7 @@ export class GearDetailComponent implements OnInit {
   private router = inject(Router);
   private toast = inject(ToastService);
   private seo = inject(SeoService);
+  private messages = inject(MessagesService);
   auth = inject(AuthService);
 
   listing = signal<any>(null);
@@ -26,6 +28,7 @@ export class GearDetailComponent implements OnInit {
   currentImageIdx = signal(0);
   currentUser = signal<any>(null);
   deleting = signal(false);
+  contacting = signal(false);
 
   readonly conditionLabels: Record<string, string> = {
     new: 'Nuevo', like_new: 'Como nuevo', good: 'Bueno', acceptable: 'Aceptable',
@@ -79,6 +82,19 @@ export class GearDetailComponent implements OnInit {
     if (error) { this.toast.error('No se pudo eliminar el anuncio.'); this.deleting.set(false); return; }
     this.toast.success('Anuncio eliminado.');
     this.router.navigate(['/shop']);
+  }
+
+  async contactSeller() {
+    if (this.contacting()) return;
+    this.contacting.set(true);
+    const l = this.listing();
+    const result = await this.messages.getOrCreateConversation(l.user_id, l.seller_name);
+    this.contacting.set(false);
+    if (!result || 'error' in result) {
+      this.toast.error((result as any)?.error ?? 'No se pudo abrir el chat.');
+      return;
+    }
+    this.router.navigate(['/inbox', result.id]);
   }
 
   prevImage() {

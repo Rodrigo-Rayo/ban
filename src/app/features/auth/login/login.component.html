@@ -1,10 +1,11 @@
 <div class="min-h-screen bg-dark-900 flex">
 
-  <!-- Left brand panel — hidden on mobile -->
+  <!-- Left brand panel — desktop only -->
   <div class="hidden lg:flex flex-col justify-between w-[420px] flex-shrink-0 bg-gradient-to-br from-primary-900/80 via-dark-800 to-dark-900 border-r border-dark-600 p-10 relative overflow-hidden">
-    <!-- Decorative circles -->
+    <!-- Decorative blobs -->
     <div class="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-primary-500/10 blur-3xl pointer-events-none"></div>
     <div class="absolute top-20 right-0 w-48 h-48 rounded-full border border-primary-500/15 pointer-events-none"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-primary-800/10 blur-2xl pointer-events-none"></div>
 
     <a routerLink="/" class="text-2xl font-black text-ink tracking-tighter relative z-10">
       Band<span class="text-primary-500">You</span>
@@ -22,10 +23,13 @@
       <div class="flex items-center gap-3 p-4 bg-dark-800/60 rounded-2xl border border-dark-600">
         <div class="flex -space-x-2">
           @for (c of ['#a0442a','#b85c3a','#8a3520']; track c) {
-            <div class="w-8 h-8 rounded-full border-2 border-dark-800 flex items-center justify-center text-[10px] font-bold text-white" [style.background]="c">M</div>
+            <div class="w-8 h-8 rounded-full border-2 border-dark-800 flex items-center justify-center text-[10px] font-bold text-white"
+                 [style.background]="c">M</div>
           }
         </div>
-        <p class="text-xs text-ink-muted"><span class="text-ink font-semibold">+500 músicos</span> ya conectados</p>
+        <p class="text-xs text-ink-muted">
+          <span class="text-ink font-semibold">+500 músicos</span> ya conectados
+        </p>
       </div>
     </div>
 
@@ -34,20 +38,24 @@
 
   <!-- Right form panel -->
   <div class="flex-1 flex flex-col items-center justify-center px-6 py-16 relative overflow-hidden">
+    <!-- Background texture -->
+    <div class="absolute inset-0 opacity-[0.02] pointer-events-none"
+         style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 32px 32px;"></div>
+
     <!-- Mobile logo -->
-    <a routerLink="/" class="lg:hidden text-xl font-black text-ink tracking-tighter mb-10">
+    <a routerLink="/" class="lg:hidden text-xl font-black text-ink tracking-tighter mb-10 relative z-10">
       Band<span class="text-primary-500">You</span>
     </a>
 
-    <div class="w-full max-w-sm">
+    <div class="w-full max-w-sm relative z-10">
       <div class="mb-8">
-        <h1 class="text-2xl font-black text-ink mb-2 tracking-tight">Bienvenido de vuelta.</h1>
+        <h1 class="text-2xl font-black text-ink mb-1.5 tracking-tight">Bienvenido de vuelta.</h1>
         <p class="text-sm text-ink-muted">Accede a tu cuenta para continuar.</p>
       </div>
 
-      <!-- Google -->
+      <!-- Google OAuth -->
       <button (click)="loginWithGoogle()"
-        class="w-full flex items-center justify-center gap-3 bg-dark-800 border border-dark-600 hover:border-primary-500/50 hover:shadow-sm text-ink font-medium py-3 px-4 rounded-xl transition-all duration-200 mb-5">
+        class="w-full flex items-center justify-center gap-3 bg-dark-800 border border-dark-600 hover:border-primary-500/50 hover:bg-dark-700 text-ink font-medium py-3 px-4 rounded-xl transition-all duration-200 mb-5 min-h-[48px]">
         <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -57,51 +65,74 @@
         <span class="text-sm font-medium">Continuar con Google</span>
       </button>
 
+      <!-- Divider -->
       <div class="flex items-center gap-3 my-5">
         <div class="flex-1 h-px bg-dark-600"></div>
         <span class="text-xs text-ink-muted font-medium">o con email</span>
         <div class="flex-1 h-px bg-dark-600"></div>
       </div>
 
+      <!-- Form -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+        <!-- Email -->
         <div>
-          <label class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">Email</label>
-          <input formControlName="email" type="email" placeholder="tu@email.com"
+          <label for="login-email" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">
+            Email
+          </label>
+          <input id="login-email" formControlName="email" type="email" placeholder="tu@email.com"
             class="input-field" autocomplete="email"/>
           @if (form.get('email')?.invalid && form.get('email')?.touched) {
             <p class="text-xs text-signal-red mt-1.5">Introduce un email válido.</p>
           }
         </div>
+
+        <!-- Password -->
         <div>
-          <label class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">Contraseña</label>
-          <input formControlName="password" type="password" placeholder="••••••••"
+          <label for="login-password" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">
+            Contraseña
+          </label>
+          <input id="login-password" formControlName="password" type="password" placeholder="••••••••"
             class="input-field" autocomplete="current-password"/>
           @if (form.get('password')?.invalid && form.get('password')?.touched) {
             <p class="text-xs text-signal-red mt-1.5">La contraseña es obligatoria.</p>
           }
         </div>
 
-        @if (error()) {
-          <div class="bg-signal-rBg border border-signal-red/30 text-signal-red px-4 py-3 rounded-xl text-xs font-medium">
-            {{ error() }}
-          </div>
-        }
-
-        <div class="flex justify-end">
-          <a routerLink="/auth/forgot-password" class="text-xs text-ink-muted hover:text-primary-500 transition-colors font-medium">
+        <!-- Forgot password -->
+        <div class="flex justify-end -mt-1">
+          <a routerLink="/auth/forgot-password"
+             class="text-xs text-ink-muted hover:text-primary-400 transition-colors font-medium">
             ¿Olvidaste tu contraseña?
           </a>
         </div>
 
+        @if (error()) {
+          <div class="bg-signal-rBg border border-signal-red/30 text-signal-red px-4 py-3 rounded-xl text-xs font-medium flex items-center gap-2">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ error() }}
+          </div>
+        }
+
         <button type="submit" [disabled]="loading() || form.invalid"
-          class="btn-primary py-3.5 w-full mt-1 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-          @if (loading()) { Entrando... } @else { Entrar }
+          class="btn-primary py-3.5 w-full mt-1 text-sm disabled:opacity-40 disabled:cursor-not-allowed min-h-[50px]">
+          @if (loading()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Entrando…
+          } @else {
+            Entrar
+          }
         </button>
       </form>
 
       <p class="text-center text-xs text-ink-muted mt-7">
         ¿Sin cuenta?
-        <a routerLink="/auth/register" class="text-primary-500 hover:text-primary-600 transition-colors font-bold ml-1">
+        <a routerLink="/auth/register"
+           class="text-primary-400 hover:text-primary-500 transition-colors font-bold ml-1">
           Regístrate gratis
         </a>
       </p>

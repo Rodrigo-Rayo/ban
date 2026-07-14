@@ -247,7 +247,7 @@
         } @else {
           <div class="divide-y divide-dark-600">
             @for (post of recentPosts(); track post.id) {
-              <a routerLink="/feed" class="flex items-start gap-3 px-5 py-4 hover:bg-dark-750/50 transition-colors group/row">
+              <a [routerLink]="['/posts', post.id]" class="flex items-start gap-3 px-5 py-4 hover:bg-dark-750/50 transition-colors group/row">
                 <div class="w-8 h-8 rounded-xl bg-dark-750 border border-dark-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-ink-muted">
                   <app-icon [name]="postInfo(post.type).icon" [size]="14"/>
                 </div>
@@ -321,6 +321,8 @@
                   <p class="text-[9px] text-ink-muted mt-0.5 truncate">{{ item.condition || item.category }}</p>
                 </div>
               </a>
+            } @empty {
+              <p class="text-xs text-ink-muted col-span-6 py-2">Aún no hay anuncios. ¡Sé el primero en vender!</p>
             }
           </div>
         }
@@ -431,7 +433,7 @@
               <a [routerLink]="['/bands', band.id]"
                  class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group relative">
                 @if (band.looking_for) {
-                  <span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-signal-green"></span>
                 }
                 <div class="w-12 h-12 rounded-full mx-auto mb-2.5 flex items-center justify-center text-sm font-black text-white overflow-hidden ring-2 ring-dark-600 group-hover:ring-primary-500/50 transition-all"
                      [style.background]="avatarColor(band.name)">
@@ -460,7 +462,7 @@
               <a routerLink="/search" [queryParams]="{tab:'bands'}"
                  class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group relative">
                 @if (item.busca) {
-                  <span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-signal-green"></span>
                 }
                 <div class="w-12 h-12 rounded-full mx-auto mb-2.5 flex items-center justify-center text-sm font-black text-white ring-2 ring-dark-600 group-hover:ring-primary-500/50 transition-all"
                      [style.background]="item.color">{{ item.initials }}</div>

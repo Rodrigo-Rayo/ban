@@ -87,6 +87,10 @@ export const routes: Routes = [
     path: 'feed',
     loadComponent: () => import('./features/feed/feed.component').then(m => m.FeedComponent),
   },
+  {
+    path: 'posts/:id',
+    loadComponent: () => import('./features/feed/post-detail/post-detail.component').then(m => m.PostDetailComponent),
+  },
 
   {
     path: 'shop',

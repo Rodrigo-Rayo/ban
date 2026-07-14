@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:64px">
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:144px">
 
   @if (teacher()) {
     <div class="h-1" [style.background]="avatarColor(teacher()!.name)"></div>
@@ -61,13 +61,19 @@
     </div>
   } @else {
 
-  <!-- HERO -->
-  <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600">
-    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8">
-      <div class="flex flex-col sm:flex-row gap-6 items-start">
+  <!-- HERO — cover strip + overlapping avatar -->
+  <div class="relative border-b border-dark-600">
+    <!-- Cover strip -->
+    <div class="h-32 sm:h-44 w-full relative overflow-hidden"
+         [style.background]="'linear-gradient(135deg, ' + avatarColor(teacher()!.name) + '30 0%, #fef0e8 100%)'">
+      <div class="absolute inset-0 bg-gradient-to-r from-dark-800/30 to-transparent"></div>
+    </div>
 
-        <!-- Avatar -->
-        <div class="w-24 h-24 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-lg"
+    <div class="max-w-4xl mx-auto px-6 lg:px-10">
+      <div class="flex flex-col sm:flex-row gap-5 items-start -mt-12 sm:-mt-14 pb-6 relative">
+
+        <!-- Avatar overlapping cover -->
+        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-xl border-4 border-dark-900"
              [style.background]="avatarColor(teacher()!.name)">
           @if (teacher()!.avatar_url) {
             <img [src]="teacher()!.avatar_url" alt="" class="w-full h-full object-cover"/>
@@ -77,29 +83,31 @@
         </div>
 
         <!-- Info -->
-        <div class="flex-1 min-w-0">
-          <div class="flex flex-wrap gap-2 mb-3">
+        <div class="flex-1 min-w-0 pt-14 sm:pt-16">
+          <div class="flex flex-wrap gap-1.5 mb-2">
             @if (teacher()!.city) { <span class="tag"><app-icon name="map-pin" [size]="9" class="mr-0.5"/>{{ teacher()!.city }}</span> }
             @if (teacher()!.modality) { <span class="tag">{{ teacher()!.modality }}</span> }
             @if (avgRating) { <span class="tag-accent">★ {{ avgRating }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}</span> }
           </div>
-          <h1 class="text-3xl font-bold text-ink leading-tight mb-1">{{ teacher()!.name }}</h1>
-          <p class="text-sm font-semibold text-primary-400 mb-2">
+          <h1 class="text-2xl sm:text-3xl font-black text-ink leading-tight mb-1 tracking-tight">{{ teacher()!.name }}</h1>
+          <p class="text-sm font-bold text-primary-500 mb-1">
             Profesor de {{ teacher()!.instrument }}
-            @if (teacher()!.experience_years) {<span class="text-ink-muted font-normal mx-1">·</span><span class="text-ink-muted font-normal">{{ teacher()!.experience_years }} años de experiencia</span>}
+            @if (teacher()!.experience_years) {<span class="text-ink-muted font-normal mx-1">·</span><span class="text-ink-muted font-normal">{{ teacher()!.experience_years }} años de exp.</span>}
           </p>
           @if (teacher()!.hourly_rate) {
             <p class="text-2xl font-black text-primary-400">{{ teacher()!.hourly_rate }}€<span class="text-sm font-normal text-ink-muted">/hora</span></p>
           }
         </div>
 
-        <!-- Actions -->
-        <div class="flex flex-col gap-2 flex-shrink-0 w-full sm:w-44">
+        <!-- Actions — desktop only; mobile handled by fixed CTA bar below -->
+        <div class="hidden sm:flex sm:flex-col gap-2 flex-shrink-0 sm:pt-14 sm:w-44">
           @if (teacher()!.user_id) {
             @if (bookingSuccess()) {
-              <div class="text-sm text-signal-green font-semibold text-center py-2 bg-signal-gBg border border-signal-green/30 rounded-xl flex items-center justify-center gap-1.5"><app-icon name="check" [size]="14"/>Solicitud enviada</div>
+              <div class="text-sm text-signal-green font-semibold text-center py-2 bg-signal-gBg border border-signal-green/30 rounded-xl flex items-center justify-center gap-1.5">
+                <app-icon name="check" [size]="14"/>Solicitud enviada
+              </div>
             } @else {
-              <button (click)="showBookingForm.set(!showBookingForm())" class="btn-accent">
+              <button (click)="showBookingForm.set(!showBookingForm())" class="btn-primary text-sm">
                 {{ showBookingForm() ? 'Cancelar' : 'Solicitar clase' }}
               </button>
             }
@@ -270,12 +278,44 @@
           <a [href]="teacher()!.website_url" target="_blank" class="btn-secondary text-sm text-center">Visitar web</a>
         }
         @if (teacher()!.user_id) {
-          <button (click)="sendMessage()" [disabled]="sending()" class="btn-accent w-full disabled:opacity-50">
+          <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary w-full hidden sm:block disabled:opacity-50">
             {{ sending() ? 'Abriendo chat...' : 'Abrir chat' }}
           </button>
         }
       </div>
     </div>
+  </div>
+
+  <!-- Mobile fixed CTA bar — sits above the bottom nav -->
+  <div class="fixed bottom-16 left-0 right-0 z-30 bg-dark-800/98 backdrop-blur-md border-t border-dark-600 px-4 py-3 flex gap-3 sm:hidden">
+    @if (teacher()!.user_id) {
+      @if (bookingSuccess()) {
+        <div class="flex-1 text-sm text-signal-green font-semibold text-center py-2.5 bg-signal-gBg border border-signal-green/30 rounded-full flex items-center justify-center gap-1.5">
+          <app-icon name="check" [size]="14"/>Solicitud enviada
+        </div>
+      } @else {
+        <button (click)="showBookingForm.set(!showBookingForm())"
+          class="btn-primary text-sm flex-1">
+          {{ showBookingForm() ? 'Cancelar' : 'Solicitar clase' }}
+        </button>
+      }
+    }
+    <button (click)="toggleFav()" [disabled]="favLoading()"
+      class="btn-secondary text-sm flex items-center justify-center gap-1.5 px-4"
+      [class.text-primary-500]="isFav()" [class.border-primary-500]="isFav()">
+      <svg class="w-4 h-4 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+      </svg>
+      {{ isFav() ? 'Guardado' : 'Guardar' }}
+    </button>
+    <button (click)="shareLink()"
+      class="btn-secondary text-sm flex items-center justify-center gap-1.5 px-4"
+      [class.text-signal-green]="linkShared()" [class.border-signal-green]="linkShared()">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+      </svg>
+      {{ linkShared() ? 'Copiado' : 'Compartir' }}
+    </button>
   </div>
   }
 </div>
