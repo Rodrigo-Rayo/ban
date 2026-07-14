@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
+import { Router } from '@angular/router';
 import { SupabaseService } from './supabase.service';
 import { environment } from '../../../environments/environment';
 
@@ -7,6 +8,14 @@ import { environment } from '../../../environments/environment';
 export class PushNotificationService {
   private swPush = inject(SwPush);
   private supabase = inject(SupabaseService);
+  private router = inject(Router);
+
+  constructor() {
+    this.swPush.notificationClicks.subscribe(({ notification }) => {
+      const url = (notification as any).data?.url;
+      if (url) this.router.navigateByUrl(url);
+    });
+  }
 
   async subscribe(userId: string): Promise<void> {
     if (!this.swPush.isEnabled) return;
