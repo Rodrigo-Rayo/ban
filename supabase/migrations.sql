@@ -703,3 +703,32 @@ DO $$ BEGIN
     DROP POLICY "System can create notifications" ON notifications;
   END IF;
 END $$;
+
+
+-- ──────────────────────────────────────────────
+-- 22. PUSH_SUBSCRIPTIONS (Web Push notifications)
+-- ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  endpoint   TEXT NOT NULL,
+  p256dh     TEXT NOT NULL,
+  auth       TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, endpoint)
+);
+
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'push_subscriptions' AND policyname = 'Users can manage their push subscriptions'
+  ) THEN
+    CREATE POLICY "Users can manage their push subscriptions"
+      ON push_subscriptions FOR ALL
+      USING (user_id = auth.uid())
+      WITH CHECK (user_id = auth.uid());
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id);

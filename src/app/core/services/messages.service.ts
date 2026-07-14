@@ -149,6 +149,8 @@ export class MessagesService {
       .eq('id', conversationId)
       .then(({ error: e }) => { if (e) console.error('[sendMessage] conversation update error:', e.message); });
 
+    this.triggerPushNotification(conversationId, user.id, content);
+
     return data as Message;
   }
 
@@ -210,6 +212,14 @@ export class MessagesService {
       .neq('sender_id', user.id)
       .limit(500);
     return new Set((data || []).map((m: any) => m.conversation_id));
+  }
+
+  private triggerPushNotification(conversationId: string, senderId: string, messageText: string): void {
+    this.getUserName(senderId).then(senderName => {
+      this.supabase.client.functions.invoke('send-push', {
+        body: { conversationId, senderId, senderName, messageText },
+      }).catch(() => {});
+    });
   }
 
   subscribeToInboxUpdates(currentUserId: string, onNewMessage: (senderName: string, preview: string, conversationId: string) => void, channelSuffix = '') {
