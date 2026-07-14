@@ -216,9 +216,12 @@ export class MessagesService {
 
   private triggerPushNotification(conversationId: string, senderId: string, messageText: string): void {
     this.getUserName(senderId).then(senderName => {
-      this.supabase.client.functions.invoke('send-push', {
-        body: { conversationId, senderId, senderName, messageText },
-      }).catch(() => {});
+      fetch('https://yxaurffzwtqsckfmnzdj.supabase.co/functions/v1/send-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId, senderId, senderName, messageText }),
+      }).then(r => console.log('[push] status:', r.status))
+        .catch(err => console.error('[push] fetch error:', err));
     });
   }
 
