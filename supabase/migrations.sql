@@ -660,8 +660,11 @@ END $$;
 -- ──────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id   ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_sender_read       ON messages(sender_id, read);
+CREATE INDEX IF NOT EXISTS idx_messages_unread_lookup     ON messages(conversation_id, sender_id, read) WHERE read = false;
 CREATE INDEX IF NOT EXISTS idx_notifications_user_read    ON notifications(user_id, read);
+CREATE INDEX IF NOT EXISTS idx_conversations_user1_id     ON conversations(user1_id);
 CREATE INDEX IF NOT EXISTS idx_conversations_user2_id     ON conversations(user2_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_last_msg_at  ON conversations(last_message_at DESC NULLS LAST);
 CREATE INDEX IF NOT EXISTS idx_band_members_band_id       ON band_members(band_id);
 CREATE INDEX IF NOT EXISTS idx_band_vacancies_band_id     ON band_vacancies(band_id);
 CREATE INDEX IF NOT EXISTS idx_vacancy_apps_musician_id   ON vacancy_applications(musician_id);

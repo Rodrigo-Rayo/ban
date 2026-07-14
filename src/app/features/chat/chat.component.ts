@@ -44,18 +44,16 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.messagesService.getConversationById(this.conversationId),
     ]);
     this.messages.set(msgs);
-
-    // Scroll after Angular renders the message list
+    this.loading.set(false);
     setTimeout(() => this.scrollToBottom(), 0);
 
-    await this.messagesService.markAsRead(this.conversationId);
-
+    // Secondary ops run in background — don't block the UI
+    this.messagesService.markAsRead(this.conversationId);
     if (conv) {
-      const resolved = await this.messagesService.getOtherUserProfile(conv);
-      if (resolved && resolved !== 'Usuario') this.otherName.set(resolved);
+      this.messagesService.getOtherUserProfile(conv).then(resolved => {
+        if (resolved && resolved !== 'Usuario') this.otherName.set(resolved);
+      });
     }
-
-    this.loading.set(false);
 
     this.subscription = this.messagesService.subscribeToMessages(
       this.conversationId,
@@ -64,7 +62,8 @@ export class ChatComponent implements OnInit, OnDestroy {
           list.some(m => m.id === msg.id) ? list : [...list, msg]
         );
         setTimeout(() => this.scrollToBottom(), 0);
-        this.messagesService.markAsRead(this.conversationId);
+        // Skip count refresh — we're actively viewing this chat
+        this.messagesService.markAsRead(this.conversationId, true);
       }
     );
   }

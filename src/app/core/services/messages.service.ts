@@ -12,6 +12,9 @@ export class MessagesService {
   /** Shared unread message count — updated by markAsRead and real-time events. */
   unreadCount = signal(0);
 
+  private readonly _nameCache = new Map<string, string>();
+  private _cachedConvIds: string[] | null = null;
+
   setActiveChat(id: string | null) {
     this.activeChatConversationId.set(id);
   }
@@ -88,6 +91,7 @@ export class MessagesService {
       return 'No tienes permisos para borrar esta conversación.';
     }
 
+    this._cachedConvIds = this._cachedConvIds?.filter(id => id !== conversationId) ?? null;
     return null;
   }
 
@@ -101,7 +105,9 @@ export class MessagesService {
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
       .order('last_message_at', { ascending: false });
 
-    return (data || []) as Conversation[];
+    const convs = (data || []) as Conversation[];
+    this._cachedConvIds = convs.map((c: any) => c.id);
+    return convs;
   }
 
   async getMessages(conversationId: string): Promise<Message[]> {
@@ -154,7 +160,7 @@ export class MessagesService {
     return data as Message;
   }
 
-  async markAsRead(conversationId: string) {
+  async markAsRead(conversationId: string, skipCountRefresh = false) {
     const user = await this.getCurrentUser();
     if (!user) return;
 
@@ -164,17 +170,16 @@ export class MessagesService {
       .eq('conversation_id', conversationId)
       .neq('sender_id', user.id);
     if (error) console.error('[messages] markAsRead error:', error.message);
-    await this.refreshUnreadCount();
+    if (!skipCountRefresh) await this.refreshUnreadCount();
   }
 
   async getUnreadCount(): Promise<number> {
     const user = await this.getCurrentUser();
     if (!user) return 0;
 
-    const convs = await this.getConversations();
-    if (!convs.length) return 0;
+    const ids = this._cachedConvIds ?? (await this.getConversations()).map((c: any) => c.id);
+    if (!ids.length) return 0;
 
-    const ids = convs.map((c: any) => c.id);
     const { count } = await this.supabase.client
       .from('messages')
       .select('*', { count: 'exact', head: true })
@@ -187,23 +192,29 @@ export class MessagesService {
 
   async getUserName(userId: string): Promise<string> {
     if (!userId) return 'Usuario';
+    const cached = this._nameCache.get(userId);
+    if (cached) return cached;
+
     const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'];
     const results = await Promise.all(
       tables.map(t => this.supabase.client.from(t).select('name').eq('user_id', userId).maybeSingle())
     );
     for (const { data, error } of results) {
       if (error) console.warn('[getUserName] query error:', error.message);
-      if (data?.name) return data.name;
+      if (data?.name) {
+        this._nameCache.set(userId, data.name);
+        return data.name;
+      }
     }
+    this._nameCache.set(userId, 'Usuario');
     return 'Usuario';
   }
 
   async getUnreadConversationIds(): Promise<Set<string>> {
     const user = await this.getCurrentUser();
     if (!user) return new Set();
-    const convs = await this.getConversations();
-    if (!convs.length) return new Set();
-    const ids = convs.map((c: any) => c.id);
+    const ids = this._cachedConvIds ?? (await this.getConversations()).map((c: any) => c.id);
+    if (!ids.length) return new Set();
     const { data } = await this.supabase.client
       .from('messages')
       .select('conversation_id')
