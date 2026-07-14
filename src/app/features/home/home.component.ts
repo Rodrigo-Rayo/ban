@@ -106,7 +106,7 @@ export class HomeComponent implements OnInit {
       musicians && musicians.length >= 2 ? musicians : await globalFallback('musicians', 6)
     );
     this.recentBands.set(
-      bands && bands.length >= 2 ? bands : await globalFallback('bands', 5)
+      bands && bands.length >= 2 ? bands : await globalFallback('bands', 6)
     );
     this.recentEvents.set(events || []);
     this.recentVenues.set(venues || []);
