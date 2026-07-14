@@ -202,6 +202,18 @@
   .event-featured { border-color: rgba(160,68,42,0.35); }
   .event-featured-time-border { border-color: rgba(160,68,42,0.2); }
 
+  /* ── Directory listing: event date boxes ─────────── */
+  .date-box-featured {
+    background-color: #fef0e8;       /* primary-900 light peach */
+    border-color: rgba(160,68,42,0.25);
+  }
+  .date-box-default {
+    background-color: #ede3d0;       /* dark-700 warm gray */
+    border-color: #d8ccb8;           /* dark-600 warm beige */
+  }
+  /* ── Directory card featured event outer border ──── */
+  .event-card-featured { border-color: rgba(160,68,42,0.4); }
+
   /* ── Chat ────────────────────────────────────── */
   .text-white-muted { color: rgba(255,255,255,0.55); }
 
