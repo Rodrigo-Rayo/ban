@@ -735,3 +735,20 @@ DO $$ BEGIN
 END $$;
 
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id);
+
+
+-- ──────────────────────────────────────────────
+-- 23. Performance indexes — profile tables by user_id
+-- ──────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_musicians_user_id         ON musicians(user_id);
+CREATE INDEX IF NOT EXISTS idx_bands_user_id             ON bands(user_id);
+CREATE INDEX IF NOT EXISTS idx_venues_user_id            ON venues(user_id);
+CREATE INDEX IF NOT EXISTS idx_teachers_user_id          ON teachers(user_id);
+CREATE INDEX IF NOT EXISTS idx_rehearsal_spaces_user_id  ON rehearsal_spaces(user_id);
+CREATE INDEX IF NOT EXISTS idx_events_user_id            ON events(user_id);
+CREATE INDEX IF NOT EXISTS idx_events_date               ON events(date);
+CREATE INDEX IF NOT EXISTS idx_posts_created_at          ON posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_city_type           ON posts(city, type);
+CREATE INDEX IF NOT EXISTS idx_gear_listings_status      ON gear_listings(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_favorites_user_id         ON favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_entity          ON favorites(user_id, entity_type);

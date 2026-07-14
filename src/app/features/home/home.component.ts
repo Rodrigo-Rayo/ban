@@ -55,16 +55,21 @@ export class HomeComponent implements OnInit {
 
     if (session) {
       const uid = session.user.id;
-      const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'];
-      const types  = ['musician', 'band', 'venue', 'teacher', 'rehearsal'];
-      for (let i = 0; i < tables.length; i++) {
-        const { data } = await this.supabase.client.from(tables[i]).select('*').eq('user_id', uid).maybeSingle();
+      const [{ data: m }, { data: b }, { data: v }, { data: t }, { data: r }] = await Promise.all([
+        this.supabase.client.from('musicians').select('*').eq('user_id', uid).maybeSingle(),
+        this.supabase.client.from('bands').select('*').eq('user_id', uid).maybeSingle(),
+        this.supabase.client.from('venues').select('*').eq('user_id', uid).maybeSingle(),
+        this.supabase.client.from('teachers').select('*').eq('user_id', uid).maybeSingle(),
+        this.supabase.client.from('rehearsal_spaces').select('*').eq('user_id', uid).maybeSingle(),
+      ]);
+      const profilePairs: [any, string][] = [[m, 'musician'], [b, 'band'], [v, 'venue'], [t, 'teacher'], [r, 'rehearsal']];
+      for (const [data, type] of profilePairs) {
         if (data) {
           this.userProfile.set(data);
-          this.userType.set(types[i]);
+          this.userType.set(type);
           this.profileName.set(data.name || '');
           this.userCity.set(data.city || '');
-          this.calculateCompleteness(data, types[i]);
+          this.calculateCompleteness(data, type);
           break;
         }
       }
@@ -96,31 +101,37 @@ export class HomeComponent implements OnInit {
       this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(6),
     ]);
 
-    // If city-filtered results are too few, fall back to global
-    const globalFallback = async (table: string, limit: number) => {
-      const { data } = await this.supabase.client.from(table).select('*').order('created_at', { ascending: false }).limit(limit);
-      return data || [];
-    };
+    const globalFallback = (table: string, limit: number) =>
+      this.supabase.client.from(table).select('*').order('created_at', { ascending: false }).limit(limit)
+        .then(({ data }) => data || []);
 
-    const musicianList = musicians && musicians.length >= 6 ? musicians : await globalFallback('musicians', 12);
-    this.recentMusicians.set(musicianList.slice(0, 6));
-    const bandList = bands && bands.length >= 6 ? bands : await globalFallback('bands', 12);
-    this.recentBands.set(bandList.slice(0, 6));
-    this.recentEvents.set(events || []);
-    this.recentVenues.set(venues || []);
-    this.recentTeachers.set(teachers || []);
-    this.recentRehearsals.set(rehearsals || []);
     const fallbackPosts = [
       { id: '_p1', type: 'band_seeks_musician', text: 'Banda de rock alternativo busca batería con experiencia en directo. Tocamos indie y alternativo. Mínimo 2 años de experiencia.', city: 'Madrid', author_name: 'Los Eternos', created_at: new Date(Date.now() - 2*3600000).toISOString() },
       { id: '_p2', type: 'musician_seeks_band', text: 'Guitarrista con 8 años de experiencia busca proyecto serio. Estilos: blues, rock clásico, jazz. Disponible fines de semana.', city: 'Barcelona', author_name: 'Carlos M.', created_at: new Date(Date.now() - 5*3600000).toISOString() },
       { id: '_p3', type: 'seeks_rehearsal', text: 'Cuarteto de jazz busca sala de ensayo para ensayos semanales. Preferiblemente con piano o teclado disponible. Zona centro.', city: 'Valencia', author_name: 'Jazz Quartet VLC', created_at: new Date(Date.now() - 24*3600000).toISOString() },
       { id: '_p4', type: 'offers_lessons', text: 'Profesor de piano con 15 años de experiencia ofrece clases online y presenciales. Todos los niveles. Lectura musical incluida.', city: 'Sevilla', author_name: 'Roberto Alonso', created_at: new Date(Date.now() - 48*3600000).toISOString() },
     ];
-    const realPosts = posts || [];
-    this.recentPosts.set([...realPosts, ...fallbackPosts].slice(0, 4));
-    this.recentListings.set((listings || []).slice(0, 6));
 
+    // Render immediately with what we have — no extra await blocking the UI
+    this.recentMusicians.set((musicians || []).slice(0, 6));
+    this.recentBands.set((bands || []).slice(0, 6));
+    this.recentEvents.set(events || []);
+    this.recentVenues.set(venues || []);
+    this.recentTeachers.set(teachers || []);
+    this.recentRehearsals.set(rehearsals || []);
+    this.recentPosts.set([...(posts || []), ...fallbackPosts].slice(0, 4));
+    this.recentListings.set((listings || []).slice(0, 6));
     this.loading.set(false);
+
+    // Fallbacks run in background and update signals when ready
+    if (city) {
+      if ((musicians?.length ?? 0) < 6) {
+        globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6)));
+      }
+      if ((bands?.length ?? 0) < 6) {
+        globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6)));
+      }
+    }
   }
 
   private calculateCompleteness(profile: any, type: string) {

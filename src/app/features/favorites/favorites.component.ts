@@ -94,12 +94,16 @@ export class FavoritesComponent implements OnInit {
       (groups[f.entity_type] ??= []).push(f.entity_id);
     }
 
+    const entries = Object.entries(groups).filter(([type]) => this.tableMap[type]);
+    const results = await Promise.all(
+      entries.map(([type, ids]) =>
+        this.supabase.client.from(this.tableMap[type]).select('*').in('id', ids)
+          .then(({ data }) => ({ type, data: data || [] }))
+      )
+    );
     const map: Record<string, any> = {};
-    for (const [type, ids] of Object.entries(groups)) {
-      const table = this.tableMap[type];
-      if (!table) continue;
-      const { data } = await this.supabase.client.from(table).select('*').in('id', ids);
-      for (const it of data || []) map[`${type}:${it.id}`] = it;
+    for (const { type, data } of results) {
+      for (const it of data) map[`${type}:${it.id}`] = it;
     }
     this.resolved.set(map);
     this.loading.set(false);

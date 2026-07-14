@@ -74,14 +74,16 @@ export class FeedComponent implements OnInit {
     this.currentUser.set(user);
 
     if (user) {
-      const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'];
-      const types = ['musician', 'band', 'venue', 'teacher', 'rehearsal'];
-      for (let i = 0; i < tables.length; i++) {
-        const { data } = await this.supabase.client.from(tables[i]).select('id,name').eq('user_id', user.id).maybeSingle();
-        if (data) {
-          this.userProfile.set({ ...data, type: types[i] });
-          break;
-        }
+      const [{ data: m }, { data: b }, { data: v }, { data: t }, { data: r }] = await Promise.all([
+        this.supabase.client.from('musicians').select('id,name').eq('user_id', user.id).maybeSingle(),
+        this.supabase.client.from('bands').select('id,name').eq('user_id', user.id).maybeSingle(),
+        this.supabase.client.from('venues').select('id,name').eq('user_id', user.id).maybeSingle(),
+        this.supabase.client.from('teachers').select('id,name').eq('user_id', user.id).maybeSingle(),
+        this.supabase.client.from('rehearsal_spaces').select('id,name').eq('user_id', user.id).maybeSingle(),
+      ]);
+      const profilePairs: [any, string][] = [[m, 'musician'], [b, 'band'], [v, 'venue'], [t, 'teacher'], [r, 'rehearsal']];
+      for (const [data, type] of profilePairs) {
+        if (data) { this.userProfile.set({ ...data, type }); break; }
       }
     }
 
