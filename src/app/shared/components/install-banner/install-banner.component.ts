@@ -13,7 +13,7 @@ import { isPlatformBrowser } from '@angular/common';
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-bold text-ink leading-tight">Instalar BandYou</p>
-            <p class="text-xs text-ink-muted mt-0.5">Acceso rápido desde tu pantalla de inicio</p>
+            <p class="text-xs text-ink-muted mt-0.5">Recibe notificaciones de mensajes aunque tengas la app cerrada</p>
           </div>
           <button (click)="install()"
             class="flex-shrink-0 px-3 py-2 bg-primary-500 hover:bg-primary-400 text-white text-xs font-bold rounded-xl transition-colors">
