@@ -83,11 +83,11 @@ export class HomeComponent implements OnInit {
       { data: listings },
     ] = await Promise.all([
       city
-        ? this.supabase.client.from('musicians').select('*').eq('city', city).order('created_at', { ascending: false }).limit(6)
-        : this.supabase.client.from('musicians').select('*').order('created_at', { ascending: false }).limit(6),
+        ? this.supabase.client.from('musicians').select('*').eq('city', city).order('created_at', { ascending: false }).limit(12)
+        : this.supabase.client.from('musicians').select('*').order('created_at', { ascending: false }).limit(12),
       city
-        ? this.supabase.client.from('bands').select('*').eq('city', city).order('created_at', { ascending: false }).limit(6)
-        : this.supabase.client.from('bands').select('*').order('created_at', { ascending: false }).limit(6),
+        ? this.supabase.client.from('bands').select('*').eq('city', city).order('created_at', { ascending: false }).limit(12)
+        : this.supabase.client.from('bands').select('*').order('created_at', { ascending: false }).limit(12),
       this.supabase.client.from('events').select('*').gte('date', (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()).order('date', { ascending: true }).limit(5),
       this.supabase.client.from('venues').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
@@ -103,10 +103,10 @@ export class HomeComponent implements OnInit {
     };
 
     this.recentMusicians.set(
-      musicians && musicians.length >= 2 ? musicians : await globalFallback('musicians', 6)
+      musicians && musicians.length >= 2 ? musicians : await globalFallback('musicians', 12)
     );
     this.recentBands.set(
-      bands && bands.length >= 2 ? bands : await globalFallback('bands', 6)
+      bands && bands.length >= 2 ? bands : await globalFallback('bands', 12)
     );
     this.recentEvents.set(events || []);
     this.recentVenues.set(venues || []);
