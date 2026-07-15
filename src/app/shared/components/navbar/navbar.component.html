@@ -143,7 +143,7 @@
 
   <!-- Mobile menu -->
   @if (menuOpen) {
-    <div class="md:hidden border-t border-dark-600 bg-dark-900/98 backdrop-blur-md px-4 py-4 flex flex-col gap-1.5 animate-slide-in">
+    <div class="md:hidden border-t border-dark-600 bg-dark-900 px-4 py-4 flex flex-col gap-1.5 animate-slide-in">
       @if (auth.isLoggedIn()) {
         <a routerLink="/search" (click)="menuOpen=false"
            class="btn-ghost text-sm text-left px-3 py-2.5 justify-start">
