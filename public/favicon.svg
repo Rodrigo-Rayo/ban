@@ -1,4 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#a0442a"/>
-  <text x="16" y="16" font-family="Arial,system-ui,sans-serif" font-size="19" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="white">B</text>
+  <defs>
+    <linearGradient id="g" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#c05a3a"/>
+      <stop offset="100%" stop-color="#7e3418"/>
+    </linearGradient>
+    <radialGradient id="h" cx="0.38" cy="0.22" r="0.52" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Guitar pick shape: Dunlop 351 proportions, 85% of canvas, bezier curves -->
+  <path d="M16 2 C21.5 2,29 5.5,29 11 C29 20,23 27,16 30 C9 27,3 20,3 11 C3 5.5,10.5 2,16 2Z" fill="url(#g)"/>
+  <!-- Subtle top-left highlight for volume -->
+  <path d="M16 2 C21.5 2,29 5.5,29 11 C29 20,23 27,16 30 C9 27,3 20,3 11 C3 5.5,10.5 2,16 2Z" fill="url(#h)"/>
+  <!-- B centered in the wide upper body of the pick -->
+  <text x="16" y="14" font-family="Arial Black,Arial,system-ui,sans-serif" font-size="15" font-weight="900" text-anchor="middle" dominant-baseline="central" fill="#ffffff">B</text>
 </svg>
