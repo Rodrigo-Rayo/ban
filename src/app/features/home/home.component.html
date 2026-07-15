@@ -39,7 +39,7 @@
         <!-- Quick actions -->
         <div class="flex gap-2 flex-wrap">
           @if (auth.user()) {
-            <a routerLink="/feed" class="btn-primary text-xs px-4 py-2">
+            <a routerLink="/feed" [queryParams]="{new:'1'}" class="btn-primary text-xs px-4 py-2">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
               Publicar anuncio
             </a>
@@ -97,7 +97,7 @@
             </span>
             <h2 class="text-sm font-black text-ink tracking-tight">Próximos eventos</h2>
           </div>
-          <a routerLink="/events" class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver agenda →</a>
+          <a routerLink="/search" [queryParams]="{tab:'events'}" class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">Ver agenda →</a>
         </div>
 
         @if (loading()) {
@@ -142,7 +142,7 @@
           <!-- Hardcoded fallback events -->
           <div class="flex gap-3 overflow-x-auto pb-3 no-scrollbar snap-x snap-mandatory">
 
-            <a routerLink="/events" class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
+            <a routerLink="/search" [queryParams]="{tab:'events'}" class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
               <div class="h-28 relative" style="background: linear-gradient(135deg, #7a1a00 0%, #c4623e 100%)">
                 <span class="absolute top-2.5 left-2.5 tag-night" style="font-size:9px">DESTACADO</span>
                 <div class="absolute top-2.5 right-2.5 w-10 rounded-xl bg-black/50 flex flex-col items-center justify-center py-1.5 text-white text-center">
@@ -160,7 +160,7 @@
               </div>
             </a>
 
-            <a routerLink="/events" class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
+            <a routerLink="/search" [queryParams]="{tab:'events'}" class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
               <div class="h-28 relative" style="background: linear-gradient(135deg, #1a0d2e 0%, #3d1a6e 100%)">
                 <div class="absolute top-2.5 right-2.5 w-10 rounded-xl bg-black/50 flex flex-col items-center justify-center py-1.5 text-white text-center">
                   <span class="text-[8px] font-bold uppercase leading-none opacity-70">JUL</span>
@@ -176,7 +176,7 @@
               </div>
             </a>
 
-            <a routerLink="/events" class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
+            <a routerLink="/search" [queryParams]="{tab:'events'}" class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
               <div class="h-28 relative" style="background: linear-gradient(135deg, #0a1f10 0%, #145c2e 100%)">
                 <div class="absolute top-2.5 right-2.5 w-10 rounded-xl bg-black/50 flex flex-col items-center justify-center py-1.5 text-white text-center">
                   <span class="text-[8px] font-bold uppercase leading-none opacity-70">JUL</span>
@@ -192,7 +192,7 @@
               </div>
             </a>
 
-            <a routerLink="/events" class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
+            <a routerLink="/search" [queryParams]="{tab:'events'}" class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
               <div class="h-28 relative" style="background: linear-gradient(135deg, #120808 0%, #3d0a0a 100%)">
                 <div class="absolute top-2.5 right-2.5 w-10 rounded-xl bg-black/50 flex flex-col items-center justify-center py-1.5 text-white text-center">
                   <span class="text-[8px] font-bold uppercase leading-none opacity-70">AGO</span>
@@ -274,7 +274,7 @@
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </a>
           @if (auth.user()) {
-            <a routerLink="/feed" class="text-xs font-medium text-ink-muted hover:text-ink transition-colors">+ Publicar</a>
+            <a routerLink="/feed" [queryParams]="{new:'1'}" class="text-xs font-medium text-ink-muted hover:text-ink transition-colors">+ Publicar</a>
           }
         </div>
       </section>

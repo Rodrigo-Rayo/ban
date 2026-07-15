@@ -409,7 +409,7 @@
               </div>
               <p class="text-sm font-bold text-ink mb-1">Sin anuncios publicados</p>
               <p class="text-xs text-ink-muted mb-4">Busca banda, colabora, ofrece sesiones…</p>
-              <a routerLink="/feed" class="btn-primary text-xs px-5 py-2">Publicar anuncio</a>
+              <a routerLink="/feed" [queryParams]="{new:'1'}" class="btn-primary text-xs px-5 py-2">Publicar anuncio</a>
             </div>
           } @else {
             <div class="divide-y divide-dark-600">
@@ -663,7 +663,7 @@
     <div>
       <div class="flex items-center justify-between mb-3">
         <p class="section-label">Próximos eventos</p>
-        <a routerLink="/events"
+        <a routerLink="/search" [queryParams]="{tab:'events'}"
           class="text-[10px] font-semibold text-primary-400 hover:text-primary-500 transition-colors">
           Ver todos
         </a>

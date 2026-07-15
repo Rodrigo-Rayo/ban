@@ -1,7 +1,7 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -19,6 +19,7 @@ export class FeedComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private seo = inject(SeoService);
+  private route = inject(ActivatedRoute);
 
   posts = signal<Post[]>([]);
   loading = signal(true);
@@ -69,6 +70,7 @@ export class FeedComponent implements OnInit {
 
   async ngOnInit() {
     this.seo.set({ title: 'Tablón', description: 'Anuncios de músicos, bandas y profesionales de la música en España. Publica y encuentra colaboraciones.' });
+    if (this.route.snapshot.queryParamMap.get('new') === '1') this.showForm.set(true);
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.currentUser.set(user);

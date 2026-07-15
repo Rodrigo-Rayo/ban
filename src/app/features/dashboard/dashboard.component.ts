@@ -293,7 +293,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get tabNewRoute() {
-    const map: Record<string, string> = { events: '/events/create', posts: '/feed', gear: '/shop/new', bookings: '', reservas: '' };
+    const map: Record<string, string> = { events: '/events/create', posts: '/feed?new=1', gear: '/shop/new', bookings: '', reservas: '' };
     return map[this.activeTab()] ?? '';
   }
 

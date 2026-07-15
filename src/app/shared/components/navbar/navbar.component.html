@@ -42,7 +42,7 @@
           @if (publishOpen) {
             <div class="absolute right-0 top-full mt-2 w-48 bg-dark-800 border border-dark-600 rounded-2xl shadow-xl z-50 overflow-hidden"
                  (click)="publishOpen = false">
-              <a routerLink="/feed" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-dark-700 transition-colors">
+              <a routerLink="/feed" [queryParams]="{new:'1'}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-dark-700 transition-colors">
                 <div class="w-7 h-7 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center justify-center flex-shrink-0">
                   <app-icon name="newspaper" [size]="13" class="text-primary-400"/>
                 </div>
@@ -163,7 +163,7 @@
           }
         </a>
         <div class="h-px bg-dark-600/60 my-1"></div>
-        <a routerLink="/feed" (click)="menuOpen=false"
+        <a routerLink="/feed" [queryParams]="{new:'1'}" (click)="menuOpen=false"
            class="btn-secondary text-sm flex items-center gap-2 justify-start px-3 py-2.5">
           <app-icon name="newspaper" [size]="14"/>
           Publicar anuncio
