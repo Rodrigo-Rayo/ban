@@ -1,7 +1,7 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -20,6 +20,7 @@ export class FeedComponent implements OnInit {
   private toast = inject(ToastService);
   private seo = inject(SeoService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   posts = signal<Post[]>([]);
   loading = signal(true);
@@ -27,6 +28,7 @@ export class FeedComponent implements OnInit {
   hasMore = signal(true);
   submitting = signal(false);
   showForm = signal(false);
+  formOnly = signal(false);
   error = signal('');
   private readonly PAGE_SIZE = 20;
   readonly MAX_POST_LENGTH = 500;
@@ -54,9 +56,7 @@ export class FeedComponent implements OnInit {
   readonly postTypes: { id: PostType; label: string; emoji: string; icon: string }[] = [
     { id: 'musician_seeking_band',  label: 'Músico busca banda',    emoji: '🎸', icon: 'music'          },
     { id: 'band_seeking_musician',  label: 'Banda busca músico',    emoji: '🥁', icon: 'mic'            },
-    { id: 'event_announcement',     label: 'Anuncia un evento',     emoji: '📅', icon: 'calendar'       },
     { id: 'session_offer',          label: 'Ofrezco sesión',        emoji: '🎙️', icon: 'mic'            },
-    { id: 'gear_sale',              label: 'Vendo equipamiento',    emoji: '🎛️', icon: 'shopping-cart'  },
     { id: 'looking_for_rehearsal',  label: 'Busco local ensayo',    emoji: '🏠', icon: 'headphones'     },
     { id: 'collab',                 label: 'Busco colaboración',    emoji: '🤝', icon: 'users'          },
     { id: 'other',                  label: 'Otro',                  emoji: '📢', icon: 'newspaper'      },
@@ -70,7 +70,10 @@ export class FeedComponent implements OnInit {
 
   async ngOnInit() {
     this.seo.set({ title: 'Tablón', description: 'Anuncios de músicos, bandas y profesionales de la música en España. Publica y encuentra colaboraciones.' });
-    if (this.route.snapshot.queryParamMap.get('new') === '1') this.showForm.set(true);
+    if (this.route.snapshot.queryParamMap.get('new') === '1') {
+      this.showForm.set(true);
+      this.formOnly.set(true);
+    }
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.currentUser.set(user);
@@ -89,7 +92,7 @@ export class FeedComponent implements OnInit {
       }
     }
 
-    await this.loadPosts();
+    if (!this.formOnly()) await this.loadPosts();
   }
 
   async loadPosts() {
@@ -150,8 +153,17 @@ export class FeedComponent implements OnInit {
     }
     this.newPost = { type: 'musician_seeking_band', text: '', city: 'Madrid', instrument: '', genre: '' };
     this.showForm.set(false);
+    this.formOnly.set(false);
     this.toast.success('Anuncio publicado.');
     await this.loadPosts();
+  }
+
+  cancelOrToggleForm() {
+    if (this.formOnly()) {
+      this.router.navigate(['/home']);
+    } else {
+      this.showForm.set(!this.showForm());
+    }
   }
 
   async deletePost(id: string) {

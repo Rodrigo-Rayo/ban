@@ -1,5 +1,5 @@
 import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
@@ -10,7 +10,7 @@ import { CITIES } from '../../../core/constants/cities';
 @Component({
   selector: 'app-gear-form',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, RouterLink],
   templateUrl: './gear-form.component.html',
 })
 export class GearFormComponent implements OnInit, OnDestroy {

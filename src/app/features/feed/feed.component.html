@@ -9,7 +9,7 @@
           <p class="text-[11px] text-ink-muted mt-0.5 font-medium">Músicos, bandas y colaboraciones en España</p>
         </div>
         @if (currentUser()) {
-          <button (click)="showForm.set(!showForm())"
+          <button (click)="cancelOrToggleForm()"
             class="btn-primary text-sm px-4 py-2 flex-shrink-0 flex items-center gap-1.5">
             <app-icon [name]="showForm() ? 'x' : 'edit'" [size]="14" [strokeWidth]="2.5"/>
             {{ showForm() ? 'Cancelar' : 'Publicar' }}
@@ -93,6 +93,8 @@
         </div>
       </div>
     }
+
+    @if (!formOnly()) {
 
     <!-- ── FILTERS ── -->
     <div class="mb-5 space-y-2.5">
@@ -290,6 +292,8 @@
         </button>
       </div>
     }
+
+    } <!-- end @if (!formOnly()) -->
 
   </div>
 </div>
