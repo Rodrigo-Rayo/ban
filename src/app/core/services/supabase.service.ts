@@ -7,11 +7,7 @@ export class SupabaseService {
   private supabase: SupabaseClient;
 
   constructor() {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
-      auth: {
-        lock: async (_name: string, _timeout: number, fn: () => Promise<any>) => fn(),
-      },
-    });
+    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
   }
 
   get client() {

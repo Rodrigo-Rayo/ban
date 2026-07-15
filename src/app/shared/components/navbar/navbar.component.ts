@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { MessagesService } from '../../../core/services/messages.service';
@@ -6,6 +6,7 @@ import { NotificationsService } from '../../../core/services/notifications.servi
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IconComponent } from '../icon/icon.component';
 
 @Component({
@@ -20,13 +21,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
   messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
   menuOpen = false;
   publishOpen = false;
   avatarUrl = signal<string | null>(null);
   toast = signal<{ name: string; preview: string; conversationId: string } | null>(null);
   private channel: any = null;
   private notifChannel: any = null;
-  private toastTimer: any = null;
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   async ngOnInit() {
     const { data: { session } } = await this.supabase.auth.getSession();
@@ -46,7 +48,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
 
     this.router.events.pipe(
-      filter(e => e instanceof NavigationEnd)
+      filter(e => e instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(async (e: any) => {
       this.publishOpen = false;
       if (e.url.startsWith('/dashboard')) {
@@ -57,12 +60,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private async loadAvatar(userId: string) {
-    const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'];
-    for (const table of tables) {
-      const { data } = await this.supabase.client
-        .from(table).select('avatar_url').eq('user_id', userId).maybeSingle();
-      if (data?.avatar_url) { this.avatarUrl.set(data.avatar_url); return; }
-    }
+    const { data } = await this.supabase.client.rpc('get_profile_avatar', { p_user_id: userId });
+    if (data) this.avatarUrl.set(data as string);
   }
 
   private showToast(name: string, preview: string, conversationId: string) {
@@ -76,7 +75,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.toast.set(null);
     if (t?.conversationId) {
       this.router.navigate(['/inbox', t.conversationId], { state: { name: t.name } });
-      // Refresh badge after markAsRead in chat component completes (~500ms)
       setTimeout(() => this.messagesService.refreshUnreadCount(), 600);
     }
   }

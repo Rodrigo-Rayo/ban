@@ -206,7 +206,7 @@ export class OnboardingComponent implements OnInit {
     this.error.set('');
 
     const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) { this.router.navigate(['/auth/login']); return; }
+    if (!user) { this.loading.set(false); this.router.navigate(['/auth/login']); return; }
 
     const z = this.zoneForm.value;
     const role = this.role();

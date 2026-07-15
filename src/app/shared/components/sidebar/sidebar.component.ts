@@ -1,19 +1,21 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
+import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { IconComponent } from '../icon/icon.component';
 import { filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [FormsModule, RouterLink, RouterLinkActive, IconComponent],
+  imports: [FormsModule, RouterLink, IconComponent],
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent implements OnInit {
   auth   = inject(AuthService);
   router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   currentUrl = signal(this.router.url);
 
@@ -29,7 +31,7 @@ export class SidebarComponent implements OnInit {
 
   ngOnInit() {
     this.router.events
-      .pipe(filter(e => e instanceof NavigationEnd))
+      .pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
       .subscribe((e: any) => { this.currentUrl.set(e.urlAfterRedirects); this.publishOpen = false; });
   }
 

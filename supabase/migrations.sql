@@ -752,3 +752,163 @@ CREATE INDEX IF NOT EXISTS idx_posts_city_type           ON posts(city, type);
 CREATE INDEX IF NOT EXISTS idx_gear_listings_status      ON gear_listings(status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_favorites_user_id         ON favorites(user_id);
 CREATE INDEX IF NOT EXISTS idx_favorites_entity          ON favorites(user_id, entity_type);
+
+
+-- ──────────────────────────────────────────────
+-- 24. Security hardening + performance improvements
+-- ──────────────────────────────────────────────
+
+-- Fix messages INSERT: require the sender to be a conversation participant
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Authenticated users can send messages'
+  ) THEN
+    DROP POLICY "Authenticated users can send messages" ON messages;
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Participants can send messages'
+  ) THEN
+    CREATE POLICY "Participants can send messages"
+      ON messages FOR INSERT WITH CHECK (
+        sender_id = (SELECT auth.uid())
+        AND EXISTS (
+          SELECT 1 FROM conversations
+          WHERE conversations.id = messages.conversation_id
+          AND (conversations.user1_id = (SELECT auth.uid()) OR conversations.user2_id = (SELECT auth.uid()))
+        )
+      );
+  END IF;
+END $$;
+
+-- Fix messages UPDATE: add WITH CHECK so only the read flag can be set to true
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Participants can update message read status'
+  ) THEN
+    DROP POLICY "Participants can update message read status" ON messages;
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Participants can mark messages read'
+  ) THEN
+    CREATE POLICY "Participants can mark messages read"
+      ON messages FOR UPDATE
+      USING (
+        EXISTS (
+          SELECT 1 FROM conversations
+          WHERE conversations.id = messages.conversation_id
+          AND (conversations.user1_id = (SELECT auth.uid()) OR conversations.user2_id = (SELECT auth.uid()))
+        )
+      )
+      WITH CHECK (read = true);
+  END IF;
+END $$;
+
+-- Fix messages DELETE: only the sender can delete their own messages
+-- (conversation deletion cascades automatically, so deleteConversation still works)
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Participants can delete messages'
+  ) THEN
+    DROP POLICY "Participants can delete messages" ON messages;
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'messages' AND policyname = 'Senders can delete own messages'
+  ) THEN
+    CREATE POLICY "Senders can delete own messages"
+      ON messages FOR DELETE USING (sender_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- Add message length constraint to prevent storage abuse
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.check_constraints
+    WHERE constraint_name = 'messages_text_length_check'
+  ) THEN
+    ALTER TABLE messages ADD CONSTRAINT messages_text_length_check CHECK (char_length(text) <= 5000);
+  END IF;
+END $$;
+
+-- Unified profile name lookup (replaces 5 parallel client queries)
+CREATE OR REPLACE FUNCTION get_profile_name(p_user_id UUID)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT name FROM (
+    SELECT name FROM musicians        WHERE user_id = p_user_id
+    UNION ALL
+    SELECT name FROM bands            WHERE user_id = p_user_id
+    UNION ALL
+    SELECT name FROM venues           WHERE user_id = p_user_id
+    UNION ALL
+    SELECT name FROM teachers         WHERE user_id = p_user_id
+    UNION ALL
+    SELECT name FROM rehearsal_spaces WHERE user_id = p_user_id
+  ) t
+  WHERE name IS NOT NULL
+  LIMIT 1;
+$$;
+
+-- Unified profile avatar lookup
+CREATE OR REPLACE FUNCTION get_profile_avatar(p_user_id UUID)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT avatar_url FROM (
+    SELECT avatar_url FROM musicians        WHERE user_id = p_user_id
+    UNION ALL
+    SELECT avatar_url FROM bands            WHERE user_id = p_user_id
+    UNION ALL
+    SELECT avatar_url FROM venues           WHERE user_id = p_user_id
+    UNION ALL
+    SELECT avatar_url FROM teachers         WHERE user_id = p_user_id
+    UNION ALL
+    SELECT avatar_url FROM rehearsal_spaces WHERE user_id = p_user_id
+  ) t
+  WHERE avatar_url IS NOT NULL
+  LIMIT 1;
+$$;
+
+-- Missing indexes on frequently queried foreign keys
+CREATE INDEX IF NOT EXISTS idx_rehearsal_bookings_space_id ON rehearsal_bookings(space_id);
+CREATE INDEX IF NOT EXISTS idx_rehearsal_bookings_user_id  ON rehearsal_bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_vacancy_apps_user_id        ON vacancy_applications(user_id);
+CREATE INDEX IF NOT EXISTS idx_posts_user_id               ON posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_gear_listings_user_id       ON gear_listings(user_id);
+
+-- Conditional indexes for tables that may have been created outside this migration file
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'reviews' AND table_schema = 'public') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_reviews_entity   ON reviews(entity_type, entity_id)';
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_reviews_user_id  ON reviews(user_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_rsvps' AND table_schema = 'public') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_event_rsvps_event_id ON event_rsvps(event_id)';
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_event_rsvps_user_id  ON event_rsvps(user_id)';
+  END IF;
+END $$;
+
+-- Full-text search indexes for ILIKE queries (requires pg_trgm)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS idx_musicians_name_trgm       ON musicians        USING gin(name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_musicians_instrument_trgm ON musicians        USING gin(instrument gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_bands_name_trgm           ON bands            USING gin(name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_venues_name_trgm          ON venues           USING gin(name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_teachers_name_trgm        ON teachers         USING gin(name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_rehearsal_name_trgm       ON rehearsal_spaces USING gin(name gin_trgm_ops);

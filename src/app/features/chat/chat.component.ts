@@ -107,7 +107,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async deleteConversation() {
     if (!confirm('¿Borrar esta conversación? Se eliminarán todos los mensajes.')) return;
-    await this.messagesService.deleteConversation(this.conversationId);
+    const err = await this.messagesService.deleteConversation(this.conversationId);
+    if (err) {
+      this.sendError.set(err);
+      return;
+    }
     this.router.navigate(['/inbox']);
   }
 

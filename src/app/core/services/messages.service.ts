@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { Conversation, Message } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
@@ -45,7 +46,7 @@ export class MessagesService {
       .eq('user2_id', u2)
       .maybeSingle();
 
-    if (selectErr) console.error('[conversations] select error:', selectErr.message);
+    if (selectErr && !environment.production) console.error('[conversations] select error:', selectErr.message);
     if (existing) return { id: existing.id };
 
     const myName = await this.getUserName(myId);
@@ -59,7 +60,6 @@ export class MessagesService {
       .maybeSingle();
 
     if (error) {
-      console.error('[conversations] insert error:', error.message, error.code);
       return { error: 'No se pudo crear la conversación. Inténtalo de nuevo.' };
     }
     return created ? { id: created.id } : null;
@@ -78,18 +78,12 @@ export class MessagesService {
     const user = await this.getCurrentUser();
     if (!user) return 'No autenticado';
 
-    const { error: msgErr } = await this.supabase.client
-      .from('messages').delete({ count: 'exact' }).eq('conversation_id', conversationId);
-    if (msgErr) { console.error('Error borrando mensajes:', msgErr.message); return msgErr.message; }
-
+    // Deleting the conversation cascades to delete all messages via ON DELETE CASCADE
     const { error: convErr, count: convCount } = await this.supabase.client
       .from('conversations').delete({ count: 'exact' }).eq('id', conversationId);
-    if (convErr) { console.error('Error borrando conversación:', convErr.message); return convErr.message; }
+    if (convErr) return convErr.message;
 
-    if (convCount === 0) {
-      console.warn('deleteConversation: 0 rows deleted — check RLS policies on conversations table');
-      return 'No tienes permisos para borrar esta conversación.';
-    }
+    if (convCount === 0) return 'No tienes permisos para borrar esta conversación.';
 
     this._cachedConvIds = this._cachedConvIds?.filter(id => id !== conversationId) ?? null;
     return null;
@@ -115,14 +109,15 @@ export class MessagesService {
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .limit(100);
 
     return (data || []) as Message[];
   }
 
   async sendMessage(conversationId: string, content: string): Promise<Message | null> {
     const user = await this.getCurrentUser();
-    if (!user) { console.error('[sendMessage] no authenticated user'); return null; }
+    if (!user) return null;
 
     const { data, error } = await this.supabase.client
       .from('messages')
@@ -131,12 +126,10 @@ export class MessagesService {
       .single();
 
     if (error) {
-      console.error('[sendMessage] insert error:', error.message, error.code, error.details);
-      throw new Error(`${error.code}: ${error.message}`);
+      throw new Error(error.message);
     }
 
     if (!data) {
-      // insert succeeded but select returned nothing — fetch last inserted message as fallback
       const { data: fallback } = await this.supabase.client
         .from('messages')
         .select('*')
@@ -145,7 +138,7 @@ export class MessagesService {
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
-      if (!fallback) { console.error('[sendMessage] insert ok but could not fetch message'); return null; }
+      if (!fallback) return null;
       return fallback as Message;
     }
 
@@ -153,7 +146,7 @@ export class MessagesService {
       .from('conversations')
       .update({ last_message: content, last_message_at: new Date().toISOString() })
       .eq('id', conversationId)
-      .then(({ error: e }) => { if (e) console.error('[sendMessage] conversation update error:', e.message); });
+      .then(() => {});
 
     this.triggerPushNotification(conversationId, user.id, content);
 
@@ -164,12 +157,11 @@ export class MessagesService {
     const user = await this.getCurrentUser();
     if (!user) return;
 
-    const { error } = await this.supabase.client
+    await this.supabase.client
       .from('messages')
       .update({ read: true })
       .eq('conversation_id', conversationId)
       .neq('sender_id', user.id);
-    if (error) console.error('[messages] markAsRead error:', error.message);
     if (!skipCountRefresh) await this.refreshUnreadCount();
   }
 
@@ -195,19 +187,11 @@ export class MessagesService {
     const cached = this._nameCache.get(userId);
     if (cached) return cached;
 
-    const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'];
-    const results = await Promise.all(
-      tables.map(t => this.supabase.client.from(t).select('name').eq('user_id', userId).maybeSingle())
-    );
-    for (const { data, error } of results) {
-      if (error) console.warn('[getUserName] query error:', error.message);
-      if (data?.name) {
-        this._nameCache.set(userId, data.name);
-        return data.name;
-      }
-    }
-    this._nameCache.set(userId, 'Usuario');
-    return 'Usuario';
+    // Single RPC call instead of 5 parallel queries
+    const { data } = await this.supabase.client.rpc('get_profile_name', { p_user_id: userId });
+    const name = (data as string | null) ?? 'Usuario';
+    this._nameCache.set(userId, name);
+    return name;
   }
 
   async getUnreadConversationIds(): Promise<Set<string>> {
@@ -226,14 +210,20 @@ export class MessagesService {
   }
 
   private triggerPushNotification(conversationId: string, senderId: string, messageText: string): void {
-    this.getUserName(senderId).then(senderName => {
-      fetch('https://yxaurffzwtqsckfmnzdj.supabase.co/functions/v1/send-push', {
+    Promise.all([
+      this.getUserName(senderId),
+      this.supabase.auth.getSession(),
+    ]).then(([senderName, { data: { session } }]) => {
+      if (!session?.access_token) return;
+      fetch(`${environment.supabaseUrl}/functions/v1/send-push`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ conversationId, senderId, senderName, messageText }),
-      }).then(r => console.log('[push] status:', r.status))
-        .catch(err => console.error('[push] fetch error:', err));
-    });
+      }).catch(() => {});
+    }).catch(() => {});
   }
 
   subscribeToInboxUpdates(currentUserId: string, onNewMessage: (senderName: string, preview: string, conversationId: string) => void, channelSuffix = '') {
@@ -270,11 +260,9 @@ export class MessagesService {
 
     const isUser1 = conversation.user1_id === user.id;
 
-    // Use cached name from conversation first (fast, no extra queries)
     const cached = isUser1 ? conversation.user2_name : conversation.user1_name;
     if (cached) return cached;
 
-    // Fallback: query profile tables
     const otherId = isUser1 ? conversation.user2_id : conversation.user1_id;
     if (!otherId) return 'Usuario';
     return this.getUserName(otherId);
