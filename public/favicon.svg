@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Guitar pick shape -->
-  <path d="M16 2C9.373 2 4 7.373 4 13C4 19.5 9.8 26 13.8 28.8C14.8 29.4 17.2 29.4 18.2 28.8C22.2 26 28 19.5 28 13C28 7.373 22.627 2 16 2Z" fill="#a0442a"/>
-  <text x="16" y="19.5" font-family="system-ui,-apple-system,sans-serif" font-size="14" font-weight="900" text-anchor="middle" fill="white">B</text>
+  <!-- Guitar pick: rounded triangle, wide top, tapers to bottom tip -->
+  <path d="M16 30 C14 27 5 22 3.5 14 C2.5 8 7 2.5 16 2.5 C25 2.5 29.5 8 28.5 14 C27 22 18 27 16 30Z" fill="#a0442a"/>
+  <text x="16" y="16" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="900" text-anchor="middle" dominant-baseline="middle" fill="white">B</text>
 </svg>
