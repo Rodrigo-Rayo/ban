@@ -143,7 +143,7 @@
           <div class="flex gap-3 overflow-x-auto pb-3 no-scrollbar snap-x snap-mandatory">
 
             <a routerLink="/events" class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
-              <div class="h-28 relative" style="background: linear-gradient(135deg, #2e1065 0%, #7c3aed 100%)">
+              <div class="h-28 relative" style="background: linear-gradient(135deg, #7a1a00 0%, #c4623e 100%)">
                 <span class="absolute top-2.5 left-2.5 tag-night" style="font-size:9px">DESTACADO</span>
                 <div class="absolute top-2.5 right-2.5 w-10 rounded-xl bg-black/50 flex flex-col items-center justify-center py-1.5 text-white text-center">
                   <span class="text-[8px] font-bold uppercase leading-none opacity-70">JUL</span>
@@ -382,12 +382,12 @@
         } @else {
           <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
             @for (item of [
-              {initials:'CM', color:'#7c3aed', name:'Carlos M.', tag:'Guitarra', city:'Madrid'},
-              {initials:'LS', color:'#5b21b6', name:'Laura S.',  tag:'Voz',      city:'Barcelona'},
-              {initials:'MR', color:'#6d28d9', name:'Miguel R.', tag:'Bajo',     city:'Valencia'},
-              {initials:'AT', color:'#8b5cf6', name:'Ana T.',    tag:'Batería',  city:'Sevilla'},
-              {initials:'JP', color:'#4c1d95', name:'Javier P.', tag:'Piano',    city:'Bilbao'},
-              {initials:'SR', color:'#a78bfa', name:'Sofía R.',  tag:'Violín',   city:'Zaragoza'}
+              {initials:'CM', color:'#a0442a', name:'Carlos M.', tag:'Guitarra', city:'Madrid'},
+              {initials:'LS', color:'#7a3320', name:'Laura S.',  tag:'Voz',      city:'Barcelona'},
+              {initials:'MR', color:'#c4623e', name:'Miguel R.', tag:'Bajo',     city:'Valencia'},
+              {initials:'AT', color:'#8b3a2a', name:'Ana T.',    tag:'Batería',  city:'Sevilla'},
+              {initials:'JP', color:'#b85040', name:'Javier P.', tag:'Piano',    city:'Bilbao'},
+              {initials:'SR', color:'#d4785a', name:'Sofía R.',  tag:'Violín',   city:'Zaragoza'}
             ]; track item.name) {
               <a routerLink="/search" [queryParams]="{tab:'musicians'}"
                  class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group">
@@ -452,8 +452,8 @@
         } @else {
           <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
             @for (item of [
-              {initials:'LE', color:'#7c3aed', name:'Los Eternos',    tag:'Rock alt.',  city:'Madrid',    busca:true},
-              {initials:'FF', color:'#5b21b6', name:'Flamenco Fusion', tag:'Flamenco',  city:'Sevilla',   busca:false},
+              {initials:'LE', color:'#a0442a', name:'Los Eternos',    tag:'Rock alt.',  city:'Madrid',    busca:true},
+              {initials:'FF', color:'#7a3320', name:'Flamenco Fusion', tag:'Flamenco',  city:'Sevilla',   busca:false},
               {initials:'MJ', color:'#1a0d2e', name:'Midnight Jazz',   tag:'Jazz',      city:'Barcelona', busca:true},
               {initials:'MS', color:'#2a0a0a', name:'Metal Storm',     tag:'Heavy metal',city:'Bilbao',   busca:false},
               {initials:'IB', color:'#3a1a05', name:'Indie Bros',      tag:'Indie',     city:'Valencia',  busca:true},
@@ -543,7 +543,7 @@
         } @else {
           <div class="flex flex-col gap-2">
             <a routerLink="/search" [queryParams]="{tab:'rehearsal'}" class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
-              <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#5b21b6">SA</div>
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#7a3320">SA</div>
               <div class="flex-1 min-w-0">
                 <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">Sala A Madrid</p>
                 <p class="text-[10px] text-ink-muted truncate">Madrid · 6 pers.</p>
@@ -551,7 +551,7 @@
               <span class="tag flex-shrink-0 text-[10px]">12€/h</span>
             </a>
             <a routerLink="/search" [queryParams]="{tab:'rehearsal'}" class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
-              <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#7c3aed">ER</div>
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#a0442a">ER</div>
               <div class="flex-1 min-w-0">
                 <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">Estudio Rock BCN</p>
                 <p class="text-[10px] text-ink-muted truncate">Barcelona · 8 pers.</p>
@@ -606,7 +606,7 @@
         } @else {
           <div class="flex flex-col gap-2">
             <a routerLink="/search" [queryParams]="{tab:'teachers'}" class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#6d28d9">MG</div>
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#8b3a2a">MG</div>
               <div class="flex-1 min-w-0">
                 <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">María Gómez</p>
                 <p class="text-[10px] text-ink-muted truncate">Piano · Madrid</p>
@@ -614,7 +614,7 @@
               <span class="tag-accent flex-shrink-0 text-[10px]">30€/h</span>
             </a>
             <a routerLink="/search" [queryParams]="{tab:'teachers'}" class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#7c3aed">PL</div>
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#a0442a">PL</div>
               <div class="flex-1 min-w-0">
                 <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">Pedro López</p>
                 <p class="text-[10px] text-ink-muted truncate">Guitarra · Barcelona</p>

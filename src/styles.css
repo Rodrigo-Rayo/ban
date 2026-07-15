@@ -181,19 +181,19 @@
 
   /* ── Search tab states ──────────────────────────── */
   .tab-btn-active {
-    background-color: #7c3aed;
+    background-color: #a0442a;
     color: #ffffff;
-    border-color: rgba(124,58,237,0.9);
+    border-color: rgba(160,68,42,0.9);
   }
-  .tab-btn-active:hover { background-color: #6d28d9; }
+  .tab-btn-active:hover { background-color: #883924; }
   .tab-btn-inactive { @apply text-ink-3; }
   .tab-btn-inactive:hover { @apply bg-dark-700 text-ink; }
 
   /* ── Genre pill states ───────────────────────────── */
   .genre-pill-active {
-    background-color: #7c3aed;
+    background-color: #a0442a;
     color: #ffffff;
-    border-color: rgba(124,58,237,0.8);
+    border-color: rgba(160,68,42,0.8);
   }
   .genre-pill-inactive { @apply border-dark-600 text-ink-muted; }
   .genre-pill-inactive:hover { @apply text-ink-2 border-ink-muted/40; }

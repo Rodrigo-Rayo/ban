@@ -5,16 +5,16 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50:  '#f5f3ff',
-          100: '#ede9fe',
-          200: '#ddd6fe',
-          300: '#c4b5fd',
-          400: '#a78bfa',
-          500: '#7c3aed',   // violeta eléctrico
-          600: '#6d28d9',
-          700: '#5b21b6',
-          800: '#4c1d95',
-          900: '#f0ebff',   // fondo tintado activos
+          50:  '#fef6f2',
+          100: '#fde8df',
+          200: '#fbd0be',
+          300: '#d4876a',
+          400: '#bf6040',
+          500: '#a0442a',   // terracota mate
+          600: '#883924',
+          700: '#702f1d',
+          800: '#5a2617',
+          900: '#fef0e8',   // fondo tintado activos
         },
         dark: {
           900: '#f4efe6',   // fondo — crema portada de disco

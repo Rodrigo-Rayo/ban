@@ -190,7 +190,7 @@ export class RehearsalProfileComponent implements OnInit {
   }
 
   private readonly AVATAR_COLORS = [
-    '#5b21b6', '#6d28d9', '#7c3aed', '#4c1d95', '#8b5cf6', '#a78bfa',
+    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
   ];
   avatarColor(name: string): string {
     const code = name?.charCodeAt(0) ?? 65;
