@@ -215,7 +215,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
+    '#5b21b6', '#6d28d9', '#7c3aed', '#4c1d95', '#8b5cf6', '#a78bfa',
   ];
 
   avatarColor(name: string): string {
