@@ -1,5 +1,6 @@
 import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
@@ -17,6 +18,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private location = inject(Location);
   private toast = inject(ToastService);
   auth = inject(AuthService);
 
@@ -115,6 +117,8 @@ export class GearFormComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.currentPreviewUrls.forEach(url => URL.revokeObjectURL(url));
   }
+
+  goBack() { this.location.back(); }
 
   get canSubmit() {
     return this.form.title.trim() && this.form.price != null && this.form.price > 0;

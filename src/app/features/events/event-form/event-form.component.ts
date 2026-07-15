@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 
@@ -13,12 +14,15 @@ import { ToastService } from '../../../core/services/toast.service';
 export class EventFormComponent {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private location = inject(Location);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
 
   loading = signal(false);
   success = signal(false);
   error = signal('');
+
+  goBack() { this.location.back(); }
 
   genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Otro'];
 

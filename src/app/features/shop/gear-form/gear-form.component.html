@@ -2,12 +2,12 @@
   <div class="max-w-xl mx-auto px-5 lg:px-8 py-6">
 
     <!-- Back -->
-    <a routerLink="/shop" class="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink transition-colors mb-5">
+    <button (click)="goBack()" class="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink transition-colors mb-5">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
       Volver
-    </a>
+    </button>
 
     <h1 class="text-xl font-bold text-ink mb-6">{{ editId() ? 'Editar anuncio' : 'Publicar anuncio' }}</h1>
 

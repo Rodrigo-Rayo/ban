@@ -2,6 +2,7 @@ import { Component, signal, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -21,6 +22,7 @@ export class FeedComponent implements OnInit {
   private seo = inject(SeoService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
 
   posts = signal<Post[]>([]);
   loading = signal(true);
@@ -160,7 +162,7 @@ export class FeedComponent implements OnInit {
 
   cancelOrToggleForm() {
     if (this.formOnly()) {
-      this.router.navigate(['/home']);
+      this.location.back();
     } else {
       this.showForm.set(!this.showForm());
     }
