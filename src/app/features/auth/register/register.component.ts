@@ -43,6 +43,9 @@ export class RegisterComponent {
   async loginWithGoogle() {
     this.error.set('');
     try {
+      const role = this.form.value.role || 'musician';
+      localStorage.setItem('bandyou_role', role);
+      localStorage.setItem('bandyou_needs_onboarding', 'true');
       await this.auth.signInWithGoogle();
     } catch (e: any) {
       this.error.set(e.message ?? 'Error con Google');
