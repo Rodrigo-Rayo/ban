@@ -10,9 +10,7 @@
     </radialGradient>
   </defs>
   <!-- Guitar pick shape: Dunlop 351 proportions, 85% of canvas, bezier curves -->
-  <path d="M16 2 C21.5 2,29 5.5,29 11 C29 20,23 27,16 30 C9 27,3 20,3 11 C3 5.5,10.5 2,16 2Z" fill="url(#g)"/>
-  <!-- Subtle top-left highlight for volume -->
-  <path d="M16 2 C21.5 2,29 5.5,29 11 C29 20,23 27,16 30 C9 27,3 20,3 11 C3 5.5,10.5 2,16 2Z" fill="url(#h)"/>
-  <!-- B centered in the wide upper body of the pick -->
-  <text x="16" y="14" font-family="Arial Black,Arial,system-ui,sans-serif" font-size="15" font-weight="900" text-anchor="middle" dominant-baseline="central" fill="#ffffff">B</text>
+  <path d="M16 4.8 C20.4 4.8,26.4 7.6,26.4 12 C26.4 19.2,21.6 24.8,16 27.2 C10.4 24.8,5.6 19.2,5.6 12 C5.6 7.6,11.6 4.8,16 4.8Z" fill="url(#g)"/>
+  <path d="M16 4.8 C20.4 4.8,26.4 7.6,26.4 12 C26.4 19.2,21.6 24.8,16 27.2 C10.4 24.8,5.6 19.2,5.6 12 C5.6 7.6,11.6 4.8,16 4.8Z" fill="url(#h)"/>
+  <text x="16" y="15" font-family="Arial Black,Arial,system-ui,sans-serif" font-size="13" font-weight="900" text-anchor="middle" dominant-baseline="central" fill="#ffffff">B</text>
 </svg>
