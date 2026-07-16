@@ -978,6 +978,11 @@ ALTER TABLE push_subscriptions    DROP CONSTRAINT push_subscriptions_user_id_fke
 -- ──────────────────────────────────────────────
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS name TEXT;
 
+-- Allow 'listener' in profiles.role (drop old constraint and recreate with full list)
+ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+ALTER TABLE profiles ADD CONSTRAINT profiles_role_check
+  CHECK (role IN ('musician', 'band', 'venue', 'teacher', 'rehearsal', 'listener'));
+
 -- Update get_profile_name to include listener name from profiles table
 CREATE OR REPLACE FUNCTION get_profile_name(p_user_id UUID)
 RETURNS TEXT
