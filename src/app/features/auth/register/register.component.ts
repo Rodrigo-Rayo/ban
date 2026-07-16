@@ -20,7 +20,6 @@ export class RegisterComponent {
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    role: ['musician', Validators.required],
   });
 
   async onSubmit() {
@@ -28,8 +27,7 @@ export class RegisterComponent {
     this.loading.set(true);
     this.error.set('');
     try {
-      const { email, password, role } = this.form.value;
-      localStorage.setItem('bandyou_role', role || 'musician');
+      const { email, password } = this.form.value;
       localStorage.setItem('bandyou_needs_onboarding', 'true');
       await this.auth.signUpWithEmail(email!, password!);
       this.success.set(true);
@@ -48,9 +46,6 @@ export class RegisterComponent {
   async loginWithGoogle() {
     this.error.set('');
     try {
-      // Store role so onboarding can use it if this is a new Google user.
-      // Do NOT set bandyou_needs_onboarding — auth.service checks profile existence for OAuth users.
-      localStorage.setItem('bandyou_role', this.form.value.role || 'musician');
       await this.auth.signInWithGoogle();
     } catch (e: any) {
       this.error.set(e.message ?? 'Error con Google');
