@@ -282,6 +282,7 @@ export class OnboardingComponent implements OnInit {
         this.registrationState.password,
       );
       if (error || !data.session) {
+        console.error('[onboarding] signUp error:', error);
         this.loading.set(false);
         this.error.set(error?.message || 'Error al crear la cuenta. Inténtalo de nuevo.');
         return;
@@ -302,11 +303,13 @@ export class OnboardingComponent implements OnInit {
     const { error: profileError } = await this.supabase.client
       .from('profiles').upsert(profilePayload, { onConflict: 'id' });
     if (profileError) {
+      console.error('[onboarding] profiles upsert error:', profileError);
       const { error: profileRetryError } = await this.supabase.client
         .from('profiles').upsert({ id: userId, role }, { onConflict: 'id' });
       if (profileRetryError) {
+        console.error('[onboarding] profiles retry error:', profileRetryError);
         this.loading.set(false);
-        this.error.set('No se pudo crear el perfil. Por favor, inténtalo de nuevo.');
+        this.error.set(`Error al crear perfil: ${profileRetryError.message}`);
         return;
       }
     }
