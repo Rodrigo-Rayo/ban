@@ -1,6 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
 
 @Component({
   selector: 'app-callback',
@@ -14,30 +15,53 @@ import { SupabaseService } from '../../../core/services/supabase.service';
     </div>
   `,
 })
-export class CallbackComponent implements OnInit {
+export class CallbackComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
+  private sub: SupabaseSubscription | null = null;
 
   async ngOnInit() {
-    // Wait for Supabase to process the OAuth code from the URL
+    // First try: session may already be available if Supabase exchanged the code
     const { data: { session } } = await this.supabase.getSession();
-
-    if (!session) {
-      this.router.navigate(['/auth/login']);
+    if (session) {
+      await this.redirect(session.user.id);
       return;
     }
 
-    // Check if this user already has a profile
+    // Second try: wait for SIGNED_IN event (PKCE code exchange in progress)
+    const { data: { subscription } } = this.supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        this.sub = subscription;
+        await this.redirect(session.user.id);
+      }
+    });
+    this.sub = subscription;
+
+    // Fallback: if nothing happens in 5 seconds, send to login
+    setTimeout(() => {
+      if (this.sub) {
+        this.sub.unsubscribe();
+        this.sub = null;
+      }
+      this.router.navigate(['/auth/login']);
+    }, 5000);
+  }
+
+  private async redirect(userId: string) {
+    if (this.sub) {
+      this.sub.unsubscribe();
+      this.sub = null;
+    }
     const { data: profile } = await this.supabase.client
       .from('profiles')
       .select('id')
-      .eq('id', session.user.id)
+      .eq('id', userId)
       .maybeSingle();
 
-    if (profile) {
-      this.router.navigate(['/home']);
-    } else {
-      this.router.navigate(['/onboarding']);
-    }
+    this.router.navigate([profile ? '/home' : '/onboarding']);
+  }
+
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
   }
 }
