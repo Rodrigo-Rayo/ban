@@ -70,10 +70,10 @@
           @else if (role() === 'rehearsal') { ¿Cómo se llama <span class="text-primary-400">el local?</span> }
           @else { ¿Cómo te <span class="text-primary-400">llamas?</span> }
         </h1>
-        <p class="text-sm text-ink-muted mb-8 leading-relaxed">El nombre que verán el resto de músicos.</p>
+        <p class="text-sm text-ink-muted mb-8 leading-relaxed">{{ nameSubtitle }}</p>
 
         <input formControlName="name" type="text"
-          placeholder="Tu nombre artístico o real"
+          [placeholder]="namePlaceholder"
           class="input-field text-lg py-4 mb-1"/>
         @if (nameForm.get('name')?.invalid && nameForm.get('name')?.touched) {
           <p class="text-xs text-signal-red mb-5">El nombre es obligatorio.</p>
@@ -247,11 +247,11 @@
           }
           <div>
             <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Descripción <span class="opacity-50">(opcional)</span></label>
-            <textarea formControlName="description" rows="3" placeholder="Cuéntanos más..." class="input-field resize-none"></textarea>
+            <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" class="input-field resize-none"></textarea>
           </div>
           <div>
             <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Email de contacto <span class="opacity-50">(opcional)</span></label>
-            <input formControlName="contactEmail" type="email" placeholder="hola@tusala.com" class="input-field"/>
+            <input formControlName="contactEmail" type="email" [placeholder]="contactEmailPlaceholder" class="input-field"/>
           </div>
           @if (role() === 'venue' || role() === 'rehearsal') {
             <div class="grid sm:grid-cols-2 gap-4">
@@ -408,11 +408,11 @@
           }
           <div>
             <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Sobre ti <span class="opacity-50">(opcional)</span></label>
-            <textarea formControlName="description" rows="3" placeholder="Cuéntanos más sobre ti..." class="input-field resize-none"></textarea>
+            <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" class="input-field resize-none"></textarea>
           </div>
           <div>
             <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Email de contacto <span class="opacity-50">(opcional)</span></label>
-            <input formControlName="contactEmail" type="email" placeholder="hola@ti.com" class="input-field"/>
+            <input formControlName="contactEmail" type="email" [placeholder]="contactEmailPlaceholder" class="input-field"/>
           </div>
           @if (role() === 'musician') {
             <div>

@@ -99,6 +99,54 @@ export class OnboardingComponent implements OnInit {
     return this.hasInstrumentStep() ? 5 : 4;
   });
 
+  get namePlaceholder() {
+    const map: Record<Role, string> = {
+      musician:  'Tu nombre artístico o real',
+      band:      'Nombre de la banda',
+      venue:     'Nombre de la sala',
+      teacher:   'Tu nombre completo',
+      rehearsal: 'Nombre del local de ensayo',
+      listener:  'Tu nombre o apodo',
+    };
+    return map[this.role()];
+  }
+
+  get nameSubtitle() {
+    const map: Record<Role, string> = {
+      musician:  'El nombre que verán los demás músicos en tu perfil.',
+      band:      'El nombre con el que apareceréis en el directorio.',
+      venue:     'El nombre con el que te conoce el público.',
+      teacher:   'El nombre que verán tus potenciales alumnos.',
+      rehearsal: 'El nombre con el que aparecerás en el directorio.',
+      listener:  'El nombre que verán los demás en tu perfil.',
+    };
+    return map[this.role()];
+  }
+
+  get descriptionPlaceholder() {
+    const map: Record<Role, string> = {
+      musician:  'Cuéntanos sobre ti, tu estilo, lo que buscas...',
+      band:      'Describid la banda, vuestro sonido, lo que buscáis...',
+      venue:     'Describe la sala, el tipo de eventos que programas...',
+      teacher:   'Cuéntanos tu experiencia y enfoque de enseñanza...',
+      rehearsal: 'Describe el local, equipamiento, características...',
+      listener:  '',
+    };
+    return map[this.role()];
+  }
+
+  get contactEmailPlaceholder() {
+    const map: Record<Role, string> = {
+      musician:  'tu@email.com',
+      band:      'contacto@labanda.com',
+      venue:     'info@tusala.com',
+      teacher:   'clases@tumail.com',
+      rehearsal: 'info@tulocal.com',
+      listener:  '',
+    };
+    return map[this.role()];
+  }
+
   toggleInstrument(i: string) {
     const cur = this.selectedInstruments();
     this.selectedInstruments.set(cur.includes(i) ? cur.filter(x => x !== i) : [...cur, i]);
