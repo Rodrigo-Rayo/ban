@@ -66,6 +66,7 @@ export class PostDetailComponent implements OnInit {
   }
 
   async contactAuthor() {
+    if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     if (this.contacting()) return;
     this.contacting.set(true);
     const p = this.post()!;
@@ -79,6 +80,7 @@ export class PostDetailComponent implements OnInit {
   }
 
   async deletePost() {
+    if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Eliminar este anuncio?')) return;
     this.deleting.set(true);
     const { error } = await this.supabase.client.from('posts').delete().eq('id', this.post()!.id);

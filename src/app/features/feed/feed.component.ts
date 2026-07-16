@@ -72,13 +72,14 @@ export class FeedComponent implements OnInit {
 
   async ngOnInit() {
     this.seo.set({ title: 'Tablón', description: 'Anuncios de músicos, bandas y profesionales de la música en España. Publica y encuentra colaboraciones.' });
+    const { data: { user } } = await this.supabase.auth.getUser();
+    this.currentUser.set(user);
+
     if (this.route.snapshot.queryParamMap.get('new') === '1') {
+      if (!user) { this.router.navigate(['/auth/login']); return; }
       this.showForm.set(true);
       this.formOnly.set(true);
     }
-
-    const { data: { user } } = await this.supabase.auth.getUser();
-    this.currentUser.set(user);
 
     if (user) {
       const [{ data: m }, { data: b }, { data: v }, { data: t }, { data: r }] = await Promise.all([
@@ -130,7 +131,7 @@ export class FeedComponent implements OnInit {
     if (!this.newPost.text.trim()) return;
     if (this.newPost.text.trim().length > this.MAX_POST_LENGTH) return;
     const user = this.currentUser();
-    if (!user) return;
+    if (!user) { this.router.navigate(['/auth/login']); return; }
 
     this.submitting.set(true);
     this.error.set('');
@@ -169,6 +170,7 @@ export class FeedComponent implements OnInit {
   }
 
   async deletePost(id: string) {
+    if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Eliminar este anuncio?')) return;
     const { error } = await this.supabase.client.from('posts').delete().eq('id', id);
     if (error) { this.toast.error('No se pudo eliminar.'); return; }

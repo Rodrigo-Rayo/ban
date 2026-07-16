@@ -214,11 +214,12 @@ export class OnboardingComponent implements OnInit {
 
     if (!found) {
       const { data: profileRow } = await this.supabase.client
-        .from('profiles').select('role').eq('id', user.id).maybeSingle();
+        .from('profiles').select('role, name').eq('id', user.id).maybeSingle();
       if (profileRow?.role === 'listener') {
         this.role.set('listener');
         this.originalRole.set('listener');
         this.isEditing.set(true);
+        if (profileRow.name) this.nameForm.patchValue({ name: profileRow.name });
       }
     }
 
@@ -296,14 +297,16 @@ export class OnboardingComponent implements OnInit {
     const z = this.zoneForm.value;
     const role = this.role();
 
-    await this.supabase.client.from('profiles').upsert({ id: userId, role }, { onConflict: 'id' });
+    const profilePayload: Record<string, unknown> = { id: userId, role };
+    if (role === 'listener') profilePayload['name'] = this.nameForm.value.name ?? null;
+    await this.supabase.client.from('profiles').upsert(profilePayload, { onConflict: 'id' });
 
     const roleTableMap: Record<Role, string> = {
       musician: 'musicians', band: 'bands', venue: 'venues',
       teacher: 'teachers', rehearsal: 'rehearsal_spaces', listener: '',
     };
     const prev = this.originalRole();
-    if (prev && prev !== role) {
+    if (prev && prev !== role && roleTableMap[prev]) {
       await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', userId);
     }
 

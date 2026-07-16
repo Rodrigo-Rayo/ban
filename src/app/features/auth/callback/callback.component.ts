@@ -47,10 +47,10 @@ export class CallbackComponent implements OnInit {
   private async redirect(userId: string) {
     const { data: profile } = await this.supabase.client
       .from('profiles')
-      .select('id')
+      .select('id, role')
       .eq('id', userId)
       .maybeSingle();
 
-    this.router.navigate([profile ? '/home' : '/onboarding']);
+    this.router.navigate([profile?.role ? '/home' : '/onboarding']);
   }
 }

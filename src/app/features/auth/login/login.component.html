@@ -1,42 +1,6 @@
 <div class="min-h-screen bg-dark-900 flex">
 
-  <!-- Left brand panel — desktop only -->
-  <div class="hidden lg:flex flex-col justify-between w-[420px] flex-shrink-0 bg-gradient-to-br from-primary-900/80 via-dark-800 to-dark-900 border-r border-dark-600 p-10 relative overflow-hidden">
-    <!-- Decorative blobs -->
-    <div class="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-primary-500/10 blur-3xl pointer-events-none"></div>
-    <div class="absolute top-20 right-0 w-48 h-48 rounded-full border border-primary-500/15 pointer-events-none"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-primary-800/10 blur-2xl pointer-events-none"></div>
-
-    <a routerLink="/" class="text-2xl font-black text-ink tracking-tighter relative z-10">
-      Band<span class="text-primary-500">You</span>
-    </a>
-
-    <div class="relative z-10">
-      <h2 class="text-4xl font-black text-ink leading-[0.9] tracking-tight mb-4">
-        La escena musical<br>
-        <span class="display-serif text-primary-500" style="font-style:italic">te espera.</span>
-      </h2>
-      <p class="text-sm text-ink-muted leading-relaxed mb-8">
-        Músicos, bandas, salas y profesores conectados en un solo lugar.
-      </p>
-      <!-- Social proof -->
-      <div class="flex items-center gap-3 p-4 bg-dark-800/60 rounded-2xl border border-dark-600">
-        <div class="flex -space-x-2">
-          @for (c of ['#a0442a','#b85c3a','#8a3520']; track c) {
-            <div class="w-8 h-8 rounded-full border-2 border-dark-800 flex items-center justify-center text-[10px] font-bold text-white"
-                 [style.background]="c">M</div>
-          }
-        </div>
-        <p class="text-xs text-ink-muted">
-          <span class="text-ink font-semibold">+500 músicos</span> ya conectados
-        </p>
-      </div>
-    </div>
-
-    <p class="text-[10px] text-ink-muted relative z-10">© Bandyou · Madrid, 2026</p>
-  </div>
-
-  <!-- Right form panel -->
+  <!-- Form panel -->
   <div class="flex-1 flex flex-col items-center justify-center px-6 py-16 relative overflow-hidden">
     <!-- Background texture -->
     <div class="absolute inset-0 opacity-[0.02] pointer-events-none"

@@ -5,8 +5,7 @@
   <div class="absolute top-10 right-0 w-64 h-64 rounded-full bg-primary-500/5 blur-3xl pointer-events-none"></div>
   <div class="absolute -bottom-10 -left-20 w-80 h-80 rounded-full bg-primary-900/40 blur-3xl pointer-events-none"></div>
 
-  <div class="grid lg:grid-cols-[1fr_auto] gap-12 items-start">
-    <div class="max-w-2xl">
+  <div class="max-w-2xl">
 
       <!-- Eyebrow -->
       <div class="inline-flex items-center gap-2 bg-primary-900 border border-primary-500/30 rounded-full px-3.5 py-1.5 mb-8">
@@ -36,39 +35,9 @@
         </svg>
         Sin tarjeta de crédito · Solo España
       </p>
-    </div>
-
-    <!-- Floating role pills — desktop only -->
-    <div class="hidden lg:flex flex-col gap-2 pt-4 flex-shrink-0">
-      @for (role of roles; track role.id) {
-        <a [routerLink]="['/auth/register']" [queryParams]="{role: role.id}"
-           class="flex items-center gap-3 px-4 py-3.5 bg-dark-800 border border-dark-600 rounded-2xl hover:border-primary-500/50 hover:shadow-md hover:-translate-y-px transition-all duration-200 group w-52">
-          <span class="w-9 h-9 rounded-xl bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500 flex-shrink-0 group-hover:bg-primary-500 group-hover:text-white transition-all duration-200">
-            <app-icon [name]="role.icon" [size]="15"/>
-          </span>
-          <span class="text-sm font-semibold text-ink group-hover:text-primary-600 transition-colors">{{ role.label }}</span>
-          <svg class="w-4 h-4 text-ink-muted ml-auto group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-        </a>
-      }
-    </div>
   </div>
 </section>
 
-<!-- STATS BAR ────────────────────────────────────────── -->
-<section class="border-y border-dark-600 bg-dark-800">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-14 py-8">
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-0">
-      @for (stat of statItems(); track stat.label; let last = $last) {
-        <div class="text-center py-3" [class.border-r]="!last" [class.border-dark-600]="!last">
-          <p class="text-3xl sm:text-4xl font-black text-primary-500 tabular-nums tracking-tight">{{ stat.value || '—' }}</p>
-          <p class="text-[10px] text-ink-muted mt-1.5 font-bold uppercase tracking-widest">{{ stat.label }}</p>
-        </div>
-      }
-    </div>
-  </div>
-</section>
 
 <!-- CÓMO FUNCIONA ────────────────────────────────────── -->
 <section class="px-5 sm:px-8 lg:px-14 py-20 max-w-7xl mx-auto">
@@ -171,31 +140,6 @@
   </div>
 </section>
 
-<!-- CTA FINAL ────────────────────────────────────────── -->
-<section class="px-5 sm:px-8 lg:px-14 py-24 border-t border-dark-600">
-  <div class="max-w-7xl mx-auto">
-    <div class="bg-gradient-to-br from-primary-900/50 via-dark-800 to-dark-800 border border-primary-500/20 rounded-3xl p-8 sm:p-12 lg:p-16 relative overflow-hidden">
-      <!-- Decorative blobs -->
-      <div class="absolute -bottom-16 -right-16 w-64 h-64 rounded-full bg-primary-500/8 blur-3xl pointer-events-none"></div>
-      <div class="absolute top-8 right-8 w-32 h-32 rounded-full border border-primary-500/15 pointer-events-none"></div>
-
-      <div class="relative max-w-xl">
-        <div class="section-label mb-4">Únete hoy</div>
-        <h2 class="text-4xl sm:text-5xl lg:text-6xl font-black text-ink leading-[0.9] tracking-tight mb-6">
-          ¿Listo para<br>
-          <span class="display-serif text-primary-500" style="font-style:italic">conectar?</span>
-        </h2>
-        <p class="text-base text-ink-muted mb-9 leading-relaxed max-w-sm">
-          Crea tu perfil en minutos y empieza a conectar con la escena musical española.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-3">
-          <a routerLink="/auth/register" class="btn-primary px-8 py-3.5 text-base">Registrarme gratis</a>
-          <a routerLink="/auth/login" class="btn-secondary px-6 py-3.5 text-base">Ya tengo cuenta</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- FOOTER ───────────────────────────────────────────── -->
 <footer class="px-5 sm:px-8 lg:px-14 py-8 border-t border-dark-600">

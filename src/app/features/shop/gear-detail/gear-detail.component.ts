@@ -68,6 +68,7 @@ export class GearDetailComponent implements OnInit {
   }
 
   async markAsSold() {
+    if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Marcar como vendido? El anuncio dejará de aparecer en la tienda.')) return;
     const { error } = await this.supabase.client.from('gear_listings').update({ status: 'sold' }).eq('id', this.listing().id);
     if (error) { this.toast.error('No se pudo actualizar el anuncio.'); return; }
@@ -76,6 +77,7 @@ export class GearDetailComponent implements OnInit {
   }
 
   async deleteListing() {
+    if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Eliminar este anuncio? Esta acción no se puede deshacer.')) return;
     this.deleting.set(true);
     const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', this.listing().id);
@@ -85,6 +87,7 @@ export class GearDetailComponent implements OnInit {
   }
 
   async contactSeller() {
+    if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     if (this.contacting()) return;
     this.contacting.set(true);
     const l = this.listing();

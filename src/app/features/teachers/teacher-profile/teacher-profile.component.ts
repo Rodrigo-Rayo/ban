@@ -25,6 +25,11 @@ export class TeacherProfileComponent implements OnInit {
   private toast = inject(ToastService);
 
   teacher = signal<any>(null);
+
+  toggleBookingForm() {
+    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    this.showBookingForm.set(!this.showBookingForm());
+  }
   reviews = signal<any[]>([]);
   loading = signal(true);
   currentUserId = signal<string | null>(null);

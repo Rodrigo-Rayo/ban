@@ -97,7 +97,7 @@
               <app-icon name="check" [size]="14"/>Solicitud enviada
             </div>
           } @else {
-            <button (click)="showBookingForm.set(!showBookingForm())" class="btn-primary text-sm">
+            <button (click)="toggleBookingForm()" class="btn-primary text-sm">
               {{ showBookingForm() ? 'Cancelar' : 'Solicitar reserva' }}
             </button>
           }
@@ -298,7 +298,7 @@
             Instagram
           </a>
         }
-        <button (click)="showBookingForm.set(true)" class="btn-primary w-full hidden sm:block">Reservar</button>
+        <button (click)="toggleBookingForm()" class="btn-primary w-full hidden sm:block">Reservar</button>
       </div>
     </div>
   </div>

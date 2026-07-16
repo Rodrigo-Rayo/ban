@@ -105,6 +105,7 @@ export class BandProfileComponent implements OnInit {
   }
 
   async createVacancy() {
+    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     if (!this.newVacancy.instrument) return;
     this.vacancyLoading.set(true);
     const { data, error } = await this.supabase.client.from('band_vacancies').insert({
@@ -142,6 +143,7 @@ export class BandProfileComponent implements OnInit {
   }
 
   async closeVacancy(id: string) {
+    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Cerrar esta vacante?')) return;
     const { error } = await this.supabase.client.from('band_vacancies').update({ open: false }).eq('id', id);
     if (error) { this.toast.error('No se pudo cerrar la vacante.'); return; }
@@ -159,6 +161,7 @@ export class BandProfileComponent implements OnInit {
   }
 
   async submitApply() {
+    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     const vacancyId = this.applyingTo();
     if (!vacancyId || !this.myMusicianId()) return;
     this.applyLoading.set(true);

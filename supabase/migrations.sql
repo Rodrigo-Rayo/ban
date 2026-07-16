@@ -971,3 +971,36 @@ ALTER TABLE reviews               DROP CONSTRAINT reviews_user_id_fkey,
                                   ADD CONSTRAINT reviews_user_id_fkey              FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE push_subscriptions    DROP CONSTRAINT push_subscriptions_user_id_fkey,
                                   ADD CONSTRAINT push_subscriptions_user_id_fkey   FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+-- ──────────────────────────────────────────────
+-- Listener profile: name column on profiles
+-- ──────────────────────────────────────────────
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS name TEXT;
+
+-- Update get_profile_name to include listener name from profiles table
+CREATE OR REPLACE FUNCTION get_profile_name(p_user_id UUID)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT COALESCE(
+    (
+      SELECT name FROM (
+        SELECT name FROM musicians        WHERE user_id = p_user_id
+        UNION ALL
+        SELECT name FROM bands            WHERE user_id = p_user_id
+        UNION ALL
+        SELECT name FROM venues           WHERE user_id = p_user_id
+        UNION ALL
+        SELECT name FROM teachers         WHERE user_id = p_user_id
+        UNION ALL
+        SELECT name FROM rehearsal_spaces WHERE user_id = p_user_id
+      ) t
+      WHERE name IS NOT NULL
+      LIMIT 1
+    ),
+    (SELECT name FROM profiles WHERE id = p_user_id AND name IS NOT NULL LIMIT 1)
+  );
+$$;

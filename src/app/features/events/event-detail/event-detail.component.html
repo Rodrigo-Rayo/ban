@@ -113,6 +113,10 @@
             + Apuntarme
           }
         </button>
+      } @else {
+        <a routerLink="/auth/login" class="px-5 py-2.5 text-sm font-semibold rounded-xl border border-dark-600 bg-dark-700 text-ink-muted hover:border-primary-500/50 hover:text-ink transition-colors">
+          Inicia sesión para apuntarte
+        </a>
       }
       @if (event()!.contact_email) {
         <a [href]="'mailto:' + event()!.contact_email" class="btn-secondary px-5 py-2.5 text-sm">

@@ -15,11 +15,11 @@ export const authGuard: CanActivateFn = async (route) => {
   const userId = data.session.user.id;
   const { data: profile } = await supabase.client
     .from('profiles')
-    .select('id')
+    .select('id, role')
     .eq('id', userId)
     .maybeSingle();
 
-  if (!profile) return router.createUrlTree(['/onboarding']);
+  if (!profile?.role) return router.createUrlTree(['/onboarding']);
 
   return true;
 };
