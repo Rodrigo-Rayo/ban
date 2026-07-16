@@ -299,7 +299,17 @@ export class OnboardingComponent implements OnInit {
 
     const profilePayload: Record<string, unknown> = { id: userId, role };
     if (role === 'listener') profilePayload['name'] = this.nameForm.value.name ?? null;
-    await this.supabase.client.from('profiles').upsert(profilePayload, { onConflict: 'id' });
+    const { error: profileError } = await this.supabase.client
+      .from('profiles').upsert(profilePayload, { onConflict: 'id' });
+    if (profileError) {
+      const { error: profileRetryError } = await this.supabase.client
+        .from('profiles').upsert({ id: userId, role }, { onConflict: 'id' });
+      if (profileRetryError) {
+        this.loading.set(false);
+        this.error.set('No se pudo crear el perfil. Por favor, inténtalo de nuevo.');
+        return;
+      }
+    }
 
     const roleTableMap: Record<Role, string> = {
       musician: 'musicians', band: 'bands', venue: 'venues',
