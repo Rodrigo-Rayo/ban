@@ -55,7 +55,7 @@ export class OnboardingComponent implements OnInit {
     { id: 'venue',     label: 'Sala / Espacio',  icon: 'building',   desc: 'Programo conciertos' },
     { id: 'teacher',   label: 'Profesor',        icon: 'book-open',  desc: 'Doy clases de música' },
     { id: 'rehearsal', label: 'Local de ensayo', icon: 'headphones', desc: 'Alquilo espacio' },
-    { id: 'listener',  label: 'Solo escucho',    icon: 'radio',      desc: 'Descubro artistas y eventos', separator: true },
+    { id: 'listener',  label: 'Soy del público', icon: 'radio',      desc: 'Descubro artistas y eventos', separator: true },
   ];
 
   instruments = ['Guitarra', 'Bajo', 'Batería', 'Teclados', 'Voz', 'Violín', 'Trompeta', 'Saxofón', 'Piano', 'Flauta', 'Clarinete', 'Contrabajo', 'Arpa', 'Percusión', 'Otro'];
