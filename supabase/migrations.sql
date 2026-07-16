@@ -927,3 +927,47 @@ CREATE POLICY "Users can update their notifications"
   ON notifications FOR UPDATE
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
+
+
+-- ──────────────────────────────────────────────
+-- ON DELETE CASCADE en todas las FK a auth.users
+-- Permite borrar usuarios desde el dashboard sin errores de FK
+-- ──────────────────────────────────────────────
+ALTER TABLE profiles              DROP CONSTRAINT profiles_id_fkey,
+                                  ADD CONSTRAINT profiles_id_fkey                  FOREIGN KEY (id)        REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE musicians             DROP CONSTRAINT musicians_user_id_fkey,
+                                  ADD CONSTRAINT musicians_user_id_fkey            FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE bands                 DROP CONSTRAINT bands_user_id_fkey,
+                                  ADD CONSTRAINT bands_user_id_fkey                FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE venues                DROP CONSTRAINT venues_user_id_fkey,
+                                  ADD CONSTRAINT venues_user_id_fkey               FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE events                DROP CONSTRAINT events_user_id_fkey,
+                                  ADD CONSTRAINT events_user_id_fkey               FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE conversations         DROP CONSTRAINT conversations_user1_id_fkey,
+                                  ADD CONSTRAINT conversations_user1_id_fkey       FOREIGN KEY (user1_id)  REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE conversations         DROP CONSTRAINT conversations_user2_id_fkey,
+                                  ADD CONSTRAINT conversations_user2_id_fkey       FOREIGN KEY (user2_id)  REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE messages              DROP CONSTRAINT messages_sender_id_fkey,
+                                  ADD CONSTRAINT messages_sender_id_fkey           FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE teachers              DROP CONSTRAINT teachers_user_id_fkey,
+                                  ADD CONSTRAINT teachers_user_id_fkey             FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE rehearsal_spaces      DROP CONSTRAINT rehearsal_spaces_user_id_fkey,
+                                  ADD CONSTRAINT rehearsal_spaces_user_id_fkey     FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE vacancy_applications  DROP CONSTRAINT vacancy_applications_user_id_fkey,
+                                  ADD CONSTRAINT vacancy_applications_user_id_fkey FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE favorites             DROP CONSTRAINT favorites_user_id_fkey,
+                                  ADD CONSTRAINT favorites_user_id_fkey            FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE notifications         DROP CONSTRAINT notifications_user_id_fkey,
+                                  ADD CONSTRAINT notifications_user_id_fkey        FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE rehearsal_bookings    DROP CONSTRAINT rehearsal_bookings_user_id_fkey,
+                                  ADD CONSTRAINT rehearsal_bookings_user_id_fkey   FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE posts                 DROP CONSTRAINT posts_user_id_fkey,
+                                  ADD CONSTRAINT posts_user_id_fkey                FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE gear_listings         DROP CONSTRAINT gear_listings_user_id_fkey,
+                                  ADD CONSTRAINT gear_listings_user_id_fkey        FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE event_rsvps           DROP CONSTRAINT event_rsvps_user_id_fkey,
+                                  ADD CONSTRAINT event_rsvps_user_id_fkey          FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE reviews               DROP CONSTRAINT reviews_user_id_fkey,
+                                  ADD CONSTRAINT reviews_user_id_fkey              FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE push_subscriptions    DROP CONSTRAINT push_subscriptions_user_id_fkey,
+                                  ADD CONSTRAINT push_subscriptions_user_id_fkey   FOREIGN KEY (user_id)   REFERENCES auth.users(id) ON DELETE CASCADE;

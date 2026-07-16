@@ -20,11 +20,23 @@ export class AuthService {
       .then(({ data }) => { this._session.set(data.session); })
       .catch(() => {});
 
-    this.supabase.authChanges((event, session) => {
+    this.supabase.authChanges(async (event, session) => {
       this._session.set(session);
-      if (event === 'SIGNED_IN' && session && localStorage.getItem('bandyou_needs_onboarding') === 'true') {
-        localStorage.removeItem('bandyou_needs_onboarding');
-        this.router.navigate(['/onboarding']);
+      if (event === 'SIGNED_IN' && session) {
+        if (localStorage.getItem('bandyou_needs_onboarding') === 'true') {
+          localStorage.removeItem('bandyou_needs_onboarding');
+          this.router.navigate(['/onboarding']);
+        } else if (session.user.app_metadata?.['provider'] !== 'email') {
+          // OAuth user (Google, etc.) — redirect to onboarding if no profile yet
+          const { data } = await this.supabase.client
+            .from('profiles')
+            .select('id')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          if (!data) {
+            this.router.navigate(['/onboarding']);
+          }
+        }
       }
     });
   }

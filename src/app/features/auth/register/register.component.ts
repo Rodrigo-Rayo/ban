@@ -34,7 +34,12 @@ export class RegisterComponent {
       await this.auth.signUpWithEmail(email!, password!);
       this.success.set(true);
     } catch (e: any) {
-      this.error.set(e.message ?? 'Error al registrarse');
+      const msg: string = e.message ?? '';
+      if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
+        this.error.set('Este email ya tiene una cuenta. Prueba a iniciar sesión.');
+      } else {
+        this.error.set(msg || 'Error al registrarse');
+      }
     } finally {
       this.loading.set(false);
     }
@@ -43,9 +48,9 @@ export class RegisterComponent {
   async loginWithGoogle() {
     this.error.set('');
     try {
-      const role = this.form.value.role || 'musician';
-      localStorage.setItem('bandyou_role', role);
-      localStorage.setItem('bandyou_needs_onboarding', 'true');
+      // Store role so onboarding can use it if this is a new Google user.
+      // Do NOT set bandyou_needs_onboarding — auth.service checks profile existence for OAuth users.
+      localStorage.setItem('bandyou_role', this.form.value.role || 'musician');
       await this.auth.signInWithGoogle();
     } catch (e: any) {
       this.error.set(e.message ?? 'Error con Google');
