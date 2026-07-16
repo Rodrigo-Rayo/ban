@@ -912,3 +912,18 @@ CREATE INDEX IF NOT EXISTS idx_bands_name_trgm           ON bands            USI
 CREATE INDEX IF NOT EXISTS idx_venues_name_trgm          ON venues           USING gin(name gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_teachers_name_trgm        ON teachers         USING gin(name gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_rehearsal_name_trgm       ON rehearsal_spaces USING gin(name gin_trgm_ops);
+
+
+-- Fix: Add WITH CHECK to conversations UPDATE policy to prevent column hijacking
+DROP POLICY IF EXISTS "Participants can update conversation" ON conversations;
+CREATE POLICY "Participants can update conversation"
+  ON conversations FOR UPDATE
+  USING (user1_id = auth.uid() OR user2_id = auth.uid())
+  WITH CHECK (user1_id = auth.uid() OR user2_id = auth.uid());
+
+-- Fix: Add WITH CHECK to notifications UPDATE policy to restrict to read-only changes
+DROP POLICY IF EXISTS "Users can update their notifications" ON notifications;
+CREATE POLICY "Users can update their notifications"
+  ON notifications FOR UPDATE
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());

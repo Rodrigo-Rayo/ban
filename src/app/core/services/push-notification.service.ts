@@ -10,6 +10,8 @@ export class PushNotificationService {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
 
+  private currentEndpoint: string | null = null;
+
   constructor() {
     this.swPush.notificationClicks.subscribe(({ notification }) => {
       const url = (notification as any).data?.url;
@@ -29,6 +31,8 @@ export class PushNotificationService {
       const keys = subJson.keys as { p256dh: string; auth: string } | undefined;
       if (!keys?.p256dh || !keys?.auth) return;
 
+      this.currentEndpoint = subJson.endpoint ?? null;
+
       await this.supabase.client.from('push_subscriptions').upsert({
         user_id: userId,
         endpoint: subJson.endpoint,
@@ -40,10 +44,18 @@ export class PushNotificationService {
     }
   }
 
-  async unsubscribeAll(userId: string): Promise<void> {
+  /** Unsubscribes only this device. Other devices keep their push subscriptions. */
+  async unsubscribeDevice(userId: string): Promise<void> {
     if (!this.swPush.isEnabled) return;
     try {
-      await this.supabase.client.from('push_subscriptions').delete().eq('user_id', userId);
+      if (this.currentEndpoint) {
+        await this.supabase.client
+          .from('push_subscriptions')
+          .delete()
+          .eq('user_id', userId)
+          .eq('endpoint', this.currentEndpoint);
+        this.currentEndpoint = null;
+      }
       await this.swPush.unsubscribe();
     } catch { /* ignore */ }
   }

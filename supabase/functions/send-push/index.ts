@@ -87,13 +87,31 @@ serve(async (req) => {
       ),
     );
 
+    // Clean up expired/revoked subscriptions (HTTP 410 Gone or 404 Not Found)
+    const expiredEndpoints: string[] = [];
     results.forEach((r, i) => {
       if (r.status === 'fulfilled') {
         console.log(`[send-push] sub[${i}] sent ok`);
       } else {
-        console.error(`[send-push] sub[${i}] failed:`, r.reason?.message ?? r.reason);
+        const status = (r.reason as any)?.statusCode ?? (r.reason as any)?.status;
+        console.error(`[send-push] sub[${i}] failed (${status}):`, r.reason?.message ?? r.reason);
+        if (status === 410 || status === 404) {
+          expiredEndpoints.push(subs[i].endpoint);
+        }
       }
     });
+
+    if (expiredEndpoints.length > 0) {
+      const { error: deleteErr } = await supabase
+        .from('push_subscriptions')
+        .delete()
+        .in('endpoint', expiredEndpoints);
+      if (deleteErr) {
+        console.error('[send-push] failed to delete expired subs:', deleteErr.message);
+      } else {
+        console.log('[send-push] cleaned', expiredEndpoints.length, 'expired subscription(s)');
+      }
+    }
 
     return new Response('ok', { status: 200, headers: corsHeaders });
   } catch (err) {

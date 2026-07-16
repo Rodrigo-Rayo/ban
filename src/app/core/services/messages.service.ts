@@ -109,10 +109,11 @@ export class MessagesService {
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: false })
       .limit(100);
 
-    return (data || []) as Message[];
+    // Reverse so oldest-first in UI while fetching newest-first from DB
+    return ((data || []) as Message[]).reverse();
   }
 
   async sendMessage(conversationId: string, content: string): Promise<Message | null> {
@@ -169,13 +170,11 @@ export class MessagesService {
     const user = await this.getCurrentUser();
     if (!user) return 0;
 
-    const ids = this._cachedConvIds ?? (await this.getConversations()).map((c: any) => c.id);
-    if (!ids.length) return 0;
-
+    // Query directly without relying on stale _cachedConvIds — RLS ensures
+    // we only see messages from conversations we participate in.
     const { count } = await this.supabase.client
       .from('messages')
       .select('*', { count: 'exact', head: true })
-      .in('conversation_id', ids)
       .eq('read', false)
       .neq('sender_id', user.id);
 
@@ -197,12 +196,9 @@ export class MessagesService {
   async getUnreadConversationIds(): Promise<Set<string>> {
     const user = await this.getCurrentUser();
     if (!user) return new Set();
-    const ids = this._cachedConvIds ?? (await this.getConversations()).map((c: any) => c.id);
-    if (!ids.length) return new Set();
     const { data } = await this.supabase.client
       .from('messages')
       .select('conversation_id')
-      .in('conversation_id', ids)
       .eq('read', false)
       .neq('sender_id', user.id)
       .limit(500);

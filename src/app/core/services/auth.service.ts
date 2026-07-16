@@ -1,17 +1,21 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Session, User } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
+import { PushNotificationService } from './push-notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private _session = signal<Session | null>(null);
+  private supabase = inject(SupabaseService);
+  private router = inject(Router);
+  private push = inject(PushNotificationService);
 
   readonly session = this._session.asReadonly();
   readonly user = computed(() => this._session()?.user ?? null);
   readonly isLoggedIn = computed(() => !!this._session());
 
-  constructor(private supabase: SupabaseService, private router: Router) {
+  constructor() {
     this.supabase.getSession()
       .then(({ data }) => { this._session.set(data.session); })
       .catch(() => {});
@@ -42,6 +46,10 @@ export class AuthService {
   }
 
   async signOut() {
+    const userId = this.user()?.id;
+    if (userId) {
+      try { await this.push.unsubscribeDevice(userId); } catch { /* ignore */ }
+    }
     try { await this.supabase.signOut(); } catch { /* ignore */ }
     this.router.navigate(['/']);
   }

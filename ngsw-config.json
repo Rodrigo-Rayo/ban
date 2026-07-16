@@ -26,18 +26,6 @@
       }
     }
   ],
-  "dataGroups": [
-    {
-      "name": "api-freshness",
-      "urls": ["https://*.supabase.co/**"],
-      "cacheConfig": {
-        "strategy": "freshness",
-        "maxSize": 100,
-        "maxAge": "3d",
-        "timeout": "10s"
-      }
-    }
-  ],
   "navigationUrls": [
     "/**",
     "!/**/*.*",
