@@ -28,9 +28,10 @@ export class CallbackComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Second try: wait for SIGNED_IN event (PKCE code exchange in progress)
+    // Second try: wait for auth event (PKCE code exchange in progress)
+    // Handle both SIGNED_IN and INITIAL_SESSION — Supabase v2 may fire either after PKCE exchange
     const { data: { subscription } } = this.supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
         this.sub = subscription;
         await this.redirect(session.user.id);
       }
