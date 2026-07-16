@@ -19,8 +19,16 @@ Replaced emoji-only empty state with icon-based warm design, replaced `btn-accen
 ### Dashboard (`/dashboard`) — DONE (redesigned 2026-04-28)
 Replaced all emoji empty states with semantic SVG icons, replaced `btn-accent` with `btn-primary`, replaced `🔗 Compartir` button text with SVG link icon, improved copy-link state feedback with checkmark SVG, improved location display in profile hero with pin SVG, added proper loading skeleton, added `section-label` for sidebar headers, replaced emoji in sidebar post items with SVG icon.
 
-### Search (`/search`) — DONE
-Already had well-designed skeleton loading, card structure with terracotta top-accent stripe, proper empty states with SVG icons, genre pill filters, city dropdown, mobile tab strip. No major redesign needed.
+### Search (`/search`) — REDESIGNED (2026-07-14 full card pass)
+**Card layout**: All 6 entity types (musicians, bands, venues, events, teachers, rehearsal) now have distinct visual identities instead of the old identical stripe+card template.
+**Musicians & Bands**: LinkedIn-inspired social profile cards — 56px tall gradient banner (avatarColor→#5a2617), circular avatar (56px, `border-[3px] border-dark-800`) overlapping banner via `-mt-7`, centered name/instrument/city/tags below, ghost-to-filled "Ver perfil" CTA button (`border border-primary-500/30 rounded-full group-hover:bg-primary-500`).
+**Bands extra**: "Busca miembros" `tag-green` badge in banner top-right.
+**Venues**: Stat-forward card — square avatar + name/city left, capacity number large (`text-2xl font-black`) top-right. Genre tags below.
+**Events**: Kept date-box design. Replaced `[ngClass]` with: `[class.event-card-featured]` on wrapper, `[class.date-box-featured]`/`[class.date-box-default]` on date box (CSS classes added to styles.css), `[class.text-primary-400]`/`[class.text-ink-muted]` for text colors — all valid Angular 18 bindings.
+**Teachers**: Vinted-inspired price-first — circular avatar (48px) + name/instrument/city, price badge (`bg-primary-900 border border-primary-500/20 rounded-xl`) top-right with large `€` number.
+**Rehearsal**: Space stats card — square avatar + name/city, hourly rate as `text-2xl font-black` top-right, specs row (capacity + rooms count with icons below).
+**Loading skeleton**: Updated to match profile card shape (banner + circle overlap). Reduced from 8 to 6 items, grid `lg:grid-cols-3` max (no xl:grid-cols-4).
+**CSS added to styles.css**: `.date-box-featured`, `.date-box-default`, `.event-card-featured`.
 
 ### Musician Profile (`/musicians/:id`) — DONE (2026-04-28)
 Fix applied: hero avatar changed from `bg-dark-700 text-primary-400` (low contrast) to `bg-primary-500 text-white` (WCAG AA compliant).

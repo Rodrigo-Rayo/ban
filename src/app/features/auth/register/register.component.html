@@ -9,22 +9,7 @@
 
     <div class="w-full max-w-sm">
 
-      @if (success()) {
-        <div class="text-center py-10 animate-slide-in">
-          <div class="w-16 h-16 rounded-2xl bg-signal-gBg border border-signal-green/30 flex items-center justify-center mx-auto mb-6">
-            <svg class="w-8 h-8 text-signal-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-          </div>
-          <h2 class="text-2xl font-black text-ink mb-2 tracking-tight">Revisa tu email.</h2>
-          <p class="text-sm text-ink-muted max-w-xs mx-auto leading-relaxed mb-6">
-            Te hemos enviado un enlace de confirmación. Haz clic para activar tu cuenta.
-          </p>
-          <a routerLink="/auth/login" class="btn-primary text-sm px-6">Ir a inicio de sesión</a>
-        </div>
-      } @else {
-
-        <div class="mb-7">
+      <div class="mb-7">
           <h1 class="text-2xl font-black text-ink mb-2 tracking-tight">Únete a BandYou.</h1>
           <p class="text-sm text-ink-muted">Crea tu cuenta y elige tu perfil en el siguiente paso.</p>
         </div>
@@ -89,7 +74,6 @@
           ¿Ya tienes cuenta?
           <a routerLink="/auth/login" class="text-primary-500 hover:text-primary-600 transition-colors font-bold ml-1">Inicia sesión</a>
         </p>
-      }
     </div>
   </div>
 </div>

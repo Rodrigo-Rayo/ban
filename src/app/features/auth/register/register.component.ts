@@ -1,7 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { RegistrationStateService } from '../../../core/services/registration-state.service';
 
 @Component({
   selector: 'app-register',
@@ -11,35 +12,23 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class RegisterComponent {
   private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private registrationState = inject(RegistrationStateService);
   auth = inject(AuthService);
 
   loading = signal(false);
   error = signal('');
-  success = signal(false);
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  async onSubmit() {
+  onSubmit() {
     if (this.form.invalid) return;
-    this.loading.set(true);
-    this.error.set('');
-    try {
-      const { email, password } = this.form.value;
-      const { needsConfirmation } = await this.auth.signUpWithEmail(email!, password!);
-      if (needsConfirmation) this.success.set(true);
-    } catch (e: any) {
-      const msg: string = e.message ?? '';
-      if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
-        this.error.set('Este email ya tiene una cuenta. Prueba a iniciar sesión.');
-      } else {
-        this.error.set(msg || 'Error al registrarse');
-      }
-    } finally {
-      this.loading.set(false);
-    }
+    const { email, password } = this.form.value;
+    this.registrationState.set(email!, password!);
+    this.router.navigate(['/onboarding']);
   }
 
   async loginWithGoogle() {

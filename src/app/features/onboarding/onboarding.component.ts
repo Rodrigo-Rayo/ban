@@ -3,6 +3,7 @@ import { FormBuilder, Validators, ReactiveFormsModule, FormsModule, AbstractCont
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { RegistrationStateService } from '../../core/services/registration-state.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES } from '../../core/constants/cities';
 
@@ -29,6 +30,7 @@ export class OnboardingComponent implements OnInit {
   private fb = inject(FormBuilder);
   private supabase = inject(SupabaseService);
   private router = inject(Router);
+  private registrationState = inject(RegistrationStateService);
 
   step = signal(0);
   role = signal<Role>('musician');
@@ -183,7 +185,10 @@ export class OnboardingComponent implements OnInit {
 
   async ngOnInit() {
     const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      if (!this.registrationState.hasPending) this.router.navigate(['/auth/register']);
+      return;
+    }
 
     const [
       { data: musicianData },
@@ -268,13 +273,30 @@ export class OnboardingComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) { this.loading.set(false); this.router.navigate(['/auth/login']); return; }
+    let userId: string;
+
+    if (this.registrationState.hasPending) {
+      const { data, error } = await this.supabase.signUpWithEmail(
+        this.registrationState.email,
+        this.registrationState.password,
+      );
+      if (error || !data.session) {
+        this.loading.set(false);
+        this.error.set(error?.message || 'Error al crear la cuenta. Inténtalo de nuevo.');
+        return;
+      }
+      this.registrationState.clear();
+      userId = data.session.user.id;
+    } else {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) { this.loading.set(false); this.router.navigate(['/auth/login']); return; }
+      userId = user.id;
+    }
 
     const z = this.zoneForm.value;
     const role = this.role();
 
-    await this.supabase.client.from('profiles').upsert({ id: user.id, role }, { onConflict: 'id' });
+    await this.supabase.client.from('profiles').upsert({ id: userId, role }, { onConflict: 'id' });
 
     const roleTableMap: Record<Role, string> = {
       musician: 'musicians', band: 'bands', venue: 'venues',
@@ -282,7 +304,7 @@ export class OnboardingComponent implements OnInit {
     };
     const prev = this.originalRole();
     if (prev && prev !== role) {
-      await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', user.id);
+      await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', userId);
     }
 
     const genre = this.selectedGenres().join(', ');
@@ -291,9 +313,9 @@ export class OnboardingComponent implements OnInit {
 
     if (role === 'musician') {
       const { error } = await this.supabase.client.from('musicians').upsert({
-        user_id: user.id, name: this.nameForm.value.name,
+        user_id: userId, name: this.nameForm.value.name,
         city: z.city, genre, instrument, level: this.selectedLevel(),
-        description: z.description, contact_email: z.contactEmail || user.email,
+        description: z.description, contact_email: z.contactEmail,
         spotify_url: z.spotify_url, youtube_url: z.youtube_url,
         instagram_url: z.instagram_url, soundcloud_url: z.soundcloud_url,
         influences: z.influences, experience: z.experience,
@@ -303,9 +325,9 @@ export class OnboardingComponent implements OnInit {
       saveError = error;
     } else if (role === 'band') {
       const { data: bandRow, error } = await this.supabase.client.from('bands').upsert({
-        user_id: user.id, name: this.nameForm.value.name,
+        user_id: userId, name: this.nameForm.value.name,
         city: z.city, genre, description: z.description,
-        contact_email: z.contactEmail || user.email,
+        contact_email: z.contactEmail,
         spotify_url: z.spotify_url, youtube_url: z.youtube_url,
         instagram_url: z.instagram_url, website_url: z.website_url,
       }, { onConflict: 'user_id' }).select('id').single();
@@ -321,19 +343,19 @@ export class OnboardingComponent implements OnInit {
       }
     } else if (role === 'venue') {
       const { error } = await this.supabase.client.from('venues').upsert({
-        user_id: user.id, name: this.nameForm.value.name,
+        user_id: userId, name: this.nameForm.value.name,
         city: z.city, genres: genre, capacity: z.capacity,
-        description: z.description, contact_email: z.contactEmail || user.email,
+        description: z.description, contact_email: z.contactEmail,
         instagram_url: z.instagram_url, website_url: z.website_url,
         phone: z.phone, address: z.address,
       }, { onConflict: 'user_id' });
       saveError = error;
     } else if (role === 'teacher') {
       const { error } = await this.supabase.client.from('teachers').upsert({
-        user_id: user.id, name: this.nameForm.value.name,
+        user_id: userId, name: this.nameForm.value.name,
         city: z.city, instrument, level: this.selectedLevel(),
         hourly_rate: z.hourly_rate, experience: z.experience,
-        description: z.description, contact_email: z.contactEmail || user.email,
+        description: z.description, contact_email: z.contactEmail,
         instagram_url: z.instagram_url, youtube_url: z.youtube_url,
         website_url: z.website_url, modality: z.modality,
         experience_years: z.experience_years,
@@ -341,9 +363,9 @@ export class OnboardingComponent implements OnInit {
       saveError = error;
     } else if (role === 'rehearsal') {
       const { error } = await this.supabase.client.from('rehearsal_spaces').upsert({
-        user_id: user.id, name: this.nameForm.value.name,
+        user_id: userId, name: this.nameForm.value.name,
         city: z.city, hourly_rate: z.hourly_rate, capacity: z.capacity,
-        description: z.description, contact_email: z.contactEmail || user.email,
+        description: z.description, contact_email: z.contactEmail,
         phone: z.phone, address: z.address, website_url: z.website_url,
         instagram_url: z.instagram_url,
       }, { onConflict: 'user_id' });

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"C:\\\\Users\\\\Rodrigo\\\\.claude\\\\skills\" 2>/dev/null || echo \"no skills dir\")",
+      "Read(//c/Users/Rodrigo/.claude/skills/**)",
+      "Read(//c/Users/Rodrigo/.claude/commands/**)",
+      "Read(//c/Users/Rodrigo/.claude/agents/**)"
+    ]
+  }
+}
