@@ -327,7 +327,7 @@
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
           <button type="button" (click)="onSubmit()" [disabled]="loading() || zoneForm.invalid"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-            @if (loading()) { Guardando... } @else { Entrar a BandYou }
+            @if (loading()) { Creando cuenta... } @else { Crear cuenta }
           </button>
         </div>
       </div>
@@ -493,42 +493,12 @@
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
           <button type="button" (click)="onSubmit()" [disabled]="loading() || zoneForm.invalid"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-            @if (loading()) { Guardando... } @else { Entrar a BandYou }
+            @if (loading()) { Creando cuenta... } @else { Crear cuenta }
           </button>
         </div>
       </div>
     }
 
-    <!-- ── SUCCESS ──────────────────────────────────────────────── -->
-    @if (step() === totalSteps()) {
-      <div class="animate-slide-in text-center py-16">
-        <div class="w-24 h-24 rounded-full bg-primary-500/10 border border-primary-500/30 flex items-center justify-center mx-auto mb-8">
-          <svg class="w-10 h-10 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-          </svg>
-        </div>
-
-        <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-4 flex items-center justify-center gap-2">
-          <span>Bienvenido</span><span class="opacity-30">—</span><span>BandYou</span>
-        </p>
-        <h1 class="text-5xl font-bold text-ink leading-tight mb-3">
-          @if (isListener()) {
-            Bienvenido a<br><span class="text-primary-400">BandYou.</span>
-          } @else {
-            Ya eres parte<br><span class="text-primary-400">de la escena.</span>
-          }
-        </h1>
-        <p class="text-sm text-ink-muted mb-10 max-w-sm mx-auto leading-relaxed">
-          @if (isListener()) {
-            Explora músicos, bandas, salas y eventos cerca de ti.
-          } @else {
-            Tu ficha ya es visible en el directorio. Ahora explora, conecta y toca.
-          }
-        </p>
-
-        <a routerLink="/home" class="btn-accent px-8 py-3.5 text-sm">Empezar</a>
-      </div>
-    }
 
   </div>
 </div>

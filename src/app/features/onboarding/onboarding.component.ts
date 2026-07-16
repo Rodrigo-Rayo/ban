@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, FormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { RegistrationStateService } from '../../core/services/registration-state.service';
@@ -23,7 +23,7 @@ function optionalPositiveNumber(control: AbstractControl): ValidationErrors | nu
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, CommonModule, RouterLink, IconComponent],
+  imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent],
   templateUrl: './onboarding.component.html',
 })
 export class OnboardingComponent implements OnInit {
@@ -379,7 +379,7 @@ export class OnboardingComponent implements OnInit {
       this.error.set('No se pudo guardar el perfil. Por favor, inténtalo de nuevo.');
     } else {
       localStorage.removeItem('bandyou_role');
-      this.step.set(this.totalSteps());
+      this.router.navigate(['/home']);
     }
   }
 
