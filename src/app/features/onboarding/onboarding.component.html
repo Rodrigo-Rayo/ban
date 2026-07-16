@@ -327,7 +327,7 @@
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
           <button type="button" (click)="onSubmit()" [disabled]="loading() || zoneForm.invalid"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-            @if (loading()) { Guardando... } @else { Crear ficha }
+            @if (loading()) { Guardando... } @else { Entrar a BandYou }
           </button>
         </div>
       </div>
@@ -493,7 +493,7 @@
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
           <button type="button" (click)="onSubmit()" [disabled]="loading() || zoneForm.invalid"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-            @if (loading()) { Guardando... } @else { Crear ficha }
+            @if (loading()) { Guardando... } @else { Entrar a BandYou }
           </button>
         </div>
       </div>
@@ -526,10 +526,7 @@
           }
         </p>
 
-        <div class="flex gap-3 justify-center">
-          <a routerLink="/search" class="btn-accent px-7 py-3.5 text-sm">Explorar directorio</a>
-          <button type="button" (click)="goToDashboard()" class="btn-secondary px-7 py-3.5 text-sm">Mi panel</button>
-        </div>
+        <a routerLink="/home" class="btn-accent px-8 py-3.5 text-sm">Empezar</a>
       </div>
     }
 
