@@ -6,7 +6,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES } from '../../core/constants/cities';
 
-export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal';
+export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
 
 function optionalUrl(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
@@ -49,12 +49,13 @@ export class OnboardingComponent implements OnInit {
   readonly DAYS_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
   readonly SLOTS = ['mañanas', 'tardes', 'noches'];
 
-  roles: { id: Role; label: string; icon: string; desc: string }[] = [
+  roles: { id: Role; label: string; icon: string; desc: string; separator?: boolean }[] = [
     { id: 'musician',  label: 'Músico',         icon: 'music',      desc: 'Toco solo o busco banda' },
     { id: 'band',      label: 'Banda',           icon: 'mic',        desc: 'Buscamos miembros o bolos' },
     { id: 'venue',     label: 'Sala / Espacio',  icon: 'building',   desc: 'Programo conciertos' },
     { id: 'teacher',   label: 'Profesor',        icon: 'book-open',  desc: 'Doy clases de música' },
     { id: 'rehearsal', label: 'Local de ensayo', icon: 'headphones', desc: 'Alquilo espacio' },
+    { id: 'listener',  label: 'Solo escucho',    icon: 'radio',      desc: 'Descubro artistas y eventos', separator: true },
   ];
 
   instruments = ['Guitarra', 'Bajo', 'Batería', 'Teclados', 'Voz', 'Violín', 'Trompeta', 'Saxofón', 'Piano', 'Flauta', 'Clarinete', 'Contrabajo', 'Arpa', 'Percusión', 'Otro'];
@@ -90,9 +91,13 @@ export class OnboardingComponent implements OnInit {
     experience_years: ['', optionalPositiveNumber],
   });
 
+  isListener        = computed(() => this.role() === 'listener');
   hasInstrumentStep = computed(() => this.role() === 'musician' || this.role() === 'teacher');
   hasLevelStep      = computed(() => this.role() === 'musician' || this.role() === 'teacher');
-  totalSteps        = computed(() => this.hasInstrumentStep() ? 5 : 4);
+  totalSteps        = computed(() => {
+    if (this.isListener()) return 2;
+    return this.hasInstrumentStep() ? 5 : 4;
+  });
 
   toggleInstrument(i: string) {
     const cur = this.selectedInstruments();
@@ -154,6 +159,16 @@ export class OnboardingComponent implements OnInit {
       { data: rehearsalData, role: 'rehearsal' as Role },
     ].find(r => r.data !== null);
 
+    if (!found) {
+      const { data: profileRow } = await this.supabase.client
+        .from('profiles').select('role').eq('id', user.id).maybeSingle();
+      if (profileRow?.role === 'listener') {
+        this.role.set('listener');
+        this.originalRole.set('listener');
+        this.isEditing.set(true);
+      }
+    }
+
     if (found) {
       const { data, role } = found;
       this.role.set(role);
@@ -211,11 +226,11 @@ export class OnboardingComponent implements OnInit {
     const z = this.zoneForm.value;
     const role = this.role();
 
-    await this.supabase.client.from('profiles').update({ role }).eq('id', user.id);
+    await this.supabase.client.from('profiles').upsert({ id: user.id, role }, { onConflict: 'id' });
 
     const roleTableMap: Record<Role, string> = {
       musician: 'musicians', band: 'bands', venue: 'venues',
-      teacher: 'teachers', rehearsal: 'rehearsal_spaces',
+      teacher: 'teachers', rehearsal: 'rehearsal_spaces', listener: '',
     };
     const prev = this.originalRole();
     if (prev && prev !== role) {
@@ -285,6 +300,8 @@ export class OnboardingComponent implements OnInit {
         instagram_url: z.instagram_url,
       }, { onConflict: 'user_id' });
       saveError = error;
+    } else if (role === 'listener') {
+      saveError = null;
     }
 
     this.loading.set(false);

@@ -17,12 +17,19 @@
           <span>01 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Tu rol</span>
         </p>
         <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
-          ¿Cómo quieres<br><span class="text-primary-400">aparecer en la escena?</span>
+          ¿Cuál es tu<br><span class="text-primary-400">relación con la música?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Elige el perfil que mejor te define. Podrás cambiarlo después.</p>
 
         <div class="flex flex-col gap-2.5 mb-8">
           @for (r of roles; track r.id) {
+            @if (r.separator) {
+              <div class="flex items-center gap-3 my-1">
+                <div class="flex-1 h-px bg-dark-700"></div>
+                <span class="text-[10px] font-mono uppercase tracking-widest text-ink-muted">o simplemente</span>
+                <div class="flex-1 h-px bg-dark-700"></div>
+              </div>
+            }
             <button type="button" (click)="role.set(r.id)"
               class="w-full text-left px-5 py-4 rounded-2xl border transition-all duration-150 flex items-center gap-4 focus:outline-none"
               [ngClass]="role() === r.id
@@ -76,10 +83,17 @@
 
         <div class="flex gap-3">
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
-          <button type="button" (click)="next()" [disabled]="!canProceedStep1()"
-            class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-            Continuar
-          </button>
+          @if (isListener()) {
+            <button type="button" (click)="onSubmit()" [disabled]="!canProceedStep1() || loading()"
+              class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+              @if (loading()) { Entrando... } @else { Entrar }
+            </button>
+          } @else {
+            <button type="button" (click)="next()" [disabled]="!canProceedStep1()"
+              class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+              Continuar
+            </button>
+          }
         </div>
       </div>
     }
@@ -498,10 +512,18 @@
           <span>Bienvenido</span><span class="opacity-30">—</span><span>BandYou</span>
         </p>
         <h1 class="text-5xl font-bold text-ink leading-tight mb-3">
-          Ya eres parte<br><span class="text-primary-400">de la escena.</span>
+          @if (isListener()) {
+            Bienvenido a<br><span class="text-primary-400">BandYou.</span>
+          } @else {
+            Ya eres parte<br><span class="text-primary-400">de la escena.</span>
+          }
         </h1>
         <p class="text-sm text-ink-muted mb-10 max-w-sm mx-auto leading-relaxed">
-          Tu ficha ya es visible en el directorio. Ahora explora, conecta y toca.
+          @if (isListener()) {
+            Explora músicos, bandas, salas y eventos cerca de ti.
+          } @else {
+            Tu ficha ya es visible en el directorio. Ahora explora, conecta y toca.
+          }
         </p>
 
         <div class="flex gap-3 justify-center">
