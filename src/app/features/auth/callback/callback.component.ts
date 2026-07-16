@@ -1,7 +1,6 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
-import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
 
 @Component({
   selector: 'app-callback',
@@ -15,63 +14,43 @@ import { Subscription as SupabaseSubscription } from '@supabase/supabase-js';
     </div>
   `,
 })
-export class CallbackComponent implements OnInit, OnDestroy {
+export class CallbackComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
-  private sub: SupabaseSubscription | null = null;
 
   async ngOnInit() {
-    console.log('[Callback] ngOnInit — URL:', window.location.href);
+    const code = new URLSearchParams(window.location.search).get('code');
 
-    // First try: session may already be available if Supabase exchanged the code
+    if (code) {
+      // Explicitly exchange the PKCE code — avoids LockManager race with service worker
+      const { data, error } = await this.supabase.auth.exchangeCodeForSession(code);
+      if (data?.session) {
+        await this.redirect(data.session.user.id);
+        return;
+      }
+      if (error) {
+        this.router.navigate(['/auth/login']);
+        return;
+      }
+    }
+
+    // No code in URL — check if there's already a valid session
     const { data: { session } } = await this.supabase.getSession();
-    console.log('[Callback] getSession result:', session ? `user=${session.user.id}` : 'null');
-
     if (session) {
-      await this.redirect(session.user.id, 'getSession');
+      await this.redirect(session.user.id);
       return;
     }
 
-    // Second try: wait for auth event (PKCE code exchange in progress)
-    const { data: { subscription } } = this.supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[Callback] onAuthStateChange event:', event, 'session:', session ? session.user.id : 'null');
-      if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
-        this.sub = subscription;
-        await this.redirect(session.user.id, event);
-      }
-    });
-    this.sub = subscription;
-
-    // Fallback: if nothing happens in 5 seconds, send to login
-    setTimeout(() => {
-      if (this.sub) {
-        console.log('[Callback] TIMEOUT — no auth event received, going to login');
-        this.sub.unsubscribe();
-        this.sub = null;
-        this.router.navigate(['/auth/login']);
-      }
-    }, 5000);
+    this.router.navigate(['/auth/login']);
   }
 
-  private async redirect(userId: string, source: string) {
-    console.log('[Callback] redirect() called from:', source, 'userId:', userId);
-    if (this.sub) {
-      this.sub.unsubscribe();
-      this.sub = null;
-    }
-    const { data: profile, error } = await this.supabase.client
+  private async redirect(userId: string) {
+    const { data: profile } = await this.supabase.client
       .from('profiles')
       .select('id')
       .eq('id', userId)
       .maybeSingle();
 
-    console.log('[Callback] profile check:', profile, 'error:', error);
-    const dest = profile ? '/home' : '/onboarding';
-    console.log('[Callback] navigating to:', dest);
-    this.router.navigate([dest]);
-  }
-
-  ngOnDestroy() {
-    this.sub?.unsubscribe();
+    this.router.navigate([profile ? '/home' : '/onboarding']);
   }
 }
