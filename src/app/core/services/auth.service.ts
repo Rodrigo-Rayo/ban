@@ -22,10 +22,6 @@ export class AuthService {
 
     this.supabase.authChanges((event, session) => {
       this._session.set(session);
-      if (event === 'SIGNED_IN' && session && localStorage.getItem('bandyou_needs_onboarding') === 'true') {
-        localStorage.removeItem('bandyou_needs_onboarding');
-        this.router.navigate(['/onboarding']);
-      }
     });
   }
 
@@ -35,9 +31,16 @@ export class AuthService {
     this.router.navigate(['/home']);
   }
 
-  async signUpWithEmail(email: string, password: string) {
-    const { error } = await this.supabase.signUpWithEmail(email, password);
+  async signUpWithEmail(email: string, password: string): Promise<{ needsConfirmation: boolean }> {
+    const { data, error } = await this.supabase.signUpWithEmail(email, password);
     if (error) throw error;
+    if (data.session) {
+      // Email confirmation disabled — user is immediately authenticated
+      this.router.navigate(['/onboarding']);
+      return { needsConfirmation: false };
+    }
+    // Email confirmation required — caller shows "revisa tu email"
+    return { needsConfirmation: true };
   }
 
   async signInWithGoogle() {

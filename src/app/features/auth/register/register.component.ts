@@ -28,9 +28,8 @@ export class RegisterComponent {
     this.error.set('');
     try {
       const { email, password } = this.form.value;
-      localStorage.setItem('bandyou_needs_onboarding', 'true');
-      await this.auth.signUpWithEmail(email!, password!);
-      this.success.set(true);
+      const { needsConfirmation } = await this.auth.signUpWithEmail(email!, password!);
+      if (needsConfirmation) this.success.set(true);
     } catch (e: any) {
       const msg: string = e.message ?? '';
       if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
