@@ -21,19 +21,23 @@ export class CallbackComponent implements OnInit, OnDestroy {
   private sub: SupabaseSubscription | null = null;
 
   async ngOnInit() {
+    console.log('[Callback] ngOnInit — URL:', window.location.href);
+
     // First try: session may already be available if Supabase exchanged the code
     const { data: { session } } = await this.supabase.getSession();
+    console.log('[Callback] getSession result:', session ? `user=${session.user.id}` : 'null');
+
     if (session) {
-      await this.redirect(session.user.id);
+      await this.redirect(session.user.id, 'getSession');
       return;
     }
 
     // Second try: wait for auth event (PKCE code exchange in progress)
-    // Handle both SIGNED_IN and INITIAL_SESSION — Supabase v2 may fire either after PKCE exchange
     const { data: { subscription } } = this.supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[Callback] onAuthStateChange event:', event, 'session:', session ? session.user.id : 'null');
       if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
         this.sub = subscription;
-        await this.redirect(session.user.id);
+        await this.redirect(session.user.id, event);
       }
     });
     this.sub = subscription;
@@ -41,25 +45,30 @@ export class CallbackComponent implements OnInit, OnDestroy {
     // Fallback: if nothing happens in 5 seconds, send to login
     setTimeout(() => {
       if (this.sub) {
+        console.log('[Callback] TIMEOUT — no auth event received, going to login');
         this.sub.unsubscribe();
         this.sub = null;
+        this.router.navigate(['/auth/login']);
       }
-      this.router.navigate(['/auth/login']);
     }, 5000);
   }
 
-  private async redirect(userId: string) {
+  private async redirect(userId: string, source: string) {
+    console.log('[Callback] redirect() called from:', source, 'userId:', userId);
     if (this.sub) {
       this.sub.unsubscribe();
       this.sub = null;
     }
-    const { data: profile } = await this.supabase.client
+    const { data: profile, error } = await this.supabase.client
       .from('profiles')
       .select('id')
       .eq('id', userId)
       .maybeSingle();
 
-    this.router.navigate([profile ? '/home' : '/onboarding']);
+    console.log('[Callback] profile check:', profile, 'error:', error);
+    const dest = profile ? '/home' : '/onboarding';
+    console.log('[Callback] navigating to:', dest);
+    this.router.navigate([dest]);
   }
 
   ngOnDestroy() {
