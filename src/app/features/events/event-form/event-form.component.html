@@ -63,7 +63,11 @@
               </div>
               <div>
                 <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad *</label>
-                <input formControlName="city" type="text" placeholder="Madrid" class="input-field"/>
+                <select formControlName="city" class="input-field">
+                  @for (city of cities; track city) {
+                    <option [value]="city">{{ city }}</option>
+                  }
+                </select>
                 @if (form.get('city')?.invalid && form.get('city')?.touched) {
                   <p class="text-xs text-signal-red mt-1.5">La ciudad es obligatoria.</p>
                 }

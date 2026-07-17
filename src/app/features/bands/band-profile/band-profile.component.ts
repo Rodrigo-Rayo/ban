@@ -156,6 +156,10 @@ export class BandProfileComponent implements OnInit {
 
   openApply(vacancyId: string) {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.myMusicianId()) {
+      this.toast.error('Solo los músicos pueden postularse a vacantes. Crea un perfil de músico en tu panel.');
+      return;
+    }
     this.applyingTo.set(vacancyId);
     this.applyMessage = '';
   }

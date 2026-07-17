@@ -1,22 +1,24 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { NotificationsService } from '../../core/services/notifications.service';
+import { MessagesService } from '../../core/services/messages.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CITIES } from '../../core/constants/cities';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, CommonModule, DatePipe, FormsModule],
+  imports: [RouterLink, CommonModule, DatePipe, FormsModule],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
-  auth       = inject(AuthService);
+  auth          = inject(AuthService);
   private supabase = inject(SupabaseService);
-  notifSvc   = inject(NotificationsService);
+  notifSvc      = inject(NotificationsService);
+  messagesService = inject(MessagesService);
   private toast = inject(ToastService);
 
   profile    = signal<any>(null);
@@ -32,6 +34,7 @@ export class DashboardComponent implements OnInit {
   uploadingAvatar = signal(false);
   activeTab  = signal('events');
   linkCopied = signal(false);
+  deletingAccount = signal(false);
   editingEventId = signal<string | null>(null);
   editEventData: any = {};
   editSaving = signal(false);
@@ -266,6 +269,24 @@ export class DashboardComponent implements OnInit {
     if (mins < 60) return `${mins}m`;
     if (mins < 1440) return `${Math.floor(mins / 60)}h`;
     return `${Math.floor(mins / 1440)}d`;
+  }
+
+  async deleteAccount() {
+    const confirmed = prompt('Escribe BORRAR para confirmar. Esta acción es irreversible y eliminará todos tus datos.');
+    if (confirmed?.trim().toUpperCase() !== 'BORRAR') return;
+    this.deletingAccount.set(true);
+    try {
+      const { error } = await this.supabase.client.rpc('delete_user_account');
+      if (error) {
+        this.toast.error('No se pudo eliminar la cuenta. Contacta con soporte.');
+        this.deletingAccount.set(false);
+        return;
+      }
+      await this.auth.signOut();
+    } catch {
+      this.toast.error('No se pudo eliminar la cuenta. Inténtalo de nuevo.');
+      this.deletingAccount.set(false);
+    }
   }
 
   async cancelMyBooking(id: string) {

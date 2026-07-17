@@ -25,6 +25,7 @@ export class NotificationsComponent implements OnInit {
       application: 'music',
       message:     'message',
       review:      'star',
+      booking:     'calendar',
       info:        'info',
     };
     return map[type] || 'bell';

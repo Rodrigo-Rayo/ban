@@ -28,6 +28,14 @@ export class AuthService {
   async signInWithEmail(email: string, password: string) {
     const { error } = await this.supabase.signInWithEmail(email, password);
     if (error) throw error;
+    try {
+      const returnUrl = sessionStorage.getItem('bandyou_return_url');
+      if (returnUrl) {
+        sessionStorage.removeItem('bandyou_return_url');
+        this.router.navigateByUrl(returnUrl);
+        return;
+      }
+    } catch {}
     this.router.navigate(['/home']);
   }
 

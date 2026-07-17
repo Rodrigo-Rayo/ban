@@ -1,21 +1,33 @@
 import { Injectable } from '@angular/core';
 
+const KEY_EMAIL = 'bandyou_reg_email';
+const KEY_PW    = 'bandyou_reg_pw';
+
 @Injectable({ providedIn: 'root' })
 export class RegistrationStateService {
-  private _email: string | null = null;
-  private _password: string | null = null;
-
   set(email: string, password: string) {
-    this._email = email;
-    this._password = password;
+    try {
+      sessionStorage.setItem(KEY_EMAIL, email);
+      sessionStorage.setItem(KEY_PW, password);
+    } catch { /* private mode */ }
   }
 
-  get hasPending(): boolean { return !!this._email; }
-  get email(): string { return this._email!; }
-  get password(): string { return this._password!; }
+  get hasPending(): boolean {
+    try { return !!sessionStorage.getItem(KEY_EMAIL); } catch { return false; }
+  }
+
+  get email(): string {
+    try { return sessionStorage.getItem(KEY_EMAIL) ?? ''; } catch { return ''; }
+  }
+
+  get password(): string {
+    try { return sessionStorage.getItem(KEY_PW) ?? ''; } catch { return ''; }
+  }
 
   clear() {
-    this._email = null;
-    this._password = null;
+    try {
+      sessionStorage.removeItem(KEY_EMAIL);
+      sessionStorage.removeItem(KEY_PW);
+    } catch { /* ignore */ }
   }
 }

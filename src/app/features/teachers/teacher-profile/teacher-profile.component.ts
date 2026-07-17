@@ -134,8 +134,12 @@ export class TeacherProfileComponent implements OnInit {
     const result = await this.messagesService.getOrCreateConversation(this.teacher()!.user_id, this.teacher()!.name);
     if (result && !('error' in result)) {
       await this.messagesService.sendMessage(result.id, text);
-      this.bookingSuccess.set(true);
+      this.bookingDate = '';
+      this.bookingTime = '';
+      this.bookingMessage = '';
       this.showBookingForm.set(false);
+      this.bookingSuccess.set(true);
+      setTimeout(() => this.bookingSuccess.set(false), 5000);
     }
     this.bookingLoading.set(false);
   }

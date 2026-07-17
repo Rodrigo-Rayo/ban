@@ -27,6 +27,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   selectedGenre = signal('');
   selectedCity = signal('Toda España');
   selectedInstrument = signal('');
+  userCity = signal('');
 
   loading = signal(false);
   loadingMore = signal(false);
@@ -63,10 +64,23 @@ export class SearchComponent implements OnInit, OnDestroy {
     const { data: { user } } = await this.supabase.auth.getUser();
     this.isLoggedIn.set(!!user);
 
+    // Cache user's city for default filtering
+    if (user) {
+      try {
+        const cached = localStorage.getItem('bandyou_city');
+        if (cached) this.userCity.set(cached);
+      } catch {}
+    }
+
     this.paramsSub = this.route.queryParams.subscribe(params => {
       const tab = (params['tab'] as SearchType) || 'musicians';
       this.activeTab.set(tab);
-      if (params['city'])                  this.selectedCity.set(params['city']);
+      if (params['city']) {
+        this.selectedCity.set(params['city']);
+      } else if (this.userCity()) {
+        // Default to user's city when no city param in URL
+        this.selectedCity.set(this.userCity());
+      }
       if (params['genre'] !== undefined)   this.selectedGenre.set(params['genre'] || '');
       if (params['q'] !== undefined)       this.searchQuery.set(params['q'] || '');
       if (params['instrument'] !== undefined) this.selectedInstrument.set(params['instrument'] || '');
@@ -96,8 +110,22 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   async setTab(tab: SearchType) {
     this.activeTab.set(tab);
-    this.router.navigate([], { queryParams: { tab }, queryParamsHandling: 'merge', replaceUrl: true });
-    await this.loadData();
+    this.selectedGenre.set('');
+    this.filterChanged();
+  }
+
+  filterChanged() {
+    const params: Record<string, string> = { tab: this.activeTab() };
+    const city = this.selectedCity();
+    if (city && city !== 'Toda España') params['city'] = city;
+    const genre = this.selectedGenre();
+    if (genre) params['genre'] = genre;
+    const q = this.searchQuery();
+    if (q) params['q'] = q;
+    const inst = this.selectedInstrument();
+    if (inst) params['instrument'] = inst;
+    this.router.navigate([], { queryParams: params, replaceUrl: true });
+    this.loadData();
   }
 
   async loadData() {
@@ -192,6 +220,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'venues') {
       let q = this.supabase.client.from('venues').select('*');
       if (city !== 'Toda España') q = q.eq('city', city);
+      if (genre && genre !== 'Todos') q = q.ilike('genres', `%${genre}%`);
       if (query) q = q.ilike('name', `%${query}%`);
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       return data || [];

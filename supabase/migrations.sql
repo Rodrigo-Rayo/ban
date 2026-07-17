@@ -904,6 +904,53 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- ──────────────────────────────────────────────
+-- 25. DELETE USER ACCOUNT (RGPD compliant)
+-- ──────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION delete_user_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- Remove storage objects (avatar)
+  DELETE FROM storage.objects WHERE bucket_id = 'avatars' AND owner = uid::text;
+
+  -- User-owned data
+  DELETE FROM favorites            WHERE user_id = uid;
+  DELETE FROM notifications        WHERE user_id = uid;
+  DELETE FROM rehearsal_bookings   WHERE user_id = uid;
+  DELETE FROM posts                WHERE user_id = uid;
+  DELETE FROM events               WHERE user_id = uid;
+  DELETE FROM gear_listings        WHERE user_id = uid;
+  DELETE FROM vacancy_applications WHERE user_id = uid;
+
+  -- Conversations (messages cascade via FK)
+  DELETE FROM conversations WHERE user1_id = uid OR user2_id = uid;
+
+  -- Profile tables (band_members / band_vacancies cascade from bands)
+  DELETE FROM musicians        WHERE user_id = uid;
+  DELETE FROM bands            WHERE user_id = uid;
+  DELETE FROM venues           WHERE user_id = uid;
+  DELETE FROM teachers         WHERE user_id = uid;
+  DELETE FROM rehearsal_spaces WHERE user_id = uid;
+  DELETE FROM profiles         WHERE id = uid;
+
+  -- Finally delete the auth record (cascades push_subscriptions, etc.)
+  DELETE FROM auth.users WHERE id = uid;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION delete_user_account() TO authenticated;
+
+
 -- Full-text search indexes for ILIKE queries (requires pg_trgm)
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX IF NOT EXISTS idx_musicians_name_trgm       ON musicians        USING gin(name gin_trgm_ops);

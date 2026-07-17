@@ -38,6 +38,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.channel = this.messagesService.subscribeToInboxUpdates(
         session.user.id,
         (senderName, preview, convId) => {
+          this.messagesService.inboxUpdate$.next({ senderName, preview, conversationId: convId });
           if (this.messagesService.activeChatConversationId() === convId) return;
           this.messagesService.unreadCount.update(n => n + 1);
           this.showToast(senderName, preview, convId);
@@ -50,12 +51,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(async (e: any) => {
+    ).subscribe(async () => {
       this.publishOpen = false;
-      if (e.url.startsWith('/dashboard')) {
-        const { data: { session } } = await this.supabase.auth.getSession();
-        if (session) this.loadAvatar(session.user.id);
-      }
+      const { data: { session } } = await this.supabase.auth.getSession();
+      if (session) this.loadAvatar(session.user.id);
     });
   }
 

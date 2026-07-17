@@ -38,6 +38,8 @@ export class OnboardingComponent implements OnInit {
   loading = signal(false);
   error = signal('');
   isEditing = signal(false);
+  pendingConfirmation = signal(false);
+  pendingEmail = signal('');
 
   selectedInstruments = signal<string[]>([]);
   selectedGenres = signal<string[]>([]);
@@ -194,7 +196,29 @@ export class OnboardingComponent implements OnInit {
 
     const { data: { user } } = await this.supabase.auth.getUser();
     if (!user) {
-      if (!this.registrationState.hasPending) this.router.navigate(['/auth/register']);
+      if (!this.registrationState.hasPending) {
+        this.router.navigate(['/auth/register']);
+        return;
+      }
+
+      // Sign up immediately so email confirmation can be sent before the user fills the form
+      const email = this.registrationState.email;
+      const { data, error } = await this.supabase.signUpWithEmail(email, this.registrationState.password);
+      this.registrationState.clear();
+
+      if (error) {
+        this.error.set(error.message || 'Error al crear la cuenta. Inténtalo de nuevo.');
+        return;
+      }
+
+      if (!data.session) {
+        // Supabase requires email confirmation — show the waiting screen
+        this.pendingEmail.set(email);
+        this.pendingConfirmation.set(true);
+        return;
+      }
+
+      // No confirmation required — user is now logged in, show the empty onboarding form
       return;
     }
 
@@ -257,7 +281,7 @@ export class OnboardingComponent implements OnInit {
       });
       if (data.genre)       this.selectedGenres.set(data.genre.split(',').map((s: string) => s.trim()).filter(Boolean));
       if (data.genres)      this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
-      if (data.instrument)  this.selectedInstruments.set([data.instrument]);
+      if (data.instrument)  this.selectedInstruments.set(data.instrument.split(',').map((s: string) => s.trim()).filter(Boolean));
       if (data.level)       this.selectedLevel.set(data.level);
       if (role === 'band') {
         const { data: members } = await this.supabase.client
@@ -276,26 +300,9 @@ export class OnboardingComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    let userId: string;
-
-    if (this.registrationState.hasPending) {
-      const { data, error } = await this.supabase.signUpWithEmail(
-        this.registrationState.email,
-        this.registrationState.password,
-      );
-      if (error || !data.session) {
-        console.error('[onboarding] signUp error:', error);
-        this.loading.set(false);
-        this.error.set(error?.message || 'Error al crear la cuenta. Inténtalo de nuevo.');
-        return;
-      }
-      this.registrationState.clear();
-      userId = data.session.user.id;
-    } else {
-      const { data: { user } } = await this.supabase.auth.getUser();
-      if (!user) { this.loading.set(false); this.router.navigate(['/auth/login']); return; }
-      userId = user.id;
-    }
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) { this.loading.set(false); this.router.navigate(['/auth/login']); return; }
+    const userId = user.id;
 
     const z = this.zoneForm.value;
     const role = this.role();
@@ -322,6 +329,11 @@ export class OnboardingComponent implements OnInit {
     };
     const prev = this.originalRole();
     if (prev && prev !== role && roleTableMap[prev]) {
+      const roleLabels: Record<string, string> = { musician: 'músico', band: 'banda', venue: 'sala', teacher: 'profesor', rehearsal: 'local de ensayo', listener: 'oyente' };
+      if (!confirm(`¿Cambiar tu perfil de ${roleLabels[prev] ?? prev} a ${roleLabels[role] ?? role}? Tu perfil anterior se eliminará permanentemente.`)) {
+        this.loading.set(false);
+        return;
+      }
       await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', userId);
     }
 

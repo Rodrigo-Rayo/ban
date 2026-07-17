@@ -67,9 +67,13 @@ export class HomeComponent implements OnInit {
           break;
         }
       }
+      if (this.userCity()) {
+        try { localStorage.setItem('bandyou_city', this.userCity()); } catch {}
+      }
     }
 
     const city = this.userCity();
+    const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
 
     const [
       { data: musicians },
@@ -87,24 +91,27 @@ export class HomeComponent implements OnInit {
       city
         ? this.supabase.client.from('bands').select('*').eq('city', city).order('created_at', { ascending: false }).limit(12)
         : this.supabase.client.from('bands').select('*').order('created_at', { ascending: false }).limit(12),
-      this.supabase.client.from('events').select('*').gte('date', (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()).order('date', { ascending: true }).limit(5),
-      this.supabase.client.from('venues').select('*').order('created_at', { ascending: false }).limit(5),
-      this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
-      this.supabase.client.from('rehearsal_spaces').select('*').order('created_at', { ascending: false }).limit(5),
+      city
+        ? this.supabase.client.from('events').select('*').eq('city', city).gte('date', todayStr).order('date', { ascending: true }).limit(5)
+        : this.supabase.client.from('events').select('*').gte('date', todayStr).order('date', { ascending: true }).limit(5),
+      city
+        ? this.supabase.client.from('venues').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
+        : this.supabase.client.from('venues').select('*').order('created_at', { ascending: false }).limit(5),
+      city
+        ? this.supabase.client.from('teachers').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
+        : this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
+      city
+        ? this.supabase.client.from('rehearsal_spaces').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
+        : this.supabase.client.from('rehearsal_spaces').select('*').order('created_at', { ascending: false }).limit(5),
       this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(4),
       this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(6),
     ]);
 
-    const globalFallback = (table: string, limit: number) =>
-      this.supabase.client.from(table).select('*').order('created_at', { ascending: false }).limit(limit)
-        .then(({ data }) => data || []);
-
-    const fallbackPosts = [
-      { id: '_p1', type: 'band_seeks_musician', text: 'Banda de rock alternativo busca batería con experiencia en directo. Tocamos indie y alternativo. Mínimo 2 años de experiencia.', city: 'Madrid', author_name: 'Los Eternos', created_at: new Date(Date.now() - 2*3600000).toISOString() },
-      { id: '_p2', type: 'musician_seeks_band', text: 'Guitarrista con 8 años de experiencia busca proyecto serio. Estilos: blues, rock clásico, jazz. Disponible fines de semana.', city: 'Barcelona', author_name: 'Carlos M.', created_at: new Date(Date.now() - 5*3600000).toISOString() },
-      { id: '_p3', type: 'seeks_rehearsal', text: 'Cuarteto de jazz busca sala de ensayo para ensayos semanales. Preferiblemente con piano o teclado disponible. Zona centro.', city: 'Valencia', author_name: 'Jazz Quartet VLC', created_at: new Date(Date.now() - 24*3600000).toISOString() },
-      { id: '_p4', type: 'offers_lessons', text: 'Profesor de piano con 15 años de experiencia ofrece clases online y presenciales. Todos los niveles. Lectura musical incluida.', city: 'Sevilla', author_name: 'Roberto Alonso', created_at: new Date(Date.now() - 48*3600000).toISOString() },
-    ];
+    const globalFallback = (table: string, limit: number, extraFilter?: (q: any) => any) => {
+      let q = this.supabase.client.from(table).select('*').order('created_at', { ascending: false }).limit(limit);
+      if (extraFilter) q = extraFilter(q);
+      return q.then(({ data }) => data || []);
+    };
 
     // Render immediately with what we have — no extra await blocking the UI
     this.recentMusicians.set((musicians || []).slice(0, 6));
@@ -113,7 +120,7 @@ export class HomeComponent implements OnInit {
     this.recentVenues.set(venues || []);
     this.recentTeachers.set(teachers || []);
     this.recentRehearsals.set(rehearsals || []);
-    this.recentPosts.set([...(posts || []), ...fallbackPosts].slice(0, 4));
+    this.recentPosts.set((posts || []).slice(0, 4));
     this.recentListings.set((listings || []).slice(0, 6));
     this.loading.set(false);
 
@@ -124,6 +131,18 @@ export class HomeComponent implements OnInit {
       }
       if ((bands?.length ?? 0) < 6) {
         globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6)));
+      }
+      if ((events?.length ?? 0) < 2) {
+        globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d));
+      }
+      if ((venues?.length ?? 0) < 2) {
+        globalFallback('venues', 5).then(d => this.recentVenues.set(d));
+      }
+      if ((teachers?.length ?? 0) < 2) {
+        globalFallback('teachers', 5).then(d => this.recentTeachers.set(d));
+      }
+      if ((rehearsals?.length ?? 0) < 2) {
+        globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d));
       }
     }
   }

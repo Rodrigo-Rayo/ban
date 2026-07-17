@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { CITIES } from '../../../core/constants/cities';
 
 @Component({
   selector: 'app-event-form',
@@ -25,6 +26,7 @@ export class EventFormComponent {
   goBack() { this.location.back(); }
 
   genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Otro'];
+  cities = CITIES;
 
   form = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(5)]],

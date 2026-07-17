@@ -1,7 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { Subject } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { Conversation, Message } from '../models';
 import { environment } from '../../../environments/environment';
+
+export interface InboxUpdate { senderName: string; preview: string; conversationId: string; }
 
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
@@ -12,6 +15,9 @@ export class MessagesService {
 
   /** Shared unread message count — updated by markAsRead and real-time events. */
   unreadCount = signal(0);
+
+  /** Shared stream of new incoming messages — fed by the navbar's single subscription. */
+  readonly inboxUpdate$ = new Subject<InboxUpdate>();
 
   private readonly _nameCache = new Map<string, string>();
   private _cachedConvIds: string[] | null = null;
