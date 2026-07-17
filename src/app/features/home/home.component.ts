@@ -27,7 +27,6 @@ export class HomeComponent implements OnInit {
   recentListings   = signal<any[]>([]);
 
   loading      = signal(true);
-  profileName  = signal('');
   userCity     = signal('');
   userProfile  = signal<any>(null);
   userType     = signal('');
@@ -67,7 +66,6 @@ export class HomeComponent implements OnInit {
         if (data) {
           this.userProfile.set(data);
           this.userType.set(type);
-          this.profileName.set(data.name || '');
           this.userCity.set(data.city || '');
           this.calculateCompleteness(data, type);
           break;

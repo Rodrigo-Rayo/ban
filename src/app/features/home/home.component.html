@@ -4,62 +4,23 @@
     <!-- ══ MAIN CONTENT ══ -->
     <div class="flex-1 min-w-0 px-4 sm:px-6 py-6 lg:py-8">
 
-      <!-- ── HERO ── -->
-      <header class="mb-6 pb-5 border-b border-dark-600">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-
-          <!-- Greeting: compact editorial, secondary emphasis -->
-          @if (profileName() || auth.user()) {
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-0.5 h-8 bg-primary-500 rounded-full flex-shrink-0"></div>
-              <div class="min-w-0">
-                <p class="text-[10px] font-bold text-ink-muted uppercase tracking-widest leading-none mb-1">Bienvenido de vuelta</p>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h1 class="text-lg font-black text-ink leading-none">
-                    Hola, <span class="text-primary-500">{{ profileName() || auth.user()?.email?.split('@')?.[0] }}</span>
-                  </h1>
-                  @if (userCity()) {
-                    <span class="inline-flex items-center gap-1 text-[10px] text-ink-muted bg-dark-750 border border-dark-600 px-2 py-1 rounded-full">
-                      <app-icon name="map-pin" [size]="10"/>
-                      {{ userCity() }}
-                    </span>
-                  }
-                </div>
-              </div>
-            </div>
-          } @else {
-            <div class="flex items-center gap-3">
-              <div class="w-0.5 h-8 bg-primary-500 rounded-full flex-shrink-0"></div>
-              <div>
-                <p class="text-[10px] font-bold text-primary-500 uppercase tracking-widest leading-none mb-1">Escena musical española</p>
-                <h1 class="text-lg font-black text-ink leading-none">Encuentra tu escena</h1>
-              </div>
-            </div>
-          }
-
-          <!-- Quick actions: primary visual anchor of this section -->
-          <div class="flex gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
-            @if (auth.user()) {
-              <a routerLink="/feed" [queryParams]="{new:'1'}" class="btn-primary text-xs px-4 py-2">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                Publicar anuncio
-              </a>
-              <a routerLink="/shop/new" class="btn-secondary text-xs px-4 py-2">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                Vender equipo
-              </a>
-              <a routerLink="/events/create" class="btn-secondary text-xs px-4 py-2">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                Crear evento
-              </a>
-            } @else {
-              <a routerLink="/auth/register" class="btn-primary text-sm">Únete gratis</a>
-              <a routerLink="/auth/login" class="btn-secondary text-sm">Iniciar sesión</a>
-            }
-          </div>
-
+      <!-- ── ACCIONES RÁPIDAS ── -->
+      @if (auth.user()) {
+        <div class="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-5 border-b border-dark-600">
+          <a routerLink="/feed" [queryParams]="{new:'1'}" class="btn-primary text-xs px-4 py-2 flex-shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Publicar anuncio
+          </a>
+          <a routerLink="/shop/new" class="btn-secondary text-xs px-4 py-2 flex-shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            Vender equipo
+          </a>
+          <a routerLink="/events/create" class="btn-secondary text-xs px-4 py-2 flex-shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Crear evento
+          </a>
         </div>
-      </header>
+      }
 
       <!-- ── PROFILE NUDGE ── -->
       @if (!loading() && userProfile() && profileScore() < 80 && !nudgeDismissed) {
