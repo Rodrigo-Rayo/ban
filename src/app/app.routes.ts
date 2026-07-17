@@ -34,12 +34,27 @@ export const routes: Routes = [
     loadComponent: () => import('./features/bands/band-profile/band-profile.component').then(m => m.BandProfileComponent),
   },
   {
+    path: 'venues/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/venues/venue-form/venue-form.component').then(m => m.VenueFormComponent),
+  },
+  {
     path: 'venues/:id',
     loadComponent: () => import('./features/venues/venue-profile/venue-profile.component').then(m => m.VenueProfileComponent),
   },
   {
+    path: 'teachers/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/teachers/teacher-form/teacher-form.component').then(m => m.TeacherFormComponent),
+  },
+  {
     path: 'teachers/:id',
     loadComponent: () => import('./features/teachers/teacher-profile/teacher-profile.component').then(m => m.TeacherProfileComponent),
+  },
+  {
+    path: 'rehearsal/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/rehearsal-spaces/rehearsal-form/rehearsal-form.component').then(m => m.RehearsalFormComponent),
   },
   {
     path: 'rehearsal/:id',

@@ -31,6 +31,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   loading = signal(false);
   loadingMore = signal(false);
   hasMore = signal(false);
+  isLoggedIn = signal(false);
   private offset = 0;
   private readonly LIMIT = 30;
   private paramsSub?: Subscription;
@@ -56,8 +57,11 @@ export class SearchComponent implements OnInit, OnDestroy {
     { id: 'rehearsal', label: 'Locales ensayo',  icon: 'headphones' },
   ];
 
-  ngOnInit() {
+  async ngOnInit() {
     this.seo.set({ title: 'Buscar', description: 'Busca músicos, bandas, salas, eventos, profesores y locales de ensayo en España.' });
+
+    const { data: { user } } = await this.supabase.auth.getUser();
+    this.isLoggedIn.set(!!user);
 
     this.paramsSub = this.route.queryParams.subscribe(params => {
       const tab = (params['tab'] as SearchType) || 'musicians';

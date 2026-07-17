@@ -1,0 +1,213 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+
+  <!-- Header bar -->
+  <div class="px-6 lg:px-10 py-4 border-b border-dark-600 bg-dark-800/80 backdrop-blur-sm flex items-center gap-4 sticky top-16 z-10">
+    <button (click)="goBack()" class="p-2 text-ink-muted hover:text-ink hover:bg-dark-700 rounded-xl transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <div class="flex-1">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted leading-none mb-0.5">
+        {{ isEditing() ? 'Editar perfil' : 'Publicar' }}
+      </p>
+      <h1 class="text-base font-semibold text-ink leading-none">Perfil de profesor</h1>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-24">
+      <svg class="animate-spin w-7 h-7 text-primary-400" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      </svg>
+    </div>
+  } @else {
+    <div class="px-6 lg:px-10 py-10 max-w-2xl mx-auto">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+
+        <!-- Información básica -->
+        <div class="card-flat overflow-hidden">
+          <div class="px-6 py-4 border-b border-dark-600 flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-primary-500/15 flex items-center justify-center flex-shrink-0">
+              <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+            </div>
+            <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-widest">Información básica</h2>
+          </div>
+          <div class="p-6 flex flex-col gap-5">
+
+            <div>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Tu nombre *</label>
+              <input formControlName="name" type="text" placeholder="Tu nombre completo" class="input-field"/>
+              @if (form.get('name')?.invalid && form.get('name')?.touched) {
+                <p class="text-xs text-signal-red mt-1.5">Mínimo 2 caracteres.</p>
+              }
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad *</label>
+                <select formControlName="city" class="input-field">
+                  @for (city of cities; track city) {
+                    <option [value]="city">{{ city }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Modalidad</label>
+                <select formControlName="modality" class="input-field">
+                  @for (m of modalities; track m.id) {
+                    <option [value]="m.id">{{ m.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Precio por hora (€)</label>
+                <input formControlName="hourly_rate" type="number" min="0" placeholder="25" class="input-field"/>
+                @if (form.get('hourly_rate')?.errors?.['positiveNumber']) {
+                  <p class="text-xs text-signal-red mt-1.5">Introduce un precio válido.</p>
+                }
+              </div>
+              <div>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Años de experiencia</label>
+                <input formControlName="experience_years" type="number" min="0" placeholder="5" class="input-field"/>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">
+                Descripción <span class="opacity-50 normal-case">(opcional)</span>
+              </label>
+              <textarea formControlName="description" rows="3"
+                placeholder="Cuéntanos tu experiencia, enfoque de enseñanza y qué pueden esperar tus alumnos..."
+                class="input-field resize-none"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">
+                Experiencia previa <span class="opacity-50 normal-case">(centros, escuelas, proyectos...)</span>
+              </label>
+              <input formControlName="experience" type="text" placeholder="Conservatorio de Madrid, 3 años en academia privada..." class="input-field"/>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Instrumentos -->
+        <div class="card-flat overflow-hidden">
+          <div class="px-6 py-4 border-b border-dark-600 flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-primary-500/15 flex items-center justify-center flex-shrink-0">
+              <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+              </svg>
+            </div>
+            <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-widest">Instrumentos que enseñas</h2>
+          </div>
+          <div class="p-6">
+            <div class="flex flex-wrap gap-2">
+              @for (inst of instruments; track inst) {
+                <button type="button" (click)="toggleInstrument(inst)"
+                  class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
+                  [class.bg-primary-500]="selectedInstruments().includes(inst)"
+                  [class.text-white]="selectedInstruments().includes(inst)"
+                  [class.border-primary-500]="selectedInstruments().includes(inst)"
+                  [class.bg-dark-700]="!selectedInstruments().includes(inst)"
+                  [class.text-ink-muted]="!selectedInstruments().includes(inst)"
+                  [class.border-dark-600]="!selectedInstruments().includes(inst)">
+                  {{ inst }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Nivel -->
+        <div class="card-flat overflow-hidden">
+          <div class="px-6 py-4 border-b border-dark-600 flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-primary-500/15 flex items-center justify-center flex-shrink-0">
+              <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-widest">Tu nivel como músico</h2>
+          </div>
+          <div class="p-6">
+            <div class="flex flex-wrap gap-2">
+              @for (lv of levels; track lv.id) {
+                <button type="button" (click)="selectedLevel.set(lv.id)"
+                  class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
+                  [class.bg-primary-500]="selectedLevel() === lv.id"
+                  [class.text-white]="selectedLevel() === lv.id"
+                  [class.border-primary-500]="selectedLevel() === lv.id"
+                  [class.bg-dark-700]="selectedLevel() !== lv.id"
+                  [class.text-ink-muted]="selectedLevel() !== lv.id"
+                  [class.border-dark-600]="selectedLevel() !== lv.id">
+                  {{ lv.label }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Links -->
+        <div class="card-flat overflow-hidden">
+          <div class="px-6 py-4 border-b border-dark-600 flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-primary-500/15 flex items-center justify-center flex-shrink-0">
+              <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+              </svg>
+            </div>
+            <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-widest">Links <span class="normal-case font-normal opacity-50">(opcionales)</span></h2>
+          </div>
+          <div class="p-6 flex flex-col gap-4">
+            <div>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Instagram</label>
+              <input formControlName="instagram_url" type="url" placeholder="https://instagram.com/tuusuario" class="input-field"/>
+              @if (form.get('instagram_url')?.errors?.['url']) {
+                <p class="text-xs text-signal-red mt-1.5">URL no válida.</p>
+              }
+            </div>
+            <div>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">YouTube</label>
+              <input formControlName="youtube_url" type="url" placeholder="https://youtube.com/@tucanal" class="input-field"/>
+              @if (form.get('youtube_url')?.errors?.['url']) {
+                <p class="text-xs text-signal-red mt-1.5">URL no válida.</p>
+              }
+            </div>
+            <div>
+              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Web</label>
+              <input formControlName="website_url" type="url" placeholder="https://tuweb.com" class="input-field"/>
+              @if (form.get('website_url')?.errors?.['url']) {
+                <p class="text-xs text-signal-red mt-1.5">URL no válida.</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (error()) {
+          <p class="text-sm text-signal-red text-center">{{ error() }}</p>
+        }
+
+        <button type="submit" [disabled]="saving() || form.invalid"
+          class="btn-accent py-4 w-full text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+          @if (saving()) {
+            <svg class="animate-spin w-4 h-4 inline mr-2" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Guardando...
+          } @else {
+            {{ isEditing() ? 'Guardar cambios' : 'Publicar perfil de profesor' }}
+          }
+        </button>
+
+      </form>
+    </div>
+  }
+
+</div>

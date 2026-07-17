@@ -67,13 +67,52 @@
   <!-- ══ Main content ══ -->
   <div class="px-4 lg:px-8 py-5 lg:py-7 max-w-screen-xl mx-auto">
 
-    <!-- Title + count -->
+    <!-- Title + count + CTA -->
     <div class="flex items-center gap-3 mb-5">
       <h1 class="text-xl font-bold text-ink">{{ tabLabel() }}</h1>
       @if (!loading()) {
         <span class="text-xs font-semibold text-ink-muted bg-dark-700 border border-dark-600 px-2 py-0.5 rounded-full">
           {{ currentCount() }}
         </span>
+      }
+      <div class="flex-1"></div>
+      @if (isLoggedIn()) {
+        @if (activeTab() === 'events') {
+          <a routerLink="/events/create"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-xs font-semibold rounded-xl transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Publicar evento
+          </a>
+        }
+        @if (activeTab() === 'teachers') {
+          <a routerLink="/teachers/new"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-xs font-semibold rounded-xl transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Dar clases
+          </a>
+        }
+        @if (activeTab() === 'rehearsal') {
+          <a routerLink="/rehearsal/new"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-xs font-semibold rounded-xl transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Publicar local
+          </a>
+        }
+        @if (activeTab() === 'venues') {
+          <a routerLink="/venues/new"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-xs font-semibold rounded-xl transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Publicar sala
+          </a>
+        }
       }
     </div>
 

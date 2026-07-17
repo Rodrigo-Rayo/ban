@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
@@ -126,13 +126,6 @@ export class HomeComponent implements OnInit {
         globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6)));
       }
     }
-  }
-
-  private router = inject(Router);
-
-  goToOnboarding(role: string) {
-    localStorage.setItem('bandyou_role', role);
-    this.router.navigate(['/onboarding']);
   }
 
   private readonly AVATAR_COLORS = [
