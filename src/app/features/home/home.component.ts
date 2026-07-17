@@ -30,9 +30,6 @@ export class HomeComponent implements OnInit {
   userCity     = signal('');
   userProfile  = signal<any>(null);
   userType     = signal('');
-  profileScore = signal(0);
-  missingFields = signal<string[]>([]);
-  nudgeDismissed = false;
 
   today = new Date();
 
@@ -67,7 +64,6 @@ export class HomeComponent implements OnInit {
           this.userProfile.set(data);
           this.userType.set(type);
           this.userCity.set(data.city || '');
-          this.calculateCompleteness(data, type);
           break;
         }
       }
@@ -132,27 +128,6 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  private calculateCompleteness(profile: any, type: string) {
-    const checks: { field: string; label: string }[] = [
-      { field: 'avatar_url',  label: 'Foto de perfil' },
-      { field: 'description', label: 'Descripción / bio' },
-      { field: 'city',        label: 'Ciudad' },
-      { field: 'genre',       label: 'Género musical' },
-    ];
-    if (type === 'musician' || type === 'teacher') {
-      checks.push({ field: 'instrument', label: 'Instrumento' });
-    }
-    if (type === 'teacher' || type === 'rehearsal') {
-      checks.push({ field: 'hourly_rate', label: 'Precio por hora' });
-    }
-    if (type === 'venue' || type === 'rehearsal') {
-      checks.push({ field: 'capacity', label: 'Capacidad' });
-    }
-    const missing = checks.filter(c => !profile[c.field]).map(c => c.label);
-    this.missingFields.set(missing);
-    this.profileScore.set(Math.round(((checks.length - missing.length) / checks.length) * 100));
-  }
-
   private readonly AVATAR_COLORS = [
     '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
   ];
@@ -161,8 +136,6 @@ export class HomeComponent implements OnInit {
     const code = name?.charCodeAt(0) ?? 65;
     return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
   }
-
-  dismissNudge() { this.nudgeDismissed = true; }
 
   timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();

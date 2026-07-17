@@ -22,36 +22,6 @@
         </div>
       }
 
-      <!-- ── PROFILE NUDGE ── -->
-      @if (!loading() && userProfile() && profileScore() < 80 && !nudgeDismissed) {
-        <div class="bg-gradient-to-r from-primary-900/60 to-dark-800 border border-primary-500/25 rounded-2xl p-4 mb-8 relative overflow-hidden">
-          <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-primary-400/50"></div>
-          <button (click)="dismissNudge()"
-            class="absolute top-3 right-3 w-7 h-7 flex items-center justify-center text-ink-muted hover:text-ink rounded-lg hover:bg-dark-700 transition-colors">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-          <div class="flex items-start gap-3 pr-6">
-            <div class="w-9 h-9 rounded-xl bg-primary-900 border border-primary-500/30 flex items-center justify-center flex-shrink-0 text-primary-500">
-              <app-icon name="user" [size]="16"/>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-3 mb-2 flex-wrap">
-                <p class="text-sm font-bold text-ink">Perfil al {{ profileScore() }}%</p>
-                <span class="tag-accent">+visibilidad</span>
-              </div>
-              <div class="h-1.5 bg-dark-600 rounded-full mb-2.5 overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-primary-600 to-primary-400 rounded-full transition-all duration-500"
-                     [style.width.%]="profileScore()"></div>
-              </div>
-              <a routerLink="/onboarding" class="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-primary-400 transition-colors">
-                Completar perfil
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      }
-
       <!-- ── PRÓXIMOS EVENTOS ── -->
       <section class="mb-8">
         <div class="flex items-center justify-between mb-4">
