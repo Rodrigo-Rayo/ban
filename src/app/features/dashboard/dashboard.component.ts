@@ -241,28 +241,36 @@ export class DashboardComponent implements OnInit {
     setTimeout(() => this.linkCopied.set(false), 2000);
   }
 
-  get completionItems(): string[] {
+  private get completionChecks(): { label: string; ok: boolean }[] {
     const p = this.profile();
     if (!p) return [];
-    const missing: string[] = [];
-    if (!p.avatar_url)   missing.push('foto de perfil');
-    if (!p.description)  missing.push('descripción');
-    if (!p.city)         missing.push('ciudad');
-    if (this.profileType() === 'musician' || this.profileType() === 'teacher') {
-      if (!p.instrument) missing.push('instrumento');
-      if (!p.genre)      missing.push('género musical');
-    }
-    const hasSocial = p.spotify_url || p.youtube_url || p.instagram_url || p.soundcloud_url || p.website_url;
-    if (!hasSocial)      missing.push('red social o web');
-    return missing;
+    const type = this.profileType();
+    const hasSocial = !!(p.spotify_url || p.youtube_url || p.instagram_url || p.soundcloud_url || p.website_url || p.website_url);
+    const base = [
+      { label: 'foto de perfil', ok: !!p.avatar_url },
+      { label: 'descripción',    ok: !!p.description },
+      { label: 'ciudad',         ok: !!p.city },
+    ];
+    const byType: Record<string, { label: string; ok: boolean }[]> = {
+      musician:  [...base, { label: 'instrumento', ok: !!p.instrument }, { label: 'género musical', ok: !!p.genre }],
+      band:      [...base, { label: 'género musical', ok: !!(p.genre || p.genres) }, { label: 'red social o web', ok: hasSocial }],
+      venue:     [...base, { label: 'dirección',    ok: !!p.address }, { label: 'teléfono o web', ok: !!(p.phone || p.website_url) }],
+      teacher:   [...base, { label: 'instrumento', ok: !!p.instrument }, { label: 'precio por hora', ok: !!p.hourly_rate }],
+      rehearsal: [...base, { label: 'precio por hora', ok: !!p.hourly_rate }, { label: 'dirección', ok: !!p.address }],
+      listener:  [],
+    };
+    return byType[type] ?? base;
+  }
+
+  get completionItems(): string[] {
+    return this.completionChecks.filter(c => !c.ok).map(c => c.label);
   }
 
   get completionPct(): number {
-    const p = this.profile();
-    if (!p) return 0;
-    const total = 5;
-    const done = total - Math.min(this.completionItems.length, total);
-    return Math.round((done / total) * 100);
+    const checks = this.completionChecks;
+    if (!checks.length) return 100;
+    const done = checks.filter(c => c.ok).length;
+    return Math.round((done / checks.length) * 100);
   }
 
   readonly postTypeMap: Record<string, { label: string; emoji: string }> = {
