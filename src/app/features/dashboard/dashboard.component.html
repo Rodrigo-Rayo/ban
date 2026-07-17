@@ -141,38 +141,6 @@
         </div>
       }
 
-      <!-- ── PROFILE COMPLETION ── -->
-      @if (profile() && completionPct < 100) {
-        <div class="bg-gradient-to-r from-primary-900/40 to-dark-800 border border-primary-500/20 rounded-2xl p-4 mb-5 relative overflow-hidden">
-          <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-primary-400/40"></div>
-          <div class="flex items-center justify-between mb-2.5">
-            <div class="flex items-center gap-2">
-              <p class="text-xs font-bold text-ink">Perfil al {{ completionPct }}%</p>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-900 border border-primary-500/30 text-primary-400">
-                +visibilidad
-              </span>
-            </div>
-            <a routerLink="/onboarding"
-              class="text-[11px] font-semibold text-primary-400 hover:text-primary-500 transition-colors">
-              Completar →
-            </a>
-          </div>
-          <div class="h-1.5 bg-dark-600 rounded-full overflow-hidden mb-2">
-            <div class="h-full rounded-full transition-all duration-500"
-              [style.width.%]="completionPct"
-              [class.bg-signal-green]="completionPct >= 80"
-              [class.bg-gradient-to-r]="completionPct >= 50 && completionPct < 80"
-              [class.from-primary-600]="completionPct >= 50 && completionPct < 80"
-              [class.to-primary-400]="completionPct >= 50 && completionPct < 80"
-              [class.bg-primary-500]="completionPct >= 50 && completionPct < 80"
-              [class.bg-signal-amber]="completionPct < 50"></div>
-          </div>
-          @if (completionItems.length > 0) {
-            <p class="text-[10px] text-ink-muted">Falta: <span class="text-ink-3">{{ completionItems.join(' · ') }}</span></p>
-          }
-        </div>
-      }
-
       <!-- ── STATS ROW ── -->
       <div class="grid grid-cols-4 gap-2 mb-5">
         <button (click)="activeTab.set('events')"
