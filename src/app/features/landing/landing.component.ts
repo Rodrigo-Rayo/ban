@@ -1,9 +1,10 @@
 import { Component, signal, inject, OnInit, computed } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-landing',
@@ -14,6 +15,8 @@ import { SeoService } from '../../core/services/seo.service';
 export class LandingComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private seo = inject(SeoService);
+  private auth = inject(AuthService);
+  private router = inject(Router);
 
   stats = signal({ musicians: 0, bands: 0, events: 0, venues: 0 });
 
@@ -48,6 +51,11 @@ export class LandingComponent implements OnInit {
   ];
 
   async ngOnInit() {
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/home']);
+      return;
+    }
+
     this.seo.set({
       description: 'BandYou — La red musical de España. Conecta con músicos, bandas, salas, profesores y locales de ensayo. Mensajes directos, agenda de eventos.',
     });
