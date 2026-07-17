@@ -184,6 +184,14 @@ export class OnboardingComponent implements OnInit {
   }
 
   async ngOnInit() {
+    // Read stored role synchronously before any async operations so later
+    // Supabase responses never race-overwrite a role the user already picked.
+    const VALID_ROLES: Role[] = ['musician', 'band', 'venue', 'teacher', 'rehearsal', 'listener'];
+    const stored = localStorage.getItem('bandyou_role');
+    if (stored && VALID_ROLES.includes(stored as Role)) {
+      this.role.set(stored as Role);
+    }
+
     const { data: { user } } = await this.supabase.auth.getUser();
     if (!user) {
       if (!this.registrationState.hasPending) this.router.navigate(['/auth/register']);
@@ -262,12 +270,6 @@ export class OnboardingComponent implements OnInit {
       }
     }
 
-    if (!this.isEditing()) {
-      const VALID_ROLES: Role[] = ['musician', 'band', 'venue', 'teacher', 'rehearsal'];
-      const stored = localStorage.getItem('bandyou_role');
-      const savedRole: Role = VALID_ROLES.includes(stored as Role) ? (stored as Role) : 'musician';
-      this.role.set(savedRole);
-    }
   }
 
   async onSubmit() {
