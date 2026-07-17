@@ -494,9 +494,9 @@
             </a>
           </div>
         }
-        <a routerLink="/search" [queryParams]="{tab:'rehearsal'}" class="mt-2 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-primary-500 hover:text-primary-400 border border-dashed border-dark-600 hover:border-primary-500/40 rounded-xl transition-colors">
-          + Publicar sala
-        </a>
+        <button (click)="goToOnboarding('rehearsal')" class="mt-2 w-full flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-primary-500 hover:text-primary-400 border border-dashed border-dark-600 hover:border-primary-500/40 rounded-xl transition-colors">
+          + Publicar local de ensayo
+        </button>
       </div>
 
       <!-- CLASES -->
@@ -557,6 +557,9 @@
             </a>
           </div>
         }
+        <button (click)="goToOnboarding('teacher')" class="mt-2 w-full flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-primary-500 hover:text-primary-400 border border-dashed border-dark-600 hover:border-primary-500/40 rounded-xl transition-colors">
+          + Dar clases
+        </button>
       </div>
 
       <!-- SALAS -->
@@ -614,6 +617,9 @@
             </a>
           </div>
         }
+        <button (click)="goToOnboarding('venue')" class="mt-2 w-full flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-primary-500 hover:text-primary-400 border border-dashed border-dark-600 hover:border-primary-500/40 rounded-xl transition-colors">
+          + Publicar sala
+        </button>
       </div>
 
     </aside>
