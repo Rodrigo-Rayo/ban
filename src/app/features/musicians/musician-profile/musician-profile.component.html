@@ -116,11 +116,6 @@
                 <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
               }
             }
-            @if (musician()!.contact_email) {
-              <a [href]="'mailto:' + musician()!.contact_email" class="btn-secondary text-sm text-center w-full">
-                Email
-              </a>
-            }
             <button (click)="toggleFav()" [disabled]="favLoading()"
               class="btn-secondary text-sm flex items-center justify-center gap-2 w-full"
               [class.text-primary-500]="isFav()" [class.border-primary-500]="isFav()">

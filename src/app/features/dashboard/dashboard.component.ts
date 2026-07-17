@@ -73,6 +73,14 @@ export class DashboardComponent implements OnInit {
       else if (venue)     { this.profile.set(venue);      this.profileType.set('venue'); }
       else if (teacher)   { this.profile.set(teacher);    this.profileType.set('teacher'); }
       else if (rehearsal) { this.profile.set(rehearsal);  this.profileType.set('rehearsal'); }
+      else {
+        const { data: profileRow } = await this.supabase.client
+          .from('profiles').select('role, name').eq('id', uid).maybeSingle();
+        if (profileRow?.role === 'listener') {
+          this.profile.set({ name: profileRow.name });
+          this.profileType.set('listener');
+        }
+      }
 
       this.events.set(evs || []);
       this.myPosts.set(posts || []);
@@ -215,7 +223,7 @@ export class DashboardComponent implements OnInit {
   }
 
   profileLabel() {
-    return ({ musician: 'Músico', band: 'Banda', venue: 'Local', teacher: 'Profesor', rehearsal: 'Ensayo' } as any)[this.profileType()] ?? '';
+    return ({ musician: 'Músico', band: 'Banda', venue: 'Local', teacher: 'Profesor', rehearsal: 'Ensayo', listener: 'Oyente' } as any)[this.profileType()] ?? '';
   }
 
   publicProfilePath(): string | null {

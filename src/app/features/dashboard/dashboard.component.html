@@ -328,10 +328,8 @@
                         placeholder="Descripción (opcional)"
                         class="input-field text-sm resize-none"></textarea>
                       <div class="grid grid-cols-2 gap-2">
-                        <input [(ngModel)]="editEventData.contact_email" type="email"
-                          placeholder="Email contacto" class="input-field text-sm"/>
                         <input [(ngModel)]="editEventData.ticket_url" type="url"
-                          placeholder="Link entradas" class="input-field text-sm"/>
+                          placeholder="Link entradas" class="input-field text-sm col-span-2"/>
                       </div>
                       <div class="flex gap-2 pt-1">
                         <button (click)="saveEditEvent(event.id)"

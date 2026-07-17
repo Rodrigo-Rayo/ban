@@ -110,9 +110,6 @@
               <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
             }
           }
-          @if (venue()!.contact_email) {
-            <a [href]="'mailto:' + venue()!.contact_email" class="btn-secondary text-sm text-center">Email</a>
-          }
           @if (venue()!.phone) {
             <a [href]="'tel:' + venue()!.phone" class="btn-secondary text-sm text-center">{{ venue()!.phone }}</a>
           }

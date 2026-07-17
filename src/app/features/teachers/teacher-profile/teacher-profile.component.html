@@ -115,9 +115,6 @@
               <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
             }
           }
-          @if (teacher()!.contact_email) {
-            <a [href]="'mailto:' + teacher()!.contact_email" class="btn-secondary text-sm text-center">Email directo</a>
-          }
           <button (click)="toggleFav()" [disabled]="favLoading()"
             class="btn-secondary text-sm flex items-center justify-center gap-2">
             <svg class="w-4 h-4" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"

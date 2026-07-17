@@ -253,10 +253,6 @@
             <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Descripción <span class="opacity-50">(opcional)</span></label>
             <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" class="input-field resize-none"></textarea>
           </div>
-          <div>
-            <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Email de contacto <span class="opacity-50">(opcional)</span></label>
-            <input formControlName="contactEmail" type="email" [placeholder]="contactEmailPlaceholder" class="input-field"/>
-          </div>
           @if (role() === 'venue' || role() === 'rehearsal') {
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
@@ -413,10 +409,6 @@
           <div>
             <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Sobre ti <span class="opacity-50">(opcional)</span></label>
             <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" class="input-field resize-none"></textarea>
-          </div>
-          <div>
-            <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Email de contacto <span class="opacity-50">(opcional)</span></label>
-            <input formControlName="contactEmail" type="email" [placeholder]="contactEmailPlaceholder" class="input-field"/>
           </div>
           @if (role() === 'musician') {
             <div>
