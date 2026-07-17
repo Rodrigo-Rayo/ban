@@ -21,16 +21,14 @@ export class CallbackComponent implements OnInit {
   async ngOnInit() {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
-    const next = params.get('next');
+
+    // Detect password recovery from implicit-flow hash
+    const hash = new URLSearchParams(window.location.hash.substring(1));
+    const isRecovery = hash.get('type') === 'recovery';
 
     if (code) {
-      // Explicitly exchange the PKCE code — avoids LockManager race with service worker
       const { data, error } = await this.supabase.auth.exchangeCodeForSession(code);
       if (data?.session) {
-        if (next) {
-          this.router.navigateByUrl(next);
-          return;
-        }
         await this.redirect(data.session.user.id);
         return;
       }
@@ -40,11 +38,11 @@ export class CallbackComponent implements OnInit {
       }
     }
 
-    // No code in URL — check if there's already a valid session
+    // No code — session may already exist (implicit flow auto-detected from hash)
     const { data: { session } } = await this.supabase.getSession();
     if (session) {
-      if (next) {
-        this.router.navigateByUrl(next);
+      if (isRecovery) {
+        this.router.navigate(['/auth/reset-password']);
         return;
       }
       await this.redirect(session.user.id);

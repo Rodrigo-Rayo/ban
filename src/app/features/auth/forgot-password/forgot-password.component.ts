@@ -27,7 +27,7 @@ export class ForgotPasswordComponent {
     this.error.set('');
     const { error } = await this.supabase.auth.resetPasswordForEmail(
       this.form.value.email!,
-      { redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password` }
+      { redirectTo: `${window.location.origin}/auth/callback` }
     );
     this.loading.set(false);
     if (error) {
