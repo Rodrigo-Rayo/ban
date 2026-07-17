@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
 
-const AUTH_CALLBACK_URL = environment.authCallbackUrl;
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
@@ -36,7 +35,7 @@ export class SupabaseService {
     return this.supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: AUTH_CALLBACK_URL,
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: { prompt: 'select_account' },
       },
     });
