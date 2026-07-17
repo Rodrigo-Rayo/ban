@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -9,7 +9,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './reset-password.component.html',
 })
-export class ResetPasswordComponent {
+export class ResetPasswordComponent implements OnInit {
   private fb = inject(FormBuilder);
   private supabase = inject(SupabaseService);
   private router = inject(Router);
@@ -17,11 +17,21 @@ export class ResetPasswordComponent {
   loading = signal(false);
   error = signal('');
   success = signal(false);
+  sessionReady = signal(false);
 
   form = this.fb.group({
     password: ['', [Validators.required, Validators.minLength(6)]],
     confirm: ['', [Validators.required]],
   });
+
+  async ngOnInit() {
+    const { data: { session } } = await this.supabase.auth.getSession();
+    if (!session) {
+      this.error.set('El enlace ha expirado o no es válido. Solicita uno nuevo.');
+      return;
+    }
+    this.sessionReady.set(true);
+  }
 
   async onSubmit() {
     if (this.form.invalid) {
