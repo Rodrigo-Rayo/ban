@@ -92,22 +92,16 @@
 
         <!-- Actions — desktop only; mobile handled by fixed CTA bar below -->
         <div class="hidden sm:flex sm:flex-col gap-2 flex-shrink-0 sm:pt-28 sm:w-44">
-          @if (bookingSuccess()) {
-            <div class="text-sm text-signal-green font-semibold text-center py-2 bg-signal-gBg border border-signal-green/30 rounded-xl flex items-center justify-center gap-1.5">
-              <app-icon name="check" [size]="14"/>Solicitud enviada
-            </div>
-          } @else {
-            <button (click)="toggleBookingForm()" class="btn-primary text-sm">
-              {{ showBookingForm() ? 'Cancelar' : 'Solicitar reserva' }}
-            </button>
-          }
           @if (space()!.user_id) {
-            <button (click)="sendMessage()" [disabled]="sending()" class="btn-secondary text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-              {{ sending() ? 'Abriendo...' : 'Enviar mensaje' }}
+            <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              {{ sending() ? 'Abriendo...' : 'Contactar' }}
             </button>
             @if (msgError()) {
               <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
             }
+          }
+          @if (space()!.phone) {
+            <a [href]="'tel:' + space()!.phone" class="btn-secondary text-sm text-center">{{ space()!.phone }}</a>
           }
           <button (click)="toggleFav()" [disabled]="favLoading()"
             class="btn-secondary text-sm flex items-center justify-center gap-2">
@@ -132,57 +126,6 @@
 
   <!-- CONTENT -->
   <div class="max-w-4xl mx-auto px-6 lg:px-10 py-8">
-
-    <!-- Formulario de reserva -->
-    @if (showBookingForm()) {
-      <div class="card-flat p-5 mb-6 border border-primary-500/20">
-        <h3 class="text-sm font-bold text-ink mb-4">Solicitar reserva en {{ space()!.name }}</h3>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="text-xs font-semibold text-ink-muted block mb-1">Tu nombre *</label>
-            <input [(ngModel)]="bookingName" type="text" placeholder="Nombre o banda"
-              class="input-field py-2 text-sm"/>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-ink-muted block mb-1">Teléfono</label>
-            <input [(ngModel)]="bookingPhone" type="tel" placeholder="+34 600 000 000"
-              class="input-field py-2 text-sm"/>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-ink-muted block mb-1">Fecha *</label>
-            <input [(ngModel)]="bookingDate" type="date" [min]="minDate"
-              class="input-field py-2 text-sm"/>
-          </div>
-          <div class="flex gap-2">
-            <div class="flex-1">
-              <label class="text-xs font-semibold text-ink-muted block mb-1">Desde *</label>
-              <input [(ngModel)]="bookingStart" type="time" class="input-field py-2 text-sm"/>
-            </div>
-            <div class="flex-1">
-              <label class="text-xs font-semibold text-ink-muted block mb-1">Hasta *</label>
-              <input [(ngModel)]="bookingEnd" type="time" class="input-field py-2 text-sm"/>
-            </div>
-          </div>
-          <div class="sm:col-span-2">
-            <label class="text-xs font-semibold text-ink-muted block mb-1">Mensaje (opcional)</label>
-            <textarea [(ngModel)]="bookingMessage" rows="2" placeholder="Cuántos músicos sois, qué equipamiento necesitáis..."
-              class="input-field text-sm resize-none"></textarea>
-          </div>
-        </div>
-        <div class="flex gap-2 mt-4">
-          <button (click)="submitBooking()"
-            [disabled]="bookingLoading() || !bookingName || !bookingDate || !bookingStart || !bookingEnd"
-            class="btn-primary text-sm disabled:opacity-50">
-            {{ bookingLoading() ? 'Enviando...' : 'Confirmar solicitud' }}
-          </button>
-          <button (click)="showBookingForm.set(false)" class="btn-secondary text-sm">Cancelar</button>
-        </div>
-        @if (bookingError()) {
-          <p class="text-xs text-signal-red mt-2">{{ bookingError() }}</p>
-        }
-      </div>
-    }
-
     <div class="grid md:grid-cols-3 gap-5">
       <div class="md:col-span-2 flex flex-col gap-5">
 
@@ -285,34 +228,42 @@
               <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Salas</span><span class="font-medium text-ink">{{ space()!.rooms_count }}</span></div>
             }
             @if (space()!.phone) {
-              <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Teléfono</span><span class="font-medium text-ink">{{ space()!.phone }}</span></div>
+              <div class="flex justify-between px-4 py-2.5 items-center">
+                <span class="text-ink-muted">Teléfono</span>
+                <a [href]="'tel:' + space()!.phone" class="font-medium text-primary-400 hover:text-primary-300 transition-colors">{{ space()!.phone }}</a>
+              </div>
             }
           </div>
         </div>
         @if (space()!.website_url) {
-          <a [href]="space()!.website_url" target="_blank" class="btn-secondary text-sm text-center">Visitar web</a>
+          <a [href]="space()!.website_url" target="_blank" rel="noopener" class="btn-primary text-sm text-center">Reservar en su web</a>
+        }
+        @if (space()!.user_id) {
+          <button (click)="sendMessage()" [disabled]="sending()"
+            class="btn-secondary text-sm text-center disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ sending() ? 'Abriendo...' : 'Enviar mensaje' }}
+          </button>
         }
         @if (space()!.instagram_url) {
-          <a [href]="space()!.instagram_url" target="_blank"
+          <a [href]="space()!.instagram_url" target="_blank" rel="noopener"
              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-pink-500/10 text-pink-400 text-sm font-bold border border-pink-500/25 hover:bg-pink-500/20 transition-colors">
             Instagram
           </a>
         }
-        <button (click)="toggleBookingForm()" class="btn-primary w-full hidden sm:block">Reservar</button>
       </div>
     </div>
   </div>
 
   <!-- Mobile fixed CTA bar — sits above the bottom nav -->
   <div class="fixed bottom-16 left-0 right-0 z-30 bg-dark-800/98 backdrop-blur-md border-t border-dark-600 px-4 py-3 flex gap-3 sm:hidden">
-    @if (bookingSuccess()) {
-      <div class="flex-1 text-sm text-signal-green font-semibold text-center py-2.5 bg-signal-gBg border border-signal-green/30 rounded-full flex items-center justify-center gap-1.5">
-        <app-icon name="check" [size]="14"/>Solicitud enviada
-      </div>
-    } @else {
-      <button (click)="showBookingForm.set(!showBookingForm())"
-        class="btn-primary text-sm flex-1">
-        {{ showBookingForm() ? 'Cancelar' : 'Solicitar reserva' }}
+    @if (space()!.website_url) {
+      <a [href]="space()!.website_url" target="_blank" rel="noopener" class="btn-primary text-sm flex-1 text-center">
+        Reservar en su web
+      </a>
+    } @else if (space()!.user_id) {
+      <button (click)="sendMessage()" [disabled]="sending()"
+        class="btn-primary text-sm flex-1 disabled:opacity-50 disabled:cursor-not-allowed">
+        {{ sending() ? 'Abriendo...' : 'Contactar' }}
       </button>
     }
     <button (click)="toggleFav()" [disabled]="favLoading()"

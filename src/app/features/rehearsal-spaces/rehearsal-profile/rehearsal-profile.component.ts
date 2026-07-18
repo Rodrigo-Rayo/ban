@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
-import { NotificationsService } from '../../../core/services/notifications.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -22,16 +21,10 @@ export class RehearsalProfileComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private messagesService = inject(MessagesService);
   private favSvc = inject(FavoritesService);
-  private notifSvc = inject(NotificationsService);
   private seo = inject(SeoService);
   private toast = inject(ToastService);
 
   space = signal<any>(null);
-
-  toggleBookingForm() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
-    this.showBookingForm.set(!this.showBookingForm());
-  }
   reviews = signal<any[]>([]);
   loading = signal(true);
   currentUserId = signal<string | null>(null);
@@ -40,16 +33,6 @@ export class RehearsalProfileComponent implements OnInit {
 
   sending = signal(false);
   msgError = signal<string | null>(null);
-  showBookingForm = signal(false);
-  bookingLoading = signal(false);
-  bookingSuccess = signal(false);
-  bookingError = signal<string | null>(null);
-  bookingName = '';
-  bookingPhone = '';
-  bookingDate = '';
-  bookingStart = '';
-  bookingEnd = '';
-  bookingMessage = '';
 
   showReviewForm = signal(false);
   reviewRating = 5;
@@ -63,10 +46,6 @@ export class RehearsalProfileComponent implements OnInit {
     const r = this.reviews();
     if (!r.length) return null;
     return (r.reduce((s, x) => s + x.rating, 0) / r.length).toFixed(1);
-  }
-
-  get minDate() {
-    return new Date().toISOString().split('T')[0];
   }
 
   async ngOnInit() {
@@ -97,40 +76,6 @@ export class RehearsalProfileComponent implements OnInit {
       this.toast.error('No se pudo actualizar favoritos. Inténtalo de nuevo.');
     } finally {
       this.favLoading.set(false);
-    }
-  }
-
-  async submitBooking() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
-    this.bookingLoading.set(true);
-    this.bookingError.set(null);
-    try {
-      const { error } = await this.supabase.client.from('rehearsal_bookings').insert({
-        space_id: this.space()!.id,
-        user_id: this.currentUserId(),
-        date: this.bookingDate,
-        start_time: this.bookingStart,
-        end_time: this.bookingEnd,
-        name: this.bookingName,
-        phone: this.bookingPhone,
-        message: this.bookingMessage,
-      });
-      if (error) {
-        this.bookingError.set('No se pudo enviar la solicitud. Inténtalo de nuevo.');
-      } else {
-        this.bookingSuccess.set(true);
-        this.showBookingForm.set(false);
-        if (this.space()?.user_id) {
-          await this.notifSvc.create(
-            this.space()!.user_id, 'booking',
-            'Nueva solicitud de reserva',
-            `${this.bookingName} quiere reservar el ${this.bookingDate} de ${this.bookingStart} a ${this.bookingEnd}`,
-            'rehearsal', this.space()!.id
-          );
-        }
-      }
-    } finally {
-      this.bookingLoading.set(false);
     }
   }
 
