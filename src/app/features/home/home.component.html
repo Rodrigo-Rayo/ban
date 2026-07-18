@@ -35,6 +35,7 @@
       }
 
       <!-- ── PRÓXIMOS EVENTOS ── -->
+      @if (loading() || recentEvents().length > 0) {
       <section class="mb-8">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
@@ -84,13 +85,9 @@
               <span class="text-xs font-semibold text-ink-muted text-center group-hover:text-primary-500 transition-colors">Publicar evento</span>
             </a>
           </div>
-        } @else {
-          <div class="flex items-center justify-between py-3 px-1 text-xs text-ink-muted border-b border-dark-700">
-            <span>Sin eventos próximos en tu zona</span>
-            <a routerLink="/events/create" class="text-primary-500 hover:text-primary-400 transition-colors font-semibold">+ Publicar</a>
-          </div>
         }
       </section>
+      }
 
       <!-- ── ANUNCIOS RECIENTES ── -->
       <section class="card overflow-hidden mb-8">
