@@ -238,12 +238,6 @@
         @if (space()!.website_url) {
           <a [href]="space()!.website_url" target="_blank" rel="noopener" class="btn-primary text-sm text-center">Reservar en su web</a>
         }
-        @if (space()!.user_id) {
-          <button (click)="sendMessage()" [disabled]="sending()"
-            class="btn-secondary text-sm text-center disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ sending() ? 'Abriendo...' : 'Enviar mensaje' }}
-          </button>
-        }
         @if (space()!.instagram_url) {
           <a [href]="space()!.instagram_url" target="_blank" rel="noopener"
              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-pink-500/10 text-pink-400 text-sm font-bold border border-pink-500/25 hover:bg-pink-500/20 transition-colors">
