@@ -72,7 +72,7 @@
           <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-2xl border-4 border-dark-900"
                [style.background]="avatarColor(musician()!.name)">
             @if (musician()!.avatar_url) {
-              <img [src]="musician()!.avatar_url" alt="" class="w-full h-full object-cover"/>
+              <img [src]="musician()!.avatar_url" [alt]="musician()!.name" class="w-full h-full object-cover"/>
             } @else {
               {{ musician()!.name?.slice(0,1).toUpperCase() }}
             }
@@ -267,12 +267,6 @@
             </div>
           }
 
-          @if (musician()!.user_id) {
-            <button (click)="sendMessage()" [disabled]="sending()"
-              class="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed hidden sm:flex text-sm">
-              {{ sending() ? 'Abriendo chat...' : 'Escribir a ' + musician()!.name?.split(' ')[0] }}
-            </button>
-          }
         </div>
 
       </div>

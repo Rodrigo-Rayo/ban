@@ -57,7 +57,7 @@
         <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-xl border-4 border-dark-900"
              [style.background]="avatarColor(band()!.name)">
           @if (band()!.avatar_url) {
-            <img [src]="band()!.avatar_url" alt="" class="w-full h-full object-cover"/>
+            <img [src]="band()!.avatar_url" [alt]="band()!.name" class="w-full h-full object-cover"/>
           } @else {
             {{ band()!.name?.slice(0,1).toUpperCase() }}
           }
@@ -79,9 +79,6 @@
             }
           </div>
           <h1 class="text-2xl sm:text-3xl font-black text-ink leading-tight mb-1 tracking-tight">{{ band()!.name }}</h1>
-          @if (band()!.genre) {
-            <p class="text-sm font-bold text-primary-500 mb-1">{{ band()!.genre }}</p>
-          }
         </div>
 
         <!-- Actions — desktop only; mobile handled by fixed CTA bar below -->
@@ -395,11 +392,6 @@
             }
           </div>
         </div>
-        @if (band()!.user_id) {
-          <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary w-full hidden sm:block disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ sending() ? 'Abriendo chat...' : 'Contactar' }}
-          </button>
-        }
       </div>
     </div>
   </div>

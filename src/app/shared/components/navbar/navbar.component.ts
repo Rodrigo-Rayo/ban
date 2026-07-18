@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, DestroyRef, HostListener } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { MessagesService } from '../../../core/services/messages.service';
@@ -24,6 +24,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   menuOpen = false;
   publishOpen = false;
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.publishOpen && !(event.target as Element).closest('[data-publish-dropdown]')) {
+      this.publishOpen = false;
+    }
+  }
   avatarUrl = signal<string | null>(null);
   toast = signal<{ name: string; preview: string; conversationId: string } | null>(null);
   private channel: any = null;
