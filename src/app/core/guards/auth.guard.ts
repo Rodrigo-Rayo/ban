@@ -16,11 +16,18 @@ export const authGuard: CanActivateFn = async (route, state) => {
   if (route.routeConfig?.path === 'onboarding') return true;
 
   const userId = data.session.user.id;
-  const { data: profile } = await supabase.client
+  const { data: profile, error: profileError } = await supabase.client
     .from('profiles')
     .select('id, role')
     .eq('id', userId)
     .maybeSingle();
+
+  // If the query itself failed (network / RLS error), allow navigation rather than
+  // silently bouncing the user to onboarding — they are authenticated.
+  if (profileError) {
+    console.warn('[AuthGuard] profiles query error:', profileError.message);
+    return true;
+  }
 
   if (!profile?.role) return router.createUrlTree(['/onboarding']);
 
