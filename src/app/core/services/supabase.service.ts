@@ -9,13 +9,14 @@ export class SupabaseService {
 
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       auth: {
-        // Bypass Navigator Locks — the PWA service worker holds the exclusive
-        // lock and the new page instance fails immediately to acquire it,
-        // preventing auth session initialisation. Single-tab PWAs don't need
+        // Bypass Navigator Locks API — in a PWA the service worker already
+        // holds the exclusive lock, so the new page instance fails immediately
+        // and can't read the auth session. Single-tab PWAs don't need
         // cross-tab lock synchronisation.
         lock: async (_name: string, _timeout: number, fn: () => Promise<unknown>) => fn(),
-      },
+      } as any,
     });
   }
 
