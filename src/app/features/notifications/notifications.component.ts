@@ -32,6 +32,11 @@ export class NotificationsComponent implements OnInit {
   }
 
   getRoute(n: any): any[] | null {
+    if (n.type === 'message') {
+      return n.entity_type === 'conversation' && n.entity_id
+        ? ['/inbox', n.entity_id]
+        : ['/inbox'];
+    }
     if (!n.entity_type || !n.entity_id) return null;
     const map: Record<string, string> = {
       musician: '/musicians', band: '/bands', venue: '/venues',
@@ -48,7 +53,7 @@ export class NotificationsComponent implements OnInit {
       this.notifSvc.getAll(session.user.id),
       this.notifSvc.markAllRead(session.user.id),
     ]);
-    this.notifications.set(notifs.filter((n: any) => n.type !== 'message'));
+    this.notifications.set(notifs);
     this.loading.set(false);
   }
 }
