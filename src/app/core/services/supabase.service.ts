@@ -8,7 +8,15 @@ export class SupabaseService {
   private supabase: SupabaseClient;
 
   constructor() {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
+    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
+      auth: {
+        // Bypass Navigator Locks — the PWA service worker holds the exclusive
+        // lock and the new page instance fails immediately to acquire it,
+        // preventing auth session initialisation. Single-tab PWAs don't need
+        // cross-tab lock synchronisation.
+        lock: async (_name: string, _timeout: number, fn: () => Promise<unknown>) => fn(),
+      },
+    });
   }
 
   get client() {
