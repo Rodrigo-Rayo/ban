@@ -4,6 +4,17 @@
     <!-- ══ MAIN CONTENT ══ -->
     <div class="flex-1 min-w-0 px-4 sm:px-6 py-6 lg:py-8 pb-20 lg:pb-8">
 
+      <!-- ── ERROR STATE ── -->
+      @if (!loading() && loadError()) {
+        <div class="flex flex-col items-center justify-center py-20 gap-4 text-center">
+          <svg class="w-12 h-12 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+          <p class="text-ink-muted text-sm">No se pudo cargar el contenido</p>
+          <button (click)="retryLoad()" class="btn-primary text-sm px-5 py-2">Reintentar</button>
+        </div>
+      }
+
       <!-- ── ACCIONES RÁPIDAS ── -->
       @if (auth.user()) {
         <div class="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-5 border-b border-dark-600">

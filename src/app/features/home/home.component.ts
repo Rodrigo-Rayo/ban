@@ -27,6 +27,7 @@ export class HomeComponent implements OnInit {
   recentListings   = signal<any[]>([]);
 
   loading      = signal(true);
+  loadError    = signal(false);
   userCity     = signal('');
   userProfile  = signal<any>(null);
   userType     = signal('');
@@ -144,11 +145,18 @@ export class HomeComponent implements OnInit {
           globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d));
         }
       }
-    } catch {
-      // Silently ignore — loading.set(false) in finally ensures the UI unblocks
+    } catch (err) {
+      console.error('[Home] Error cargando contenido:', err);
+      this.loadError.set(true);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  retryLoad() {
+    this.loadError.set(false);
+    this.loading.set(true);
+    this.ngOnInit();
   }
 
   private readonly AVATAR_COLORS = [
