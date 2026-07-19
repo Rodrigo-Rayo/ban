@@ -47,103 +47,107 @@ export class HomeComponent implements OnInit {
   async ngOnInit() {
     this.seo.set({ title: 'Inicio', description: 'Músicos, bandas, salas y eventos cerca de ti. Conecta con la escena musical de España.' });
 
-    const { data: { session } } = await this.supabase.auth.getSession();
+    try {
+      const { data: { session } } = await this.supabase.auth.getSession();
 
-    if (session) {
-      const uid = session.user.id;
-      const [{ data: m }, { data: b }, { data: v }, { data: t }, { data: r }] = await Promise.all([
-        this.supabase.client.from('musicians').select('*').eq('user_id', uid).maybeSingle(),
-        this.supabase.client.from('bands').select('*').eq('user_id', uid).maybeSingle(),
-        this.supabase.client.from('venues').select('*').eq('user_id', uid).maybeSingle(),
-        this.supabase.client.from('teachers').select('*').eq('user_id', uid).maybeSingle(),
-        this.supabase.client.from('rehearsal_spaces').select('*').eq('user_id', uid).maybeSingle(),
-      ]);
-      const profilePairs: [any, string][] = [[m, 'musician'], [b, 'band'], [v, 'venue'], [t, 'teacher'], [r, 'rehearsal']];
-      for (const [data, type] of profilePairs) {
-        if (data) {
-          this.userProfile.set(data);
-          this.userType.set(type);
-          this.userCity.set(data.city || '');
-          break;
+      if (session) {
+        const uid = session.user.id;
+        const [{ data: m }, { data: b }, { data: v }, { data: t }, { data: r }] = await Promise.all([
+          this.supabase.client.from('musicians').select('*').eq('user_id', uid).maybeSingle(),
+          this.supabase.client.from('bands').select('*').eq('user_id', uid).maybeSingle(),
+          this.supabase.client.from('venues').select('*').eq('user_id', uid).maybeSingle(),
+          this.supabase.client.from('teachers').select('*').eq('user_id', uid).maybeSingle(),
+          this.supabase.client.from('rehearsal_spaces').select('*').eq('user_id', uid).maybeSingle(),
+        ]);
+        const profilePairs: [any, string][] = [[m, 'musician'], [b, 'band'], [v, 'venue'], [t, 'teacher'], [r, 'rehearsal']];
+        for (const [data, type] of profilePairs) {
+          if (data) {
+            this.userProfile.set(data);
+            this.userType.set(type);
+            this.userCity.set(data.city || '');
+            break;
+          }
+        }
+        if (this.userCity()) {
+          try { localStorage.setItem('bandyou_city', this.userCity()); } catch {}
         }
       }
-      if (this.userCity()) {
-        try { localStorage.setItem('bandyou_city', this.userCity()); } catch {}
-      }
-    }
 
-    const city = this.userCity();
-    const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+      const city = this.userCity();
+      const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
 
-    const [
-      { data: musicians },
-      { data: bands },
-      { data: events },
-      { data: venues },
-      { data: teachers },
-      { data: rehearsals },
-      { data: posts },
-      { data: listings },
-    ] = await Promise.all([
-      city
-        ? this.supabase.client.from('musicians').select('*').eq('city', city).order('created_at', { ascending: false }).limit(12)
-        : this.supabase.client.from('musicians').select('*').order('created_at', { ascending: false }).limit(12),
-      city
-        ? this.supabase.client.from('bands').select('*').eq('city', city).order('created_at', { ascending: false }).limit(12)
-        : this.supabase.client.from('bands').select('*').order('created_at', { ascending: false }).limit(12),
-      city
-        ? this.supabase.client.from('events').select('*').eq('city', city).gte('date', todayStr).order('date', { ascending: true }).limit(5)
-        : this.supabase.client.from('events').select('*').gte('date', todayStr).order('date', { ascending: true }).limit(5),
-      city
-        ? this.supabase.client.from('venues').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
-        : this.supabase.client.from('venues').select('*').order('created_at', { ascending: false }).limit(5),
-      city
-        ? this.supabase.client.from('teachers').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
-        : this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
-      city
-        ? this.supabase.client.from('rehearsal_spaces').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
-        : this.supabase.client.from('rehearsal_spaces').select('*').order('created_at', { ascending: false }).limit(5),
-      this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(4),
-      this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(6),
-    ]);
+      const [
+        { data: musicians },
+        { data: bands },
+        { data: events },
+        { data: venues },
+        { data: teachers },
+        { data: rehearsals },
+        { data: posts },
+        { data: listings },
+      ] = await Promise.all([
+        city
+          ? this.supabase.client.from('musicians').select('*').eq('city', city).order('created_at', { ascending: false }).limit(12)
+          : this.supabase.client.from('musicians').select('*').order('created_at', { ascending: false }).limit(12),
+        city
+          ? this.supabase.client.from('bands').select('*').eq('city', city).order('created_at', { ascending: false }).limit(12)
+          : this.supabase.client.from('bands').select('*').order('created_at', { ascending: false }).limit(12),
+        city
+          ? this.supabase.client.from('events').select('*').eq('city', city).gte('date', todayStr).order('date', { ascending: true }).limit(5)
+          : this.supabase.client.from('events').select('*').gte('date', todayStr).order('date', { ascending: true }).limit(5),
+        city
+          ? this.supabase.client.from('venues').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
+          : this.supabase.client.from('venues').select('*').order('created_at', { ascending: false }).limit(5),
+        city
+          ? this.supabase.client.from('teachers').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
+          : this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
+        city
+          ? this.supabase.client.from('rehearsal_spaces').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
+          : this.supabase.client.from('rehearsal_spaces').select('*').order('created_at', { ascending: false }).limit(5),
+        this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(4),
+        this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(6),
+      ]);
 
-    const globalFallback = (table: string, limit: number, extraFilter?: (q: any) => any) => {
-      let q = this.supabase.client.from(table).select('*').order('created_at', { ascending: false }).limit(limit);
-      if (extraFilter) q = extraFilter(q);
-      return q.then(({ data }) => data || []);
-    };
+      const globalFallback = (table: string, limit: number, extraFilter?: (q: any) => any) => {
+        let q = this.supabase.client.from(table).select('*').order('created_at', { ascending: false }).limit(limit);
+        if (extraFilter) q = extraFilter(q);
+        return q.then(({ data }) => data || []);
+      };
 
-    // Render immediately with what we have — no extra await blocking the UI
-    this.recentMusicians.set((musicians || []).slice(0, 6));
-    this.recentBands.set((bands || []).slice(0, 6));
-    this.recentEvents.set(events || []);
-    this.recentVenues.set(venues || []);
-    this.recentTeachers.set(teachers || []);
-    this.recentRehearsals.set(rehearsals || []);
-    this.recentPosts.set((posts || []).slice(0, 4));
-    this.recentListings.set((listings || []).slice(0, 6));
-    this.loading.set(false);
+      this.recentMusicians.set((musicians || []).slice(0, 6));
+      this.recentBands.set((bands || []).slice(0, 6));
+      this.recentEvents.set(events || []);
+      this.recentVenues.set(venues || []);
+      this.recentTeachers.set(teachers || []);
+      this.recentRehearsals.set(rehearsals || []);
+      this.recentPosts.set((posts || []).slice(0, 4));
+      this.recentListings.set((listings || []).slice(0, 6));
 
-    // Fallbacks run in background and update signals when ready
-    if (city) {
-      if ((musicians?.length ?? 0) < 6) {
-        globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6)));
+      // Fallbacks run in background and update signals when ready
+      if (city) {
+        if ((musicians?.length ?? 0) < 6) {
+          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6)));
+        }
+        if ((bands?.length ?? 0) < 6) {
+          globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6)));
+        }
+        if ((events?.length ?? 0) < 2) {
+          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d));
+        }
+        if ((venues?.length ?? 0) < 2) {
+          globalFallback('venues', 5).then(d => this.recentVenues.set(d));
+        }
+        if ((teachers?.length ?? 0) < 2) {
+          globalFallback('teachers', 5).then(d => this.recentTeachers.set(d));
+        }
+        if ((rehearsals?.length ?? 0) < 2) {
+          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d));
+        }
       }
-      if ((bands?.length ?? 0) < 6) {
-        globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6)));
-      }
-      if ((events?.length ?? 0) < 2) {
-        globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d));
-      }
-      if ((venues?.length ?? 0) < 2) {
-        globalFallback('venues', 5).then(d => this.recentVenues.set(d));
-      }
-      if ((teachers?.length ?? 0) < 2) {
-        globalFallback('teachers', 5).then(d => this.recentTeachers.set(d));
-      }
-      if ((rehearsals?.length ?? 0) < 2) {
-        globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d));
-      }
+    } catch {
+      // Silently ignore — loading.set(false) in finally ensures the UI unblocks
+    } finally {
+      this.loading.set(false);
     }
   }
 

@@ -60,10 +60,10 @@
             }
           </div>
         } @else if (recentEvents().length > 0) {
-          <div class="flex gap-3 overflow-x-auto pb-3 no-scrollbar snap-x snap-mandatory">
+          <div class="flex gap-3 overflow-x-auto pb-3 no-scrollbar">
             @for (event of recentEvents(); track event.id) {
               <a [routerLink]="['/events', event.id]"
-                 class="flex-shrink-0 w-56 card overflow-hidden snap-start group">
+                 class="flex-shrink-0 w-56 card overflow-hidden group">
                 <div class="h-28 bg-gradient-to-br from-primary-700 to-primary-900 relative flex items-end p-3">
                   <div class="absolute top-2.5 right-2.5 w-10 rounded-xl bg-black/50 flex flex-col items-center justify-center py-1.5 text-white text-center">
                     <span class="text-[8px] font-bold uppercase leading-none opacity-70">{{ event.date | date:'MMM' }}</span>

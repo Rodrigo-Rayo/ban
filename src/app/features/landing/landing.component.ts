@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, OnInit, computed, effect } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -50,10 +50,19 @@ export class LandingComponent implements OnInit {
     { id: 'rehearsal', label: 'Local de ensayo',   icon: 'headphones', desc: 'Alquilo espacio' },
   ];
 
+  constructor() {
+    // React to auth state — handles both immediate (cached session) and
+    // delayed (async Supabase restore) login detection.
+    effect(() => {
+      if (this.auth.isLoggedIn()) {
+        this.router.navigate(['/home']);
+      }
+    });
+  }
+
   async ngOnInit() {
     if (this.auth.isLoggedIn()) {
-      this.router.navigate(['/home']);
-      return;
+      return; // effect() will handle the redirect
     }
 
     this.seo.set({
