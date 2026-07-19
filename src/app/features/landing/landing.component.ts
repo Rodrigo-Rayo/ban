@@ -53,9 +53,11 @@ export class LandingComponent implements OnInit {
   constructor() {
     // React to auth state — handles both immediate (cached session) and
     // delayed (async Supabase restore) login detection.
+    // setTimeout escapes the reactive context so Angular's router doesn't
+    // mount the home component mid-change-detection, which leaves it blank.
     effect(() => {
       if (this.auth.isLoggedIn()) {
-        this.router.navigate(['/home']);
+        setTimeout(() => this.router.navigate(['/home']));
       }
     });
   }
