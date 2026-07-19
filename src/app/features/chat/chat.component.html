@@ -93,8 +93,7 @@
                [class.rounded-bl-sm]="msg.sender_id !== currentUserId">
             <span class="break-words">{{ msg.text }}</span>
             <div class="text-[10px] mt-1.5 text-right select-none"
-                 [class.text-white/60]="msg.sender_id === currentUserId"
-                 [class.text-ink-muted]="msg.sender_id !== currentUserId">
+                 [ngClass]="msg.sender_id === currentUserId ? 'text-white/60' : 'text-ink-muted'">
               {{ msg.created_at | date:'HH:mm' }}
             </div>
           </div>
