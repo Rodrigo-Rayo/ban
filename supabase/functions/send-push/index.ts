@@ -2,25 +2,74 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 
+// VAPID public key is intentionally public — safe to hard-code here.
 const VAPID_PUBLIC_KEY =
   'BLslfW3Qj79wALOTHJX4VV9sSDuqr1U8kjL3I4NtyB7zCats8W_qTmZNAKMD8ku44dpen2KORGtfd2fTGG3RDLs';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// Allow the production origin plus localhost for local dev/testing.
+const ALLOWED_ORIGINS = new Set([
+  'https://bandyou.es',
+  'http://localhost:4200',
+]);
+
+function corsHeaders(origin: string | null) {
+  const allowed = origin && ALLOWED_ORIGINS.has(origin) ? origin : 'https://bandyou.es';
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  };
+}
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders(origin) });
   }
 
   try {
+    // --- 1. Authenticate the caller ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response('Unauthorized', { status: 401, headers: corsHeaders(origin) });
+    }
+
+    // Verify JWT and get the authenticated user's id.
+    // Use SUPABASE_ANON_KEY + user's token so auth.getUser() runs the JWT check.
+    const anonClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user }, error: authErr } = await anonClient.auth.getUser();
+    if (authErr || !user) {
+      console.error('[send-push] invalid JWT:', authErr?.message);
+      return new Response('Unauthorized', { status: 401, headers: corsHeaders(origin) });
+    }
+
+    // --- 2. Parse and validate request body ---
+    const body = await req.json();
+    const { conversationId, senderId, senderName, messageText } = body;
+
+    // Ensure the authenticated user is actually the claimed sender.
+    if (!senderId || user.id !== senderId) {
+      console.error('[send-push] senderId mismatch — claimed:', senderId, 'actual:', user.id);
+      return new Response('Forbidden', { status: 403, headers: corsHeaders(origin) });
+    }
+
+    if (!conversationId || typeof messageText !== 'string') {
+      return new Response('Bad request', { status: 400, headers: corsHeaders(origin) });
+    }
+
+    console.log('[send-push] request:', { conversationId, senderId, senderName });
+
+    // --- 3. Set up VAPID / push ---
     const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
     if (!vapidPrivateKey) {
       console.error('[send-push] VAPID_PRIVATE_KEY not set');
-      return new Response('VAPID_PRIVATE_KEY not configured', { status: 500 });
+      return new Response('VAPID_PRIVATE_KEY not configured', { status: 500, headers: corsHeaders(origin) });
     }
 
     webpush.setVapidDetails(
@@ -29,15 +78,13 @@ serve(async (req) => {
       vapidPrivateKey,
     );
 
-    const body = await req.json();
-    const { conversationId, senderId, senderName, messageText } = body;
-    console.log('[send-push] request:', { conversationId, senderId, senderName });
-
+    // Service-role client for privileged lookups (conversation / subscriptions).
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // --- 4. Look up conversation and verify sender is a participant ---
     const { data: conv, error: convErr } = await supabase
       .from('conversations')
       .select('user1_id, user2_id')
@@ -46,12 +93,19 @@ serve(async (req) => {
 
     if (convErr || !conv) {
       console.error('[send-push] conversation not found:', convErr?.message);
-      return new Response('conversation not found', { status: 404 });
+      return new Response('conversation not found', { status: 404, headers: corsHeaders(origin) });
+    }
+
+    // Confirm the authenticated user is in this conversation.
+    if (conv.user1_id !== user.id && conv.user2_id !== user.id) {
+      console.error('[send-push] caller is not a participant');
+      return new Response('Forbidden', { status: 403, headers: corsHeaders(origin) });
     }
 
     const recipientId = conv.user1_id === senderId ? conv.user2_id : conv.user1_id;
     console.log('[send-push] recipient:', recipientId);
 
+    // --- 5. Fetch subscriptions and dispatch ---
     const { data: subs, error: subsErr } = await supabase
       .from('push_subscriptions')
       .select('endpoint, p256dh, auth')
@@ -61,7 +115,7 @@ serve(async (req) => {
 
     if (!subs?.length) {
       console.log('[send-push] no subscriptions for recipient');
-      return new Response('no subscriptions', { status: 200, headers: corsHeaders });
+      return new Response('no subscriptions', { status: 200, headers: corsHeaders(origin) });
     }
 
     console.log('[send-push] sending to', subs.length, 'subscription(s)');
@@ -121,9 +175,9 @@ serve(async (req) => {
       }
     }
 
-    return new Response('ok', { status: 200, headers: corsHeaders });
+    return new Response('ok', { status: 200, headers: corsHeaders(origin) });
   } catch (err) {
     console.error('[send-push] unexpected error:', err);
-    return new Response('error', { status: 500, headers: corsHeaders });
+    return new Response('error', { status: 500, headers: corsHeaders(origin) });
   }
 });

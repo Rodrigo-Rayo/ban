@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Meta } from '@angular/platform-browser';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-not-found',
@@ -14,11 +16,19 @@ import { RouterLink } from '@angular/router';
           Este enlace no existe o ha sido eliminado.
         </p>
         <div class="flex gap-3 justify-center">
-          <a routerLink="/home" class="btn-accent px-6 py-3 text-sm">Ir al inicio</a>
+          <a routerLink="/home" class="btn-primary px-6 py-3 text-sm">Ir al inicio</a>
           <a routerLink="/search" class="btn-secondary px-6 py-3 text-sm">Explorar</a>
         </div>
       </div>
     </div>
   `,
 })
-export class NotFoundComponent {}
+export class NotFoundComponent implements OnInit {
+  private seo = inject(SeoService);
+  private meta = inject(Meta);
+
+  ngOnInit() {
+    this.seo.set({ title: 'Página no encontrada' });
+    this.meta.updateTag({ name: 'robots', content: 'noindex, nofollow' });
+  }
+}

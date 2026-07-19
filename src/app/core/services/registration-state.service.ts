@@ -1,33 +1,38 @@
 import { Injectable } from '@angular/core';
 
-const KEY_EMAIL = 'bandyou_reg_email';
-const KEY_PW    = 'bandyou_reg_pw';
-
+/**
+ * Carries pending registration credentials from the register page to onboarding.
+ * Uses in-memory storage only — credentials are never written to sessionStorage or
+ * localStorage, which means they are not accessible to other browser tabs, extensions,
+ * or scripts that might read persistent storage.
+ *
+ * The data lives only for the current page session and is cleared immediately after
+ * the Supabase signUp call completes.
+ */
 @Injectable({ providedIn: 'root' })
 export class RegistrationStateService {
+  private _email = '';
+  private _password = '';
+
   set(email: string, password: string) {
-    try {
-      sessionStorage.setItem(KEY_EMAIL, email);
-      sessionStorage.setItem(KEY_PW, password);
-    } catch { /* private mode */ }
+    this._email = email;
+    this._password = password;
   }
 
   get hasPending(): boolean {
-    try { return !!sessionStorage.getItem(KEY_EMAIL); } catch { return false; }
+    return !!this._email;
   }
 
   get email(): string {
-    try { return sessionStorage.getItem(KEY_EMAIL) ?? ''; } catch { return ''; }
+    return this._email;
   }
 
   get password(): string {
-    try { return sessionStorage.getItem(KEY_PW) ?? ''; } catch { return ''; }
+    return this._password;
   }
 
   clear() {
-    try {
-      sessionStorage.removeItem(KEY_EMAIL);
-      sessionStorage.removeItem(KEY_PW);
-    } catch { /* ignore */ }
+    this._email = '';
+    this._password = '';
   }
 }

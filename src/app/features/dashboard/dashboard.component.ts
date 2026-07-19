@@ -7,6 +7,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { NotificationsService } from '../../core/services/notifications.service';
 import { MessagesService } from '../../core/services/messages.service';
 import { ToastService } from '../../core/services/toast.service';
+import { SeoService } from '../../core/services/seo.service';
 import { CITIES } from '../../core/constants/cities';
 @Component({
   selector: 'app-dashboard',
@@ -17,6 +18,7 @@ import { CITIES } from '../../core/constants/cities';
 export class DashboardComponent implements OnInit {
   auth          = inject(AuthService);
   private supabase = inject(SupabaseService);
+  private seo   = inject(SeoService);
   notifSvc      = inject(NotificationsService);
   messagesService = inject(MessagesService);
   private toast = inject(ToastService);
@@ -42,6 +44,7 @@ export class DashboardComponent implements OnInit {
   readonly cities = CITIES;
 
   async ngOnInit() {
+    this.seo.set({ title: 'Mi panel' });
     try {
       const { data: { session } } = await this.supabase.auth.getSession();
       if (!session) return;
@@ -113,6 +116,11 @@ export class DashboardComponent implements OnInit {
   }
 
   async updateBookingStatus(id: string, status: string) {
+    const ALLOWED_STATUSES = ['pending', 'confirmed', 'rejected', 'cancelled'] as const;
+    if (!ALLOWED_STATUSES.includes(status as typeof ALLOWED_STATUSES[number])) {
+      this.toast.error('Estado de reserva no válido.');
+      return;
+    }
     const { error } = await this.supabase.client.from('rehearsal_bookings').update({ status }).eq('id', id);
     if (error) { this.toast.error('No se pudo actualizar el estado de la reserva.'); return; }
     this.bookings.update(bs => bs.map(b => b.id === id ? { ...b, status } : b));

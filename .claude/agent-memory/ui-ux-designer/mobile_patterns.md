@@ -59,12 +59,23 @@ All five profile types (musician, band, venue, teacher, rehearsal) now use:
 - Avatar overlapping: `-mt-12 sm:-mt-14` with `border-4 border-dark-900 shadow-xl`
 - Info section: `pt-14 sm:pt-16` to align with bottom of avatar
 
+## Responsive bottom padding — profile pages
+
+Profile pages (`musician-profile`, `band-profile`, `venue-profile`, `teacher-profile`, `rehearsal-profile`) use a mobile fixed CTA bar at `bottom-16`. The page outer div must use:
+
+```
+pb-36 sm:pb-20 md:pb-8
+```
+
+NOT `pb-36 sm:pb-8` — between 640px and 768px the bottom nav is still visible (`md:hidden`) but the CTA bar is hidden (`sm:hidden`). `sm:pb-8` (32px) does not clear the 64px bottom nav. `sm:pb-20` (80px) gives the correct clearance.
+
 ## Touch targets
 
 - Minimum 44×44px for all interactive elements
 - Conversation rows in inbox: `min-h-[64px]`
 - Pill buttons (onboarding instrument/genre selection): `py-2.5 min-h-[44px]`
 - Icon-only buttons: always `min-w-[44px] min-h-[44px] flex items-center justify-center`
+- Desktop navbar icon buttons: use `min-w-[44px] min-h-[44px] flex items-center justify-center` even though they are desktop-only — hybrid devices benefit
 
 ## Form fields on mobile
 

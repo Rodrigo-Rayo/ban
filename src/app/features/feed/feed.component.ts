@@ -34,7 +34,7 @@ export class FeedComponent implements OnInit {
   error = signal('');
   private readonly PAGE_SIZE = 20;
   readonly MAX_POST_LENGTH = 500;
-  private instrumentTimeout: any;
+  private instrumentTimeout: ReturnType<typeof setTimeout> | undefined;
 
   filterCity = signal('Toda España');
   filterType = signal<PostType | ''>('');

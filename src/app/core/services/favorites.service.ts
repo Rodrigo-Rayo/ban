@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { Favorite } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class FavoritesService {
@@ -27,8 +28,8 @@ export class FavoritesService {
     return true;
   }
 
-  async getByUser(userId: string): Promise<any[]> {
-    const { data } = await this.supabase.client.from('favorites').select('entity_type, entity_id, created_at')
+  async getByUser(userId: string): Promise<Favorite[]> {
+    const { data } = await this.supabase.client.from('favorites').select('*')
       .eq('user_id', userId).order('created_at', { ascending: false });
     return data || [];
   }

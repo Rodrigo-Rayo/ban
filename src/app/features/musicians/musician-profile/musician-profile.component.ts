@@ -34,9 +34,10 @@ export class MusicianProfileComponent implements OnInit {
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
+    if (!id) { this.loading.set(false); return; }
     try {
       const [{ data }, { data: { session } }] = await Promise.all([
-        this.supabase.client.from('musicians').select('*').eq('id', id!).maybeSingle(),
+        this.supabase.client.from('musicians').select('*').eq('id', id).maybeSingle(),
         this.supabase.auth.getSession(),
       ]);
       this.musician.set(data);
@@ -44,7 +45,7 @@ export class MusicianProfileComponent implements OnInit {
       if (session) {
         this.currentUserId.set(session.user.id);
         // isFav runs in background — doesn't block UI
-        this.favSvc.isFavorite(session.user.id, 'musician', id!).then(v => this.isFav.set(v));
+        this.favSvc.isFavorite(session.user.id, 'musician', id).then(v => this.isFav.set(v));
       }
     } catch {
       // Profile not found or network error — musician() stays null, template shows empty state
@@ -57,7 +58,9 @@ export class MusicianProfileComponent implements OnInit {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     this.favLoading.set(true);
     try {
-      const result = await this.favSvc.toggle(this.currentUserId()!, 'musician', this.musician()!.id);
+      const musician = this.musician();
+      if (!musician) return;
+      const result = await this.favSvc.toggle(this.currentUserId()!, 'musician', musician.id);
       this.isFav.set(result);
     } catch {
       this.toast.error('No se pudo actualizar favoritos. Inténtalo de nuevo.');
@@ -68,21 +71,25 @@ export class MusicianProfileComponent implements OnInit {
 
   async sendMessage() {
     const uid = this.currentUserId();
+    const musician = this.musician();
     if (!uid) { this.router.navigate(['/auth/login']); return; }
-    if (uid === this.musician()!.user_id) { this.router.navigate(['/inbox']); return; }
+    if (!musician) return;
+    if (uid === musician.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);
     this.msgError.set(null);
-    const result = await this.messagesService.getOrCreateConversation(this.musician()!.user_id, this.musician()!.name);
+    const result = await this.messagesService.getOrCreateConversation(musician.user_id, musician.name);
     this.sending.set(false);
     if (!result) return;
     if ('error' in result) { this.msgError.set(result.error); return; }
-    this.router.navigate(['/inbox', result.id], { state: { name: this.musician()!.name } });
+    this.router.navigate(['/inbox', result.id], { state: { name: musician.name } });
   }
 
   async shareLink() {
-    const url = `${window.location.origin}/musicians/${this.musician()!.id}`;
+    const musician = this.musician();
+    if (!musician) return;
+    const url = `${window.location.origin}/musicians/${musician.id}`;
     if (navigator.share) {
-      await navigator.share({ title: this.musician()!.name, url }).catch(() => {});
+      await navigator.share({ title: musician.name, url }).catch(() => {});
     } else {
       await navigator.clipboard.writeText(url);
       this.linkShared.set(true);

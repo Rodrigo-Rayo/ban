@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900 pb-36 sm:pb-8" style="padding-top:64px">
+﻿<div class="min-h-screen bg-dark-900 pb-36 sm:pb-20 md:pb-8" style="padding-top:64px">
 
   @if (teacher()) {
     <div class="h-1" [style.background]="avatarColor(teacher()!.name)"></div>
@@ -61,7 +61,7 @@
     </div>
   } @else {
 
-  <!-- HERO — cover strip + overlapping avatar -->
+  <!-- HERO â€” cover strip + overlapping avatar -->
   <div class="relative border-b border-dark-600">
     <!-- Cover strip -->
     <div class="h-32 sm:h-44 w-full relative overflow-hidden"
@@ -87,19 +87,19 @@
           <div class="flex flex-wrap gap-1.5 mb-2">
             @if (teacher()!.city) { <span class="tag"><app-icon name="map-pin" [size]="9" class="mr-0.5"/>{{ teacher()!.city }}</span> }
             @if (teacher()!.modality) { <span class="tag">{{ teacher()!.modality }}</span> }
-            @if (avgRating) { <span class="tag-accent">★ {{ avgRating }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}</span> }
+            @if (avgRating) { <span class="tag-accent">â˜… {{ avgRating }} Â· {{ reviews().length }} reseÃ±a{{ reviews().length !== 1 ? 's' : '' }}</span> }
           </div>
           <h1 class="text-2xl sm:text-3xl font-black text-ink leading-tight mb-1 tracking-tight">{{ teacher()!.name }}</h1>
           <p class="text-sm font-bold text-primary-500 mb-1">
             Profesor de {{ teacher()!.instrument }}
-            @if (teacher()!.experience_years) {<span class="text-ink-muted font-normal mx-1">·</span><span class="text-ink-muted font-normal">{{ teacher()!.experience_years }} años de exp.</span>}
+            @if (teacher()!.experience_years) {<span class="text-ink-muted font-normal mx-1">Â·</span><span class="text-ink-muted font-normal">{{ teacher()!.experience_years }} aÃ±os de exp.</span>}
           </p>
           @if (teacher()!.hourly_rate) {
-            <p class="text-2xl font-black text-primary-400">{{ teacher()!.hourly_rate }}€<span class="text-sm font-normal text-ink-muted">/hora</span></p>
+            <p class="text-2xl font-black text-primary-400">{{ teacher()!.hourly_rate }}â‚¬<span class="text-sm font-normal text-ink-muted">/hora</span></p>
           }
         </div>
 
-        <!-- Actions — desktop only; mobile handled by fixed CTA bar below -->
+        <!-- Actions â€” desktop only; mobile handled by fixed CTA bar below -->
         <div class="hidden sm:flex sm:flex-col gap-2 flex-shrink-0 sm:pt-28 sm:w-44">
           @if (teacher()!.user_id) {
             @if (bookingSuccess()) {
@@ -157,7 +157,7 @@
         </div>
         <div class="mb-3">
           <label class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">Mensaje</label>
-          <textarea [(ngModel)]="bookingMessage" rows="2" placeholder="Nivel, objetivos, qué quieres aprender…"
+          <textarea [(ngModel)]="bookingMessage" rows="2" placeholder="Nivel, objetivos, quÃ© quieres aprenderâ€¦"
             class="input-field resize-none"></textarea>
         </div>
         <button (click)="submitBooking()" [disabled]="bookingLoading() || !bookingDate"
@@ -177,38 +177,38 @@
           </div>
         }
 
-        <!-- Reseñas -->
+        <!-- ReseÃ±as -->
         <div class="card-flat overflow-hidden">
           <div class="px-5 py-3 border-b border-dark-600 flex items-center justify-between">
             <h3 class="section-label">
-              Reseñas @if (reviews().length > 0) { <span class="text-ink-muted font-normal">({{ reviews().length }})</span> }
-              @if (avgRating) { <span class="ml-2 text-primary-500 font-bold">★ {{ avgRating }}</span> }
+              ReseÃ±as @if (reviews().length > 0) { <span class="text-ink-muted font-normal">({{ reviews().length }})</span> }
+              @if (avgRating) { <span class="ml-2 text-primary-500 font-bold">â˜… {{ avgRating }}</span> }
             </h3>
             @if (currentUserId() && !myReview()) {
               <button (click)="showReviewForm.set(!showReviewForm())"
                 class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">
-                + Dejar reseña
+                + Dejar reseÃ±a
               </button>
             }
           </div>
 
           @if (showReviewForm()) {
             <div class="p-5 border-b border-dark-600 bg-dark-700/40">
-              <p class="text-xs font-semibold text-ink mb-2">Tu valoración</p>
+              <p class="text-xs font-semibold text-ink mb-2">Tu valoraciÃ³n</p>
               <div class="flex gap-1 mb-3">
                 @for (s of [1,2,3,4,5]; track s) {
                   <button (click)="reviewRating = s" class="text-2xl transition-colors hover:scale-110"
                     [class.text-primary-500]="s <= reviewRating"
                     [class.text-ink-muted]="s > reviewRating"
-                    [class.opacity-40]="s > reviewRating">★</button>
+                    [class.opacity-40]="s > reviewRating">â˜…</button>
                 }
               </div>
               <textarea [(ngModel)]="reviewComment" rows="2"
-                placeholder="¿Cómo fueron las clases? ¿Qué aprendiste?"
+                placeholder="Â¿CÃ³mo fueron las clases? Â¿QuÃ© aprendiste?"
                 class="input-field text-sm resize-none mb-3"></textarea>
               <div class="flex gap-2">
                 <button (click)="submitReview()" [disabled]="reviewLoading()" class="btn-accent text-sm">
-                  {{ reviewLoading() ? 'Enviando...' : 'Publicar reseña' }}
+                  {{ reviewLoading() ? 'Enviando...' : 'Publicar reseÃ±a' }}
                 </button>
                 <button (click)="showReviewForm.set(false)" class="btn-secondary text-sm">Cancelar</button>
               </div>
@@ -219,7 +219,7 @@
           }
 
           @if (reviews().length === 0) {
-            <p class="px-5 py-8 text-sm text-ink-muted text-center">Sin reseñas aún. ¡Sé el primero!</p>
+            <p class="px-5 py-8 text-sm text-ink-muted text-center">Sin reseÃ±as aÃºn. Â¡SÃ© el primero!</p>
           } @else {
             <div class="divide-y divide-dark-600">
               @for (r of reviews(); track r.id) {
@@ -227,7 +227,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <span class="text-xs font-semibold text-ink">{{ r.author_name || 'Alumno' }}</span>
                     <span class="text-sm">
-                      <span class="text-primary-500">{{ '★'.repeat(r.rating) }}</span><span class="text-dark-500 opacity-50">{{ '★'.repeat(5 - r.rating) }}</span>
+                      <span class="text-primary-500">{{ 'â˜…'.repeat(r.rating) }}</span><span class="text-dark-500 opacity-50">{{ 'â˜…'.repeat(5 - r.rating) }}</span>
                     </span>
                   </div>
                   @if (r.comment) { <p class="text-xs text-ink-3 leading-relaxed">{{ r.comment }}</p> }
@@ -244,7 +244,7 @@
         @if (teacher()!.hourly_rate) {
           <div class="card-flat p-5 text-center border border-primary-500/20">
             <p class="text-xs text-ink-muted uppercase tracking-wider mb-1">Precio por hora</p>
-            <p class="text-4xl font-black text-primary-400">{{ teacher()!.hourly_rate }}€</p>
+            <p class="text-4xl font-black text-primary-400">{{ teacher()!.hourly_rate }}â‚¬</p>
           </div>
         }
         <div class="card-flat overflow-hidden">
@@ -260,7 +260,7 @@
               <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Modalidad</span><span class="font-medium text-ink capitalize">{{ teacher()!.modality }}</span></div>
             }
             @if (teacher()!.experience_years) {
-              <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Experiencia</span><span class="font-medium text-ink">{{ teacher()!.experience_years }} años</span></div>
+              <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Experiencia</span><span class="font-medium text-ink">{{ teacher()!.experience_years }} aÃ±os</span></div>
             }
           </div>
         </div>
@@ -283,7 +283,7 @@
     </div>
   </div>
 
-  <!-- Mobile fixed CTA bar — sits above the bottom nav -->
+  <!-- Mobile fixed CTA bar â€” sits above the bottom nav -->
   <div class="fixed bottom-16 left-0 right-0 z-30 bg-dark-800/98 backdrop-blur-md border-t border-dark-600 px-4 py-3 flex gap-3 sm:hidden">
     @if (teacher()!.user_id) {
       @if (bookingSuccess()) {
@@ -316,3 +316,4 @@
   </div>
   }
 </div>
+

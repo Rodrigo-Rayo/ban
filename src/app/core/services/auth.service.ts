@@ -30,10 +30,13 @@ export class AuthService {
     if (error) throw error;
     try {
       const returnUrl = sessionStorage.getItem('bandyou_return_url');
-      if (returnUrl) {
+      // Only allow relative paths (no protocol-relative or absolute URLs)
+      if (returnUrl && /^\/[^/]/.test(returnUrl)) {
         sessionStorage.removeItem('bandyou_return_url');
         this.router.navigateByUrl(returnUrl);
         return;
+      } else if (returnUrl) {
+        sessionStorage.removeItem('bandyou_return_url');
       }
     } catch {}
     this.router.navigate(['/home']);

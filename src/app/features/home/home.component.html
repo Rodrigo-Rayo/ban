@@ -197,7 +197,13 @@
                 </div>
               </a>
             } @empty {
-              <p class="text-xs text-ink-muted col-span-6 py-2">Aún no hay anuncios. ¡Sé el primero en vender!</p>
+              <div class="col-span-6 flex flex-col items-center gap-3 py-8 text-center">
+                <div class="w-10 h-10 rounded-xl bg-dark-800 border border-dark-600 flex items-center justify-center text-ink-muted">
+                  <app-icon name="shopping-cart" [size]="18"/>
+                </div>
+                <p class="text-xs text-ink-muted">Aún no hay equipo en venta.</p>
+                <a routerLink="/shop/new" class="btn-secondary text-xs px-4 py-2">Publicar primero</a>
+              </div>
             }
           </div>
         }

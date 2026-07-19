@@ -168,8 +168,8 @@ export class OnboardingComponent implements OnInit {
     const cur = this.selectedSlots();
     this.selectedSlots.set(cur.includes(s) ? cur.filter(x => x !== s) : [...cur, s]);
   }
-  addMember() { this.bandMembers.push({ name: '', instrument: '' }); }
-  removeMember(i: number) { this.bandMembers.splice(i, 1); }
+  addMember() { this.bandMembers = [...this.bandMembers, { name: '', instrument: '' }]; }
+  removeMember(i: number) { this.bandMembers = this.bandMembers.filter((_, idx) => idx !== i); }
 
   next() { this.step.update(s => s + 1); }
   back() { this.step.update(s => Math.max(0, s - 1)); }
@@ -312,11 +312,9 @@ export class OnboardingComponent implements OnInit {
     const { error: profileError } = await this.supabase.client
       .from('profiles').upsert(profilePayload, { onConflict: 'id' });
     if (profileError) {
-      console.error('[onboarding] profiles upsert error:', profileError);
       const { error: profileRetryError } = await this.supabase.client
         .from('profiles').upsert({ id: userId, role }, { onConflict: 'id' });
       if (profileRetryError) {
-        console.error('[onboarding] profiles retry error:', profileRetryError);
         this.loading.set(false);
         this.error.set(`Error al crear perfil: ${profileRetryError.message}`);
         return;

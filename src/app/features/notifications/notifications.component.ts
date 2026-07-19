@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { NotificationsService } from '../../core/services/notifications.service';
+import { Notification as AppNotification } from '../../core/models';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 
@@ -17,7 +18,7 @@ export class NotificationsComponent implements OnInit {
   private router = inject(Router);
 
   loading = signal(true);
-  notifications = signal<any[]>([]);
+  notifications = signal<AppNotification[]>([]);
   userId = signal<string | null>(null);
 
   typeIcon(type: string) {

@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900 pb-36 sm:pb-8" style="padding-top:64px">
+﻿<div class="min-h-screen bg-dark-900 pb-36 sm:pb-20 md:pb-8" style="padding-top:64px">
 
   <div class="h-1 bg-primary-500"></div>
 
@@ -104,7 +104,7 @@
           <!-- Title + price -->
           <div>
             <h1 class="text-2xl font-bold text-ink leading-snug mb-2">{{ listing().title }}</h1>
-            <p class="text-3xl font-black text-primary-400">{{ listing().price | number:'1.0-0' }} €</p>
+            <p class="text-3xl font-black text-primary-400">{{ listing().price | number:'1.0-0' }} â‚¬</p>
           </div>
 
           <!-- Description -->
@@ -130,20 +130,20 @@
             </div>
           </div>
 
-          <!-- Actions — hidden on mobile (mobile CTA bar handles it) -->
+          <!-- Actions â€” hidden on mobile (mobile CTA bar handles it) -->
           @if (!isOwner && auth.isLoggedIn() && listing().status === 'active') {
             <button (click)="contactSeller()" [disabled]="contacting()"
               class="btn-primary text-sm py-3 w-full disabled:opacity-60 hidden sm:inline-flex items-center justify-center gap-2">
               @if (contacting()) {
                 <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
               }
-              {{ contacting() ? 'Abriendo chat…' : 'Contactar vendedor' }}
+              {{ contacting() ? 'Abriendo chatâ€¦' : 'Contactar vendedor' }}
             </button>
           }
 
           @if (!auth.isLoggedIn() && listing().status === 'active') {
             <a routerLink="/auth/login" class="btn-secondary text-sm py-3 text-center hidden sm:block">
-              Inicia sesión para contactar
+              Inicia sesiÃ³n para contactar
             </a>
           }
 
@@ -169,7 +169,7 @@
         </div>
       </div>
 
-      <!-- Mobile fixed CTA bar — sm:hidden so desktop info column actions handle it -->
+      <!-- Mobile fixed CTA bar â€” sm:hidden so desktop info column actions handle it -->
       @if (listing().status === 'active') {
         <div class="fixed bottom-16 left-0 right-0 z-30 bg-dark-800/98 backdrop-blur-md border-t border-dark-600 px-4 py-3 flex gap-3 sm:hidden">
           @if (!isOwner && auth.isLoggedIn()) {
@@ -178,13 +178,13 @@
               @if (contacting()) {
                 <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
               }
-              {{ contacting() ? 'Abriendo chat…' : 'Contactar vendedor' }}
+              {{ contacting() ? 'Abriendo chatâ€¦' : 'Contactar vendedor' }}
             </button>
           }
           @if (!auth.isLoggedIn()) {
             <a routerLink="/auth/login"
                class="btn-primary text-sm flex-1 flex items-center justify-center">
-              Inicia sesión para contactar
+              Inicia sesiÃ³n para contactar
             </a>
           }
           @if (isOwner) {
@@ -209,3 +209,4 @@
 
   </div>
 </div>
+

@@ -106,7 +106,7 @@ export class MessagesService {
       .order('last_message_at', { ascending: false });
 
     const convs = (data || []) as Conversation[];
-    this._cachedConvIds = convs.map((c: any) => c.id);
+    this._cachedConvIds = convs.map(c => c.id);
     return convs;
   }
 
@@ -208,7 +208,7 @@ export class MessagesService {
       .eq('read', false)
       .neq('sender_id', user.id)
       .limit(500);
-    return new Set((data || []).map((m: any) => m.conversation_id));
+    return new Set((data || []).map((m: { conversation_id: string }) => m.conversation_id));
   }
 
   private triggerPushNotification(conversationId: string, senderId: string, messageText: string): void {
@@ -235,7 +235,7 @@ export class MessagesService {
     return this.supabase.client
       .channel(name)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
-        const msg = payload.new as any;
+        const msg = payload.new as Message;
         if (msg.sender_id !== currentUserId) {
           const resolvedName = await this.getUserName(msg.sender_id);
           onNewMessage(resolvedName, msg.text, msg.conversation_id);
@@ -244,7 +244,7 @@ export class MessagesService {
       .subscribe();
   }
 
-  subscribeToMessages(conversationId: string, callback: (msg: any) => void) {
+  subscribeToMessages(conversationId: string, callback: (msg: Message) => void) {
     return this.supabase.client
       .channel(`messages:${conversationId}`)
       .on('postgres_changes', {
@@ -252,11 +252,11 @@ export class MessagesService {
         schema: 'public',
         table: 'messages',
         filter: `conversation_id=eq.${conversationId}`,
-      }, (payload) => callback(payload.new))
+      }, (payload) => callback(payload.new as unknown as Message))
       .subscribe();
   }
 
-  async getOtherUserProfile(conversation: any): Promise<string> {
+  async getOtherUserProfile(conversation: Conversation): Promise<string> {
     const user = await this.getCurrentUser();
     if (!user) return 'Usuario';
 

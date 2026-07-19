@@ -1056,3 +1056,58 @@ AS $$
     (SELECT name FROM profiles WHERE id = p_user_id AND name IS NOT NULL LIMIT 1)
   );
 $$;
+
+
+-- ──────────────────────────────────────────────
+-- 26. Harden notifications INSERT policy
+--
+-- Problem: the previous policy "Authenticated users can create notifications"
+-- allowed auth.uid() IS NOT NULL, meaning any logged-in user could insert a
+-- notification targeting any other user — a spam/harassment vector.
+--
+-- Solution: Replace direct cross-user INSERT with a SECURITY DEFINER function
+-- (create_notification) that is the single controlled path for creating
+-- notifications on behalf of another user. Direct INSERTs are now restricted
+-- to self-notifications (user_id = auth.uid()) only.
+-- ──────────────────────────────────────────────
+
+-- Drop the overly broad policy
+DROP POLICY IF EXISTS "Authenticated users can create notifications" ON notifications;
+
+-- Allow only self-notifications via direct INSERT
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'notifications' AND policyname = 'Users can create self notifications'
+  ) THEN
+    CREATE POLICY "Users can create self notifications"
+      ON notifications FOR INSERT
+      WITH CHECK (user_id = auth.uid());
+  END IF;
+END $$;
+
+-- Controlled function for cross-user notification creation (e.g. vacancy applications)
+CREATE OR REPLACE FUNCTION create_notification(
+  p_user_id    UUID,
+  p_type       TEXT,
+  p_title      TEXT,
+  p_body       TEXT    DEFAULT NULL,
+  p_entity_type TEXT   DEFAULT NULL,
+  p_entity_id  UUID    DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  INSERT INTO notifications (user_id, type, title, body, entity_type, entity_id)
+  VALUES (p_user_id, p_type, p_title, p_body, p_entity_type, p_entity_id);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION create_notification(UUID, TEXT, TEXT, TEXT, TEXT, UUID) TO authenticated;

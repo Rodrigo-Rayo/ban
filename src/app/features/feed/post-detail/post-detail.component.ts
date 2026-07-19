@@ -5,6 +5,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { SeoService } from '../../../core/services/seo.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Post, PostType } from '../../../core/models';
 
@@ -20,6 +21,7 @@ export class PostDetailComponent implements OnInit {
   private router = inject(Router);
   private messages = inject(MessagesService);
   private toast = inject(ToastService);
+  private seo = inject(SeoService);
   auth = inject(AuthService);
 
   post = signal<Post | null>(null);
@@ -47,6 +49,12 @@ export class PostDetailComponent implements OnInit {
     const { data } = await this.supabase.client
       .from('posts').select('*').eq('id', id).maybeSingle();
     this.post.set(data);
+    if (data) {
+      const typeInfo = this.postTypes.find(t => t.id === data.type);
+      const label = typeInfo?.label ?? 'Anuncio';
+      const desc = data.text?.slice(0, 155) ?? `${label} — BandYou`;
+      this.seo.set({ title: `${label} · ${data.author_name}`, description: desc, type: 'article' });
+    }
     this.loading.set(false);
   }
 

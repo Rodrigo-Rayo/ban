@@ -1,11 +1,13 @@
 import { Injectable, inject, signal } from '@angular/core';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+import { Notification as AppNotification } from '../models';
 import { SupabaseService } from './supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private supabase = inject(SupabaseService);
   unreadCount = signal(0);
-  private channel: any = null;
+  private channel: RealtimeChannel | null = null;
 
   async loadUnread(userId: string) {
     const { count, error } = await this.supabase.client
@@ -14,9 +16,9 @@ export class NotificationsService {
     if (!error) this.unreadCount.set(count || 0);
   }
 
-  async getAll(userId: string): Promise<any[]> {
+  async getAll(userId: string): Promise<AppNotification[]> {
     const { data, error } = await this.supabase.client
-      .from('notifications').select('id, type, title, body, entity_type, entity_id, read, created_at')
+      .from('notifications').select('id, user_id, type, title, body, entity_type, entity_id, read, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }).limit(50);
     if (error) return [];
@@ -29,9 +31,19 @@ export class NotificationsService {
     if (!error) this.unreadCount.set(0);
   }
 
+  /**
+   * Creates a notification for any user.
+   * Routes through the `create_notification` SECURITY DEFINER RPC so that
+   * direct cross-user INSERTs are not needed (and are blocked by RLS).
+   */
   async create(userId: string, type: string, title: string, body?: string, entityType?: string, entityId?: string) {
-    await this.supabase.client.from('notifications').insert({
-      user_id: userId, type, title, body, entity_type: entityType, entity_id: entityId,
+    await this.supabase.client.rpc('create_notification', {
+      p_user_id: userId,
+      p_type: type,
+      p_title: title,
+      p_body: body ?? null,
+      p_entity_type: entityType ?? null,
+      p_entity_id: entityId ?? null,
     });
   }
 
@@ -40,7 +52,7 @@ export class NotificationsService {
       .channel(`notifications_${userId}`)
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}`,
-      }, (payload: any) => {
+      }, (_payload) => {
         this.unreadCount.update(n => n + 1);
         onNew();
       })

@@ -15,7 +15,10 @@ export class PushNotificationService {
   constructor() {
     this.swPush.notificationClicks.subscribe(({ notification }) => {
       const url = (notification as any).data?.url;
-      if (url) this.router.navigateByUrl(url);
+      // Only allow relative paths to prevent open redirect via crafted push payloads
+      if (url && typeof url === 'string' && /^\/[^/]/.test(url)) {
+        this.router.navigateByUrl(url);
+      }
     });
   }
 

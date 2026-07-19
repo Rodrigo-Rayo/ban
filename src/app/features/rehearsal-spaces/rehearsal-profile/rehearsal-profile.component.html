@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900 pb-36 sm:pb-8" style="padding-top:64px">
+﻿<div class="min-h-screen bg-dark-900 pb-36 sm:pb-20 md:pb-8" style="padding-top:64px">
 
   @if (space()) {
     <div class="h-1" [style.background]="avatarColor(space()!.name)"></div>
@@ -44,7 +44,7 @@
     </div>
   } @else {
 
-  <!-- HERO — cover strip + overlapping avatar -->
+  <!-- HERO â€” cover strip + overlapping avatar -->
   <div class="relative border-b border-dark-600">
     <!-- Cover strip -->
     <div class="h-32 sm:h-44 w-full relative overflow-hidden"
@@ -75,7 +75,7 @@
             @if (space()!.rooms_count) { <span class="tag">{{ space()!.rooms_count }} sala{{ space()!.rooms_count > 1 ? 's' : '' }}</span> }
             @if (avgRating) {
               <span class="tag-accent">
-                <app-icon name="star" [size]="9" class="mr-0.5"/>{{ avgRating }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}
+                <app-icon name="star" [size]="9" class="mr-0.5"/>{{ avgRating }} Â· {{ reviews().length }} reseÃ±a{{ reviews().length !== 1 ? 's' : '' }}
               </span>
             }
           </div>
@@ -86,11 +86,11 @@
             </p>
           }
           @if (space()!.hourly_rate) {
-            <p class="text-2xl font-black text-primary-400 mt-1">{{ space()!.hourly_rate }}€<span class="text-sm font-normal text-ink-muted">/hora</span></p>
+            <p class="text-2xl font-black text-primary-400 mt-1">{{ space()!.hourly_rate }}â‚¬<span class="text-sm font-normal text-ink-muted">/hora</span></p>
           }
         </div>
 
-        <!-- Actions — desktop only; mobile handled by fixed CTA bar below -->
+        <!-- Actions â€” desktop only; mobile handled by fixed CTA bar below -->
         <div class="hidden sm:flex sm:flex-col gap-2 flex-shrink-0 sm:pt-28 sm:w-44">
           @if (space()!.user_id) {
             <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed">
@@ -143,24 +143,24 @@
           </div>
         }
 
-        <!-- Reseñas -->
+        <!-- ReseÃ±as -->
         <div class="card-flat overflow-hidden">
           <div class="px-5 py-3 border-b border-dark-600 flex items-center justify-between">
             <h3 class="section-label">
-              Reseñas @if (reviews().length > 0) { <span class="text-ink-muted font-normal">({{ reviews().length }})</span> }
-              @if (avgRating) { <span class="ml-2 text-primary-500 font-bold">★ {{ avgRating }}</span> }
+              ReseÃ±as @if (reviews().length > 0) { <span class="text-ink-muted font-normal">({{ reviews().length }})</span> }
+              @if (avgRating) { <span class="ml-2 text-primary-500 font-bold">â˜… {{ avgRating }}</span> }
             </h3>
             @if (currentUserId() && !myReview()) {
               <button (click)="showReviewForm.set(!showReviewForm())"
                 class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">
-                + Dejar reseña
+                + Dejar reseÃ±a
               </button>
             }
           </div>
 
           @if (showReviewForm()) {
             <div class="p-5 border-b border-dark-600 bg-dark-700/40">
-              <p class="text-xs font-semibold text-ink mb-2">Tu valoración</p>
+              <p class="text-xs font-semibold text-ink mb-2">Tu valoraciÃ³n</p>
               <div class="flex gap-1 mb-3">
                 @for (s of [1,2,3,4,5]; track s) {
                   <button (click)="reviewRating = s" [attr.aria-label]="s + ' estrellas'"
@@ -168,11 +168,11 @@
                     class="text-2xl transition-colors hover:scale-110"
                     [class.text-primary-500]="s <= reviewRating"
                     [class.text-ink-muted]="s > reviewRating"
-                    [class.opacity-40]="s > reviewRating">★</button>
+                    [class.opacity-40]="s > reviewRating">â˜…</button>
                 }
               </div>
               <textarea [(ngModel)]="reviewComment" rows="2"
-                placeholder="¿Cómo fue el local? ¿Buen sonido, accesible...?"
+                placeholder="Â¿CÃ³mo fue el local? Â¿Buen sonido, accesible...?"
                 class="input-field text-sm resize-none mb-3"></textarea>
               <div class="flex gap-2">
                 <button (click)="submitReview()" [disabled]="reviewLoading()" class="btn-primary text-sm">
@@ -187,7 +187,7 @@
           }
 
           @if (reviews().length === 0) {
-            <p class="px-5 py-8 text-sm text-ink-muted text-center">Sin reseñas aún. ¡Sé el primero!</p>
+            <p class="px-5 py-8 text-sm text-ink-muted text-center">Sin reseÃ±as aÃºn. Â¡SÃ© el primero!</p>
           } @else {
             <div class="divide-y divide-dark-600">
               @for (r of reviews(); track r.id) {
@@ -195,7 +195,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <span class="text-xs font-semibold text-ink">{{ r.author_name || 'Usuario' }}</span>
                     <span class="text-sm">
-                      <span class="text-primary-500">{{ '★'.repeat(r.rating) }}</span><span class="text-dark-500 opacity-50">{{ '★'.repeat(5 - r.rating) }}</span>
+                      <span class="text-primary-500">{{ 'â˜…'.repeat(r.rating) }}</span><span class="text-dark-500 opacity-50">{{ 'â˜…'.repeat(5 - r.rating) }}</span>
                     </span>
                   </div>
                   @if (r.comment) { <p class="text-xs text-ink-3 leading-relaxed">{{ r.comment }}</p> }
@@ -212,7 +212,7 @@
         @if (space()!.hourly_rate) {
           <div class="card-flat p-5 text-center border border-primary-500/20">
             <p class="text-xs text-ink-muted uppercase tracking-wider mb-1">Precio por hora</p>
-            <p class="text-4xl font-black text-primary-400">{{ space()!.hourly_rate }}€</p>
+            <p class="text-4xl font-black text-primary-400">{{ space()!.hourly_rate }}â‚¬</p>
           </div>
         }
         <div class="card-flat overflow-hidden">
@@ -229,7 +229,7 @@
             }
             @if (space()!.phone) {
               <div class="flex justify-between px-4 py-2.5 items-center">
-                <span class="text-ink-muted">Teléfono</span>
+                <span class="text-ink-muted">TelÃ©fono</span>
                 <a [href]="'tel:' + space()!.phone" class="font-medium text-primary-400 hover:text-primary-300 transition-colors">{{ space()!.phone }}</a>
               </div>
             }
@@ -248,7 +248,7 @@
     </div>
   </div>
 
-  <!-- Mobile fixed CTA bar — sits above the bottom nav -->
+  <!-- Mobile fixed CTA bar â€” sits above the bottom nav -->
   <div class="fixed bottom-16 left-0 right-0 z-30 bg-dark-800/98 backdrop-blur-md border-t border-dark-600 px-4 py-3 flex gap-3 sm:hidden">
     @if (space()!.website_url) {
       <a [href]="space()!.website_url" target="_blank" rel="noopener noreferrer" class="btn-primary text-sm flex-1 text-center">
@@ -279,3 +279,4 @@
   </div>
   }
 </div>
+

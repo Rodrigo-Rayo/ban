@@ -3,6 +3,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessagesService } from '../../core/services/messages.service';
+import { Message } from '../../core/models';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../core/services/supabase.service';
 
 @Component({
@@ -19,18 +21,20 @@ export class ChatComponent implements OnInit, OnDestroy {
   private messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
 
-  messages = signal<any[]>([]);
+  messages = signal<Message[]>([]);
   otherName = signal('');
   newMessage = '';
   currentUserId = '';
   loading = signal(true);
   sending = signal(false);
   sendError = signal('');
-  private subscription: any;
+  private subscription: RealtimeChannel | undefined;
   private conversationId = '';
 
   async ngOnInit() {
-    this.conversationId = this.route.snapshot.paramMap.get('id')!;
+    const routeId = this.route.snapshot.paramMap.get('id');
+    if (!routeId) { this.router.navigate(['/inbox']); return; }
+    this.conversationId = routeId;
     this.messagesService.setActiveChat(this.conversationId);
 
     const navName = history.state?.name;

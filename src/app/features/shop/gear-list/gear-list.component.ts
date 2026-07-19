@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { SeoService } from '../../../core/services/seo.service';
 import { CITIES_WITH_ALL } from '../../../core/constants/cities';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 
@@ -32,6 +33,7 @@ export interface GearListing {
 })
 export class GearListComponent implements OnInit {
   private supabase = inject(SupabaseService);
+  private seo = inject(SeoService);
   auth = inject(AuthService);
 
   listings = signal<GearListing[]>([]);
@@ -54,6 +56,7 @@ export class GearListComponent implements OnInit {
   readonly cities = CITIES_WITH_ALL;
 
   async ngOnInit() {
+    this.seo.set({ title: 'Tienda', description: 'Compra y vende instrumentos, amplificadores y equipamiento musical de segunda mano entre músicos en España.' });
     await this.loadListings();
   }
 

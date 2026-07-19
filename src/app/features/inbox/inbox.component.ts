@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -11,7 +11,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
   imports: [RouterLink, CommonModule, DatePipe],
   templateUrl: './inbox.component.html',
 })
-export class InboxComponent implements OnInit, OnDestroy {
+export class InboxComponent implements OnInit {
   private messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
   private destroyRef = inject(DestroyRef);
@@ -72,5 +72,4 @@ export class InboxComponent implements OnInit, OnDestroy {
     return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
   }
 
-  ngOnDestroy() {}
 }
