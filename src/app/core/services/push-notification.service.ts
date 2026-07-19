@@ -35,7 +35,11 @@ export class PushNotificationService {
   async subscribe(userId: string): Promise<void> {
     if (!this.swPush.isEnabled) return;
     if (this.permission !== 'granted') return;
-    await this.doSubscribe(userId);
+    try {
+      await this.doSubscribe(userId);
+    } catch {
+      // FCM / push service can reject the registration (network, quota, etc.) — not fatal
+    }
   }
 
   /** Request permission via a user gesture, then subscribe. Returns true if granted. */
