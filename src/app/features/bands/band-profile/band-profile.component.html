@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:144px">
+<div class="min-h-screen bg-dark-900 pb-36 sm:pb-8" style="padding-top:64px">
 
   @if (band()) {
     <div class="h-1" [style.background]="avatarColor(band()!.name)"></div>
@@ -185,13 +185,13 @@
                       <div class="flex-shrink-0 flex flex-col gap-2 items-end">
                         @if (isOwner) {
                           <button (click)="closeVacancy(v.id)"
-                            class="text-xs text-ink-muted hover:text-signal-red transition-colors border border-dark-600 hover:border-signal-red/30 px-2.5 py-1 rounded-lg">
+                            class="text-xs text-ink-muted hover:text-signal-red transition-colors border border-dark-600 hover:border-signal-red/30 px-2.5 min-h-[44px] rounded-lg">
                             Cerrar vacante
                           </button>
                         } @else if (applySuccess() === v.id || hasApplied(v.id)) {
                           <span class="tag-green"><app-icon name="check" [size]="9"/>Solicitud enviada</span>
                         } @else if (applyingTo() === v.id) {
-                          <div class="flex flex-col gap-2 w-56">
+                          <div class="flex flex-col gap-2 w-full">
                             <textarea [(ngModel)]="applyMessage" rows="2"
                               placeholder="Cuéntales por qué encajas..."
                               class="input-field text-xs py-2 resize-none"></textarea>
@@ -251,7 +251,7 @@
                     <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-base font-black text-white overflow-hidden"
                          [style.background]="avatarColor(app.musician?.name || 'U')">
                       @if (app.musician?.avatar_url) {
-                        <img [src]="app.musician.avatar_url" alt="" class="w-full h-full object-cover"/>
+                        <img [src]="app.musician.avatar_url" [alt]="app.musician?.name" class="w-full h-full object-cover"/>
                       } @else {
                         {{ (app.musician?.name || 'U').slice(0,1).toUpperCase() }}
                       }
@@ -324,28 +324,28 @@
             <h3 class="section-label mb-4">Escúchanos</h3>
             <div class="flex flex-wrap gap-2">
               @if (band()!.spotify_url) {
-                <a [href]="band()!.spotify_url" target="_blank"
+                <a [href]="band()!.spotify_url" target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1DB954]/10 text-[#1DB954] text-xs font-bold border border-[#1DB954]/25 hover:bg-[#1DB954]/20 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
                   Spotify
                 </a>
               }
               @if (band()!.youtube_url) {
-                <a [href]="band()!.youtube_url" target="_blank"
+                <a [href]="band()!.youtube_url" target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/25 hover:bg-red-500/20 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
                   YouTube
                 </a>
               }
               @if (band()!.instagram_url) {
-                <a [href]="band()!.instagram_url" target="_blank"
+                <a [href]="band()!.instagram_url" target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-pink-500/10 text-pink-400 text-xs font-bold border border-pink-500/25 hover:bg-pink-500/20 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
                   Instagram
                 </a>
               }
               @if (band()!.website_url) {
-                <a [href]="band()!.website_url" target="_blank"
+                <a [href]="band()!.website_url" target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-dark-700 text-ink text-xs font-bold border border-dark-600 hover:bg-dark-600 transition-colors">
                   <app-icon name="arrow-right" [size]="12"/>Web oficial
                 </a>

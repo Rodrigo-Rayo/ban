@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:144px">
+<div class="min-h-screen bg-dark-900 pb-36 sm:pb-8" style="padding-top:64px">
 
   @if (space()) {
     <div class="h-1" [style.background]="avatarColor(space()!.name)"></div>
@@ -59,7 +59,7 @@
         <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-xl border-4 border-dark-900"
              [style.background]="avatarColor(space()!.name)">
           @if (space()!.avatar_url) {
-            <img [src]="space()!.avatar_url" alt="" class="w-full h-full object-cover"/>
+            <img [src]="space()!.avatar_url" [alt]="space()!.name" class="w-full h-full object-cover"/>
           } @else {
             {{ space()!.name?.slice(0,1).toUpperCase() }}
           }
@@ -236,10 +236,10 @@
           </div>
         </div>
         @if (space()!.website_url) {
-          <a [href]="space()!.website_url" target="_blank" rel="noopener" class="btn-primary text-sm text-center">Reservar en su web</a>
+          <a [href]="space()!.website_url" target="_blank" rel="noopener noreferrer" class="btn-primary text-sm text-center">Reservar en su web</a>
         }
         @if (space()!.instagram_url) {
-          <a [href]="space()!.instagram_url" target="_blank" rel="noopener"
+          <a [href]="space()!.instagram_url" target="_blank" rel="noopener noreferrer"
              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-pink-500/10 text-pink-400 text-sm font-bold border border-pink-500/25 hover:bg-pink-500/20 transition-colors">
             Instagram
           </a>
@@ -251,7 +251,7 @@
   <!-- Mobile fixed CTA bar — sits above the bottom nav -->
   <div class="fixed bottom-16 left-0 right-0 z-30 bg-dark-800/98 backdrop-blur-md border-t border-dark-600 px-4 py-3 flex gap-3 sm:hidden">
     @if (space()!.website_url) {
-      <a [href]="space()!.website_url" target="_blank" rel="noopener" class="btn-primary text-sm flex-1 text-center">
+      <a [href]="space()!.website_url" target="_blank" rel="noopener noreferrer" class="btn-primary text-sm flex-1 text-center">
         Reservar en su web
       </a>
     } @else if (space()!.user_id) {

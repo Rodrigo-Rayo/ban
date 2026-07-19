@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:144px">
+<div class="min-h-screen bg-dark-900 pb-36 sm:pb-8" style="padding-top:64px">
 
   @if (teacher()) {
     <div class="h-1" [style.background]="avatarColor(teacher()!.name)"></div>
@@ -76,7 +76,7 @@
         <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-xl border-4 border-dark-900"
              [style.background]="avatarColor(teacher()!.name)">
           @if (teacher()!.avatar_url) {
-            <img [src]="teacher()!.avatar_url" alt="" class="w-full h-full object-cover"/>
+            <img [src]="teacher()!.avatar_url" [alt]="teacher()!.name" class="w-full h-full object-cover"/>
           } @else {
             {{ teacher()!.name?.slice(0,1).toUpperCase() }}
           }
@@ -147,18 +147,18 @@
           <div>
             <label class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">Fecha <span class="text-signal-red">*</span></label>
             <input type="date" [(ngModel)]="bookingDate" [min]="minDate"
-              class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2.5 text-sm text-ink outline-none focus:border-primary-500 transition-colors">
+              class="input-field">
           </div>
           <div>
             <label class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">Hora preferida</label>
             <input type="time" [(ngModel)]="bookingTime"
-              class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2.5 text-sm text-ink outline-none focus:border-primary-500 transition-colors">
+              class="input-field">
           </div>
         </div>
         <div class="mb-3">
           <label class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">Mensaje</label>
           <textarea [(ngModel)]="bookingMessage" rows="2" placeholder="Nivel, objetivos, qué quieres aprender…"
-            class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2.5 text-sm text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors resize-none"></textarea>
+            class="input-field resize-none"></textarea>
         </div>
         <button (click)="submitBooking()" [disabled]="bookingLoading() || !bookingDate"
           class="btn-accent text-sm py-2.5 disabled:opacity-50">
@@ -265,14 +265,14 @@
           </div>
         </div>
         @if (teacher()!.youtube_url) {
-          <a [href]="teacher()!.youtube_url" target="_blank"
+          <a [href]="teacher()!.youtube_url" target="_blank" rel="noopener noreferrer"
              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-sm font-bold border border-red-500/25 hover:bg-red-500/20 transition-colors">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
             Clases en YouTube
           </a>
         }
         @if (teacher()!.website_url) {
-          <a [href]="teacher()!.website_url" target="_blank" class="btn-secondary text-sm text-center">Visitar web</a>
+          <a [href]="teacher()!.website_url" target="_blank" rel="noopener noreferrer" class="btn-secondary text-sm text-center">Visitar web</a>
         }
         @if (teacher()!.user_id) {
           <button (click)="sendMessage()" [disabled]="sending()" class="btn-primary w-full hidden sm:block disabled:opacity-50">

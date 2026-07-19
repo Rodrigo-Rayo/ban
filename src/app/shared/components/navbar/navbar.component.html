@@ -94,7 +94,7 @@
            aria-label="Mi perfil"
            class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden ml-1 ring-2 ring-transparent hover:ring-primary-500/40 transition-all duration-200">
           @if (avatarUrl()) {
-            <img [src]="avatarUrl()" class="w-full h-full object-cover" alt="avatar">
+            <img [src]="avatarUrl()" class="w-full h-full object-cover" alt="Mi perfil">
           } @else {
             {{ (auth.user()?.email || 'U').slice(0,2).toUpperCase() }}
           }

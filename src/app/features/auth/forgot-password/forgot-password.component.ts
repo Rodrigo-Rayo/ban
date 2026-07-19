@@ -14,26 +14,23 @@ export class ForgotPasswordComponent {
   private supabase = inject(SupabaseService);
 
   loading = signal(false);
+  sent = signal(false);
   error = signal('');
-  success = signal(false);
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
   });
 
   async onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading.set(true);
     this.error.set('');
     const { error } = await this.supabase.auth.resetPasswordForEmail(
       this.form.value.email!,
-      { redirectTo: `${window.location.origin}/auth/callback` }
+      { redirectTo: `${window.location.origin}/auth/reset-password` }
     );
     this.loading.set(false);
-    if (error) {
-      this.error.set(error.message);
-    } else {
-      this.success.set(true);
-    }
+    if (error) { this.error.set('No pudimos enviar el correo. Verifica la dirección.'); return; }
+    this.sent.set(true);
   }
 }

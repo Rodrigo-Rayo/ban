@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900 flex flex-col" style="padding-top:64px">
+<div class="min-h-screen bg-dark-900 flex flex-col pb-20 sm:pb-0" style="padding-top:64px">
 
   <!-- ── EMAIL CONFIRMATION PENDING ── -->
   @if (pendingConfirmation()) {
@@ -320,7 +320,7 @@
                     @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
                   </select>
                   <button type="button" (click)="removeMember($index)"
-                    class="text-ink-muted hover:text-signal-red transition-colors flex-shrink-0 p-1.5 rounded-lg hover:bg-dark-700">
+                    class="text-ink-muted hover:text-signal-red transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-dark-700">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -453,7 +453,7 @@
               <div class="flex gap-1.5 mb-2">
                 @for (d of DAYS; track d; let i = $index) {
                   <button type="button" (click)="toggleDay(d)"
-                    class="w-9 h-9 text-xs font-bold rounded-xl border transition-all duration-150 flex items-center justify-center focus:outline-none"
+                    class="w-11 h-11 text-xs font-bold rounded-xl border transition-all duration-150 flex items-center justify-center focus:outline-none"
                     [class.border-ink]="selectedDays().includes(d)"
                     [class.bg-ink]="selectedDays().includes(d)"
                     [class.text-dark-900]="selectedDays().includes(d)"

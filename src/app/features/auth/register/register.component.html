@@ -35,8 +35,8 @@
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
 
           <div>
-            <label class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">Email</label>
-            <input formControlName="email" type="email" placeholder="tu@email.com"
+            <label for="reg-email" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">Email</label>
+            <input id="reg-email" formControlName="email" type="email" placeholder="tu@email.com"
               class="input-field" autocomplete="email"/>
             @if (form.get('email')?.invalid && form.get('email')?.touched) {
               <p class="text-xs text-signal-red mt-1.5">Introduce un email válido.</p>
@@ -44,8 +44,8 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">Contraseña</label>
-            <input formControlName="password" type="password" placeholder="Mínimo 6 caracteres"
+            <label for="reg-password" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">Contraseña</label>
+            <input id="reg-password" formControlName="password" type="password" placeholder="Mínimo 6 caracteres"
               class="input-field" autocomplete="new-password"/>
             @if (form.get('password')?.invalid && form.get('password')?.touched) {
               <p class="text-xs text-signal-red mt-1.5">Mínimo 6 caracteres.</p>

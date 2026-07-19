@@ -2,7 +2,7 @@
   <div class="flex flex-col lg:flex-row">
 
     <!-- ══ MAIN CONTENT ══ -->
-    <div class="flex-1 min-w-0 px-4 sm:px-6 py-6 lg:py-8">
+    <div class="flex-1 min-w-0 px-4 sm:px-6 py-6 lg:py-8 pb-20 lg:pb-8">
 
       <!-- ── ACCIONES RÁPIDAS ── -->
       @if (auth.user()) {
@@ -242,7 +242,7 @@
                   <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-black text-white overflow-hidden ring-2 ring-dark-600 group-hover:ring-primary-500/50 transition-all"
                        [style.background]="avatarColor(m.name)">
                     @if (m.avatar_url) {
-                      <img [src]="m.avatar_url" class="w-full h-full object-cover" loading="lazy"/>
+                      <img [src]="m.avatar_url" [alt]="m.name" class="w-full h-full object-cover" loading="lazy"/>
                     } @else {
                       {{ m.name?.slice(0,2).toUpperCase() }}
                     }
@@ -298,7 +298,7 @@
                 <div class="w-12 h-12 rounded-full mx-auto mb-2.5 flex items-center justify-center text-sm font-black text-white overflow-hidden ring-2 ring-dark-600 group-hover:ring-primary-500/50 transition-all"
                      [style.background]="avatarColor(band.name)">
                   @if (band.avatar_url) {
-                    <img [src]="band.avatar_url" class="w-full h-full object-cover" loading="lazy"/>
+                    <img [src]="band.avatar_url" [alt]="band.name" class="w-full h-full object-cover" loading="lazy"/>
                   } @else {
                     {{ band.name?.slice(0,2).toUpperCase() }}
                   }
@@ -371,7 +371,7 @@
                  class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
                      [style.background]="avatarColor(r.name)">
-                  @if (r.avatar_url) { <img [src]="r.avatar_url" class="w-full h-full object-cover" loading="lazy"/> }
+                  @if (r.avatar_url) { <img [src]="r.avatar_url" [alt]="r.name" class="w-full h-full object-cover" loading="lazy"/> }
                   @else { {{ r.name?.slice(0,2).toUpperCase() }} }
                 </div>
                 <div class="flex-1 min-w-0">
@@ -414,7 +414,7 @@
                  class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
                      [style.background]="avatarColor(t.name)">
-                  @if (t.avatar_url) { <img [src]="t.avatar_url" class="w-full h-full object-cover" loading="lazy"/> }
+                  @if (t.avatar_url) { <img [src]="t.avatar_url" [alt]="t.name" class="w-full h-full object-cover" loading="lazy"/> }
                   @else { {{ t.name?.slice(0,2).toUpperCase() }} }
                 </div>
                 <div class="flex-1 min-w-0">
@@ -457,7 +457,7 @@
                  class="flex items-center gap-3 p-3 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
                      [style.background]="avatarColor(venue.name)">
-                  @if (venue.avatar_url) { <img [src]="venue.avatar_url" class="w-full h-full object-cover" loading="lazy"/> }
+                  @if (venue.avatar_url) { <img [src]="venue.avatar_url" [alt]="venue.name" class="w-full h-full object-cover" loading="lazy"/> }
                   @else { {{ venue.name?.slice(0,2).toUpperCase() }} }
                 </div>
                 <div class="flex-1 min-w-0">

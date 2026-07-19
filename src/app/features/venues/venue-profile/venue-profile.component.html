@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:144px">
+<div class="min-h-screen bg-dark-900 pb-36 sm:pb-8" style="padding-top:64px">
 
   @if (venue()) {
     <div class="h-1" [style.background]="avatarColor(venue()!.name)"></div>
@@ -236,10 +236,10 @@
           </div>
         </div>
         @if (venue()!.website_url) {
-          <a [href]="venue()!.website_url" target="_blank" rel="noopener" class="btn-primary text-sm text-center">Visitar web</a>
+          <a [href]="venue()!.website_url" target="_blank" rel="noopener noreferrer" class="btn-primary text-sm text-center">Visitar web</a>
         }
         @if (venue()!.instagram_url) {
-          <a [href]="venue()!.instagram_url" target="_blank"
+          <a [href]="venue()!.instagram_url" target="_blank" rel="noopener noreferrer"
              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-pink-500/10 text-pink-400 text-sm font-bold border border-pink-500/25 hover:bg-pink-500/20 transition-colors">
             Instagram
           </a>
