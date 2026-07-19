@@ -56,8 +56,8 @@
         <!-- Avatar overlapping cover -->
         <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-xl border-4 border-dark-900"
              [style.background]="avatarColor(band()!.name)">
-          @if (band()!.avatar_url) {
-            <img [src]="band()!.avatar_url" [alt]="band()!.name" class="w-full h-full object-cover"/>
+          @if (band()!.avatar_url && !avatarError()) {
+            <img [src]="band()!.avatar_url" [alt]="band()!.name" class="w-full h-full object-cover" (error)="avatarError.set(true)"/>
           } @else {
             {{ band()!.name?.slice(0,1).toUpperCase() }}
           }

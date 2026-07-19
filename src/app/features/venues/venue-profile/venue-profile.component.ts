@@ -30,6 +30,7 @@ export class VenueProfileComponent implements OnInit {
   currentUserId = signal<string | null>(null);
   isFav = signal(false);
   favLoading = signal(false);
+  avatarError = signal(false);
 
   showReviewForm = signal(false);
   reviewRating = 5;

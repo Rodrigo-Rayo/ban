@@ -20,7 +20,8 @@ import { isPlatformBrowser } from '@angular/common';
             Instalar
           </button>
           <button (click)="dismiss()"
-            class="flex-shrink-0 p-1.5 text-ink-muted hover:text-ink transition-colors rounded-lg">
+            aria-label="Cerrar banner de instalación"
+            class="flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-ink transition-colors rounded-lg">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>

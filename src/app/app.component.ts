@@ -18,9 +18,9 @@ import { PushNotificationService } from './core/services/push-notification.servi
   template: `
     <app-navbar />
     <app-sidebar />
-    <div class="lg:pl-56 pb-16 md:pb-0">
+    <main id="main-content" class="lg:pl-56 pb-16 md:pb-0">
       <router-outlet />
-    </div>
+    </main>
     <app-toast />
     <app-install-banner />
     <app-notification-permission-banner />

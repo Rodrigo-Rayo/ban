@@ -48,6 +48,11 @@ export class NotificationsService {
   }
 
   subscribe(userId: string, onNew: () => void) {
+    // Guard against duplicate channels if subscribe() is called more than once
+    if (this.channel) {
+      this.supabase.client.removeChannel(this.channel);
+      this.channel = null;
+    }
     this.channel = this.supabase.client
       .channel(`notifications_${userId}`)
       .on('postgres_changes', {
@@ -56,7 +61,11 @@ export class NotificationsService {
         this.unreadCount.update(n => n + 1);
         onNew();
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('[NotificationsService] Realtime channel error — notifications may be delayed');
+        }
+      });
     return this.channel;
   }
 

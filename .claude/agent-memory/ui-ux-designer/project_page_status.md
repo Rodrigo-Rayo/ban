@@ -247,12 +247,72 @@ Container padding changed to `px-5 py-8 sm:py-12` (less aggressive top padding o
 - Unread badge: `min-w-[16px] h-4 px-0.5` pill for multi-digit counts
 - Gap between icon and label: `gap-0.5` (was `gap-1`)
 
+## A11y + consistency pass — 2026-07-19 (second-round audit)
+
+### Auth (forgot-password, reset-password) — ALREADY GOOD
+- forgot-password: has success state, labels with for+id, autocomplete="email". No changes needed.
+- reset-password: `btn-accent` replaced with `btn-primary` on both the error-state link and the submit button.
+
+### Venue Form — FIXED
+- Back button: `aria-label="Volver"` added.
+- All inputs/selects/textareas: `id` attributes added + `for` on every label.
+- Autocomplete: `autocomplete="organization"` on name, `autocomplete="tel"` on phone, `autocomplete="street-address"` on address, `autocomplete="url"` on link fields.
+- Genre pill buttons: `[attr.aria-pressed]` binding added; wrapped in `role="group"`.
+- Submit: `btn-accent` → `btn-primary`, `min-h-[50px]` added.
+
+### Teacher Form — FIXED
+- Same label/id/autocomplete pattern applied (name→"name", city select, modality, rate, exp, description, experience, links).
+- Instrument pills: `[attr.aria-pressed]` + `role="group"`.
+- Level pills: `[attr.aria-pressed]` + `role="group"`.
+- Submit: `btn-accent` → `btn-primary`, `min-h-[50px]` added.
+- Back button: `aria-label="Volver"` added.
+
+### Rehearsal Form — FIXED
+- Same label/id pattern applied.
+- Autocomplete: `organization` on name, `tel` on phone, `street-address` on address.
+- Submit: `btn-accent` → `btn-primary`, `min-h-[50px]` added.
+- Back button: `aria-label="Volver"` added.
+
+### Gear Form — FIXED
+- All raw Tailwind inputs/selects/textarea replaced with `input-field` class.
+- All labels now have `for` + matching `id` on inputs.
+- Image remove buttons: `aria-label="Eliminar foto N"` added; bumped from w-5 to w-6 h-6.
+- Back button: `aria-label="Volver a la tienda"` + `min-h-[44px]` added.
+- Submit: `btn-accent` → `btn-primary`, `min-h-[50px]` added.
+
+### Gear Detail — FIXED
+- Encoding corruption fixed: `â‚¬` → `€`, `â€¦` → `…`, `sesiÃ³n` → `sesión` (multiple occurrences).
+- `text-ink-3` non-existent class → `text-ink-muted` on description paragraph.
+- Image carousel prev/next buttons: `aria-label="Imagen anterior"` / `aria-label="Imagen siguiente"`, bumped to w-9 h-9.
+- Dot pagination buttons: `role="tab"`, `[attr.aria-selected]`, `[attr.aria-label]` added; dots bumped to w-2 h-2.
+- Thumbnail strip buttons: `[attr.aria-label]`, `[attr.aria-pressed]` added; img `alt` added.
+- Mobile CTA bar buttons: `min-h-[44px]` added to all three variants.
+
+### Gear List — FIXED
+- Condition pill buttons: `[attr.aria-pressed]` added.
+
+### Event Detail — FIXED
+- RSVP button: `[attr.aria-pressed]="isGoing()"`, `[attr.aria-label]` (dynamic), `min-h-[44px]` added.
+- Login link: `flex items-center` + `min-h-[44px]` for touch target.
+
+### Search — FIXED
+- Tab strip container: `role="tablist"`, `aria-label="Categorías de búsqueda"` added.
+- Each tab button: `role="tab"`, `[attr.aria-selected]`, `[id]` added.
+- Genre pill group: `role="group"`, `aria-label="Filtrar por género"` + `[attr.aria-pressed]` on each pill.
+
+### Install Banner — FIXED
+- Dismiss X button: `aria-label="Cerrar banner de instalación"` added.
+
+### Notification Banner — FIXED
+- `md:bottom-4` changed to `lg:bottom-4` — prevents banner overlapping bottom nav on tablet (768–1023px range still uses bottom nav).
+
 ## Pages still with known technical debt
 
 - Map: component file not found (may not exist yet)
-- Gear form (new listing form): not audited
-- Auth forgot-password / reset-password: not audited
 - Legal pages: not design priority
+- not-found: already has btn-primary CTA — no changes needed
+- cookie-banner: correctly positioned at bottom-16 md:bottom-0 — no changes needed
+- post-detail: already accessible — no changes needed
 
 ## Known patterns established
 

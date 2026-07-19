@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -9,8 +9,9 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.component.html',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute);
   auth = inject(AuthService);
 
   loading = signal(false);
@@ -20,6 +21,12 @@ export class LoginComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
+
+  ngOnInit() {
+    // Display OAuth errors forwarded by the callback component (e.g. access_denied)
+    const oauthError = this.route.snapshot.queryParamMap.get('error');
+    if (oauthError) this.error.set(oauthError);
+  }
 
   async onSubmit() {
     if (this.form.invalid) return;

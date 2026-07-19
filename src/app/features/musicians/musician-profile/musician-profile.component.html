@@ -71,8 +71,8 @@
           <!-- Avatar overlapping cover -->
           <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-2xl border-4 border-dark-900"
                [style.background]="avatarColor(musician()!.name)">
-            @if (musician()!.avatar_url) {
-              <img [src]="musician()!.avatar_url" [alt]="musician()!.name" class="w-full h-full object-cover"/>
+            @if (musician()!.avatar_url && !avatarError()) {
+              <img [src]="musician()!.avatar_url" [alt]="musician()!.name" class="w-full h-full object-cover" (error)="avatarError.set(true)"/>
             } @else {
               {{ musician()!.name?.slice(0,1).toUpperCase() }}
             }

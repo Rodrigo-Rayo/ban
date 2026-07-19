@@ -8,7 +8,7 @@ import { SeoService } from '../../core/services/seo.service';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <div class="min-h-screen bg-dark-900 flex items-center justify-center px-6">
+    <div class="min-h-screen bg-dark-900 flex items-center justify-center px-6" style="padding-top:64px; padding-bottom:64px">
       <div class="text-center max-w-sm">
         <div class="text-9xl font-black text-primary-500/15 leading-none mb-4 select-none">404</div>
         <h1 class="text-2xl font-bold text-ink mb-2">Página no encontrada</h1>

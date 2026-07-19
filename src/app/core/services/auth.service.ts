@@ -7,6 +7,7 @@ import { PushNotificationService } from './push-notification.service';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private _session = signal<Session | null>(null);
+  private _signingOut = false;
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   private push = inject(PushNotificationService);
@@ -22,6 +23,11 @@ export class AuthService {
 
     this.supabase.authChanges((event, session) => {
       this._session.set(session);
+      // Redirect to login on unexpected sign-out (e.g. token refresh failure),
+      // but not when our own signOut() method triggered it.
+      if (event === 'SIGNED_OUT' && !this._signingOut) {
+        this.router.navigate(['/auth/login']);
+      }
     });
   }
 
@@ -60,11 +66,13 @@ export class AuthService {
   }
 
   async signOut() {
+    this._signingOut = true;
     const userId = this.user()?.id;
     if (userId) {
       try { await this.push.unsubscribeDevice(userId); } catch { /* ignore */ }
     }
     try { await this.supabase.signOut(); } catch { /* ignore */ }
+    this._signingOut = false;
     this.router.navigate(['/']);
   }
 }

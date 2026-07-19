@@ -22,7 +22,7 @@ type: project
 
 ## Component classes (src/styles.css @layer components)
 
-`btn-primary`, `btn-accent` (same as primary), `btn-secondary`, `btn-ghost`, `btn-night`
+`btn-primary`, `btn-accent` (exists in styles.css but NOT canonical — avoid; prefer btn-primary for form submits), `btn-secondary`, `btn-ghost`, `btn-night`
 `card`, `card-flat`, `card-night`
 `input-field`
 `tag`, `tag-accent`, `tag-green`, `tag-night`
@@ -46,3 +46,9 @@ Pages use: `style="padding-top:64px; padding-bottom:80px"` for mobile nav cleara
 - `app-icon` is NOT imported in `register.component.ts` — must use inline SVG in that file
 - Color consistency: use `signal-green`/`signal-gBg` for success states, NOT Tailwind's `emerald-*`
 - Section header borders in cards: always `border-dark-600`, not `border-dark-700/60`
+- Form accessibility pattern: every `<input>`/`<select>`/`<textarea>` needs matching `id` + `for` on its label; add autocomplete attributes (name→"name", phone→"tel", address→"street-address", email→"email", url→"url", org→"organization")
+- Pill/toggle buttons: always add `[attr.aria-pressed]` binding; wrap groups in `role="group"` with `aria-label`
+- Tab strips: container needs `role="tablist"` + `aria-label`; each button needs `role="tab"` + `[attr.aria-selected]`
+- Icon-only buttons (X/close/nav): always include `aria-label`
+- `text-ink-3` does not exist — use `text-ink-muted`
+- Notification/install banners: mobile bottom position must be `bottom-16` (above bottom nav); change at `lg:` breakpoint (not `md:`) since bottom nav shows until 1024px

@@ -36,6 +36,7 @@ export class BandProfileComponent implements OnInit {
   appliedVacancies = signal<string[]>([]);
   isFav = signal(false);
   favLoading = signal(false);
+  avatarError = signal(false);
 
   linkShared = signal(false);
   applyingTo = signal<string | null>(null);
@@ -126,20 +127,24 @@ export class BandProfileComponent implements OnInit {
 
   async loadApplications() {
     this.applicationsLoading.set(true);
-    const vacancyIds = this.vacancies().map(v => v.id);
-    if (vacancyIds.length === 0) { this.applicationsLoading.set(false); return; }
-    const { data: apps } = await this.supabase.client
-      .from('vacancy_applications')
-      .select('*, band_vacancies(instrument)')
-      .in('vacancy_id', vacancyIds)
-      .order('created_at', { ascending: false });
-    const musicianIds = [...new Set((apps || []).map((a: any) => a.musician_id).filter(Boolean))];
-    const { data: musicians } = musicianIds.length
-      ? await this.supabase.client.from('musicians').select('id, name, city, genre, avatar_url').in('id', musicianIds)
-      : { data: [] };
-    const musicianMap = new Map((musicians || []).map((m: any) => [m.id, m]));
-    this.applications.set((apps || []).map((app: any) => ({ ...app, musician: musicianMap.get(app.musician_id) ?? null })));
-    this.applicationsLoading.set(false);
+    try {
+      const vacancyIds = this.vacancies().map(v => v.id);
+      if (vacancyIds.length === 0) return;
+      const { data: apps, error } = await this.supabase.client
+        .from('vacancy_applications')
+        .select('*, band_vacancies(instrument)')
+        .in('vacancy_id', vacancyIds)
+        .order('created_at', { ascending: false });
+      if (error) { this.toast.error('No se pudieron cargar las solicitudes.'); return; }
+      const musicianIds = [...new Set((apps || []).map((a: any) => a.musician_id).filter(Boolean))];
+      const { data: musicians } = musicianIds.length
+        ? await this.supabase.client.from('musicians').select('id, name, city, genre, avatar_url').in('id', musicianIds)
+        : { data: [] };
+      const musicianMap = new Map((musicians || []).map((m: any) => [m.id, m]));
+      this.applications.set((apps || []).map((app: any) => ({ ...app, musician: musicianMap.get(app.musician_id) ?? null })));
+    } finally {
+      this.applicationsLoading.set(false);
+    }
   }
 
   async closeVacancy(id: string) {
@@ -156,6 +161,10 @@ export class BandProfileComponent implements OnInit {
 
   openApply(vacancyId: string) {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (this.currentUserId() === this.band()?.user_id) {
+      this.toast.error('No puedes postularte a las vacantes de tu propia banda.');
+      return;
+    }
     if (!this.myMusicianId()) {
       this.toast.error('Solo los músicos pueden postularse a vacantes. Crea un perfil de músico en tu panel.');
       return;

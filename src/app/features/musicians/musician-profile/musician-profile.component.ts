@@ -26,6 +26,7 @@ export class MusicianProfileComponent implements OnInit {
   musician = signal<any>(null);
   loading = signal(true);
   isFav = signal(false);
+  avatarError = signal(false);
   currentUserId = signal<string | null>(null);
   favLoading = signal(false);
   sending = signal(false);

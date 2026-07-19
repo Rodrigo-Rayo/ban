@@ -65,6 +65,7 @@
             }
             <button type="button" (click)="role.set(r.id)"
               class="w-full text-left px-5 py-4 rounded-2xl border transition-all duration-150 flex items-center gap-4 focus:outline-none"
+              [attr.aria-pressed]="role() === r.id"
               [ngClass]="role() === r.id
                 ? 'border-primary-500 bg-primary-500/10'
                 : 'border-dark-600 bg-dark-800 hover:border-dark-500'">
@@ -150,6 +151,7 @@
           @for (inst of instruments; track inst) {
             <button type="button" (click)="toggleInstrument(inst)"
               class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 focus:outline-none"
+              [attr.aria-pressed]="selectedInstruments().includes(inst)"
               [class.border-ink]="selectedInstruments().includes(inst)"
               [class.bg-ink]="selectedInstruments().includes(inst)"
               [class.text-dark-900]="selectedInstruments().includes(inst)"
@@ -188,6 +190,7 @@
             <button type="button" (click)="toggleGenre(g)"
               [disabled]="!selectedGenres().includes(g) && selectedGenres().length >= 5"
               class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 disabled:opacity-30 focus:outline-none"
+              [attr.aria-pressed]="selectedGenres().includes(g)"
               [class.border-primary-500]="selectedGenres().includes(g)"
               [class.bg-primary-500]="selectedGenres().includes(g)"
               [class.text-white]="selectedGenres().includes(g)"
@@ -228,6 +231,7 @@
             <button type="button" (click)="toggleGenre(g)"
               [disabled]="!selectedGenres().includes(g) && selectedGenres().length >= 5"
               class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 disabled:opacity-30 focus:outline-none"
+              [attr.aria-pressed]="selectedGenres().includes(g)"
               [class.border-primary-500]="selectedGenres().includes(g)"
               [class.bg-primary-500]="selectedGenres().includes(g)"
               [class.text-white]="selectedGenres().includes(g)"
@@ -320,6 +324,7 @@
                     @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
                   </select>
                   <button type="button" (click)="removeMember($index)"
+                    aria-label="Eliminar miembro"
                     class="text-ink-muted hover:text-signal-red transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-dark-700">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -381,6 +386,7 @@
           @for (lv of levels; track lv.id; let i = $index) {
             <button type="button" (click)="selectedLevel.set(lv.id)"
               class="w-full text-left px-5 py-4 rounded-2xl border transition-all duration-150 flex items-center gap-4 focus:outline-none"
+              [attr.aria-pressed]="selectedLevel() === lv.id"
               [ngClass]="selectedLevel() === lv.id
                 ? 'border-primary-500 bg-primary-500/10'
                 : 'border-dark-600 bg-dark-800'">
@@ -454,6 +460,7 @@
                 @for (d of DAYS; track d; let i = $index) {
                   <button type="button" (click)="toggleDay(d)"
                     class="w-11 h-11 text-xs font-bold rounded-xl border transition-all duration-150 flex items-center justify-center focus:outline-none"
+                    [attr.aria-pressed]="selectedDays().includes(d)"
                     [class.border-ink]="selectedDays().includes(d)"
                     [class.bg-ink]="selectedDays().includes(d)"
                     [class.text-dark-900]="selectedDays().includes(d)"
@@ -468,6 +475,7 @@
                 @for (s of SLOTS; track s) {
                   <button type="button" (click)="toggleSlot(s)"
                     class="text-xs font-medium px-4 py-2 rounded-full border transition-all duration-150 focus:outline-none"
+                    [attr.aria-pressed]="selectedSlots().includes(s)"
                     [class.border-primary-500]="selectedSlots().includes(s)"
                     [class.bg-primary-500]="selectedSlots().includes(s)"
                     [class.text-white]="selectedSlots().includes(s)"

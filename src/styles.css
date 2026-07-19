@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Skip link (accessibility) ────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 16px;
+  z-index: 9999;
+  padding: 10px 20px;
+  background: #1a1a18;
+  color: #fffef9;
+  border: 2px solid #a0442a;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 16px;
+}
+
 @layer base {
   body {
     @apply bg-dark-900 text-ink antialiased;

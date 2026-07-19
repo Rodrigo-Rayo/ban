@@ -22,9 +22,27 @@ export class CallbackComponent implements OnInit {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
 
+    // Detect OAuth/Supabase error in query string (e.g. access_denied)
+    const oauthError = params.get('error');
+    if (oauthError) {
+      this.router.navigate(['/auth/login'], {
+        queryParams: { error: params.get('error_description') || oauthError },
+      });
+      return;
+    }
+
     // Detect password recovery from implicit-flow hash
     const hash = new URLSearchParams(window.location.hash.substring(1));
     const isRecovery = hash.get('type') === 'recovery';
+
+    // Detect error in hash (implicit-flow error)
+    const hashError = hash.get('error');
+    if (hashError) {
+      this.router.navigate(['/auth/login'], {
+        queryParams: { error: hash.get('error_description') || hashError },
+      });
+      return;
+    }
 
     if (code) {
       const { data, error } = await this.supabase.auth.exchangeCodeForSession(code);

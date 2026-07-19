@@ -31,7 +31,7 @@
 
   <!-- ── LOADING SKELETON ── -->
   @if (loading()) {
-    <div class="divide-y divide-dark-600/60">
+    <div class="divide-y divide-dark-600/60" role="status" aria-label="Cargando conversaciones...">
       @for (i of [1,2,3,4,5]; track i) {
         <div class="flex items-center gap-3.5 px-5 py-4 min-h-[72px] animate-pulse">
           <!-- Avatar skeleton -->

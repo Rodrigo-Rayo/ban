@@ -1,4 +1,4 @@
-﻿<div class="min-h-screen bg-dark-900 pb-36 sm:pb-20 md:pb-8" style="padding-top:64px">
+<div class="min-h-screen bg-dark-900 pb-36 sm:pb-20 md:pb-8" style="padding-top:64px">
 
   <div class="h-1 bg-primary-500"></div>
 
@@ -33,22 +33,27 @@
                    class="w-full h-full object-cover">
               @if (listing().images.length > 1) {
                 <button (click)="prevImage()"
-                  class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-dark-900/70 hover:bg-dark-900 rounded-full flex items-center justify-center transition-colors">
+                  aria-label="Imagen anterior"
+                  class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-dark-900/70 hover:bg-dark-900 rounded-full flex items-center justify-center transition-colors">
                   <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                   </svg>
                 </button>
                 <button (click)="nextImage()"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-dark-900/70 hover:bg-dark-900 rounded-full flex items-center justify-center transition-colors">
+                  aria-label="Imagen siguiente"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-dark-900/70 hover:bg-dark-900 rounded-full flex items-center justify-center transition-colors">
                   <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                   </svg>
                 </button>
                 <!-- Dots -->
-                <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+                <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5" role="tablist" aria-label="Miniaturas de imagen">
                   @for (img of listing().images; track $index) {
                     <button (click)="currentImageIdx.set($index)"
-                      [class]="'w-1.5 h-1.5 rounded-full transition-colors ' + (currentImageIdx() === $index ? 'bg-white' : 'bg-white/40')">
+                      role="tab"
+                      [attr.aria-selected]="currentImageIdx() === $index"
+                      [attr.aria-label]="'Ver imagen ' + ($index + 1)"
+                      [class]="'w-2 h-2 rounded-full transition-colors ' + (currentImageIdx() === $index ? 'bg-white' : 'bg-white/40')">
                     </button>
                   }
                 </div>
@@ -75,10 +80,12 @@
             <div class="flex gap-2 mt-3 overflow-x-auto pb-1">
               @for (img of listing().images; track $index) {
                 <button (click)="currentImageIdx.set($index)"
+                  [attr.aria-label]="'Ver imagen ' + ($index + 1)"
+                  [attr.aria-pressed]="currentImageIdx() === $index"
                   class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-colors"
                   [class.border-primary-500]="currentImageIdx() === $index"
                   [class.border-dark-600]="currentImageIdx() !== $index">
-                  <img [src]="img" class="w-full h-full object-cover" loading="lazy">
+                  <img [src]="img" class="w-full h-full object-cover" loading="lazy" [alt]="'Miniatura ' + ($index + 1)">
                 </button>
               }
             </div>
@@ -104,12 +111,12 @@
           <!-- Title + price -->
           <div>
             <h1 class="text-2xl font-bold text-ink leading-snug mb-2">{{ listing().title }}</h1>
-            <p class="text-3xl font-black text-primary-400">{{ listing().price | number:'1.0-0' }} â‚¬</p>
+            <p class="text-3xl font-black text-primary-400">{{ listing().price | number:'1.0-0' }} €</p>
           </div>
 
           <!-- Description -->
           @if (listing().description) {
-            <p class="text-sm text-ink-3 leading-relaxed whitespace-pre-line">{{ listing().description }}</p>
+            <p class="text-sm text-ink-muted leading-relaxed whitespace-pre-line">{{ listing().description }}</p>
           }
 
           <!-- Seller -->
@@ -130,20 +137,20 @@
             </div>
           </div>
 
-          <!-- Actions â€” hidden on mobile (mobile CTA bar handles it) -->
+          <!-- Actions — hidden on mobile (mobile CTA bar handles it) -->
           @if (!isOwner && auth.isLoggedIn() && listing().status === 'active') {
             <button (click)="contactSeller()" [disabled]="contacting()"
-              class="btn-primary text-sm py-3 w-full disabled:opacity-60 hidden sm:inline-flex items-center justify-center gap-2">
+              class="btn-primary text-sm min-h-[50px] w-full disabled:opacity-60 hidden sm:inline-flex items-center justify-center gap-2">
               @if (contacting()) {
                 <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
               }
-              {{ contacting() ? 'Abriendo chatâ€¦' : 'Contactar vendedor' }}
+              {{ contacting() ? 'Abriendo chat…' : 'Contactar vendedor' }}
             </button>
           }
 
           @if (!auth.isLoggedIn() && listing().status === 'active') {
             <a routerLink="/auth/login" class="btn-secondary text-sm py-3 text-center hidden sm:block">
-              Inicia sesiÃ³n para contactar
+              Inicia sesión para contactar
             </a>
           }
 
@@ -169,27 +176,27 @@
         </div>
       </div>
 
-      <!-- Mobile fixed CTA bar â€” sm:hidden so desktop info column actions handle it -->
+      <!-- Mobile fixed CTA bar — sm:hidden so desktop info column actions handle it -->
       @if (listing().status === 'active') {
         <div class="fixed bottom-16 left-0 right-0 z-30 bg-dark-800/98 backdrop-blur-md border-t border-dark-600 px-4 py-3 flex gap-3 sm:hidden">
           @if (!isOwner && auth.isLoggedIn()) {
             <button (click)="contactSeller()" [disabled]="contacting()"
-              class="btn-primary text-sm flex-1 disabled:opacity-60 flex items-center justify-center gap-2">
+              class="btn-primary text-sm flex-1 disabled:opacity-60 flex items-center justify-center gap-2 min-h-[44px]">
               @if (contacting()) {
                 <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
               }
-              {{ contacting() ? 'Abriendo chatâ€¦' : 'Contactar vendedor' }}
+              {{ contacting() ? 'Abriendo chat…' : 'Contactar vendedor' }}
             </button>
           }
           @if (!auth.isLoggedIn()) {
             <a routerLink="/auth/login"
-               class="btn-primary text-sm flex-1 flex items-center justify-center">
-              Inicia sesiÃ³n para contactar
+               class="btn-primary text-sm flex-1 flex items-center justify-center min-h-[44px]">
+              Inicia sesión para contactar
             </a>
           }
           @if (isOwner) {
             <a [routerLink]="['/shop', listing().id, 'edit']"
-               class="btn-secondary text-sm flex-1 flex items-center justify-center">
+               class="btn-secondary text-sm flex-1 flex items-center justify-center min-h-[44px]">
               Editar anuncio
             </a>
           }
@@ -209,4 +216,3 @@
 
   </div>
 </div>
-

@@ -332,7 +332,12 @@ export class OnboardingComponent implements OnInit {
         this.loading.set(false);
         return;
       }
-      await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', userId);
+      const { error: deleteRoleError } = await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', userId);
+      if (deleteRoleError) {
+        this.loading.set(false);
+        this.error.set('No se pudo eliminar el perfil anterior. Inténtalo de nuevo.');
+        return;
+      }
     }
 
     const genre = this.selectedGenres().join(', ');
@@ -364,9 +369,10 @@ export class OnboardingComponent implements OnInit {
         await this.supabase.client.from('band_members').delete().eq('band_id', bandRow.id);
         const validMembers = this.bandMembers.filter(m => m.name.trim() && m.instrument);
         if (validMembers.length > 0) {
-          await this.supabase.client.from('band_members').insert(
+          const { error: membersError } = await this.supabase.client.from('band_members').insert(
             validMembers.map(m => ({ band_id: bandRow.id, name: m.name.trim(), instrument: m.instrument }))
           );
+          if (membersError) saveError = membersError;
         }
       }
     } else if (role === 'venue') {

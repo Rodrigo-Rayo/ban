@@ -25,6 +25,7 @@ export class TeacherProfileComponent implements OnInit {
   private toast = inject(ToastService);
 
   teacher = signal<any>(null);
+  avatarError = signal(false);
 
   toggleBookingForm() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
@@ -130,18 +131,23 @@ export class TeacherProfileComponent implements OnInit {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     if (!this.bookingDate) return;
     this.bookingLoading.set(true);
-    const text = `📅 Solicitud de clase\n\nFecha: ${this.bookingDate}${this.bookingTime ? '\nHora preferida: ' + this.bookingTime : ''}${this.bookingMessage ? '\n\nMensaje: ' + this.bookingMessage : ''}`;
-    const result = await this.messagesService.getOrCreateConversation(this.teacher()!.user_id, this.teacher()!.name);
-    if (result && !('error' in result)) {
-      await this.messagesService.sendMessage(result.id, text);
-      this.bookingDate = '';
-      this.bookingTime = '';
-      this.bookingMessage = '';
-      this.showBookingForm.set(false);
-      this.bookingSuccess.set(true);
-      setTimeout(() => this.bookingSuccess.set(false), 5000);
+    try {
+      const text = `📅 Solicitud de clase\n\nFecha: ${this.bookingDate}${this.bookingTime ? '\nHora preferida: ' + this.bookingTime : ''}${this.bookingMessage ? '\n\nMensaje: ' + this.bookingMessage : ''}`;
+      const result = await this.messagesService.getOrCreateConversation(this.teacher()!.user_id, this.teacher()!.name);
+      if (result && !('error' in result)) {
+        await this.messagesService.sendMessage(result.id, text);
+        this.bookingDate = '';
+        this.bookingTime = '';
+        this.bookingMessage = '';
+        this.showBookingForm.set(false);
+        this.bookingSuccess.set(true);
+        setTimeout(() => this.bookingSuccess.set(false), 5000);
+      }
+    } catch {
+      // sendMessage threw — bookingLoading will be reset in finally
+    } finally {
+      this.bookingLoading.set(false);
     }
-    this.bookingLoading.set(false);
   }
 
   async sendMessage() {

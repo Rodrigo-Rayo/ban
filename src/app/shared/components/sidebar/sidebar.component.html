@@ -106,16 +106,18 @@
 
         <!-- Búsqueda -->
         <div class="relative">
-          <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-muted" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
           <input [ngModel]="filterQuery()" (ngModelChange)="filterQuery.set($event); applyFilter()"
             placeholder="Buscar..."
+            aria-label="Buscar en el directorio"
             class="w-full bg-dark-700 border border-dark-600 rounded-lg pl-7 pr-3 py-1.5 text-xs text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors"/>
         </div>
 
         <!-- Ciudad -->
         <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); applyFilter()"
+          aria-label="Filtrar por ciudad"
           class="w-full bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors">
           @for (city of cities; track city) {
             <option [value]="city">{{ city }}</option>
@@ -128,7 +130,8 @@
             <button (click)="filterGenre.set(filterGenre() === g ? '' : g); applyFilter()"
               class="text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors"
               [class.genre-pill-active]="filterGenre() === g"
-              [class.genre-pill-inactive]="filterGenre() !== g">
+              [class.genre-pill-inactive]="filterGenre() !== g"
+              [attr.aria-pressed]="filterGenre() === g">
               {{ g }}
             </button>
           }
@@ -151,6 +154,7 @@
     @if (showInstrumentFilter) {
       <div class="px-1 mt-1">
         <select [ngModel]="filterInstrument()" (ngModelChange)="filterInstrument.set($event); applyFilter()"
+          aria-label="Filtrar por instrumento"
           class="w-full bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors">
           <option value="">Todos los instrumentos</option>
           @for (i of instruments; track i) {
@@ -210,6 +214,9 @@
   <!-- CTA publicar -->
   <div class="px-3 pb-5 relative" data-publish-dropdown>
     <button (click)="publishOpen = !publishOpen"
+            [attr.aria-expanded]="publishOpen"
+            aria-haspopup="menu"
+            aria-label="Publicar contenido"
             class="btn-primary w-full text-sm py-2.5 flex items-center justify-center gap-1.5">
       + Publicar
       <svg class="w-3.5 h-3.5 transition-transform" [class.rotate-180]="publishOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">

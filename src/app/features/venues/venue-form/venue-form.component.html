@@ -2,7 +2,8 @@
 
   <!-- Header bar -->
   <div class="px-6 lg:px-10 py-4 border-b border-dark-600 bg-dark-800/80 backdrop-blur-sm flex items-center gap-4 sticky top-16 z-10">
-    <button (click)="goBack()" class="p-2 text-ink-muted hover:text-ink hover:bg-dark-700 rounded-xl transition-colors">
+    <button (click)="goBack()" aria-label="Volver"
+      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-ink hover:bg-dark-700 rounded-xl transition-colors">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
@@ -39,8 +40,9 @@
           <div class="p-6 flex flex-col gap-5">
 
             <div>
-              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Nombre de la sala *</label>
-              <input formControlName="name" type="text" placeholder="Ej: Sala Apolo" class="input-field"/>
+              <label for="venue-name" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Nombre de la sala *</label>
+              <input id="venue-name" formControlName="name" type="text" placeholder="Ej: Sala Apolo"
+                autocomplete="organization" class="input-field"/>
               @if (form.get('name')?.invalid && form.get('name')?.touched) {
                 <p class="text-xs text-signal-red mt-1.5">Mínimo 2 caracteres.</p>
               }
@@ -48,16 +50,16 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad *</label>
-                <select formControlName="city" class="input-field">
+                <label for="venue-city" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad *</label>
+                <select id="venue-city" formControlName="city" class="input-field">
                   @for (city of cities; track city) {
                     <option [value]="city">{{ city }}</option>
                   }
                 </select>
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Aforo (personas)</label>
-                <input formControlName="capacity" type="number" min="0" placeholder="200" class="input-field"/>
+                <label for="venue-capacity" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Aforo (personas)</label>
+                <input id="venue-capacity" formControlName="capacity" type="number" min="0" placeholder="200" class="input-field"/>
                 @if (form.get('capacity')?.errors?.['positiveNumber']) {
                   <p class="text-xs text-signal-red mt-1.5">Aforo no válido.</p>
                 }
@@ -66,23 +68,25 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Teléfono</label>
-                <input formControlName="phone" type="tel" placeholder="+34 600 000 000" class="input-field"/>
+                <label for="venue-phone" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Teléfono</label>
+                <input id="venue-phone" formControlName="phone" type="tel" placeholder="+34 600 000 000"
+                  autocomplete="tel" class="input-field"/>
                 @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
                   <p class="text-xs text-signal-red mt-1.5">Teléfono no válido.</p>
                 }
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Dirección</label>
-                <input formControlName="address" type="text" placeholder="Calle, número, zona..." class="input-field"/>
+                <label for="venue-address" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Dirección</label>
+                <input id="venue-address" formControlName="address" type="text" placeholder="Calle, número, zona..."
+                  autocomplete="street-address" class="input-field"/>
               </div>
             </div>
 
             <div>
-              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">
+              <label for="venue-description" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">
                 Descripción <span class="opacity-50 normal-case">(tipo de eventos, capacidad técnica...)</span>
               </label>
-              <textarea formControlName="description" rows="4"
+              <textarea id="venue-description" formControlName="description" rows="4"
                 placeholder="Describe la sala: equipamiento de sonido, aforo, tipo de eventos que programas..."
                 class="input-field resize-none"></textarea>
             </div>
@@ -101,16 +105,13 @@
             <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-widest">Géneros que programas <span class="normal-case font-normal opacity-50">(opcional)</span></h2>
           </div>
           <div class="p-6">
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-2" role="group" aria-label="Seleccionar géneros musicales">
               @for (genre of genres; track genre) {
                 <button type="button" (click)="toggleGenre(genre)"
-                  class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
-                  [class.bg-primary-500]="selectedGenres().includes(genre)"
-                  [class.text-white]="selectedGenres().includes(genre)"
-                  [class.border-primary-500]="selectedGenres().includes(genre)"
-                  [class.bg-dark-700]="!selectedGenres().includes(genre)"
-                  [class.text-ink-muted]="!selectedGenres().includes(genre)"
-                  [class.border-dark-600]="!selectedGenres().includes(genre)">
+                  [attr.aria-pressed]="selectedGenres().includes(genre)"
+                  class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[36px]"
+                  [class.genre-pill-active]="selectedGenres().includes(genre)"
+                  [class.genre-pill-inactive]="!selectedGenres().includes(genre)">
                   {{ genre }}
                 </button>
               }
@@ -130,15 +131,17 @@
           </div>
           <div class="p-6 flex flex-col gap-4">
             <div>
-              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Instagram</label>
-              <input formControlName="instagram_url" type="url" placeholder="https://instagram.com/tusala" class="input-field"/>
+              <label for="venue-instagram" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Instagram</label>
+              <input id="venue-instagram" formControlName="instagram_url" type="url" placeholder="https://instagram.com/tusala"
+                autocomplete="url" class="input-field"/>
               @if (form.get('instagram_url')?.errors?.['url']) {
                 <p class="text-xs text-signal-red mt-1.5">URL no válida.</p>
               }
             </div>
             <div>
-              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Web</label>
-              <input formControlName="website_url" type="url" placeholder="https://tuweb.com" class="input-field"/>
+              <label for="venue-web" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Web</label>
+              <input id="venue-web" formControlName="website_url" type="url" placeholder="https://tuweb.com"
+                autocomplete="url" class="input-field"/>
               @if (form.get('website_url')?.errors?.['url']) {
                 <p class="text-xs text-signal-red mt-1.5">URL no válida.</p>
               }
@@ -151,7 +154,7 @@
         }
 
         <button type="submit" [disabled]="saving() || form.invalid"
-          class="btn-accent py-4 w-full text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+          class="btn-primary min-h-[50px] w-full text-sm disabled:opacity-40 disabled:cursor-not-allowed">
           @if (saving()) {
             <svg class="animate-spin w-4 h-4 inline mr-2" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>

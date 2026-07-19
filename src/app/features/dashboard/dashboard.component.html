@@ -5,7 +5,7 @@
   <div class="flex-1 min-w-0 px-4 lg:px-8 py-6">
 
     @if (loading()) {
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-4" role="status" aria-label="Cargando perfil...">
         <!-- Profile skeleton -->
         <div class="bg-dark-800 border border-dark-600 rounded-2xl p-5 animate-pulse">
           <div class="flex items-start gap-4">
@@ -145,6 +145,7 @@
       <div class="grid grid-cols-4 gap-2 mb-5">
         <button (click)="activeTab.set('events')"
           class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer flex flex-col items-center gap-0.5"
+          [attr.aria-pressed]="activeTab() === 'events'"
           [class.border-primary-500]="activeTab() === 'events'"
           [class.bg-primary-900]="activeTab() === 'events'"
           [class.border-dark-600]="activeTab() !== 'events'">
@@ -178,6 +179,7 @@
 
         <button (click)="activeTab.set('posts')"
           class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer flex flex-col items-center gap-0.5"
+          [attr.aria-pressed]="activeTab() === 'posts'"
           [class.border-primary-500]="activeTab() === 'posts'"
           [class.bg-primary-900]="activeTab() === 'posts'"
           [class.border-dark-600]="activeTab() !== 'posts'">
@@ -195,6 +197,7 @@
 
         <button (click)="activeTab.set('gear')"
           class="bg-dark-800 border rounded-2xl p-3 text-center transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm cursor-pointer flex flex-col items-center gap-0.5"
+          [attr.aria-pressed]="activeTab() === 'gear'"
           [class.border-primary-500]="activeTab() === 'gear'"
           [class.bg-primary-900]="activeTab() === 'gear'"
           [class.border-dark-600]="activeTab() !== 'gear'">
@@ -224,6 +227,7 @@
                 : [{id:'events',label:'Eventos'},{id:'posts',label:'Anuncios'},{id:'gear',label:'Tienda'}]); track tab.id) {
               <button (click)="activeTab.set(tab.id)"
                 class="px-4 py-3.5 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px"
+                [attr.aria-pressed]="activeTab() === tab.id"
                 [class.text-primary-400]="activeTab() === tab.id"
                 [class.border-primary-500]="activeTab() === tab.id"
                 [class.text-ink-muted]="activeTab() !== tab.id"

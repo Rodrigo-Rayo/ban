@@ -40,6 +40,7 @@ export class MessagesService {
     const user = await this.getCurrentUser();
     if (!user) return { error: 'Debes iniciar sesión para enviar mensajes.' };
     if (!otherUserId) return { error: 'Este perfil aún no tiene cuenta activa.' };
+    if (user.id === otherUserId) return { error: 'No puedes enviarte mensajes a ti mismo.' };
 
     const myId = user.id;
     const u1 = myId < otherUserId ? myId : otherUserId;
@@ -103,7 +104,8 @@ export class MessagesService {
       .from('conversations')
       .select('*')
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-      .order('last_message_at', { ascending: false });
+      .order('last_message_at', { ascending: false })
+      .limit(50);
 
     const convs = (data || []) as Conversation[];
     this._cachedConvIds = convs.map(c => c.id);

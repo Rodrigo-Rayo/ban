@@ -25,6 +25,7 @@ export class RehearsalProfileComponent implements OnInit {
   private toast = inject(ToastService);
 
   space = signal<any>(null);
+  avatarError = signal(false);
   reviews = signal<any[]>([]);
   loading = signal(true);
   currentUserId = signal<string | null>(null);

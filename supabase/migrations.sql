@@ -1111,3 +1111,145 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION create_notification(UUID, TEXT, TEXT, TEXT, TEXT, UUID) TO authenticated;
+
+
+-- ──────────────────────────────────────────────
+-- 27. Bug fixes and performance hardening
+-- ──────────────────────────────────────────────
+
+-- FIX CRITICAL: delete_user_account had a type mismatch: owner = uid::text
+-- storage.objects.owner is uuid; casting uid to text caused "operator does not exist: uuid = text"
+CREATE OR REPLACE FUNCTION delete_user_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- Remove storage objects (avatar) — owner column is uuid, no cast needed
+  DELETE FROM storage.objects WHERE bucket_id = 'avatars' AND owner = uid;
+
+  -- User-owned data
+  DELETE FROM favorites            WHERE user_id = uid;
+  DELETE FROM notifications        WHERE user_id = uid;
+  DELETE FROM rehearsal_bookings   WHERE user_id = uid;
+  DELETE FROM posts                WHERE user_id = uid;
+  DELETE FROM events               WHERE user_id = uid;
+  DELETE FROM gear_listings        WHERE user_id = uid;
+  DELETE FROM vacancy_applications WHERE user_id = uid;
+
+  -- Conversations (messages cascade via FK)
+  DELETE FROM conversations WHERE user1_id = uid OR user2_id = uid;
+
+  -- Profile tables (band_members / band_vacancies cascade from bands)
+  DELETE FROM musicians        WHERE user_id = uid;
+  DELETE FROM bands            WHERE user_id = uid;
+  DELETE FROM venues           WHERE user_id = uid;
+  DELETE FROM teachers         WHERE user_id = uid;
+  DELETE FROM rehearsal_spaces WHERE user_id = uid;
+  DELETE FROM profiles         WHERE id = uid;
+
+  -- Finally delete the auth record (cascades push_subscriptions, etc.)
+  DELETE FROM auth.users WHERE id = uid;
+END;
+$$;
+
+
+-- FIX HIGH: Replace auth.uid() per-row calls with (SELECT auth.uid()) in RLS policies
+-- Per-row auth.uid() calls prevent the planner from caching the value across rows,
+-- causing unnecessary overhead on large tables.
+
+-- conversations SELECT: use (SELECT auth.uid()) to evaluate once per query
+DROP POLICY IF EXISTS "Users can view their conversations" ON conversations;
+CREATE POLICY "Users can view their conversations"
+  ON conversations FOR SELECT
+  USING (
+    user1_id = (SELECT auth.uid()) OR
+    user2_id = (SELECT auth.uid())
+  );
+
+-- conversations INSERT: same hardening
+DROP POLICY IF EXISTS "Users can create conversations" ON conversations;
+CREATE POLICY "Users can create conversations"
+  ON conversations FOR INSERT
+  WITH CHECK (
+    user1_id = (SELECT auth.uid()) OR
+    user2_id = (SELECT auth.uid())
+  );
+
+-- conversations DELETE
+DROP POLICY IF EXISTS "Users can delete their conversations" ON conversations;
+CREATE POLICY "Users can delete their conversations"
+  ON conversations FOR DELETE
+  USING (
+    user1_id = (SELECT auth.uid()) OR
+    user2_id = (SELECT auth.uid())
+  );
+
+-- conversations UPDATE (re-apply with (SELECT auth.uid()))
+DROP POLICY IF EXISTS "Participants can update conversation" ON conversations;
+CREATE POLICY "Participants can update conversation"
+  ON conversations FOR UPDATE
+  USING (
+    user1_id = (SELECT auth.uid()) OR
+    user2_id = (SELECT auth.uid())
+  )
+  WITH CHECK (
+    user1_id = (SELECT auth.uid()) OR
+    user2_id = (SELECT auth.uid())
+  );
+
+-- messages SELECT: the EXISTS subquery called auth.uid() per-row; harden it
+DROP POLICY IF EXISTS "Conversation participants can view messages" ON messages;
+CREATE POLICY "Conversation participants can view messages"
+  ON messages FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM conversations
+      WHERE conversations.id = messages.conversation_id
+        AND (
+          conversations.user1_id = (SELECT auth.uid()) OR
+          conversations.user2_id = (SELECT auth.uid())
+        )
+    )
+  );
+
+-- notifications SELECT
+DROP POLICY IF EXISTS "Users can view their notifications" ON notifications;
+CREATE POLICY "Users can view their notifications"
+  ON notifications FOR SELECT
+  USING (user_id = (SELECT auth.uid()));
+
+-- notifications INSERT (self)
+DROP POLICY IF EXISTS "Users can create self notifications" ON notifications;
+CREATE POLICY "Users can create self notifications"
+  ON notifications FOR INSERT
+  WITH CHECK (user_id = (SELECT auth.uid()));
+
+-- notifications UPDATE
+DROP POLICY IF EXISTS "Users can update their notifications" ON notifications;
+CREATE POLICY "Users can update their notifications"
+  ON notifications FOR UPDATE
+  USING (user_id = (SELECT auth.uid()))
+  WITH CHECK (user_id = (SELECT auth.uid()));
+
+
+-- FIX HIGH: Missing composite index on messages(conversation_id, created_at)
+-- getMessages() does: .eq('conversation_id', id).order('created_at', { ascending: false })
+-- A composite index allows the query to be served entirely from the index (no sort step).
+DROP INDEX IF EXISTS idx_messages_conversation_id;
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id_created_at
+  ON messages(conversation_id, created_at DESC);
+
+-- FIX HIGH: Missing composite index on events(city, date)
+-- home.component queries: .eq('city', city).gte('date', todayStr).order('date')
+-- Composite index on (city, date) covers both the equality filter and the range + sort.
+CREATE INDEX IF NOT EXISTS idx_events_city_date
+  ON events(city, date ASC)
+  WHERE date IS NOT NULL;
