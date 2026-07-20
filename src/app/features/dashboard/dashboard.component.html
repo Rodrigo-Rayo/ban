@@ -295,8 +295,11 @@
                         <select [(ngModel)]="editEventData.genre" class="input-field text-sm">
                           @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
                         </select>
-                        <input [(ngModel)]="editEventData.price" placeholder="Precio (ej: Gratis / 10€)"
-                          class="input-field text-sm"/>
+                        <div class="relative">
+                          <input [(ngModel)]="editEventData.price" type="number" min="0" step="0.5" placeholder="0"
+                            class="input-field text-sm pr-8"/>
+                          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted pointer-events-none">€</span>
+                        </div>
                       </div>
                       <textarea [(ngModel)]="editEventData.description" rows="2"
                         placeholder="Descripción (opcional)"

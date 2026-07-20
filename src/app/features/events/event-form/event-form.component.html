@@ -102,8 +102,11 @@
                 }
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Precio</label>
-                <input formControlName="price" type="text" placeholder="Gratis / 10€" class="input-field"/>
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Precio (€)</label>
+                <div class="relative">
+                  <input formControlName="price" type="number" min="0" step="0.5" placeholder="0" class="input-field pr-8"/>
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted pointer-events-none">€</span>
+                </div>
               </div>
             </div>
 

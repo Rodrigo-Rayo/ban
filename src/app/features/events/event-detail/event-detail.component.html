@@ -159,7 +159,7 @@
         @if (event()!.price) {
           <div class="flex justify-between px-5 py-2.5">
             <span class="text-ink-muted">Precio</span>
-            <span class="font-medium text-ink">{{ event()!.price }}</span>
+            <span class="font-medium text-ink">{{ +event()!.price > 0 ? (event()!.price | number:'1.0-2') + ' €' : event()!.price }}</span>
           </div>
         }
         @if (rsvpCount() > 0) {

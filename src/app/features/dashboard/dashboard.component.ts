@@ -186,7 +186,7 @@ export class DashboardComponent implements OnInit {
       date: this.editEventData.date,
       time: this.editEventData.time || null,
       genre: this.editEventData.genre,
-      price: this.editEventData.price,
+      price: this.editEventData.price != null && +this.editEventData.price > 0 ? String(this.editEventData.price) : null,
       description: this.editEventData.description || null,
       contact_email: this.editEventData.contact_email || null,
       ticket_url: this.editEventData.ticket_url || null,
