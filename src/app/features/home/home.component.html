@@ -19,31 +19,32 @@
 
       <!-- ── ACCIONES RÁPIDAS ── -->
       @if (auth.user()) {
-        <div class="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-5 border-b border-dark-600">
-          <a routerLink="/feed" [queryParams]="{new:'1'}" class="btn-primary text-xs px-4 py-2 flex-shrink-0">
+        <div class="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-5 border-b border-dark-600/60">
+          <a routerLink="/feed" [queryParams]="{new:'1'}" class="btn-primary text-xs px-4 py-2.5 flex-shrink-0 min-h-[44px]">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
             Publicar anuncio
           </a>
-          <a routerLink="/shop/new" class="btn-secondary text-xs px-4 py-2 flex-shrink-0">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            Vender equipo
-          </a>
-          <a routerLink="/events/create" class="btn-secondary text-xs px-4 py-2 flex-shrink-0">
+          <a routerLink="/events/create" class="btn-secondary text-xs px-4 py-2.5 flex-shrink-0 min-h-[44px]">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             Crear evento
+          </a>
+          <a routerLink="/shop/new" class="btn-secondary text-xs px-4 py-2.5 flex-shrink-0 min-h-[44px]">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            Vender equipo
           </a>
         </div>
       }
 
       <!-- ── LOCATION INDICATOR ── -->
       @if (userCity()) {
-        <div class="flex items-center gap-1.5 mb-5 text-xs text-ink-muted">
-          <svg class="w-3 h-3 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-          </svg>
-          <span>Cerca de <strong class="text-ink font-semibold">{{ userCity() }}</strong></span>
-          <span class="text-dark-500">·</span>
-          <a routerLink="/search" class="text-primary-500 hover:text-primary-400 transition-colors">Ver toda España</a>
+        <div class="flex items-center gap-2 mb-5">
+          <span class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted bg-dark-800 border border-dark-600 px-3 py-1.5 rounded-full">
+            <svg class="w-3 h-3 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+            </svg>
+            <span><strong class="text-ink font-semibold">{{ userCity() }}</strong></span>
+          </span>
+          <a routerLink="/search" class="text-xs font-medium text-primary-500 hover:text-primary-400 transition-colors">Ver toda España →</a>
         </div>
       }
 
@@ -180,8 +181,8 @@
         </div>
 
         @if (loading()) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
-            @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
+            @for (i of [1,2,3,4]; track i) {
               <div class="card animate-pulse flex-shrink-0 w-28 lg:w-auto">
                 <div class="h-24 bg-dark-700 rounded-t-2xl"></div>
                 <div class="p-2 space-y-1"><div class="h-2 bg-dark-700 rounded w-3/4"></div><div class="h-1.5 bg-dark-600 rounded w-1/2"></div></div>
@@ -189,7 +190,7 @@
             }
           </div>
         } @else {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
             @for (item of recentListings(); track item.id) {
               <a [routerLink]="['/shop', item.id]" class="card overflow-hidden group/card hover:border-primary-500/40 transition-all active:scale-95 flex-shrink-0 w-36 lg:w-auto">
                 <div class="h-28 relative overflow-hidden bg-dark-750">
@@ -243,9 +244,9 @@
         </div>
 
         @if (loading()) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
             @for (i of [1,2,3,4,5,6]; track i) {
-              <div class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center animate-pulse">
+              <div class="flex-shrink-0 w-28 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center animate-pulse">
                 <div class="w-12 h-12 rounded-full bg-dark-700 mx-auto mb-2 ring-2 ring-dark-600"></div>
                 <div class="h-2 bg-dark-700 rounded w-3/4 mx-auto mb-1.5"></div>
                 <div class="h-1.5 bg-dark-600 rounded w-1/2 mx-auto"></div>
@@ -253,10 +254,10 @@
             }
           </div>
         } @else if (recentMusicians().length > 0) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
             @for (m of recentMusicians(); track m.id) {
               <a [routerLink]="['/musicians', m.id]"
-                 class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group">
+                 class="flex-shrink-0 w-28 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group">
                 <div class="relative mx-auto mb-2.5 w-12 h-12">
                   <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-black text-white overflow-hidden ring-2 ring-dark-600 group-hover:ring-primary-500/50 transition-all"
                        [style.background]="avatarColor(m.name)">
@@ -297,9 +298,9 @@
         </div>
 
         @if (loading()) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
             @for (i of [1,2,3,4,5,6]; track i) {
-              <div class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center animate-pulse">
+              <div class="flex-shrink-0 w-28 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center animate-pulse">
                 <div class="w-12 h-12 rounded-full bg-dark-700 mx-auto mb-2 ring-2 ring-dark-600"></div>
                 <div class="h-2 bg-dark-700 rounded w-3/4 mx-auto mb-1.5"></div>
                 <div class="h-1.5 bg-dark-600 rounded w-1/2 mx-auto"></div>
@@ -307,10 +308,10 @@
             }
           </div>
         } @else if (recentBands().length > 0) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-6 lg:overflow-visible">
+          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
             @for (band of recentBands(); track band.id) {
               <a [routerLink]="['/bands', band.id]"
-                 class="flex-shrink-0 w-24 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group relative">
+                 class="flex-shrink-0 w-28 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group relative">
                 @if (band.looking_for) {
                   <span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-signal-green"></span>
                 }
@@ -367,7 +368,7 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+            <span class="w-6 h-6 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500">
               <app-icon name="headphones" [size]="12"/>
             </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Ensayo</p>
@@ -410,7 +411,7 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+            <span class="w-6 h-6 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500">
               <app-icon name="book-open" [size]="12"/>
             </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Clases</p>
@@ -453,7 +454,7 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500">
+            <span class="w-6 h-6 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500">
               <app-icon name="building" [size]="12"/>
             </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Salas</p>

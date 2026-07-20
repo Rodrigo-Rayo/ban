@@ -2,12 +2,14 @@
 
   <!-- Header -->
   <div class="border-b border-dark-600 bg-dark-800">
-    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-7">
-      <p class="section-label mb-2">Colección personal</p>
-      <div class="flex items-end justify-between gap-4">
-        <h1 class="text-2xl font-black text-ink tracking-tight">Favoritos</h1>
+    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-6">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-400 mb-1">Mi colección</p>
+          <h1 class="text-2xl font-black text-ink tracking-tight leading-none">Favoritos</h1>
+        </div>
         @if (!loading() && favorites().length > 0) {
-          <span class="text-xs text-ink-muted bg-dark-700 border border-dark-600 px-2.5 py-1 rounded-full mb-0.5 font-medium">
+          <span class="text-xs text-ink-muted bg-dark-700 border border-dark-600 px-3 py-1.5 rounded-full font-semibold">
             {{ favorites().length }} guardado{{ favorites().length !== 1 ? 's' : '' }}
           </span>
         }

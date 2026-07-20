@@ -9,8 +9,8 @@
       </svg>
     </button>
     <div class="flex-1">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted leading-none mb-0.5">Publicar</p>
-      <h1 class="text-base font-semibold text-ink leading-none">Nuevo evento</h1>
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-400 leading-none mb-0.5">Publicar</p>
+      <h1 class="text-base font-black text-ink leading-none">Nuevo evento</h1>
     </div>
   </div>
 
@@ -31,7 +31,7 @@
           <div class="p-6 flex flex-col gap-5">
 
             <div>
-              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Nombre del evento *</label>
+              <label class="block text-xs font-semibold text-ink-muted mb-1.5">Nombre del evento *</label>
               <input formControlName="title" type="text" placeholder="Ej: Noche de Jazz en Sala Clamores" class="input-field"/>
               @if (form.get('title')?.invalid && form.get('title')?.touched) {
                 <p class="text-xs text-signal-red mt-1.5">Mínimo 5 caracteres.</p>
@@ -40,14 +40,14 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Local / Sala *</label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Local / Sala *</label>
                 <input formControlName="venue" type="text" placeholder="Nombre del local" class="input-field"/>
                 @if (form.get('venue')?.invalid && form.get('venue')?.touched) {
                   <p class="text-xs text-signal-red mt-1.5">El local es obligatorio.</p>
                 }
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad *</label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad *</label>
                 <select formControlName="city" class="input-field">
                   @for (city of cities; track city) {
                     <option [value]="city">{{ city }}</option>
@@ -61,21 +61,21 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Fecha *</label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Fecha *</label>
                 <input formControlName="date" type="date" [min]="today" class="input-field"/>
                 @if (form.get('date')?.invalid && form.get('date')?.touched) {
                   <p class="text-xs text-signal-red mt-1.5">La fecha es obligatoria.</p>
                 }
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Hora</label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Hora</label>
                 <input formControlName="time" type="time" class="input-field"/>
               </div>
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Género *</label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Género *</label>
                 <select formControlName="genre" class="input-field">
                   <option value="" disabled>Selecciona género</option>
                   @for (genre of genres; track genre) {
@@ -87,7 +87,7 @@
                 }
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Precio (€)</label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Precio (€)</label>
                 <div class="relative">
                   <input formControlName="price" type="number" min="0" step="0.5" placeholder="0" class="input-field pr-8"/>
                   <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted pointer-events-none">€</span>
@@ -96,7 +96,7 @@
             </div>
 
             <div>
-              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">
+              <label class="block text-xs font-semibold text-ink-muted mb-1.5">
                 Descripción <span class="opacity-50 normal-case">(opcional)</span>
               </label>
               <textarea formControlName="description" rows="3"
@@ -119,7 +119,7 @@
           </div>
           <div class="p-6 flex flex-col gap-5">
             <div>
-              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">
+              <label class="block text-xs font-semibold text-ink-muted mb-1.5">
                 Link de entradas <span class="opacity-50 normal-case">(opcional)</span>
               </label>
               <input formControlName="ticketUrl" type="url" placeholder="https://..." class="input-field"/>

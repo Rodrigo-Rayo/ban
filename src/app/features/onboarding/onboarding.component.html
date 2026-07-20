@@ -46,10 +46,10 @@
     <!-- ── STEP 0: Role selection ──────────────────────────────── -->
     @if (step() === 0) {
       <div class="animate-slide-in">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>01 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Tu rol</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
           ¿Cuál es tu<br><span class="text-primary-400">relación con la música?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Elige el perfil que mejor te define. Podrás cambiarlo después.</p>
@@ -95,10 +95,10 @@
     <!-- ── STEP 1: Name ────────────────────────────────────────── -->
     @if (step() === 1) {
       <div [formGroup]="nameForm" class="animate-slide-in">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>02 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Identidad</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
           @if (role() === 'band') { ¿Cómo se llama <span class="text-primary-400">la banda?</span> }
           @else if (role() === 'venue') { ¿Cómo se llama <span class="text-primary-400">la sala?</span> }
           @else if (role() === 'rehearsal') { ¿Cómo se llama <span class="text-primary-400">el local?</span> }
@@ -139,10 +139,10 @@
     <!-- ── STEP 2: Instruments (musician / teacher) ────────────── -->
     @if (step() === 2 && hasInstrumentStep()) {
       <div class="animate-slide-in">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>03 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Instrumento</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
           ¿Qué <span class="text-primary-400">instrumentos</span> tocas?
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Puedes seleccionar varios.</p>
@@ -177,10 +177,10 @@
     <!-- ── STEP 2 (band/venue/rehearsal): Genres ──────────────── -->
     @if (step() === 2 && !hasInstrumentStep()) {
       <div class="animate-slide-in">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>03 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Estilos</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
           ¿Qué <span class="text-primary-400">estilos</span> programas?
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Hasta 5 géneros que definen tu espacio.</p>
@@ -201,7 +201,7 @@
             </button>
           }
         </div>
-        <p class="text-[10px] font-mono text-ink-muted tracking-widest mb-8">
+        <p class="text-xs font-medium text-ink-muted mb-8">
           {{ selectedGenres().length }} / 5 seleccionados
         </p>
 
@@ -218,10 +218,10 @@
     <!-- ── STEP 3: Genres (musician / teacher) ────────────────── -->
     @if (step() === 3 && hasInstrumentStep()) {
       <div class="animate-slide-in">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>04 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Estilos</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
           ¿Qué <span class="text-primary-400">estilos</span> te definen?
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Elige hasta 5 géneros. Cuanto más preciso, mejor el match.</p>
@@ -242,7 +242,7 @@
             </button>
           }
         </div>
-        <p class="text-[10px] font-mono text-ink-muted tracking-widest mb-8">
+        <p class="text-xs font-medium text-ink-muted mb-8">
           {{ selectedGenres().length }} / 5 seleccionados
         </p>
 
@@ -259,17 +259,17 @@
     <!-- ── STEP 3 (band/venue/rehearsal): Zone + submit ─────────── -->
     @if (step() === 3 && !hasInstrumentStep()) {
       <div [formGroup]="zoneForm" class="animate-slide-in">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>04 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Zona</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
           ¿Dónde <span class="text-primary-400">estás?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">La ciudad y datos de contacto.</p>
 
         <div class="flex flex-col gap-4 mb-6">
           <div>
-            <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad *</label>
+            <label class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad *</label>
             <select formControlName="city" class="input-field">
               @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
             </select>
@@ -277,27 +277,27 @@
           @if (role() === 'venue' || role() === 'rehearsal') {
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Capacidad <span class="opacity-50">(personas)</span></label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Capacidad <span class="opacity-50">(personas)</span></label>
                 <input formControlName="capacity" type="number" placeholder="200" class="input-field"/>
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Precio / hora <span class="opacity-50">(€)</span></label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
                 <input formControlName="hourly_rate" type="number" placeholder="25" class="input-field"/>
               </div>
             </div>
           }
           <div>
-            <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Descripción <span class="opacity-50">(opcional)</span></label>
+            <label class="block text-xs font-semibold text-ink-muted mb-1.5">Descripción <span class="opacity-50">(opcional)</span></label>
             <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" class="input-field resize-none"></textarea>
           </div>
           @if (role() === 'venue' || role() === 'rehearsal') {
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Teléfono <span class="opacity-50">(opcional)</span></label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Teléfono <span class="opacity-50">(opcional)</span></label>
                 <input formControlName="phone" type="tel" placeholder="+34 600 000 000" class="input-field"/>
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Dirección <span class="opacity-50">(opcional)</span></label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Dirección <span class="opacity-50">(opcional)</span></label>
                 <input formControlName="address" type="text" placeholder="Calle y número" class="input-field"/>
               </div>
             </div>
@@ -307,7 +307,7 @@
           @if (role() === 'band') {
             <div class="border-t border-dark-700 pt-5">
               <div class="flex items-center justify-between mb-3">
-                <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted">Formación <span class="opacity-50">(opcional)</span></p>
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Formación <span class="opacity-50">(opcional)</span></p>
                 <button type="button" (click)="addMember()"
                   class="text-xs font-semibold text-primary-400 hover:text-primary-300 transition-colors">
                   + Añadir miembro
@@ -340,7 +340,7 @@
 
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">
-            <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></p>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></p>
             <div class="grid sm:grid-cols-2 gap-3">
               @if (role() === 'musician' || role() === 'band') {
                 <input formControlName="spotify_url" type="url" placeholder="Spotify URL" class="input-field text-sm py-2"/>
@@ -374,10 +374,10 @@
     <!-- ── STEP 4: Level (musician / teacher) ─────────────────── -->
     @if (step() === 4 && hasInstrumentStep()) {
       <div class="animate-slide-in">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>05 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Nivel</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
           ¿Cuál es tu <span class="text-primary-400">nivel?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Sé honesto — los matches son mejores así.</p>
@@ -418,17 +418,17 @@
     <!-- ── STEP 5: Zone + submit (musician / teacher) ──────────── -->
     @if (step() === 5 && hasInstrumentStep()) {
       <div [formGroup]="zoneForm" class="animate-slide-in">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-6 flex items-center gap-2">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>06 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Zona</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-bold text-ink mb-2 leading-tight">
+        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
           ¿Dónde <span class="text-primary-400">tocas?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Tu ciudad y datos de contacto para completar el perfil.</p>
 
         <div class="flex flex-col gap-4 mb-6">
           <div>
-            <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad *</label>
+            <label class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad *</label>
             <select formControlName="city" class="input-field">
               @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
             </select>
@@ -436,26 +436,26 @@
           @if (role() === 'teacher') {
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Precio / hora <span class="opacity-50">(€)</span></label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
                 <input formControlName="hourly_rate" type="number" placeholder="25" class="input-field"/>
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Años de experiencia <span class="opacity-50">(opcional)</span></label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Años de experiencia <span class="opacity-50">(opcional)</span></label>
                 <input formControlName="experience" type="text" placeholder="5 años" class="input-field"/>
               </div>
             </div>
           }
           <div>
-            <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Sobre ti <span class="opacity-50">(opcional)</span></label>
+            <label class="block text-xs font-semibold text-ink-muted mb-1.5">Sobre ti <span class="opacity-50">(opcional)</span></label>
             <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" class="input-field resize-none"></textarea>
           </div>
           @if (role() === 'musician') {
             <div>
-              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Influencias <span class="opacity-50">(opcional)</span></label>
+              <label class="block text-xs font-semibold text-ink-muted mb-1.5">Influencias <span class="opacity-50">(opcional)</span></label>
               <input formControlName="influences" type="text" placeholder="Ej: Pink Floyd, Miles Davis..." class="input-field"/>
             </div>
             <div>
-              <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Disponibilidad <span class="opacity-50">(opcional)</span></label>
+              <label class="block text-xs font-semibold text-ink-muted mb-1.5">Disponibilidad <span class="opacity-50">(opcional)</span></label>
               <div class="flex gap-1.5 mb-2">
                 @for (d of DAYS; track d; let i = $index) {
                   <button type="button" (click)="toggleDay(d)"
@@ -491,7 +491,7 @@
           @if (role() === 'teacher') {
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Modalidad</label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Modalidad</label>
                 <select formControlName="modality" class="input-field">
                   <option value="presencial">Presencial</option>
                   <option value="online">Online</option>
@@ -499,7 +499,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Años de experiencia <span class="opacity-50">(opcional)</span></label>
+                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Años de experiencia <span class="opacity-50">(opcional)</span></label>
                 <input formControlName="experience_years" type="number" placeholder="5" class="input-field"/>
               </div>
             </div>
@@ -507,7 +507,7 @@
 
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">
-            <p class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></p>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></p>
             <div class="grid sm:grid-cols-2 gap-3">
               @if (role() === 'musician') {
                 <input formControlName="spotify_url" type="url" placeholder="Spotify URL" class="input-field text-sm py-2"/>
