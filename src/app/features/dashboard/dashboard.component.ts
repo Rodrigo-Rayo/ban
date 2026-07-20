@@ -37,6 +37,8 @@ export class DashboardComponent implements OnInit {
   activeTab  = signal('events');
   linkCopied = signal(false);
   deletingAccount = signal(false);
+  showDeleteConfirm = signal(false);
+  deleteConfirmText = signal('');
   editingEventId = signal<string | null>(null);
   editEventData: any = {};
   editSaving = signal(false);
@@ -285,18 +287,22 @@ export class DashboardComponent implements OnInit {
     return `${Math.floor(mins / 1440)}d`;
   }
 
+  openDeleteConfirm() {
+    this.deleteConfirmText.set('');
+    this.showDeleteConfirm.set(true);
+  }
+
+  cancelDeleteConfirm() {
+    this.showDeleteConfirm.set(false);
+    this.deleteConfirmText.set('');
+  }
+
   async deleteAccount() {
-    const confirmed = prompt('Escribe BORRAR para confirmar. Esta acción es irreversible y eliminará todos tus datos.');
-    if (confirmed?.trim().toUpperCase() !== 'BORRAR') return;
+    if (this.deleteConfirmText().trim().toUpperCase() !== 'BORRAR') return;
     this.deletingAccount.set(true);
+    this.showDeleteConfirm.set(false);
     try {
-      const { error } = await this.supabase.client.rpc('delete_user_account');
-      if (error) {
-        this.toast.error('No se pudo eliminar la cuenta. Contacta con soporte.');
-        this.deletingAccount.set(false);
-        return;
-      }
-      await this.auth.signOut();
+      await this.auth.deleteAccount();
     } catch {
       this.toast.error('No se pudo eliminar la cuenta. Inténtalo de nuevo.');
       this.deletingAccount.set(false);

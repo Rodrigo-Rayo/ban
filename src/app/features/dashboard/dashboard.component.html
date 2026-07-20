@@ -645,20 +645,43 @@
             Borra permanentemente tu perfil, mensajes, publicaciones y todos tus datos.<br>
             Esta acción no se puede deshacer.
           </p>
-          <button (click)="deleteAccount()" [disabled]="deletingAccount()"
-            class="text-xs font-semibold text-signal-red border border-signal-red/40
-                   hover:bg-signal-red hover:text-white px-4 py-2 rounded-xl transition-all
-                   disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]">
-            @if (deletingAccount()) {
-              <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-              </svg>
-              Eliminando...
-            } @else {
-              Eliminar mi cuenta
-            }
-          </button>
+
+          @if (!showDeleteConfirm()) {
+            <button (click)="openDeleteConfirm()" [disabled]="deletingAccount()"
+              class="text-xs font-semibold text-signal-red border border-signal-red/40
+                     hover:bg-signal-red hover:text-white px-4 py-2 rounded-xl transition-all
+                     disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]">
+              @if (deletingAccount()) {
+                <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Eliminando...
+              } @else {
+                Eliminar mi cuenta
+              }
+            </button>
+          } @else {
+            <div class="flex flex-col gap-3">
+              <p class="text-xs font-semibold text-signal-red">Escribe <span class="font-black">BORRAR</span> para confirmar:</p>
+              <input type="text" [value]="deleteConfirmText()" (input)="deleteConfirmText.set($any($event.target).value)"
+                placeholder="BORRAR"
+                class="input-field text-sm max-w-xs"
+                autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"/>
+              <div class="flex items-center gap-2">
+                <button (click)="deleteAccount()"
+                  [disabled]="deleteConfirmText().trim().toUpperCase() !== 'BORRAR' || deletingAccount()"
+                  class="text-xs font-semibold text-white bg-signal-red px-4 py-2 rounded-xl transition-all
+                         disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]">
+                  Confirmar eliminación
+                </button>
+                <button (click)="cancelDeleteConfirm()"
+                  class="text-xs font-semibold text-ink-muted hover:text-ink px-4 py-2 rounded-xl border border-dark-600 hover:border-dark-500 transition-all min-h-[44px]">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          }
         </div>
       </details>
     </div>

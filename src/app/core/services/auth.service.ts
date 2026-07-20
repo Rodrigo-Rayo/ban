@@ -117,4 +117,23 @@ export class AuthService {
     this._signingOut = false;
     this.router.navigate(['/']);
   }
+
+  async deleteAccount(): Promise<void> {
+    // Set flag BEFORE the RPC so the SIGNED_OUT auth event (fired when
+    // auth.users is deleted) does not trigger the unexpected-signout redirect.
+    this._signingOut = true;
+    try {
+      const { error } = await this.supabase.client.rpc('delete_user_account');
+      if (error) {
+        this._signingOut = false;
+        throw new Error(error.message);
+      }
+      // auth.users is gone — supabase.signOut() would fail; just clear local state.
+      this.clearUserProfile();
+      this.router.navigate(['/']);
+    } catch (err) {
+      this._signingOut = false;
+      throw err;
+    }
+  }
 }
