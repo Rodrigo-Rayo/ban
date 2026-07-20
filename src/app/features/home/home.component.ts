@@ -52,30 +52,29 @@ export class HomeComponent implements OnInit {
       const { data: { session } } = await this.supabase.auth.getSession();
 
       if (session) {
-        const uid = session.user.id;
-        const [{ data: m }, { data: b }, { data: v }, { data: t }, { data: r }] = await Promise.all([
-          this.supabase.client.from('musicians').select('*').eq('user_id', uid).maybeSingle(),
-          this.supabase.client.from('bands').select('*').eq('user_id', uid).maybeSingle(),
-          this.supabase.client.from('venues').select('*').eq('user_id', uid).maybeSingle(),
-          this.supabase.client.from('teachers').select('*').eq('user_id', uid).maybeSingle(),
-          this.supabase.client.from('rehearsal_spaces').select('*').eq('user_id', uid).maybeSingle(),
-        ]);
-        const profilePairs: [any, string][] = [[m, 'musician'], [b, 'band'], [v, 'venue'], [t, 'teacher'], [r, 'rehearsal']];
-        for (const [data, type] of profilePairs) {
-          if (data) {
-            this.userProfile.set(data);
-            this.userType.set(type);
-            this.userCity.set(data.city || '');
-            break;
+        await this.auth.loadUserProfile(session.user.id);
+        const profile = this.auth.userProfileData();
+        if (profile) {
+          this.userProfile.set(profile);
+          this.userType.set(this.auth.userProfileType());
+          this.userCity.set(profile.city || '');
+          if (profile.city) {
+            try { localStorage.setItem('bandyou_city', profile.city); } catch {}
           }
-        }
-        if (this.userCity()) {
-          try { localStorage.setItem('bandyou_city', this.userCity()); } catch {}
         }
       }
 
       const city = this.userCity();
       const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+
+      const musicianCols   = 'id, name, city, instrument, avatar_url, created_at';
+      const bandCols       = 'id, name, city, genre, avatar_url, created_at';
+      const eventCols      = 'id, title, city, date, genre, description, created_at';
+      const venueCols      = 'id, name, city, avatar_url, capacity, created_at';
+      const teacherCols    = 'id, name, city, instrument, avatar_url, created_at';
+      const rehearsalCols  = 'id, name, city, avatar_url, capacity, created_at';
+      const postCols       = 'id, type, text, city, instrument, author_name, author_profile_type, author_profile_id, created_at';
+      const listingCols    = 'id, title, price, condition, category, city, images, created_at';
 
       const [
         { data: musicians },
@@ -88,31 +87,40 @@ export class HomeComponent implements OnInit {
         { data: listings },
       ] = await Promise.all([
         city
-          ? this.supabase.client.from('musicians').select('*').eq('city', city).order('created_at', { ascending: false }).limit(12)
-          : this.supabase.client.from('musicians').select('*').order('created_at', { ascending: false }).limit(12),
+          ? this.supabase.client.from('musicians').select(musicianCols).eq('city', city).order('created_at', { ascending: false }).limit(12)
+          : this.supabase.client.from('musicians').select(musicianCols).order('created_at', { ascending: false }).limit(12),
         city
-          ? this.supabase.client.from('bands').select('*').eq('city', city).order('created_at', { ascending: false }).limit(12)
-          : this.supabase.client.from('bands').select('*').order('created_at', { ascending: false }).limit(12),
+          ? this.supabase.client.from('bands').select(bandCols).eq('city', city).order('created_at', { ascending: false }).limit(12)
+          : this.supabase.client.from('bands').select(bandCols).order('created_at', { ascending: false }).limit(12),
         city
-          ? this.supabase.client.from('events').select('*').eq('city', city).gte('date', todayStr).order('date', { ascending: true }).limit(5)
-          : this.supabase.client.from('events').select('*').gte('date', todayStr).order('date', { ascending: true }).limit(5),
+          ? this.supabase.client.from('events').select(eventCols).eq('city', city).gte('date', todayStr).order('date', { ascending: true }).limit(5)
+          : this.supabase.client.from('events').select(eventCols).gte('date', todayStr).order('date', { ascending: true }).limit(5),
         city
-          ? this.supabase.client.from('venues').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
-          : this.supabase.client.from('venues').select('*').order('created_at', { ascending: false }).limit(5),
+          ? this.supabase.client.from('venues').select(venueCols).eq('city', city).order('created_at', { ascending: false }).limit(5)
+          : this.supabase.client.from('venues').select(venueCols).order('created_at', { ascending: false }).limit(5),
         city
-          ? this.supabase.client.from('teachers').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
-          : this.supabase.client.from('teachers').select('*').order('created_at', { ascending: false }).limit(5),
+          ? this.supabase.client.from('teachers').select(teacherCols).eq('city', city).order('created_at', { ascending: false }).limit(5)
+          : this.supabase.client.from('teachers').select(teacherCols).order('created_at', { ascending: false }).limit(5),
         city
-          ? this.supabase.client.from('rehearsal_spaces').select('*').eq('city', city).order('created_at', { ascending: false }).limit(5)
-          : this.supabase.client.from('rehearsal_spaces').select('*').order('created_at', { ascending: false }).limit(5),
-        this.supabase.client.from('posts').select('*').order('created_at', { ascending: false }).limit(4),
-        this.supabase.client.from('gear_listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(6),
+          ? this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).eq('city', city).order('created_at', { ascending: false }).limit(5)
+          : this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).order('created_at', { ascending: false }).limit(5),
+        this.supabase.client.from('posts').select(postCols).order('created_at', { ascending: false }).limit(4),
+        this.supabase.client.from('gear_listings').select(listingCols).eq('status', 'active').order('created_at', { ascending: false }).limit(6),
       ]);
 
+      const fallbackCols: Record<string, string> = {
+        musicians: musicianCols,
+        bands: bandCols,
+        events: eventCols,
+        venues: venueCols,
+        teachers: teacherCols,
+        rehearsal_spaces: rehearsalCols,
+      };
       const globalFallback = (table: string, limit: number, extraFilter?: (q: any) => any) => {
-        let q = this.supabase.client.from(table).select('*').order('created_at', { ascending: false }).limit(limit);
+        const cols = fallbackCols[table] ?? 'id, name, city, avatar_url, created_at';
+        let q = this.supabase.client.from(table).select(cols).order('created_at', { ascending: false }).limit(limit);
         if (extraFilter) q = extraFilter(q);
-        return q.then(({ data }) => data || []);
+        return q.then(({ data }: { data: any }) => data || []);
       };
 
       this.recentMusicians.set((musicians || []).slice(0, 6));

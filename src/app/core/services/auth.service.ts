@@ -15,6 +15,8 @@ export class AuthService {
   readonly session = this._session.asReadonly();
   readonly user = computed(() => this._session()?.user ?? null);
   readonly isLoggedIn = computed(() => !!this._session());
+  readonly userProfileType = signal<string>('');
+  readonly userProfileData = signal<any>(null);
 
   constructor() {
     this.supabase.getSession()
@@ -65,12 +67,52 @@ export class AuthService {
     if (error) throw error;
   }
 
+  async loadUserProfile(userId: string): Promise<void> {
+    // Try localStorage first (fast path)
+    try {
+      const cached = localStorage.getItem('bandyou_profile_type');
+      if (cached) this.userProfileType.set(cached);
+    } catch {}
+
+    const tables = [
+      { table: 'musicians', type: 'musician' },
+      { table: 'bands', type: 'band' },
+      { table: 'venues', type: 'venue' },
+      { table: 'teachers', type: 'teacher' },
+      { table: 'rehearsal_spaces', type: 'rehearsal' },
+    ] as const;
+
+    const results = await Promise.all(
+      tables.map(({ table, type }) =>
+        this.supabase.client.from(table)
+          .select('id, name, city, avatar_url')
+          .eq('user_id', userId)
+          .maybeSingle()
+          .then(({ data }: { data: any }) => data ? { data, type } : null)
+      )
+    );
+    const found = results.find(r => r !== null);
+    if (found) {
+      this.userProfileType.set(found.type);
+      this.userProfileData.set(found.data);
+      try { localStorage.setItem('bandyou_profile_type', found.type); } catch {}
+      try { localStorage.setItem('bandyou_city', found.data.city || ''); } catch {}
+    }
+  }
+
+  clearUserProfile() {
+    this.userProfileType.set('');
+    this.userProfileData.set(null);
+    try { localStorage.removeItem('bandyou_profile_type'); } catch {}
+  }
+
   async signOut() {
     this._signingOut = true;
     const userId = this.user()?.id;
     if (userId) {
       try { await this.push.unsubscribeDevice(userId); } catch { /* ignore */ }
     }
+    this.clearUserProfile();
     try { await this.supabase.signOut(); } catch { /* ignore */ }
     this._signingOut = false;
     this.router.navigate(['/']);

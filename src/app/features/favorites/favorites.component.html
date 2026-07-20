@@ -49,19 +49,29 @@
         }
       </div>
     } @else if (filteredFavs.length === 0) {
-      <div class="flex flex-col items-center justify-center py-20 gap-4 text-center">
-        <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center">
-          <app-icon name="heart" [size]="28" class="text-ink-muted"/>
+      @if (activeTab() === 'all') {
+        <div class="flex flex-col items-center py-20 gap-3 text-center">
+          <div class="w-16 h-16 rounded-2xl bg-dark-700 flex items-center justify-center">
+            <svg class="w-8 h-8 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+          </div>
+          <p class="font-semibold text-ink">Aún no tienes favoritos</p>
+          <p class="text-sm text-ink-muted max-w-xs">Guarda músicos, bandas, salas o eventos que te interesen para encontrarlos fácilmente aquí</p>
+          <a routerLink="/search" class="btn-primary text-sm mt-1">Explorar el directorio</a>
         </div>
-        <div>
-          <p class="font-semibold text-ink text-[15px]">
-            @if (activeTab() === 'all') { Aún no tienes favoritos }
-            @else { Sin favoritos en esta categoría }
-          </p>
-          <p class="text-[13px] text-ink-muted mt-1">Toca el corazón en cualquier perfil para guardarlo aquí</p>
+      } @else {
+        <div class="flex flex-col items-center py-20 gap-3 text-center">
+          <div class="w-16 h-16 rounded-2xl bg-dark-700 flex items-center justify-center">
+            <svg class="w-8 h-8 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+          </div>
+          <p class="font-semibold text-ink">Sin favoritos en esta categoría</p>
+          <p class="text-sm text-ink-muted max-w-xs">No tienes guardados de este tipo todavía</p>
+          <button (click)="activeTab.set('all')" class="btn-secondary text-sm mt-1">Ver todo</button>
         </div>
-        <a routerLink="/search" class="btn-primary text-sm">Explorar directorio</a>
-      </div>
+      }
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (fav of filteredFavs; track fav.id) {

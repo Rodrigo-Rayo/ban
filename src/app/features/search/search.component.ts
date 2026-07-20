@@ -37,6 +37,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   private readonly LIMIT = 30;
   private paramsSub?: Subscription;
   private fetchSeq = 0;
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 
   musicians = signal<any[]>([]);
   events = signal<any[]>([]);
@@ -112,6 +113,16 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.activeTab.set(tab);
     this.selectedGenre.set('');
     this.filterChanged();
+  }
+
+  onSearchQueryChange(val: string) {
+    this.searchQuery.set(val);
+    if (this.searchDebounceTimer !== undefined) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+    this.searchDebounceTimer = setTimeout(() => {
+      this.filterChanged();
+    }, 400);
   }
 
   filterChanged() {

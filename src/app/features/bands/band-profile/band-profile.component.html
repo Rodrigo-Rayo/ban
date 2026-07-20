@@ -319,7 +319,7 @@
         }
 
         <!-- Redes -->
-        @if (band()!.spotify_url || band()!.youtube_url || band()!.instagram_url || band()!.website_url) {
+        @if (band()!.spotify_url || band()!.youtube_url || band()!.soundcloud_url || band()!.instagram_url || band()!.website_url) {
           <div class="card-flat p-5">
             <h2 class="section-label mb-4">Escúchanos</h2>
             <div class="flex flex-wrap gap-2">
@@ -335,6 +335,15 @@
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/25 hover:bg-red-500/20 transition-colors">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
                   YouTube
+                </a>
+              }
+              @if (band()!.soundcloud_url) {
+                <a [href]="band()!.soundcloud_url" target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500/10 text-orange-400 text-xs font-bold border border-orange-500/25 hover:bg-orange-500/20 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M1.175 12.225c-.017 0-.034.002-.05.006a.914.914 0 0 0-.125.046V17.5c0 .348.261.609.609.609h20.782c.348 0 .609-.261.609-.609v-2.347a6.25 6.25 0 0 0-6.25-6.25 6.22 6.22 0 0 0-3.609 1.143A5 5 0 0 0 4.175 12.5a2.5 2.5 0 0 0-3 .375v-.65z"/>
+                  </svg>
+                  SoundCloud
                 </a>
               }
               @if (band()!.instagram_url) {

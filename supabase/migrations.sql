@@ -1272,3 +1272,8 @@ CREATE INDEX IF NOT EXISTS idx_teachers_city_created
 
 CREATE INDEX IF NOT EXISTS idx_rehearsal_city_created
   ON rehearsal_spaces(city, created_at DESC);
+
+
+-- ── Section 29: Social links — missing columns ────────────────────────────────
+ALTER TABLE musicians ADD COLUMN IF NOT EXISTS website_url    TEXT;
+ALTER TABLE bands     ADD COLUMN IF NOT EXISTS soundcloud_url TEXT;

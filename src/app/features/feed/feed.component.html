@@ -218,9 +218,14 @@
                       {{ typeLabel(post.type) }}
                     </span>
                   </div>
-                  <span class="text-[10px] text-ink-muted flex-shrink-0 font-medium">
-                    {{ timeAgo(post.created_at) }}
-                  </span>
+                  <div class="flex items-center gap-1.5 flex-shrink-0">
+                    @if (isRecent(post)) {
+                      <span class="tag text-xs bg-primary-900 text-primary-500">Nuevo</span>
+                    }
+                    <span class="text-[10px] text-ink-muted font-medium">
+                      {{ timeAgo(post.created_at) }}
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Body text -->

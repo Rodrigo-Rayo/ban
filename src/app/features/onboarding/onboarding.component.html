@@ -345,7 +345,7 @@
               @if (role() === 'musician' || role() === 'band') {
                 <input formControlName="spotify_url" type="url" placeholder="Spotify URL" class="input-field text-sm py-2"/>
               }
-              @if (role() === 'musician') {
+              @if (role() === 'musician' || role() === 'band') {
                 <input formControlName="soundcloud_url" type="url" placeholder="SoundCloud URL" class="input-field text-sm py-2"/>
               }
               <input formControlName="youtube_url" type="url" placeholder="YouTube URL" class="input-field text-sm py-2"/>
@@ -515,7 +515,7 @@
               }
               <input formControlName="youtube_url" type="url" placeholder="YouTube URL" class="input-field text-sm py-2"/>
               <input formControlName="instagram_url" type="url" placeholder="Instagram URL" class="input-field text-sm py-2"/>
-              @if (role() === 'teacher') {
+              @if (role() === 'musician' || role() === 'teacher') {
                 <input formControlName="website_url" type="url" placeholder="Web URL" class="input-field text-sm py-2"/>
               }
             </div>

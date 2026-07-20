@@ -351,6 +351,7 @@ export class OnboardingComponent implements OnInit {
         description: z.description, contact_email: z.contactEmail,
         spotify_url: z.spotify_url, youtube_url: z.youtube_url,
         instagram_url: z.instagram_url, soundcloud_url: z.soundcloud_url,
+        website_url: z.website_url,
         influences: z.influences, experience: z.experience,
         availability_days: this.selectedDays().join(','),
         availability_slots: this.selectedSlots().join(','),
@@ -362,7 +363,8 @@ export class OnboardingComponent implements OnInit {
         city: z.city, genre, description: z.description,
         contact_email: z.contactEmail,
         spotify_url: z.spotify_url, youtube_url: z.youtube_url,
-        instagram_url: z.instagram_url, website_url: z.website_url,
+        instagram_url: z.instagram_url, soundcloud_url: z.soundcloud_url,
+        website_url: z.website_url,
       }, { onConflict: 'user_id' }).select('id').single();
       saveError = error;
       if (!error && bandRow) {

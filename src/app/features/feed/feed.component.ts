@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Post, PostType } from '../../core/models';
@@ -18,6 +19,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 })
 export class FeedComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
+  private auth = inject(AuthService);
   private toast = inject(ToastService);
   private seo = inject(SeoService);
   private route = inject(ActivatedRoute);
@@ -82,16 +84,10 @@ export class FeedComponent implements OnInit, OnDestroy {
     }
 
     if (user) {
-      const [{ data: m }, { data: b }, { data: v }, { data: t }, { data: r }] = await Promise.all([
-        this.supabase.client.from('musicians').select('id,name').eq('user_id', user.id).maybeSingle(),
-        this.supabase.client.from('bands').select('id,name').eq('user_id', user.id).maybeSingle(),
-        this.supabase.client.from('venues').select('id,name').eq('user_id', user.id).maybeSingle(),
-        this.supabase.client.from('teachers').select('id,name').eq('user_id', user.id).maybeSingle(),
-        this.supabase.client.from('rehearsal_spaces').select('id,name').eq('user_id', user.id).maybeSingle(),
-      ]);
-      const profilePairs: [any, string][] = [[m, 'musician'], [b, 'band'], [v, 'venue'], [t, 'teacher'], [r, 'rehearsal']];
-      for (const [data, type] of profilePairs) {
-        if (data) { this.userProfile.set({ ...data, type }); break; }
+      await this.auth.loadUserProfile(user.id);
+      const profile = this.auth.userProfileData();
+      if (profile) {
+        this.userProfile.set({ ...profile, type: this.auth.userProfileType() });
       }
     }
 
@@ -213,6 +209,10 @@ export class FeedComponent implements OnInit, OnDestroy {
     };
     const seg = map[p.author_profile_type];
     return seg ? [`/${seg}`, p.author_profile_id] : null;
+  }
+
+  isRecent(post: Post): boolean {
+    return Date.now() - new Date(post.created_at).getTime() < 86400000;
   }
 
   timeAgo(dateStr: string): string {
