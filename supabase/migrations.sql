@@ -1277,3 +1277,57 @@ CREATE INDEX IF NOT EXISTS idx_rehearsal_city_created
 -- ── Section 29: Social links — missing columns ────────────────────────────────
 ALTER TABLE musicians ADD COLUMN IF NOT EXISTS website_url    TEXT;
 ALTER TABLE bands     ADD COLUMN IF NOT EXISTS soundcloud_url TEXT;
+
+
+-- ── Section 30: Fix delete_user_account — add missing table deletes ───────────
+-- The previous version was missing explicit DELETEs for reviews, event_rsvps,
+-- messages and push_subscriptions. If the ON DELETE CASCADE FK constraints from
+-- Section 27 are not yet applied in the live DB, the auth.users delete would
+-- fail with a foreign key violation. This version deletes every table explicitly.
+CREATE OR REPLACE FUNCTION delete_user_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- Storage objects
+  DELETE FROM storage.objects WHERE bucket_id = 'avatars'      AND owner = uid;
+  DELETE FROM storage.objects WHERE bucket_id = 'gear-images'  AND owner = uid;
+
+  -- All user-owned data (explicit, does not rely on CASCADE)
+  DELETE FROM reviews              WHERE user_id = uid;
+  DELETE FROM event_rsvps          WHERE user_id = uid;
+  DELETE FROM push_subscriptions   WHERE user_id = uid;
+  DELETE FROM favorites            WHERE user_id = uid;
+  DELETE FROM notifications        WHERE user_id = uid;
+  DELETE FROM rehearsal_bookings   WHERE user_id = uid;
+  DELETE FROM posts                WHERE user_id = uid;
+  DELETE FROM events               WHERE user_id = uid;
+  DELETE FROM gear_listings        WHERE user_id = uid;
+  DELETE FROM vacancy_applications WHERE user_id = uid;
+
+  -- Messages then conversations (messages FK → conversations)
+  DELETE FROM messages      WHERE sender_id = uid;
+  DELETE FROM conversations WHERE user1_id = uid OR user2_id = uid;
+
+  -- Profile tables (cascade clears band_members, band_vacancies, etc.)
+  DELETE FROM musicians        WHERE user_id = uid;
+  DELETE FROM bands            WHERE user_id = uid;
+  DELETE FROM venues           WHERE user_id = uid;
+  DELETE FROM teachers         WHERE user_id = uid;
+  DELETE FROM rehearsal_spaces WHERE user_id = uid;
+  DELETE FROM profiles         WHERE id = uid;
+
+  -- Finally delete the auth record
+  DELETE FROM auth.users WHERE id = uid;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION delete_user_account() TO authenticated;
