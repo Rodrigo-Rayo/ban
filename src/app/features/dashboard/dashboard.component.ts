@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -42,40 +42,6 @@ export class DashboardComponent implements OnInit {
   editSaving = signal(false);
   readonly genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Otro'];
   readonly cities = CITIES;
-
-  readonly completeness = computed(() => {
-    const p = this.profile();
-    if (!p) return 0;
-    const type = this.profileType();
-    const fields = ['name', 'city', 'bio', 'avatar_url'];
-    if (type === 'musician' || type === 'teacher') fields.push('instrument', 'genre');
-    if (type === 'band') fields.push('genre');
-    if (type === 'venue' || type === 'rehearsal') fields.push('address');
-    const filled = fields.filter(f => p[f] && String(p[f]).trim().length > 0).length;
-    return Math.round((filled / fields.length) * 100);
-  });
-
-  readonly missingFields = computed(() => {
-    const p = this.profile();
-    if (!p) return [];
-    const type = this.profileType();
-    const checks: { field: string; label: string }[] = [
-      { field: 'avatar_url', label: 'Foto de perfil' },
-      { field: 'bio', label: 'Descripción / bio' },
-      { field: 'city', label: 'Ciudad' },
-    ];
-    if (type === 'musician' || type === 'teacher' || type === 'band') {
-      checks.push({ field: 'genre', label: 'Género musical' });
-    }
-    if (type === 'musician' || type === 'teacher') {
-      checks.push({ field: 'instrument', label: 'Instrumento' });
-    }
-    return checks.filter(c => !p[c.field] || String(p[c.field]).trim().length === 0).slice(0, 3);
-  });
-
-  readonly missingFieldsLabel = computed(() =>
-    this.missingFields().map(f => f.label).join(', ')
-  );
 
   async ngOnInit() {
     this.seo.set({ title: 'Mi panel' });
