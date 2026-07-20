@@ -141,16 +141,17 @@ export class DashboardComponent implements OnInit {
     const { data: { session } } = await this.supabase.auth.getSession();
     if (!session) return;
     this.uploadingAvatar.set(true);
-    const path = `${session.user.id}/avatar.${file.name.split('.').pop()}`;
-    const { error } = await this.supabase.client.storage.from('avatars').upload(path, file, { upsert: true });
+    const path = `${session.user.id}/avatar`;
+    const { error } = await this.supabase.client.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
     if (error) {
       this.toast.error('No se pudo subir la imagen. Inténtalo de nuevo.');
     } else {
       const { data: urlData } = this.supabase.client.storage.from('avatars').getPublicUrl(path);
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       const table: Record<string, string> = { musician: 'musicians', band: 'bands', venue: 'venues', teacher: 'teachers', rehearsal: 'rehearsal_spaces' };
       if (table[this.profileType()]) {
-        await this.supabase.client.from(table[this.profileType()]).update({ avatar_url: urlData.publicUrl }).eq('user_id', session.user.id);
-        this.profile.update(p => ({ ...p, avatar_url: urlData.publicUrl }));
+        await this.supabase.client.from(table[this.profileType()]).update({ avatar_url: avatarUrl }).eq('user_id', session.user.id);
+        this.profile.update(p => ({ ...p, avatar_url: avatarUrl }));
         this.toast.success('Foto de perfil actualizada.');
       }
     }

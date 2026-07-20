@@ -56,13 +56,13 @@ export class GearFormComponent implements OnInit, OnDestroy {
     if (!user) { this.router.navigate(['/auth/login']); return; }
     this.currentUser.set(user);
 
-    const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'];
-    const types  = ['musician', 'band', 'venue', 'teacher', 'rehearsal'];
-    for (let i = 0; i < tables.length; i++) {
-      const { data } = await this.supabase.client
-        .from(tables[i]).select('id,name').eq('user_id', user.id).maybeSingle();
-      if (data) { this.userProfile.set({ ...data, type: types[i] }); break; }
-    }
+    const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'] as const;
+    const types  = ['musician', 'band', 'venue', 'teacher', 'rehearsal'] as const;
+    const results = await Promise.all(
+      tables.map(t => this.supabase.client.from(t).select('id,name').eq('user_id', user.id).maybeSingle())
+    );
+    const idx = results.findIndex(r => r.data);
+    if (idx !== -1) this.userProfile.set({ ...results[idx].data, type: types[idx] });
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -161,7 +161,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
         images:      allImages,
       }).eq('id', editId).eq('user_id', user.id);
       this.submitting.set(false);
-      if (error) { this.toast.error(`Error al guardar: ${error.message}`); return; }
+      if (error) { this.toast.error('No se pudo guardar el anuncio. Inténtalo de nuevo.'); return; }
       this.toast.success('Anuncio actualizado.');
       this.router.navigate(['/shop', editId]);
       return;
@@ -183,7 +183,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
     }).select().single();
 
     this.submitting.set(false);
-    if (error) { this.toast.error(`Error al publicar: ${error.message}`); return; }
+    if (error) { this.toast.error('No se pudo publicar el anuncio. Inténtalo de nuevo.'); return; }
     this.toast.success('Anuncio publicado.');
     this.router.navigate(['/shop', data.id]);
   }
