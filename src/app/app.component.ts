@@ -18,7 +18,7 @@ import { PushNotificationService } from './core/services/push-notification.servi
   template: `
     <app-navbar />
     <app-sidebar />
-    <main id="main-content" class="lg:pl-56 pb-16 md:pb-0">
+    <main id="main-content" tabindex="-1" class="lg:pl-56 pb-16 md:pb-0">
       <router-outlet />
     </main>
     <app-toast />
@@ -36,7 +36,11 @@ export class AppComponent {
   constructor() {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe(() => this.scroller.scrollToPosition([0, 0]));
+      .subscribe(() => {
+        this.scroller.scrollToPosition([0, 0]);
+        const main = document.getElementById('main-content');
+        if (main) main.focus({ preventScroll: true });
+      });
 
     effect(() => {
       const user = this.auth.user();

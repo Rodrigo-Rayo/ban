@@ -23,16 +23,20 @@ export class InboxComponent implements OnInit {
   deleteError = signal('');
 
   async ngOnInit() {
-    const convs = await this.messagesService.getConversations();
-    this.conversations.set(convs);
+    try {
+      const convs = await this.messagesService.getConversations();
+      this.conversations.set(convs);
 
-    const [nameEntries, unreadIds] = await Promise.all([
-      Promise.all(convs.map(async conv => [conv.id, await this.messagesService.getOtherUserProfile(conv)] as const)),
-      this.messagesService.getUnreadConversationIds(),
-    ]);
-    this.names.set(Object.fromEntries(nameEntries));
-    this.unreadIds.set(unreadIds);
-    this.loading.set(false);
+      const [nameEntries, unreadIds] = await Promise.all([
+        Promise.all(convs.map(async conv => [conv.id, await this.messagesService.getOtherUserProfile(conv)] as const)),
+        this.messagesService.getUnreadConversationIds(),
+      ]);
+      this.names.set(Object.fromEntries(nameEntries));
+      this.unreadIds.set(unreadIds);
+    } catch {
+    } finally {
+      this.loading.set(false);
+    }
 
     // Reuse the navbar's shared subscription instead of creating a second channel
     this.messagesService.inboxUpdate$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ senderName, preview, conversationId: convId }) => {

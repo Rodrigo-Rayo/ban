@@ -149,7 +149,7 @@
 
           @if (musician()!.description || musician()!.influences) {
             <div class="card-flat p-5">
-              <h3 class="section-label mb-3">Sobre mí</h3>
+              <h2 class="section-label mb-3">Sobre mí</h2>
               @if (musician()!.description) {
                 <p class="text-sm text-ink leading-relaxed mb-3">{{ musician()!.description }}</p>
               }
@@ -164,7 +164,7 @@
 
           @if (musician()!.spotify_url || musician()!.youtube_url || musician()!.soundcloud_url || musician()!.instagram_url) {
             <div class="card-flat p-5">
-              <h3 class="section-label mb-4">Portfolio & redes</h3>
+              <h2 class="section-label mb-4">Portfolio & redes</h2>
               <div class="flex flex-wrap gap-2">
                 @if (musician()!.spotify_url) {
                   <a [href]="musician()!.spotify_url" target="_blank" rel="noopener noreferrer"
@@ -211,7 +211,7 @@
         <div class="flex flex-col gap-4">
           <div class="card-flat overflow-hidden">
             <div class="px-4 py-3 border-b border-dark-600">
-              <h3 class="section-label">Ficha</h3>
+              <h2 class="section-label">Ficha</h2>
             </div>
             <div class="divide-y divide-dark-600 text-sm">
               @if (musician()!.instrument) {
@@ -249,7 +249,7 @@
 
           @if (musician()!.availability_days || musician()!.availability_slots) {
             <div class="card-flat p-4">
-              <h3 class="section-label mb-3">Disponibilidad</h3>
+              <h2 class="section-label mb-3">Disponibilidad</h2>
               @if (musician()!.availability_days) {
                 <div class="flex flex-wrap gap-1.5 mb-2">
                   @for (d of musician()!.availability_days.split(','); track d) {

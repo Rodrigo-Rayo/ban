@@ -1,7 +1,9 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
+import { Meta } from '@angular/platform-browser';
 import { AuthService } from '../../../core/services/auth.service';
+import { SeoService } from '../../../core/services/seo.service';
 
 @Component({
   selector: 'app-login',
@@ -12,6 +14,8 @@ import { AuthService } from '../../../core/services/auth.service';
 export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
+  private seo = inject(SeoService);
+  private meta = inject(Meta);
   auth = inject(AuthService);
 
   loading = signal(false);
@@ -23,6 +27,8 @@ export class LoginComponent implements OnInit {
   });
 
   ngOnInit() {
+    this.seo.set({ title: 'Iniciar sesión' });
+    this.meta.updateTag({ name: 'robots', content: 'noindex,nofollow' });
     // Display OAuth errors forwarded by the callback component (e.g. access_denied)
     const oauthError = this.route.snapshot.queryParamMap.get('error');
     if (oauthError) this.error.set(oauthError);

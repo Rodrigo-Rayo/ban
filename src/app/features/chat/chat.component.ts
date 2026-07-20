@@ -43,20 +43,23 @@ export class ChatComponent implements OnInit, OnDestroy {
     const { data: { user } } = await this.supabase.auth.getUser();
     this.currentUserId = user?.id || '';
 
-    const [msgs, conv] = await Promise.all([
-      this.messagesService.getMessages(this.conversationId),
-      this.messagesService.getConversationById(this.conversationId),
-    ]);
-    this.messages.set(msgs);
-    this.loading.set(false);
-    setTimeout(() => this.scrollToBottom(), 0);
+    try {
+      const [msgs, conv] = await Promise.all([
+        this.messagesService.getMessages(this.conversationId),
+        this.messagesService.getConversationById(this.conversationId),
+      ]);
+      this.messages.set(msgs);
+      setTimeout(() => this.scrollToBottom(), 0);
 
-    // Secondary ops run in background — don't block the UI
-    this.messagesService.markAsRead(this.conversationId);
-    if (conv) {
-      this.messagesService.getOtherUserProfile(conv).then(resolved => {
-        if (resolved && resolved !== 'Usuario') this.otherName.set(resolved);
-      });
+      this.messagesService.markAsRead(this.conversationId);
+      if (conv) {
+        this.messagesService.getOtherUserProfile(conv).then(resolved => {
+          if (resolved && resolved !== 'Usuario') this.otherName.set(resolved);
+        });
+      }
+    } catch {
+    } finally {
+      this.loading.set(false);
     }
 
     this.subscription = this.messagesService.subscribeToMessages(

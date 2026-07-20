@@ -59,45 +59,48 @@ export class BandProfileComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.loading.set(false); return; }
 
-    // Round 1: all 4 independent queries in parallel (vacancies/members only need route id)
-    const [
-      { data: band },
-      { data: { session } },
-      { data: vac },
-      { data: membersData },
-    ] = await Promise.all([
-      this.supabase.client.from('bands').select('*').eq('id', id).maybeSingle(),
-      this.supabase.auth.getSession(),
-      this.supabase.client.from('band_vacancies').select('id, instrument, description, genre, open').eq('band_id', id).eq('open', true).order('created_at'),
-      this.supabase.client.from('band_members').select('id, name, instrument').eq('band_id', id).order('created_at'),
-    ]);
+    try {
+      // Round 1: all 4 independent queries in parallel
+      const [
+        { data: band },
+        { data: { session } },
+        { data: vac },
+        { data: membersData },
+      ] = await Promise.all([
+        this.supabase.client.from('bands').select('*').eq('id', id).maybeSingle(),
+        this.supabase.auth.getSession(),
+        this.supabase.client.from('band_vacancies').select('id, instrument, description, genre, open').eq('band_id', id).eq('open', true).order('created_at'),
+        this.supabase.client.from('band_members').select('id, name, instrument').eq('band_id', id).order('created_at'),
+      ]);
 
-    this.band.set(band);
-    if (band) this.seo.setProfile(band.name, 'band', band.city, band.description, band.avatar_url);
-    this.vacancies.set(vac || []);
-    this.members.set(membersData || []);
-    this.loading.set(false);
+      this.band.set(band);
+      if (band) this.seo.setProfile(band.name, 'band', band.city, band.description, band.avatar_url);
+      this.vacancies.set(vac || []);
+      this.members.set(membersData || []);
+      this.loading.set(false);
 
-    if (!session) return;
-    this.currentUserId.set(session.user.id);
+      if (!session) return;
+      this.currentUserId.set(session.user.id);
 
-    // Round 2: musician lookup and isFav in parallel
-    const [{ data: musician }] = await Promise.all([
-      this.supabase.client.from('musicians').select('id, user_id').eq('user_id', session.user.id).maybeSingle(),
-      band ? this.favSvc.isFavorite(session.user.id, 'band', band.id).then(v => this.isFav.set(v)) : Promise.resolve(),
-    ]);
+      // Round 2: musician lookup and isFav in parallel
+      const [{ data: musician }] = await Promise.all([
+        this.supabase.client.from('musicians').select('id, user_id').eq('user_id', session.user.id).maybeSingle(),
+        band ? this.favSvc.isFavorite(session.user.id, 'band', band.id).then(v => this.isFav.set(v)) : Promise.resolve(),
+      ]);
 
-    if (musician) {
-      this.myMusicianId.set(musician.id);
-      this.myMusicianUserId.set(musician.user_id);
-      // Round 3: applied vacancies (depends on musician.id)
-      const { data: apps } = await this.supabase.client
-        .from('vacancy_applications').select('vacancy_id').eq('musician_id', musician.id);
-      this.appliedVacancies.set((apps || []).map((a: any) => a.vacancy_id));
-    }
+      if (musician) {
+        this.myMusicianId.set(musician.id);
+        this.myMusicianUserId.set(musician.user_id);
+        const { data: apps } = await this.supabase.client
+          .from('vacancy_applications').select('vacancy_id').eq('musician_id', musician.id);
+        this.appliedVacancies.set((apps || []).map((a: any) => a.vacancy_id));
+      }
 
-    if (band && session.user.id === band.user_id) {
-      this.loadApplications();
+      if (band && session.user.id === band.user_id) {
+        this.loadApplications();
+      }
+    } catch {
+      this.loading.set(false);
     }
   }
 

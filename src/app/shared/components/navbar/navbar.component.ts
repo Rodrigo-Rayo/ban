@@ -58,10 +58,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(async () => {
+    ).subscribe(() => {
       this.publishOpen = false;
-      const { data: { session } } = await this.supabase.auth.getSession();
-      if (session) this.loadAvatar(session.user.id);
     });
   }
 

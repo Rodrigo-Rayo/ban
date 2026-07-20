@@ -69,6 +69,7 @@ export class LandingComponent implements OnInit {
 
     this.seo.set({
       description: 'BandYou — La red musical de España. Conecta con músicos, bandas, salas, profesores y locales de ensayo. Mensajes directos, agenda de eventos.',
+      url: 'https://bandyou.es/',
     });
 
     const [

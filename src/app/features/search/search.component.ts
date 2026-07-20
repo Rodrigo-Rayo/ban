@@ -192,7 +192,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
-      if (query) q = q.or(`name.ilike.%${query}%,instrument.ilike.%${query}%`);
+      if (query) { q = q.ilike('name', `%${query}%`); }
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       return data || [];
     }
@@ -231,7 +231,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       let q = this.supabase.client.from('teachers').select('*');
       if (city !== 'Toda España') q = q.eq('city', city);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
-      if (query) q = q.or(`name.ilike.%${query}%,instrument.ilike.%${query}%`);
+      if (query) { q = q.ilike('name', `%${query}%`); }
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       return data || [];
     }

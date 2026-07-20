@@ -124,7 +124,7 @@
           <div class="card-flat overflow-hidden">
             <div class="px-5 py-3 border-b border-dark-600 flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <h3 class="section-label">Vacantes abiertas</h3>
+                <h2 class="section-label">Vacantes abiertas</h2>
                 @if (vacancies().length > 0) {
                   <span class="tag-accent">{{ vacancies().length }} plaza{{ vacancies().length > 1 ? 's' : '' }}</span>
                 }
@@ -230,7 +230,7 @@
           <div class="card-flat overflow-hidden">
             <div class="px-5 py-3 border-b border-dark-600 flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <h3 class="section-label">Solicitudes recibidas</h3>
+                <h2 class="section-label">Solicitudes recibidas</h2>
                 @if (applications().length > 0) {
                   <span class="tag-accent">{{ applications().length }}</span>
                 }
@@ -297,7 +297,7 @@
         @if (members().length > 0) {
           <div class="card-flat overflow-hidden">
             <div class="px-5 py-3 border-b border-dark-600">
-              <h3 class="section-label">Formación</h3>
+              <h2 class="section-label">Formación</h2>
             </div>
             <div class="divide-y divide-dark-600">
               @for (m of members(); track m.id) {
@@ -313,7 +313,7 @@
         <!-- Sobre la banda -->
         @if (band()!.description) {
           <div class="card-flat p-5">
-            <h3 class="section-label mb-3">Sobre la banda</h3>
+            <h2 class="section-label mb-3">Sobre la banda</h2>
             <p class="text-sm text-ink-3 leading-relaxed">{{ band()!.description }}</p>
           </div>
         }
@@ -321,7 +321,7 @@
         <!-- Redes -->
         @if (band()!.spotify_url || band()!.youtube_url || band()!.instagram_url || band()!.website_url) {
           <div class="card-flat p-5">
-            <h3 class="section-label mb-4">Escúchanos</h3>
+            <h2 class="section-label mb-4">Escúchanos</h2>
             <div class="flex flex-wrap gap-2">
               @if (band()!.spotify_url) {
                 <a [href]="band()!.spotify_url" target="_blank" rel="noopener noreferrer"
@@ -358,7 +358,7 @@
       <!-- Ficha lateral -->
       <div class="flex flex-col gap-4">
         <div class="card-flat overflow-hidden">
-          <div class="px-4 py-3 border-b border-dark-600"><h3 class="section-label">Ficha</h3></div>
+          <div class="px-4 py-3 border-b border-dark-600"><h2 class="section-label">Ficha</h2></div>
           <div class="divide-y divide-dark-600 text-sm">
             @if (band()!.genre) {
               <div class="flex justify-between px-4 py-2.5">

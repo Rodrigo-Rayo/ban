@@ -26,6 +26,8 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:image:height', content: '630' });
     this.meta.updateTag({ property: 'og:type', content: type });
     this.meta.updateTag({ property: 'og:url', content: url });
+    this.meta.updateTag({ property: 'og:site_name', content: 'BandYou' });
+    this.meta.updateTag({ property: 'og:locale', content: 'es_ES' });
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
     this.meta.updateTag({ name: 'twitter:title', content: fullTitle });
     this.meta.updateTag({ name: 'twitter:description', content: desc });
@@ -54,7 +56,7 @@ export class SeoService {
     const desc = description
       ? description.slice(0, 155)
       : `Evento: ${title}${city ? ' en ' + city : ''} — BandYou`;
-    this.set({ title, description: desc, url, type: 'article' });
+    this.set({ title, description: desc, url, type: 'website' });
   }
 
   setListing(title: string, price: number, city?: string, url?: string) {

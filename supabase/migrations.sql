@@ -1253,3 +1253,22 @@ CREATE INDEX IF NOT EXISTS idx_messages_conversation_id_created_at
 CREATE INDEX IF NOT EXISTS idx_events_city_date
   ON events(city, date ASC)
   WHERE date IS NOT NULL;
+
+
+-- ── Section 28: City indexes on profile tables ────────────────────────────────
+-- home.component queries all five profile tables filtered by city + created_at DESC.
+-- These composite indexes let Postgres serve those queries without a full table scan.
+CREATE INDEX IF NOT EXISTS idx_musicians_city_created
+  ON musicians(city, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_bands_city_created
+  ON bands(city, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_venues_city_created
+  ON venues(city, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_teachers_city_created
+  ON teachers(city, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_rehearsal_city_created
+  ON rehearsal_spaces(city, created_at DESC);

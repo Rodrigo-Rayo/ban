@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -16,7 +16,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
   imports: [FormsModule, CommonModule, RouterLink, IconComponent],
   templateUrl: './feed.component.html',
 })
-export class FeedComponent implements OnInit {
+export class FeedComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private seo = inject(SeoService);
@@ -71,7 +71,7 @@ export class FeedComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.seo.set({ title: 'Tablón', description: 'Anuncios de músicos, bandas y profesionales de la música en España. Publica y encuentra colaboraciones.' });
+    this.seo.set({ title: 'Anuncios', description: 'Anuncios de músicos, bandas y profesionales de la música en España. Publica y encuentra colaboraciones.' });
     const { data: { user } } = await this.supabase.auth.getUser();
     this.currentUser.set(user);
 
@@ -101,14 +101,21 @@ export class FeedComponent implements OnInit {
   async loadPosts() {
     this.loading.set(true);
     this.hasMore.set(true);
-    let q = this.supabase.client.from('posts').select('*').order('created_at', { ascending: false });
-    if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
-    if (this.filterType()) q = q.eq('type', this.filterType() as string);
-    if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
-    const { data } = await q.limit(this.PAGE_SIZE);
-    this.posts.set(data || []);
-    this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
-    this.loading.set(false);
+    try {
+      let q = this.supabase.client.from('posts').select('*').order('created_at', { ascending: false });
+      if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+      if (this.filterType()) q = q.eq('type', this.filterType() as string);
+      if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
+      const { data } = await q.limit(this.PAGE_SIZE);
+      this.posts.set(data || []);
+      this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  ngOnDestroy() {
+    clearTimeout(this.instrumentTimeout);
   }
 
   async loadMore() {

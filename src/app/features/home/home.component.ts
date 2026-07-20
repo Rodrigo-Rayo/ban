@@ -145,18 +145,21 @@ export class HomeComponent implements OnInit {
           globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d));
         }
       }
-    } catch (err) {
-      console.error('[Home] Error cargando contenido:', err);
+    } catch {
       this.loadError.set(true);
     } finally {
       this.loading.set(false);
     }
   }
 
+  private async loadContent() {
+    await this.ngOnInit();
+  }
+
   retryLoad() {
     this.loadError.set(false);
     this.loading.set(true);
-    this.ngOnInit();
+    this.loadContent();
   }
 
   private readonly AVATAR_COLORS = [

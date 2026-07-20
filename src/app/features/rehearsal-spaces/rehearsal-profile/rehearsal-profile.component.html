@@ -131,14 +131,14 @@
 
         @if (space()!.description) {
           <div class="card-flat p-5">
-            <h3 class="section-label mb-3">Sobre el local</h3>
+            <h2 class="section-label mb-3">Sobre el local</h2>
             <p class="text-sm text-ink-3 leading-relaxed">{{ space()!.description }}</p>
           </div>
         }
 
         @if (space()!.equipment) {
           <div class="card-flat p-5">
-            <h3 class="section-label mb-3">Equipamiento incluido</h3>
+            <h2 class="section-label mb-3">Equipamiento incluido</h2>
             <p class="text-sm text-ink-3 leading-relaxed">{{ space()!.equipment }}</p>
           </div>
         }
@@ -146,10 +146,10 @@
         <!-- ReseÃ±as -->
         <div class="card-flat overflow-hidden">
           <div class="px-5 py-3 border-b border-dark-600 flex items-center justify-between">
-            <h3 class="section-label">
+            <h2 class="section-label">
               ReseÃ±as @if (reviews().length > 0) { <span class="text-ink-muted font-normal">({{ reviews().length }})</span> }
               @if (avgRating) { <span class="ml-2 text-primary-500 font-bold">â˜… {{ avgRating }}</span> }
-            </h3>
+            </h2>
             @if (currentUserId() && !myReview()) {
               <button (click)="showReviewForm.set(!showReviewForm())"
                 class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">
@@ -216,7 +216,7 @@
           </div>
         }
         <div class="card-flat overflow-hidden">
-          <div class="px-4 py-3 border-b border-dark-600"><h3 class="section-label">Ficha</h3></div>
+          <div class="px-4 py-3 border-b border-dark-600"><h2 class="section-label">Ficha</h2></div>
           <div class="divide-y divide-dark-600 text-sm">
             @if (space()!.city) {
               <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Ciudad</span><span class="font-medium text-ink">{{ space()!.city }}</span></div>

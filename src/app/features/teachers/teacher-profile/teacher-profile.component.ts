@@ -59,22 +59,25 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   async ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id');
-    const [{ data: teacher }, { data: { session } }, { data: reviews }] = await Promise.all([
-      this.supabase.client.from('teachers').select('*').eq('id', id!).maybeSingle(),
-      this.supabase.auth.getSession(),
-      this.supabase.client.from('reviews').select('*').eq('entity_type', 'teacher').eq('entity_id', id!).order('created_at', { ascending: false }),
-    ]);
-    this.teacher.set(teacher);
-    if (teacher) this.seo.setProfile(teacher.name, 'teacher', teacher.city, teacher.description, teacher.avatar_url);
-    this.reviews.set(reviews || []);
-    if (session) {
-      this.currentUserId.set(session.user.id);
-      this.myReview.set(reviews?.find((r: any) => r.user_id === session.user.id) || null);
-      // isFav runs in background — doesn't block the UI
-      if (teacher) this.favSvc.isFavorite(session.user.id, 'teacher', teacher.id).then(v => this.isFav.set(v));
+    try {
+      const id = this.route.snapshot.paramMap.get('id');
+      const [{ data: teacher }, { data: { session } }, { data: reviews }] = await Promise.all([
+        this.supabase.client.from('teachers').select('*').eq('id', id!).maybeSingle(),
+        this.supabase.auth.getSession(),
+        this.supabase.client.from('reviews').select('*').eq('entity_type', 'teacher').eq('entity_id', id!).order('created_at', { ascending: false }),
+      ]);
+      this.teacher.set(teacher);
+      if (teacher) this.seo.setProfile(teacher.name, 'teacher', teacher.city, teacher.description, teacher.avatar_url);
+      this.reviews.set(reviews || []);
+      if (session) {
+        this.currentUserId.set(session.user.id);
+        this.myReview.set(reviews?.find((r: any) => r.user_id === session.user.id) || null);
+        if (teacher) this.favSvc.isFavorite(session.user.id, 'teacher', teacher.id).then(v => this.isFav.set(v));
+      }
+    } catch {
+    } finally {
+      this.loading.set(false);
     }
-    this.loading.set(false);
   }
 
   async toggleFav() {

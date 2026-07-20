@@ -83,29 +83,33 @@ export class FavoritesComponent implements OnInit {
   }
 
   async ngOnInit() {
-    const { data: { session } } = await this.supabase.auth.getSession();
-    if (!session) { this.loading.set(false); return; }
+    try {
+      const { data: { session } } = await this.supabase.auth.getSession();
+      if (!session) return;
 
-    const favs = await this.favSvc.getByUser(session.user.id);
-    this.favorites.set(favs);
+      const favs = await this.favSvc.getByUser(session.user.id);
+      this.favorites.set(favs);
 
-    const groups: Record<string, string[]> = {};
-    for (const f of favs) {
-      (groups[f.entity_type] ??= []).push(f.entity_id);
+      const groups: Record<string, string[]> = {};
+      for (const f of favs) {
+        (groups[f.entity_type] ??= []).push(f.entity_id);
+      }
+
+      const entries = Object.entries(groups).filter(([type]) => this.tableMap[type]);
+      const results = await Promise.all(
+        entries.map(([type, ids]) =>
+          this.supabase.client.from(this.tableMap[type]).select('*').in('id', ids)
+            .then(({ data }) => ({ type, data: data || [] }))
+        )
+      );
+      const map: Record<string, any> = {};
+      for (const { type, data } of results) {
+        for (const it of data) map[`${type}:${it.id}`] = it;
+      }
+      this.resolved.set(map);
+    } catch {
+    } finally {
+      this.loading.set(false);
     }
-
-    const entries = Object.entries(groups).filter(([type]) => this.tableMap[type]);
-    const results = await Promise.all(
-      entries.map(([type, ids]) =>
-        this.supabase.client.from(this.tableMap[type]).select('*').in('id', ids)
-          .then(({ data }) => ({ type, data: data || [] }))
-      )
-    );
-    const map: Record<string, any> = {};
-    for (const { type, data } of results) {
-      for (const it of data) map[`${type}:${it.id}`] = it;
-    }
-    this.resolved.set(map);
-    this.loading.set(false);
   }
 }

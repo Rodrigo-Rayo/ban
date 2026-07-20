@@ -3,7 +3,13 @@ Allow: /
 
 Disallow: /auth/
 Disallow: /onboarding
+Disallow: /onboarding/
 Disallow: /dashboard
+Disallow: /venues/new
+Disallow: /teachers/new
+Disallow: /rehearsal/new
+Disallow: /events/create
+Disallow: /shop/new
 Disallow: /inbox
 Disallow: /notifications
 Disallow: /favorites

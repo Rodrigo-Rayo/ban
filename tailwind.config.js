@@ -33,7 +33,7 @@ module.exports = {
           DEFAULT: '#111111',   // negro editorial
           2:       '#3a3530',
           3:       '#6b6358',
-          muted:   '#9c9088',
+          muted:   '#6f665c',
           line:    '#d8ccb8',
         },
         signal: {

@@ -27,24 +27,42 @@ export class EventDetailComponent implements OnInit {
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    const [{ data }, { data: { session } }] = await Promise.all([
-      this.supabase.client.from('events').select('*').eq('id', id!).maybeSingle(),
-      this.supabase.auth.getSession(),
-    ]);
-    this.event.set(data);
-    if (data) this.seo.setEvent(data.title, data.date, data.city, data.description);
-    if (session) this.currentUserId.set(session.user.id);
-    this.loading.set(false);
-
-    // RSVP count and user RSVP status run in parallel after render
-    const [{ count }, { data: myRsvp }] = await Promise.all([
-      this.supabase.client.from('event_rsvps').select('id', { count: 'exact', head: true }).eq('event_id', id!),
-      session
-        ? this.supabase.client.from('event_rsvps').select('id').eq('event_id', id!).eq('user_id', session.user.id).maybeSingle()
-        : Promise.resolve({ data: null }),
-    ]);
-    this.rsvpCount.set(count ?? 0);
-    this.isGoing.set(!!myRsvp);
+    try {
+      const [{ data }, { data: { session } }] = await Promise.all([
+        this.supabase.client.from('events').select('*').eq('id', id!).maybeSingle(),
+        this.supabase.auth.getSession(),
+      ]);
+      this.event.set(data);
+      if (data) {
+        this.seo.setEvent(data.title, data.date, data.city, data.description);
+        this.seo.injectJsonLd({
+          '@context': 'https://schema.org',
+          '@type': 'Event',
+          name: data.title,
+          description: data.description || '',
+          startDate: data.date,
+          url: `https://bandyou.es/events/${data.id}`,
+          location: {
+            '@type': 'Place',
+            name: data.venue_name || data.city || 'España',
+            address: { '@type': 'PostalAddress', addressLocality: data.city || '', addressCountry: 'ES' },
+          },
+        });
+      }
+      if (session) {
+        this.currentUserId.set(session.user.id);
+        // RSVP count and user RSVP status run in parallel after render
+        const [{ count }, { data: myRsvp }] = await Promise.all([
+          this.supabase.client.from('event_rsvps').select('id', { count: 'exact', head: true }).eq('event_id', id!),
+          this.supabase.client.from('event_rsvps').select('id').eq('event_id', id!).eq('user_id', session.user.id).maybeSingle(),
+        ]);
+        this.rsvpCount.set(count ?? 0);
+        this.isGoing.set(!!myRsvp);
+      }
+    } catch {
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   async toggleRsvp() {

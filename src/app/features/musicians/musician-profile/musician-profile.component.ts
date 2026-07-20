@@ -42,7 +42,18 @@ export class MusicianProfileComponent implements OnInit {
         this.supabase.auth.getSession(),
       ]);
       this.musician.set(data);
-      if (data) this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url);
+      if (data) {
+        this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url);
+        this.seo.injectJsonLd({
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          name: data.name,
+          description: data.bio || data.description || '',
+          image: data.avatar_url || '',
+          url: `https://bandyou.es/musicians/${data.id}`,
+          address: { '@type': 'PostalAddress', addressLocality: data.city || '', addressCountry: 'ES' },
+        });
+      }
       if (session) {
         this.currentUserId.set(session.user.id);
         // isFav runs in background — doesn't block UI

@@ -50,11 +50,13 @@ export class NotificationsComponent implements OnInit {
     const { data: { session } } = await this.supabase.auth.getSession();
     if (!session) { this.loading.set(false); return; }
     this.userId.set(session.user.id);
-    const [notifs] = await Promise.all([
-      this.notifSvc.getAll(session.user.id),
-      this.notifSvc.markAllRead(session.user.id),
-    ]);
-    this.notifications.set(notifs);
-    this.loading.set(false);
+    try {
+      await this.notifSvc.markAllRead(session.user.id);
+      const notifs = await this.notifSvc.getAll(session.user.id);
+      this.notifications.set(notifs);
+    } catch {
+    } finally {
+      this.loading.set(false);
+    }
   }
 }
