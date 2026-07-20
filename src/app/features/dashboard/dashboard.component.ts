@@ -55,7 +55,7 @@ export class DashboardComponent implements OnInit {
         { data: teacher, error: e4 }, { data: rehearsal, error: e5 }, { data: evs },
         { data: posts },   { data: listings },
         { data: sbPosts }, { data: sbEvents },
-        { data: userBookings },
+        { data: userBookings }, { data: profileRow },
       ] = await Promise.all([
         this.supabase.client.from('musicians').select('*').eq('user_id', uid).maybeSingle(),
         this.supabase.client.from('bands').select('*').eq('user_id', uid).maybeSingle(),
@@ -68,6 +68,7 @@ export class DashboardComponent implements OnInit {
         this.supabase.client.from('posts').select('id, type, text, city, author_name, created_at').order('created_at', { ascending: false }).limit(5),
         this.supabase.client.from('events').select('id, title, venue, city, date, time, genre').gte('date', new Date().toISOString().split('T')[0]).order('date', { ascending: true }).limit(4),
         this.supabase.client.from('rehearsal_bookings').select('id, date, start_time, end_time, name, status, space_id, rehearsal_spaces(name, city)').eq('user_id', uid).order('date', { ascending: true }),
+        this.supabase.client.from('profiles').select('role, name').eq('id', uid).maybeSingle(),
       ]);
       if (e1 || e2 || e3 || e4 || e5) {
         this.toast.error('Error al cargar el panel. Recarga la página.');
@@ -79,13 +80,9 @@ export class DashboardComponent implements OnInit {
       else if (venue)     { this.profile.set(venue);      this.profileType.set('venue'); }
       else if (teacher)   { this.profile.set(teacher);    this.profileType.set('teacher'); }
       else if (rehearsal) { this.profile.set(rehearsal);  this.profileType.set('rehearsal'); }
-      else {
-        const { data: profileRow } = await this.supabase.client
-          .from('profiles').select('role, name').eq('id', uid).maybeSingle();
-        if (profileRow?.role === 'listener') {
-          this.profile.set({ name: profileRow.name });
-          this.profileType.set('listener');
-        }
+      else if (profileRow?.role === 'listener') {
+        this.profile.set({ name: profileRow.name });
+        this.profileType.set('listener');
       }
 
       this.events.set(evs || []);
@@ -150,9 +147,13 @@ export class DashboardComponent implements OnInit {
       const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       const table: Record<string, string> = { musician: 'musicians', band: 'bands', venue: 'venues', teacher: 'teachers', rehearsal: 'rehearsal_spaces' };
       if (table[this.profileType()]) {
-        await this.supabase.client.from(table[this.profileType()]).update({ avatar_url: avatarUrl }).eq('user_id', session.user.id);
-        this.profile.update(p => ({ ...p, avatar_url: avatarUrl }));
-        this.toast.success('Foto de perfil actualizada.');
+        const { error: dbErr } = await this.supabase.client.from(table[this.profileType()]).update({ avatar_url: avatarUrl }).eq('user_id', session.user.id);
+        if (dbErr) {
+          this.toast.error('Foto subida pero no se pudo guardar. Inténtalo de nuevo.');
+        } else {
+          this.profile.update(p => ({ ...p, avatar_url: avatarUrl }));
+          this.toast.success('Foto de perfil actualizada.');
+        }
       }
     }
     this.uploadingAvatar.set(false);
@@ -248,9 +249,13 @@ export class DashboardComponent implements OnInit {
   async copyProfileLink() {
     const path = this.publicProfilePath();
     if (!path) return;
-    await navigator.clipboard.writeText(`${window.location.origin}${path}`);
-    this.linkCopied.set(true);
-    setTimeout(() => this.linkCopied.set(false), 2000);
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${path}`);
+      this.linkCopied.set(true);
+      setTimeout(() => this.linkCopied.set(false), 2000);
+    } catch {
+      this.toast.error('No se pudo copiar. Cópialo manualmente desde la barra del navegador.');
+    }
   }
 
 

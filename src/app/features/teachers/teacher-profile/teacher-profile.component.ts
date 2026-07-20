@@ -147,7 +147,7 @@ export class TeacherProfileComponent implements OnInit {
         setTimeout(() => this.bookingSuccess.set(false), 5000);
       }
     } catch {
-      // sendMessage threw — bookingLoading will be reset in finally
+      this.toast.error('No se pudo enviar la solicitud. Inténtalo de nuevo.');
     } finally {
       this.bookingLoading.set(false);
     }

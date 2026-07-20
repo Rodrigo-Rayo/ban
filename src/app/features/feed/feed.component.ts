@@ -102,9 +102,12 @@ export class FeedComponent implements OnInit, OnDestroy {
       if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
       if (this.filterType()) q = q.eq('type', this.filterType() as string);
       if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
-      const { data } = await q.limit(this.PAGE_SIZE);
-      this.posts.set(data || []);
-      this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
+      const { data, error } = await q.limit(this.PAGE_SIZE);
+      if (error) { this.error.set('No se pudieron cargar los anuncios. Inténtalo de nuevo.'); }
+      else {
+        this.posts.set(data || []);
+        this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
+      }
     } finally {
       this.loading.set(false);
     }
@@ -181,17 +184,11 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.toast.success('Anuncio eliminado.');
   }
 
-  typeLabel(type: PostType) {
-    return this.postTypes.find(t => t.id === type)?.label ?? type;
-  }
+  private readonly postTypeMap = new Map(this.postTypes.map(t => [t.id, t]));
 
-  typeEmoji(type: PostType) {
-    return this.postTypes.find(t => t.id === type)?.emoji ?? '📢';
-  }
-
-  typeIcon(type: PostType) {
-    return this.postTypes.find(t => t.id === type)?.icon ?? 'newspaper';
-  }
+  typeLabel(type: PostType) { return this.postTypeMap.get(type)?.label ?? type; }
+  typeEmoji(type: PostType) { return this.postTypeMap.get(type)?.emoji ?? '📢'; }
+  typeIcon(type: PostType)  { return this.postTypeMap.get(type)?.icon ?? 'newspaper'; }
 
   private readonly AVATAR_COLORS = [
     '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',

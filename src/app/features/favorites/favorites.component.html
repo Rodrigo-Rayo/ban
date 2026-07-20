@@ -25,8 +25,8 @@
           [class.genre-pill-active]="activeTab() === tab.id"
           [class.genre-pill-inactive]="activeTab() !== tab.id">
           {{ tab.label }}
-          @if (tab.id !== 'all' && countFor(tab.id) > 0) {
-            <span class="ml-1 opacity-60">{{ countFor(tab.id) }}</span>
+          @if (tab.id !== 'all' && countByType()[tab.id] > 0) {
+            <span class="ml-1 opacity-60">{{ countByType()[tab.id] }}</span>
           }
         </button>
       }
@@ -48,7 +48,12 @@
           </div>
         }
       </div>
-    } @else if (filteredFavs.length === 0) {
+    } @else if (loadError()) {
+      <div class="flex flex-col items-center py-20 gap-3 text-center">
+        <p class="font-semibold text-ink">No se pudieron cargar los favoritos</p>
+        <p class="text-sm text-ink-muted">Comprueba tu conexión e inténtalo de nuevo</p>
+      </div>
+    } @else if (filteredFavs().length === 0) {
       @if (activeTab() === 'all') {
         <div class="flex flex-col items-center py-20 gap-3 text-center">
           <div class="w-16 h-16 rounded-2xl bg-dark-700 flex items-center justify-center">
@@ -74,7 +79,7 @@
       }
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (fav of filteredFavs; track fav.id) {
+        @for (fav of filteredFavs(); track fav.id) {
           @if (item(fav); as it) {
             <a [routerLink]="route(fav)"
                class="group card cursor-pointer flex flex-col">

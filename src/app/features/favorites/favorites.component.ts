@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FavoritesService } from '../../core/services/favorites.service';
@@ -16,6 +16,7 @@ export class FavoritesComponent implements OnInit {
   private supabase = inject(SupabaseService);
 
   loading = signal(true);
+  loadError = signal(false);
   activeTab = signal('all');
   favorites = signal<any[]>([]);
   resolved = signal<Record<string, any>>({});
@@ -40,14 +41,19 @@ export class FavoritesComponent implements OnInit {
     event: '/events', teacher: '/teachers', rehearsal: '/rehearsal',
   };
 
-  get filteredFavs() {
+  readonly filteredFavs = computed(() => {
     const tab = this.activeTab();
-    return tab === 'all' ? this.favorites() : this.favorites().filter(f => f.entity_type === tab);
-  }
+    const favs = this.favorites();
+    return tab === 'all' ? favs : favs.filter(f => f.entity_type === tab);
+  });
 
-  countFor(type: string) {
-    return this.favorites().filter(f => f.entity_type === type).length;
-  }
+  readonly countByType = computed(() => {
+    const counts: Record<string, number> = {};
+    for (const f of this.favorites()) {
+      counts[f.entity_type] = (counts[f.entity_type] ?? 0) + 1;
+    }
+    return counts;
+  });
 
   item(fav: any) {
     return this.resolved()[`${fav.entity_type}:${fav.entity_id}`] || null;
@@ -108,6 +114,7 @@ export class FavoritesComponent implements OnInit {
       }
       this.resolved.set(map);
     } catch {
+      this.loadError.set(true);
     } finally {
       this.loading.set(false);
     }

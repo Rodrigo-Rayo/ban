@@ -58,6 +58,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         });
       }
     } catch {
+      this.sendError.set('No se pudieron cargar los mensajes. Inténtalo de nuevo.');
     } finally {
       this.loading.set(false);
     }

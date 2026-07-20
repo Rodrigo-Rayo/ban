@@ -132,20 +132,17 @@ export class GearFormComponent implements OnInit, OnDestroy {
     this.submitting.set(true);
     this.error.set('');
 
-    const newImageUrls: string[] = [];
-    for (let i = 0; i < this.imageFiles.length; i++) {
-      const file = this.imageFiles[i];
-      const ext  = file.name.split('.').pop() ?? 'jpg';
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error: uploadError } = await this.supabase.client.storage
-        .from('gear-images').upload(path, file, { upsert: false });
-      if (!uploadError) {
-        const { data: { publicUrl } } = this.supabase.client.storage
-          .from('gear-images').getPublicUrl(path);
-        newImageUrls.push(publicUrl);
-      }
-      this.uploadProgress.set(Math.round(((i + 1) / this.imageFiles.length) * 100));
-    }
+    const newImageUrls = (await Promise.all(
+      this.imageFiles.map(async (file) => {
+        const ext  = file.name.split('.').pop() ?? 'jpg';
+        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await this.supabase.client.storage
+          .from('gear-images').upload(path, file, { upsert: false });
+        if (uploadError) return null;
+        return this.supabase.client.storage.from('gear-images').getPublicUrl(path).data.publicUrl;
+      })
+    )).filter((url): url is string => url !== null);
+    this.uploadProgress.set(100);
 
     const allImages = [...this.existingImages(), ...newImageUrls];
     const editId = this.editId();

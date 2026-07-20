@@ -60,15 +60,23 @@ export class GearListComponent implements OnInit {
     await this.loadListings();
   }
 
+  private readonly LISTING_COLS = 'id,user_id,title,price,category,condition,city,images,status,seller_name,seller_profile_type,seller_profile_id,created_at';
+
+  loadError = signal(false);
+
   async loadListings() {
     this.loading.set(true);
-    let q = this.supabase.client.from('gear_listings').select('*').eq('status', 'active');
+    this.loadError.set(false);
+    let q = this.supabase.client.from('gear_listings').select(this.LISTING_COLS).eq('status', 'active');
     if (this.filterCategory()) q = q.eq('category', this.filterCategory());
     if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
     if (this.filterCondition()) q = q.eq('condition', this.filterCondition());
-    const { data } = await q.order('created_at', { ascending: false }).limit(this.PAGE_SIZE);
-    this.listings.set(data || []);
-    this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
+    const { data, error } = await q.order('created_at', { ascending: false }).limit(this.PAGE_SIZE);
+    if (error) { this.loadError.set(true); }
+    else {
+      this.listings.set((data || []) as GearListing[]);
+      this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
+    }
     this.loading.set(false);
   }
 
@@ -76,14 +84,14 @@ export class GearListComponent implements OnInit {
     if (this.loadingMore() || !this.hasMore()) return;
     this.loadingMore.set(true);
     const last = this.listings().at(-1);
-    let q = this.supabase.client.from('gear_listings').select('*')
+    let q = this.supabase.client.from('gear_listings').select(this.LISTING_COLS)
       .eq('status', 'active')
       .lt('created_at', last?.created_at ?? new Date().toISOString());
     if (this.filterCategory()) q = q.eq('category', this.filterCategory());
     if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
     if (this.filterCondition()) q = q.eq('condition', this.filterCondition());
     const { data } = await q.order('created_at', { ascending: false }).limit(this.PAGE_SIZE);
-    this.listings.update(l => [...l, ...(data || [])]);
+    this.listings.update(l => [...l, ...(data || []) as GearListing[]]);
     this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
     this.loadingMore.set(false);
   }
