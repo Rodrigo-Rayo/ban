@@ -47,7 +47,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   rehearsals = signal<any[]>([]);
 
 
-  genres = ['Todos', 'Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk'];
+  genres = ['Todos', 'Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Reggae', 'Punk', 'Clásico', 'Experimental', 'Bossa Nova'];
   cities = CITIES_WITH_ALL;
 
   tabs: { id: SearchType; label: string; icon: string }[] = [
@@ -136,7 +136,6 @@ export class SearchComponent implements OnInit, OnDestroy {
     const inst = this.selectedInstrument();
     if (inst) params['instrument'] = inst;
     this.router.navigate([], { queryParams: params, replaceUrl: true });
-    this.loadData();
   }
 
   async loadData() {

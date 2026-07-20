@@ -43,7 +43,8 @@ export class NotificationsComponent implements OnInit {
       musician: '/musicians', band: '/bands', venue: '/venues',
       event: '/events', teacher: '/teachers', rehearsal: '/rehearsal',
     };
-    return [map[n.entity_type] || '/', n.entity_id];
+    if (!map[n.entity_type]) return null;
+    return [map[n.entity_type], n.entity_id];
   }
 
   async ngOnInit() {
@@ -51,9 +52,9 @@ export class NotificationsComponent implements OnInit {
     if (!session) { this.loading.set(false); return; }
     this.userId.set(session.user.id);
     try {
-      await this.notifSvc.markAllRead(session.user.id);
       const notifs = await this.notifSvc.getAll(session.user.id);
       this.notifications.set(notifs);
+      await this.notifSvc.markAllRead(session.user.id);
     } catch {
     } finally {
       this.loading.set(false);

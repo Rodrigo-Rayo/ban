@@ -20,8 +20,8 @@ export class EventFormComponent {
   private toast = inject(ToastService);
 
   loading = signal(false);
-  success = signal(false);
   error = signal('');
+  readonly today = new Date().toISOString().split('T')[0];
 
   goBack() { this.location.back(); }
 

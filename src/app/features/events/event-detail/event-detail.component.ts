@@ -74,12 +74,12 @@ export class EventDetailComponent implements OnInit {
       const { error } = await this.supabase.client.from('event_rsvps')
         .delete().eq('event_id', eventId).eq('user_id', userId);
       if (!error) { this.isGoing.set(false); this.rsvpCount.update(n => Math.max(0, n - 1)); }
-      else { this.toast.error('No se pudo actualizar. Asegúrate de que la tabla event_rsvps existe en Supabase.'); }
+      else { this.toast.error('No se pudo actualizar tu asistencia. Inténtalo de nuevo.'); }
     } else {
       const { error } = await this.supabase.client.from('event_rsvps')
         .insert({ event_id: eventId, user_id: userId });
       if (!error) { this.isGoing.set(true); this.rsvpCount.update(n => n + 1); this.toast.success('¡Apuntado al evento!'); }
-      else { this.toast.error('No se pudo apuntar. Asegúrate de que la tabla event_rsvps existe en Supabase.'); }
+      else { this.toast.error('No se pudo confirmar tu asistencia. Inténtalo de nuevo.'); }
     }
     this.rsvpLoading.set(false);
   }

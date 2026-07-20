@@ -59,7 +59,7 @@ export class InboxComponent implements OnInit {
     if (!confirm('¿Borrar esta conversación? Se eliminarán todos los mensajes para ambos participantes.')) return;
     const err = await this.messagesService.deleteConversation(id);
     if (err) {
-      this.deleteError.set('No se pudo borrar la conversación. Puede que necesites permisos adicionales en la base de datos.');
+      this.deleteError.set('No se pudo borrar la conversación. Inténtalo de nuevo.');
       setTimeout(() => this.deleteError.set(''), 5000);
       return;
     }

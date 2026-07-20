@@ -16,21 +16,6 @@
 
   <div class="px-6 lg:px-10 py-10 max-w-2xl mx-auto">
 
-    @if (success()) {
-      <div class="text-center py-20 animate-slide-in">
-        <div class="w-20 h-20 rounded-full bg-signal-gBg border border-signal-green/30 flex items-center justify-center mx-auto mb-8">
-          <svg class="w-9 h-9 text-signal-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-        </div>
-        <h2 class="text-4xl font-bold text-ink mb-3">¡Evento publicado!</h2>
-        <p class="text-sm text-ink-muted mb-10 max-w-xs mx-auto leading-relaxed">Tu evento ya está visible para toda la comunidad de BandYou.</p>
-        <div class="flex gap-3 justify-center">
-          <a routerLink="/search" [queryParams]="{tab:'events'}" class="btn-primary text-sm px-7 py-3">Ver todos los eventos</a>
-          <a routerLink="/dashboard" class="btn-secondary text-sm px-7 py-3">Mi panel</a>
-        </div>
-      </div>
-    } @else {
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
 
         <!-- Section: Información -->
@@ -77,7 +62,7 @@
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Fecha *</label>
-                <input formControlName="date" type="date" class="input-field"/>
+                <input formControlName="date" type="date" [min]="today" class="input-field"/>
                 @if (form.get('date')?.invalid && form.get('date')?.touched) {
                   <p class="text-xs text-signal-red mt-1.5">La fecha es obligatoria.</p>
                 }
@@ -165,7 +150,6 @@
         </button>
 
       </form>
-    }
 
   </div>
 </div>
