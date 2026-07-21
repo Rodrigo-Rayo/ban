@@ -126,6 +126,7 @@ export class DashboardComponent implements OnInit {
     const { error } = await this.supabase.client.from('rehearsal_bookings').update({ status }).eq('id', id);
     if (error) { this.toast.error('No se pudo actualizar el estado de la reserva.'); return; }
     this.bookings.update(bs => bs.map(b => b.id === id ? { ...b, status } : b));
+    this.toast.success('Estado de la reserva actualizado.');
   }
 
   async uploadAvatar(event: Event) {

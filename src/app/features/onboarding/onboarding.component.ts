@@ -1,24 +1,15 @@
 import { Component, HostListener, inject, signal, computed, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule, FormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { RegistrationStateService } from '../../core/services/registration-state.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES } from '../../core/constants/cities';
+import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
+import { optionalUrl, optionalPositiveNumber } from '../../core/utils/form-validators';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
-
-function optionalUrl(control: AbstractControl): ValidationErrors | null {
-  if (!control.value) return null;
-  try { new URL(control.value); return null; } catch { return { url: true }; }
-}
-
-function optionalPositiveNumber(control: AbstractControl): ValidationErrors | null {
-  if (!control.value && control.value !== 0) return null;
-  const n = Number(control.value);
-  return isNaN(n) || n < 0 ? { positiveNumber: true } : null;
-}
 
 @Component({
   selector: 'app-onboarding',
@@ -62,8 +53,8 @@ export class OnboardingComponent implements OnInit {
     { id: 'listener',  label: 'Soy del público', icon: 'radio',      desc: 'Descubro artistas y eventos', separator: true },
   ];
 
-  instruments = ['Guitarra', 'Bajo', 'Batería', 'Teclados', 'Voz', 'Violín', 'Trompeta', 'Saxofón', 'Piano', 'Flauta', 'Clarinete', 'Contrabajo', 'Arpa', 'Percusión', 'Otro'];
-  genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Reggae', 'Punk', 'Clásico', 'Experimental', 'Hip-Hop', 'Bossa Nova'];
+  readonly instruments = INSTRUMENTS;
+  readonly genres = GENRES;
   levels = [
     { id: 'principiante', label: 'Principiante', desc: 'Empezando el camino' },
     { id: 'aficionado',   label: 'Aficionado',   desc: 'Toco en casa y jams' },
@@ -215,7 +206,7 @@ export class OnboardingComponent implements OnInit {
       this.registrationState.clear();
 
       if (error) {
-        this.error.set(error.message || 'Error al crear la cuenta. Inténtalo de nuevo.');
+        this.error.set('Error al crear la cuenta. Inténtalo de nuevo.');
         return;
       }
 

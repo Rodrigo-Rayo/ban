@@ -51,17 +51,33 @@
   } @else {
 
   <!-- HERO -->
-  <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600">
+  <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600"
+       [class.opacity-60]="isPast()">
+    @if (isPast()) {
+      <div class="bg-dark-700/80 border-b border-dark-600 px-6 lg:px-10 py-2 flex items-center gap-2">
+        <svg aria-hidden="true" class="w-3.5 h-3.5 text-ink-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-xs text-ink-muted font-medium">Este evento ya ha pasado</p>
+      </div>
+    }
     <div class="max-w-3xl mx-auto px-6 lg:px-10 py-8">
       <div class="flex gap-5 items-start">
 
         <!-- Date block -->
-        <div class="flex-shrink-0 text-center bg-primary-600 rounded-2xl px-5 py-4 shadow-lg min-w-[80px]">
-          <p class="text-[10px] font-bold text-white/70 uppercase tracking-widest mb-0.5">{{ event()!.date | date:'EEE' | uppercase }}</p>
-          <p class="text-4xl font-black text-white leading-none">{{ event()!.date | date:'d' }}</p>
-          <p class="text-[10px] font-bold text-white/70 uppercase tracking-widest mt-0.5">{{ event()!.date | date:'MMM' | uppercase }}</p>
+        <div class="flex-shrink-0 text-center rounded-2xl px-5 py-4 shadow-lg min-w-[80px]"
+             [class.bg-primary-600]="!isPast()"
+             [class.bg-dark-600]="isPast()">
+          <p class="text-[10px] font-bold uppercase tracking-widest mb-0.5"
+             [ngClass]="isPast() ? 'text-ink-muted' : 'text-white/70'">{{ event()!.date | date:'EEE' | uppercase }}</p>
+          <p class="text-4xl font-black leading-none"
+             [class.text-white]="!isPast()" [class.text-ink-muted]="isPast()">{{ event()!.date | date:'d' }}</p>
+          <p class="text-[10px] font-bold uppercase tracking-widest mt-0.5"
+             [ngClass]="isPast() ? 'text-ink-muted' : 'text-white/70'">{{ event()!.date | date:'MMM' | uppercase }}</p>
           @if (event()!.time) {
-            <p class="text-xs font-medium text-white mt-2.5 pt-2.5 border-t border-white/20">{{ event()!.time?.slice(0,5) }}h</p>
+            <p class="text-xs font-medium mt-2.5 pt-2.5 border-t"
+               [class.text-white]="!isPast()" [class.text-ink-muted]="isPast()"
+               [ngClass]="isPast() ? 'border-dark-500' : 'border-white/20'">{{ event()!.time?.slice(0,5) }}h</p>
           }
         </div>
 
@@ -97,29 +113,42 @@
           Comprar entradas
         </a>
       }
-      @if (currentUserId()) {
-        <button (click)="toggleRsvp()" [disabled]="rsvpLoading()"
-          [attr.aria-pressed]="isGoing()"
-          [attr.aria-label]="isGoing() ? 'Cancelar asistencia' : 'Apuntarme al evento'"
-          class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-colors disabled:opacity-50 flex items-center gap-2"
-          [class.bg-primary-600]="isGoing()"
-          [class.border-primary-500]="isGoing()"
-          [class.text-white]="isGoing()"
-          [class.bg-dark-700]="!isGoing()"
-          [class.border-dark-600]="!isGoing()"
-          [class.text-ink]="!isGoing()">
-          @if (isGoing()) {
-            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-            Asistiré
-          } @else {
-            + Apuntarme
-          }
-        </button>
-      } @else {
-        <a routerLink="/auth/login" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border border-dark-600 bg-dark-700 text-ink-muted hover:border-primary-500/50 hover:text-ink transition-colors flex items-center">
-          Inicia sesión para apuntarte
-        </a>
+      @if (!isPast()) {
+        @if (currentUserId()) {
+          <button (click)="toggleRsvp()" [disabled]="rsvpLoading()"
+            [attr.aria-pressed]="isGoing()"
+            [attr.aria-label]="isGoing() ? 'Cancelar asistencia' : 'Apuntarme al evento'"
+            class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-colors disabled:opacity-50 flex items-center gap-2"
+            [class.bg-primary-600]="isGoing()"
+            [class.border-primary-500]="isGoing()"
+            [class.text-white]="isGoing()"
+            [class.bg-dark-700]="!isGoing()"
+            [class.border-dark-600]="!isGoing()"
+            [class.text-ink]="!isGoing()">
+            @if (isGoing()) {
+              <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+              Asistiré
+            } @else {
+              + Apuntarme
+            }
+          </button>
+        } @else {
+          <a routerLink="/auth/login" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border border-dark-600 bg-dark-700 text-ink-muted hover:border-primary-500/50 hover:text-ink transition-colors flex items-center">
+            Inicia sesión para apuntarte
+          </a>
+        }
       }
+      <button (click)="shareLink()"
+        class="px-4 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-colors flex items-center gap-2"
+        [class.border-signal-green]="linkShared()" [class.text-signal-green]="linkShared()"
+        [class.border-dark-600]="!linkShared()" [class.text-ink-muted]="!linkShared()"
+        [class.bg-dark-700]="true"
+        [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir evento'">
+        <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+        </svg>
+        {{ linkShared() ? 'Copiado' : 'Compartir' }}
+      </button>
     </div>
 
     <!-- Description -->
@@ -166,6 +195,15 @@
           <div class="flex justify-between px-5 py-2.5">
             <span class="text-ink-muted">Asistentes</span>
             <span class="font-medium text-ink">{{ rsvpCount() }}</span>
+          </div>
+        }
+        @if (event()!.contact_email) {
+          <div class="flex justify-between px-5 py-2.5 items-center">
+            <span class="text-ink-muted">Contacto</span>
+            <a [href]="'mailto:' + event()!.contact_email"
+               class="font-medium text-primary-400 hover:text-primary-300 transition-colors truncate max-w-[60%]">
+              {{ event()!.contact_email }}
+            </a>
           </div>
         }
       </div>

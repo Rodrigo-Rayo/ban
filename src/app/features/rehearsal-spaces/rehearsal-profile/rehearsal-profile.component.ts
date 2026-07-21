@@ -46,6 +46,18 @@ export class RehearsalProfileComponent implements OnInit {
   myReview = signal<any>(null);
   linkShared = signal(false);
 
+  // Booking form state
+  showBookingForm = signal(false);
+  bookingDate = '';
+  bookingStartTime = '';
+  bookingEndTime = '';
+  bookingName = '';
+  bookingPhone = '';
+  bookingNotes = '';
+  bookingLoading = signal(false);
+  bookingDone = signal(false);
+  bookingError = signal<string | null>(null);
+
   readonly avgRating = computed(() => {
     const r = this.reviews();
     if (!r.length) return null;
@@ -80,6 +92,7 @@ export class RehearsalProfileComponent implements OnInit {
         if (space) this.favSvc.isFavorite(session.user.id, 'rehearsal', space.id).then(v => this.isFav.set(v));
       }
     } catch {
+      this.toast.error('No se pudo cargar el perfil. Recarga la página.');
     } finally {
       this.loading.set(false);
     }
@@ -123,7 +136,7 @@ export class RehearsalProfileComponent implements OnInit {
       author_name: authorName,
     }, { onConflict: 'user_id,entity_type,entity_id' });
     if (error) {
-      this.reviewError.set(error.message || 'Error al guardar la reseña');
+      this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
     } else {
       const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'rehearsal').eq('entity_id', this.space()!.id).order('created_at', { ascending: false });
       this.reviews.set(data || []);
@@ -144,6 +157,76 @@ export class RehearsalProfileComponent implements OnInit {
     if (!result) return;
     if ('error' in result) { this.msgError.set(result.error); return; }
     this.router.navigate(['/inbox', result.id], { state: { name: this.space()!.name } });
+  }
+
+  readonly today = new Date().toISOString().split('T')[0];
+
+  async submitBooking() {
+    this.bookingError.set(null);
+    if (!this.bookingDate || !this.bookingStartTime || !this.bookingEndTime) {
+      this.bookingError.set('Por favor completa fecha, hora de inicio y hora de fin.');
+      return;
+    }
+    if (this.bookingStartTime >= this.bookingEndTime) {
+      this.bookingError.set('La hora de fin debe ser posterior a la hora de inicio.');
+      return;
+    }
+    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (this.currentUserId() === this.space()!.user_id) {
+      this.bookingError.set('No puedes reservar tu propio local.');
+      return;
+    }
+
+    this.bookingLoading.set(true);
+
+    // Overlap detection: query existing bookings for that date
+    const { data: conflicts } = await this.supabase.client
+      .from('rehearsal_bookings')
+      .select('start_time, end_time')
+      .eq('space_id', this.space()!.id)
+      .eq('date', this.bookingDate)
+      .neq('status', 'cancelled');
+
+    const hasOverlap = (conflicts || []).some((c: { start_time: string; end_time: string }) =>
+      c.start_time < this.bookingEndTime && c.end_time > this.bookingStartTime
+    );
+
+    if (hasOverlap) {
+      this.bookingError.set('Ese horario ya está ocupado. Por favor elige otro.');
+      this.bookingLoading.set(false);
+      return;
+    }
+
+    const name = this.bookingName.trim() || await this.getAuthorName();
+
+    const { error } = await this.supabase.client
+      .from('rehearsal_bookings')
+      .insert({
+        space_id:   this.space()!.id,
+        user_id:    this.currentUserId(),
+        date:       this.bookingDate,
+        start_time: this.bookingStartTime,
+        end_time:   this.bookingEndTime,
+        name,
+        phone:      this.bookingPhone.trim() || null,
+        message:    this.bookingNotes.trim() || null,
+        status:     'pending',
+      });
+
+    this.bookingLoading.set(false);
+    if (error) {
+      this.bookingError.set('No se pudo solicitar la reserva. Inténtalo de nuevo.');
+    } else {
+      this.bookingDone.set(true);
+      this.showBookingForm.set(false);
+      this.bookingDate = '';
+      this.bookingStartTime = '';
+      this.bookingEndTime = '';
+      this.bookingName = '';
+      this.bookingPhone = '';
+      this.bookingNotes = '';
+      this.toast.success('¡Solicitud enviada! El local confirmará tu reserva.');
+    }
   }
 
   async shareLink() {

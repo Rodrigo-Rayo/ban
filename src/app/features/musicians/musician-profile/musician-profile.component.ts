@@ -63,7 +63,9 @@ export class MusicianProfileComponent implements OnInit {
         this.favSvc.isFavorite(session.user.id, 'musician', id).then(v => this.isFav.set(v));
       }
     } catch {
-      // Profile not found or network error — musician() stays null, template shows empty state
+      // Profile not found: musician() stays null and the template shows the empty state.
+      // If it was a real network error, inform the user.
+      this.toast.error('No se pudo cargar el perfil. Recarga la página.');
     } finally {
       this.loading.set(false);
     }

@@ -88,7 +88,7 @@ export class MessagesService {
     // Deleting the conversation cascades to delete all messages via ON DELETE CASCADE
     const { error: convErr, count: convCount } = await this.supabase.client
       .from('conversations').delete({ count: 'exact' }).eq('id', conversationId);
-    if (convErr) return convErr.message;
+    if (convErr) return 'No se pudo eliminar la conversación. Inténtalo de nuevo.';
 
     if (convCount === 0) return 'No tienes permisos para borrar esta conversación.';
 

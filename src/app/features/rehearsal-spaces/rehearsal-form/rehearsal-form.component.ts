@@ -1,21 +1,11 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Location, CommonModule } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { CITIES } from '../../../core/constants/cities';
-
-function optionalUrl(control: AbstractControl): ValidationErrors | null {
-  if (!control.value) return null;
-  try { new URL(control.value); return null; } catch { return { url: true }; }
-}
-
-function optionalPositiveNumber(control: AbstractControl): ValidationErrors | null {
-  if (!control.value && control.value !== 0) return null;
-  const n = Number(control.value);
-  return isNaN(n) || n < 0 ? { positiveNumber: true } : null;
-}
+import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
   selector: 'app-rehearsal-form',
@@ -44,6 +34,7 @@ export class RehearsalFormComponent implements OnInit {
     hourly_rate:   ['', optionalPositiveNumber],
     capacity:      ['', optionalPositiveNumber],
     address:       [''],
+    opening_hours: [''],
     description:   ['', Validators.maxLength(800)],
     phone:         ['', Validators.pattern(/^[+\d\s\-().]{0,20}$/)],
     instagram_url: ['', optionalUrl],
@@ -67,6 +58,7 @@ export class RehearsalFormComponent implements OnInit {
           hourly_rate:   data.hourly_rate ?? '',
           capacity:      data.capacity ?? '',
           address:       data.address ?? '',
+          opening_hours: data.opening_hours ?? '',
           description:   data.description ?? '',
           phone:         data.phone ?? '',
           instagram_url: data.instagram_url ?? '',
@@ -95,8 +87,9 @@ export class RehearsalFormComponent implements OnInit {
       city:        v.city,
       hourly_rate: v.hourly_rate ? Number(v.hourly_rate) : null,
       capacity:    v.capacity ? Number(v.capacity) : null,
-      address:     v.address || null,
-      description: v.description || null,
+      address:       v.address || null,
+      opening_hours: v.opening_hours || null,
+      description:   v.description || null,
       phone:       v.phone || null,
       instagram_url: v.instagram_url || null,
       website_url:   v.website_url || null,

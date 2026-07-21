@@ -9,7 +9,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
 import { avatarColor } from '../../core/utils/display.utils';
 
-type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal';
+type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal' | 'vacancies';
 
 @Component({
   selector: 'app-search',
@@ -48,6 +48,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   venues = signal<any[]>([]);
   teachers = signal<any[]>([]);
   rehearsals = signal<any[]>([]);
+  vacancyResults = signal<any[]>([]);
 
 
   genres = ['Todos', 'Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Reggae', 'Punk', 'Clásico', 'Experimental', 'Bossa Nova'];
@@ -56,6 +57,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   tabs: { id: SearchType; label: string; icon: string }[] = [
     { id: 'musicians', label: 'Músicos',         icon: 'music'      },
     { id: 'bands',     label: 'Bandas',          icon: 'mic'        },
+    { id: 'vacancies', label: 'Vacantes',        icon: 'megaphone'  },
     { id: 'venues',    label: 'Salas',           icon: 'building'   },
     { id: 'events',    label: 'Eventos',         icon: 'calendar'   },
     { id: 'teachers',  label: 'Clases',          icon: 'book-open'  },
@@ -110,6 +112,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'events')    return this.events().length;
     if (tab === 'teachers')  return this.teachers().length;
     if (tab === 'rehearsal') return this.rehearsals().length;
+    if (tab === 'vacancies') return this.vacancyResults().length;
     return 0;
   });
 
@@ -189,6 +192,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     else if (tab === 'venues') this.venues.set(data);
     else if (tab === 'teachers') this.teachers.set(data);
     else if (tab === 'rehearsal') this.rehearsals.set(data);
+    else if (tab === 'vacancies') this.vacancyResults.set(data);
   }
 
   private appendResults(data: any[]) {
@@ -199,6 +203,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     else if (tab === 'venues') this.venues.update(r => [...r, ...data]);
     else if (tab === 'teachers') this.teachers.update(r => [...r, ...data]);
     else if (tab === 'rehearsal') this.rehearsals.update(r => [...r, ...data]);
+    else if (tab === 'vacancies') this.vacancyResults.update(r => [...r, ...data]);
   }
 
   private static readonly SEARCH_COLS = {
@@ -270,6 +275,20 @@ export class SearchComponent implements OnInit, OnDestroy {
       let q = this.supabase.client.from('rehearsal_spaces').select(SearchComponent.SEARCH_COLS.rehearsal);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (query) q = q.ilike('name', `%${query}%`);
+      const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      return data || [];
+    }
+
+    if (tab === 'vacancies') {
+      const instrument = this.selectedInstrument();
+      let q = this.supabase.client
+        .from('band_vacancies')
+        .select('id, instrument, description, genre, created_at, bands!inner(id, name, city, avatar_url)')
+        .eq('open', true);
+      if (city !== 'Toda España') q = (q as any).eq('bands.city', city);
+      if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
+      if (instrument) q = q.ilike('instrument', `%${instrument}%`);
+      if (query) q = q.ilike('instrument', `%${query}%`);
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       return data || [];
     }

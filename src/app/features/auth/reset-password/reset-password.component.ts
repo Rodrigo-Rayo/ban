@@ -48,7 +48,7 @@ export class ResetPasswordComponent implements OnInit {
     const { error } = await this.supabase.auth.updateUser({ password: password! });
     this.loading.set(false);
     if (error) {
-      this.error.set(error.message);
+      this.error.set('No se pudo actualizar la contraseña. Inténtalo de nuevo.');
     } else {
       this.success.set(true);
       setTimeout(() => this.router.navigate(['/dashboard']), 2500);

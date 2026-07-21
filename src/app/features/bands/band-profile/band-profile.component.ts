@@ -72,7 +72,7 @@ export class BandProfileComponent implements OnInit {
       ] = await Promise.all([
         this.supabase.client.from('bands').select('*').eq('id', id).maybeSingle(),
         this.supabase.auth.getSession(),
-        this.supabase.client.from('band_vacancies').select('id, instrument, description, genre, open').eq('band_id', id).eq('open', true).order('created_at'),
+        this.supabase.client.from('band_vacancies').select('id, instrument, description, genre, open').eq('band_id', id).order('created_at'),
         this.supabase.client.from('band_members').select('id, name, instrument').eq('band_id', id).order('created_at'),
       ]);
 
@@ -115,11 +115,14 @@ export class BandProfileComponent implements OnInit {
         this.loadApplications();
       }
     } catch {
+      this.toast.error('No se pudo cargar el perfil de la banda. Inténtalo de nuevo.');
       this.loading.set(false);
     }
   }
 
   readonly isOwner = computed(() => !!(this.currentUserId() && this.band()?.user_id === this.currentUserId()));
+  readonly openVacancies = computed(() => this.vacancies().filter((v: any) => v.open));
+  readonly closedVacancies = computed(() => this.vacancies().filter((v: any) => !v.open));
 
   async createVacancy() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
@@ -138,13 +141,14 @@ export class BandProfileComponent implements OnInit {
       this.vacancies.update(v => [...v, data]);
       this.newVacancy = { instrument: '', description: '', genre: '' };
       this.showVacancyForm.set(false);
+      this.toast.success('Vacante creada correctamente.');
     }
   }
 
   async loadApplications() {
     this.applicationsLoading.set(true);
     try {
-      const vacancyIds = this.vacancies().map(v => v.id);
+      const vacancyIds = this.vacancies().map((v: any) => v.id);
       if (vacancyIds.length === 0) return;
       const { data: apps, error } = await this.supabase.client
         .from('vacancy_applications')
@@ -168,7 +172,14 @@ export class BandProfileComponent implements OnInit {
     if (!confirm('¿Cerrar esta vacante?')) return;
     const { error } = await this.supabase.client.from('band_vacancies').update({ open: false }).eq('id', id);
     if (error) { this.toast.error('No se pudo cerrar la vacante.'); return; }
-    this.vacancies.update(v => v.filter(x => x.id !== id));
+    this.vacancies.update(v => v.map(x => x.id === id ? { ...x, open: false } : x));
+  }
+
+  async reopenVacancy(id: string) {
+    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    const { error } = await this.supabase.client.from('band_vacancies').update({ open: true }).eq('id', id);
+    if (error) { this.toast.error('No se pudo reabrir la vacante.'); return; }
+    this.vacancies.update(v => v.map(x => x.id === id ? { ...x, open: true } : x));
   }
 
   hasApplied(vacancyId: string) {

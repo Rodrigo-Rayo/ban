@@ -4,6 +4,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessagesService } from '../../core/services/messages.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { ToastService } from '../../core/services/toast.service';
 import { avatarColor } from '../../core/utils/display.utils';
 
 @Component({
@@ -18,6 +19,7 @@ export class InboxComponent implements OnInit {
   private messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
   private destroyRef = inject(DestroyRef);
+  private toast = inject(ToastService);
 
   conversations = signal<any[]>([]);
   names = signal<Record<string, string>>({});
@@ -37,6 +39,7 @@ export class InboxComponent implements OnInit {
       this.names.set(Object.fromEntries(nameEntries));
       this.unreadIds.set(unreadIds);
     } catch {
+      this.toast.error('No se pudieron cargar las conversaciones. Recarga la página.');
     } finally {
       this.loading.set(false);
     }
@@ -62,12 +65,12 @@ export class InboxComponent implements OnInit {
     if (!confirm('¿Borrar esta conversación? Se eliminarán todos los mensajes para ambos participantes.')) return;
     const err = await this.messagesService.deleteConversation(id);
     if (err) {
-      this.deleteError.set('No se pudo borrar la conversación. Inténtalo de nuevo.');
-      setTimeout(() => this.deleteError.set(''), 5000);
+      this.toast.error('No se pudo borrar la conversación. Inténtalo de nuevo.');
       return;
     }
     this.conversations.update(convs => convs.filter(c => c.id !== id));
     this.unreadIds.update(set => { set.delete(id); return new Set(set); });
+    this.toast.success('Conversación eliminada.');
   }
 
 }

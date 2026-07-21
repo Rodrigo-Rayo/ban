@@ -438,6 +438,7 @@ ALTER TABLE rehearsal_spaces ADD COLUMN IF NOT EXISTS contact_email  TEXT;
 ALTER TABLE rehearsal_spaces ADD COLUMN IF NOT EXISTS instagram_url  TEXT;
 ALTER TABLE rehearsal_spaces ADD COLUMN IF NOT EXISTS website_url    TEXT;
 ALTER TABLE rehearsal_spaces ADD COLUMN IF NOT EXISTS phone          TEXT;
+ALTER TABLE rehearsal_spaces ADD COLUMN IF NOT EXISTS opening_hours  TEXT;
 
 
 -- ──────────────────────────────────────────────

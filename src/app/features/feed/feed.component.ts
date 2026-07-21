@@ -9,6 +9,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Post, PostType } from '../../core/models';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
+import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { avatarColor, timeAgo } from '../../core/utils/display.utils';
 
@@ -58,8 +59,8 @@ export class FeedComponent implements OnInit, OnDestroy {
   };
 
   readonly cities = CITIES_WITH_ALL;
-  readonly instruments = ['Guitarra', 'Bajo', 'Batería', 'Teclados', 'Voz', 'Violín', 'Trompeta', 'Saxofón', 'Piano', 'Percusión', 'Otro'];
-  readonly genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk'];
+  readonly instruments = INSTRUMENTS;
+  readonly genres = GENRES;
 
   readonly postTypes: { id: PostType; label: string; emoji: string; icon: string }[] = [
     { id: 'musician_seeking_band',  label: 'Músico busca banda',    emoji: '🎸', icon: 'music'          },

@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -24,6 +24,26 @@ export class EventDetailComponent implements OnInit {
   isGoing = signal(false);
   rsvpCount = signal(0);
   rsvpLoading = signal(false);
+  linkShared = signal(false);
+
+  readonly isPast = computed(() => {
+    const e = this.event();
+    if (!e?.date) return false;
+    return e.date < new Date().toISOString().split('T')[0];
+  });
+
+  async shareLink() {
+    const ev = this.event();
+    if (!ev) return;
+    const url = `${window.location.origin}/events/${ev.id}`;
+    if (navigator.share) {
+      await navigator.share({ title: ev.title, url }).catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(url);
+      this.linkShared.set(true);
+      setTimeout(() => this.linkShared.set(false), 2000);
+    }
+  }
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -60,6 +80,7 @@ export class EventDetailComponent implements OnInit {
         this.isGoing.set(!!myRsvp);
       }
     } catch {
+      this.toast.error('No se pudo cargar el evento. Recarga la página.');
     } finally {
       this.loading.set(false);
     }

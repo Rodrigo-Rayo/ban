@@ -80,6 +80,7 @@ export class VenueProfileComponent implements OnInit {
         if (venue) this.favSvc.isFavorite(session.user.id, 'venue', venue.id).then(v => this.isFav.set(v));
       }
     } catch {
+      this.toast.error('No se pudo cargar el perfil. Recarga la página.');
     } finally {
       this.loading.set(false);
     }
@@ -123,7 +124,7 @@ export class VenueProfileComponent implements OnInit {
       author_name: authorName,
     }, { onConflict: 'user_id,entity_type,entity_id' });
     if (error) {
-      this.reviewError.set(error.message || 'Error al guardar la reseña');
+      this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
     } else {
       const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', this.venue()!.id).order('created_at', { ascending: false });
       this.reviews.set(data || []);

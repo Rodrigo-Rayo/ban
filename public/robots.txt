@@ -10,7 +10,9 @@ Disallow: /teachers/new
 Disallow: /rehearsal/new
 Disallow: /events/create
 Disallow: /shop/new
+Disallow: /shop/*/edit
 Disallow: /inbox
+Disallow: /inbox/
 Disallow: /notifications
 Disallow: /favorites
 

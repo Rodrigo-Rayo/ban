@@ -3,6 +3,7 @@ import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { IconComponent } from '../icon/icon.component';
+import { GENRES, INSTRUMENTS } from '../../../core/constants/music.constants';
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -24,8 +25,8 @@ export class SidebarComponent implements OnInit {
   filterGenre = signal('');
 
   readonly cities = ['Toda España', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao'];
-  readonly genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk'];
-  readonly instruments = ['Guitarra', 'Bajo', 'Batería', 'Teclados', 'Voz', 'Violín', 'Trompeta', 'Saxofón', 'Piano', 'Percusión', 'Otro'];
+  readonly genres = GENRES;
+  readonly instruments = INSTRUMENTS;
   filterInstrument = signal('');
   publishOpen = false;
 

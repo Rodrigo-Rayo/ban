@@ -1,21 +1,12 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Location, CommonModule } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { CITIES } from '../../../core/constants/cities';
-
-function optionalUrl(control: AbstractControl): ValidationErrors | null {
-  if (!control.value) return null;
-  try { new URL(control.value); return null; } catch { return { url: true }; }
-}
-
-function optionalPositiveNumber(control: AbstractControl): ValidationErrors | null {
-  if (!control.value && control.value !== 0) return null;
-  const n = Number(control.value);
-  return isNaN(n) || n < 0 ? { positiveNumber: true } : null;
-}
+import { INSTRUMENTS } from '../../../core/constants/music.constants';
+import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
   selector: 'app-teacher-form',
@@ -39,7 +30,7 @@ export class TeacherFormComponent implements OnInit {
   selectedInstruments = signal<string[]>([]);
   selectedLevel = signal('');
 
-  readonly instruments = ['Guitarra', 'Bajo', 'Batería', 'Teclados', 'Voz', 'Violín', 'Trompeta', 'Saxofón', 'Piano', 'Flauta', 'Percusión', 'Otro'];
+  readonly instruments = INSTRUMENTS;
   readonly levels = [
     { id: 'principiante', label: 'Principiante' },
     { id: 'aficionado', label: 'Aficionado' },

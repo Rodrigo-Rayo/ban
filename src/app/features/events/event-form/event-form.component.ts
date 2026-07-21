@@ -1,10 +1,16 @@
 import { Component, HostListener, inject, signal } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { CITIES } from '../../../core/constants/cities';
+
+function futureDate(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) return null;
+  const today = new Date().toISOString().split('T')[0];
+  return control.value < today ? { pastDate: true } : null;
+}
 
 @Component({
   selector: 'app-event-form',
@@ -33,8 +39,8 @@ export class EventFormComponent {
     title: ['', [Validators.required, Validators.minLength(5)]],
     venue: ['', Validators.required],
     city: ['Madrid', Validators.required],
-    date: ['', Validators.required],
-    time: ['', Validators.required],
+    date: ['', [Validators.required, futureDate]],
+    time: [''],
     genre: ['', Validators.required],
     price: [null as number | null],
     description: ['', [Validators.maxLength(500)]],

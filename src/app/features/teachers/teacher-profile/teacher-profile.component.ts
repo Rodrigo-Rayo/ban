@@ -93,6 +93,7 @@ export class TeacherProfileComponent implements OnInit {
         if (teacher) this.favSvc.isFavorite(session.user.id, 'teacher', teacher.id).then(v => this.isFav.set(v));
       }
     } catch {
+      this.toast.error('No se pudo cargar el perfil. Recarga la página.');
     } finally {
       this.loading.set(false);
     }
@@ -136,7 +137,7 @@ export class TeacherProfileComponent implements OnInit {
       author_name: authorName,
     }, { onConflict: 'user_id,entity_type,entity_id' });
     if (error) {
-      this.reviewError.set(error.message || 'Error al guardar la reseña');
+      this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
     } else {
       const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'teacher').eq('entity_id', this.teacher()!.id).order('created_at', { ascending: false });
       this.reviews.set(data || []);
@@ -155,15 +156,17 @@ export class TeacherProfileComponent implements OnInit {
     try {
       const text = `📅 Solicitud de clase\n\nFecha: ${this.bookingDate}${this.bookingTime ? '\nHora preferida: ' + this.bookingTime : ''}${this.bookingMessage ? '\n\nMensaje: ' + this.bookingMessage : ''}`;
       const result = await this.messagesService.getOrCreateConversation(this.teacher()!.user_id, this.teacher()!.name);
-      if (result && !('error' in result)) {
-        await this.messagesService.sendMessage(result.id, text);
-        this.bookingDate = '';
-        this.bookingTime = '';
-        this.bookingMessage = '';
-        this.showBookingForm.set(false);
-        this.bookingSuccess.set(true);
-        setTimeout(() => this.bookingSuccess.set(false), 5000);
+      if (!result || 'error' in result) {
+        this.toast.error((result as any)?.error ?? 'No se pudo enviar la solicitud. Inténtalo de nuevo.');
+        return;
       }
+      await this.messagesService.sendMessage(result.id, text);
+      this.bookingDate = '';
+      this.bookingTime = '';
+      this.bookingMessage = '';
+      this.showBookingForm.set(false);
+      this.bookingSuccess.set(true);
+      setTimeout(() => this.bookingSuccess.set(false), 5000);
     } catch {
       this.toast.error('No se pudo enviar la solicitud. Inténtalo de nuevo.');
     } finally {

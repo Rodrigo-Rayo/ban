@@ -1,15 +1,11 @@
-import { Component, inject, signal, OnInit, computed, effect } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { NotificationsService } from '../../core/services/notifications.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Notification as AppNotification } from '../../core/models';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
-
-export interface NotificationGroup {
-  label: string;
-  items: AppNotification[];
-}
 
 @Component({
   selector: 'app-notifications',
@@ -21,77 +17,71 @@ export class NotificationsComponent implements OnInit {
   private notifSvc = inject(NotificationsService);
   private supabase = inject(SupabaseService);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   loading = signal(true);
+  deleting = signal(false);
   notifications = signal<AppNotification[]>([]);
   userId = signal<string | null>(null);
-  deleting = signal(false);
 
-  constructor() {
-    // React to new real-time notifications while the page is open.
-    // The Navbar keeps the Supabase channel alive; this effect piggybacks on
-    // the latestNotification signal that the service sets on each INSERT.
-    effect(() => {
-      const n = this.notifSvc.latestNotification();
-      if (!n || this.loading()) return;
-      // Guard against duplicates (e.g. signal fires before ngOnInit completes)
-      if (this.notifications().some(x => x.id === n.id)) return;
-      // The user is actively looking at the page — show it as already read
-      this.notifications.update(list => [{ ...n, read: true }, ...list]);
-      // Keep the DB and the unread badge in sync
-      const uid = this.userId();
-      if (uid) this.notifSvc.markAllRead(uid);
-    }, { allowSignalWrites: true });
-  }
+  readonly hasUnread = computed(() => this.notifications().some(n => !n.read));
 
-  /** Notifications grouped into Today / Yesterday / Last 7 days / Earlier. */
-  groupedNotifications = computed<NotificationGroup[]>(() => {
+  readonly groupedNotifications = computed(() => {
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfYesterday = new Date(startOfToday);
-    startOfYesterday.setDate(startOfToday.getDate() - 1);
-    const startOfWeek = new Date(startOfToday);
-    startOfWeek.setDate(startOfToday.getDate() - 7);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const week = new Date(today); week.setDate(today.getDate() - 7);
 
-    const today: AppNotification[] = [];
-    const yesterday: AppNotification[] = [];
-    const thisWeek: AppNotification[] = [];
-    const earlier: AppNotification[] = [];
+    const groups: { label: string; items: AppNotification[] }[] = [
+      { label: 'Hoy', items: [] },
+      { label: 'Ayer', items: [] },
+      { label: 'Últimos 7 días', items: [] },
+      { label: 'Anteriores', items: [] },
+    ];
 
     for (const n of this.notifications()) {
       const d = new Date(n.created_at);
-      if (d >= startOfToday) today.push(n);
-      else if (d >= startOfYesterday) yesterday.push(n);
-      else if (d >= startOfWeek) thisWeek.push(n);
-      else earlier.push(n);
+      if (d >= today) groups[0].items.push(n);
+      else if (d >= yesterday) groups[1].items.push(n);
+      else if (d >= week) groups[2].items.push(n);
+      else groups[3].items.push(n);
     }
-
-    const groups: NotificationGroup[] = [];
-    if (today.length)     groups.push({ label: 'Hoy',              items: today });
-    if (yesterday.length) groups.push({ label: 'Ayer',             items: yesterday });
-    if (thisWeek.length)  groups.push({ label: 'Últimos 7 días',   items: thisWeek });
-    if (earlier.length)   groups.push({ label: 'Anteriores',       items: earlier });
-    return groups;
+    return groups.filter(g => g.items.length > 0);
   });
 
-  hasUnread = computed(() => this.notifications().some(n => !n.read));
-
-  typeIcon(type: string): string {
-    const map: Record<string, string> = {
-      application:    'music',
-      message:        'message',
-      review:         'star',
-      booking:        'calendar',
-      rsvp:           'calendar',
-      event_reminder: 'calendar',
-      favorite:       'heart',
-      system:         'info',
-      info:           'info',
-    };
-    return map[type] ?? 'bell';
+  async markAllRead() {
+    const uid = this.userId();
+    if (!uid) return;
+    this.notifications.update(ns => ns.map(n => ({ ...n, read: true })));
+    await this.notifSvc.markAllRead(uid);
   }
 
-  getRoute(n: AppNotification): string[] | null {
+  async deleteAll() {
+    const uid = this.userId();
+    if (!uid) return;
+    this.deleting.set(true);
+    try {
+      await this.notifSvc.deleteAll(uid);
+      this.notifications.set([]);
+    } catch {
+      this.toast.error('No se pudieron borrar las notificaciones.');
+    } finally {
+      this.deleting.set(false);
+    }
+  }
+
+  typeIcon(type: string) {
+    const map: Record<string, string> = {
+      application: 'music',
+      message:     'message',
+      review:      'star',
+      booking:     'calendar',
+      info:        'info',
+    };
+    return map[type] || 'bell';
+  }
+
+  getRoute(n: any): any[] | null {
     if (n.type === 'message') {
       return n.entity_type === 'conversation' && n.entity_id
         ? ['/inbox', n.entity_id]
@@ -99,31 +89,11 @@ export class NotificationsComponent implements OnInit {
     }
     if (!n.entity_type || !n.entity_id) return null;
     const map: Record<string, string> = {
-      musician:  '/musicians',
-      band:      '/bands',
-      venue:     '/venues',
-      event:     '/events',
-      teacher:   '/teachers',
-      rehearsal: '/rehearsal',
+      musician: '/musicians', band: '/bands', venue: '/venues',
+      event: '/events', teacher: '/teachers', rehearsal: '/rehearsal',
     };
     if (!map[n.entity_type]) return null;
     return [map[n.entity_type], n.entity_id];
-  }
-
-  async markAllRead() {
-    const uid = this.userId();
-    if (!uid) return;
-    await this.notifSvc.markAllRead(uid);
-    this.notifications.update(list => list.map(n => ({ ...n, read: true })));
-  }
-
-  async deleteAll() {
-    const uid = this.userId();
-    if (!uid) return;
-    this.deleting.set(true);
-    await this.notifSvc.deleteAll(uid);
-    this.notifications.set([]);
-    this.deleting.set(false);
   }
 
   async ngOnInit() {
@@ -135,7 +105,7 @@ export class NotificationsComponent implements OnInit {
       this.notifications.set(notifs);
       await this.notifSvc.markAllRead(session.user.id);
     } catch {
-      // silently ignore load errors — list stays empty
+      this.toast.error('No se pudieron cargar las notificaciones. Recarga la página.');
     } finally {
       this.loading.set(false);
     }
