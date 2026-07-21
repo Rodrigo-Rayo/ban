@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -104,9 +104,7 @@ export class BandProfileComponent implements OnInit {
     }
   }
 
-  get isOwner() {
-    return this.currentUserId() && this.band()?.user_id === this.currentUserId();
-  }
+  readonly isOwner = computed(() => !!(this.currentUserId() && this.band()?.user_id === this.currentUserId()));
 
   async createVacancy() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }

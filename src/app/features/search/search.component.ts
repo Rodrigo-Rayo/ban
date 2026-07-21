@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -94,11 +94,11 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.paramsSub?.unsubscribe();
   }
 
-  tabLabel() {
-    return this.tabs.find(t => t.id === this.activeTab())?.label ?? 'Resultados';
-  }
+  private readonly tabLabelMap = new Map(this.tabs.map(t => [t.id, t.label]));
 
-  currentCount() {
+  readonly tabLabel = computed(() => this.tabLabelMap.get(this.activeTab()) ?? 'Resultados');
+
+  readonly currentCount = computed(() => {
     const tab = this.activeTab();
     if (tab === 'musicians') return this.musicians().length;
     if (tab === 'bands')     return this.bands().length;
@@ -107,7 +107,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'teachers')  return this.teachers().length;
     if (tab === 'rehearsal') return this.rehearsals().length;
     return 0;
-  }
+  });
 
   async setTab(tab: SearchType) {
     this.activeTab.set(tab);
@@ -190,6 +190,15 @@ export class SearchComponent implements OnInit, OnDestroy {
     else if (tab === 'rehearsal') this.rehearsals.update(r => [...r, ...data]);
   }
 
+  private static readonly SEARCH_COLS = {
+    musicians:  'id,name,city,avatar_url,instrument,genre,looking_for,created_at,user_id',
+    bands:      'id,name,city,avatar_url,genre,looking_for,created_at,user_id',
+    venues:     'id,name,city,avatar_url,capacity,genres,created_at,user_id',
+    events:     'id,title,venue,city,date,time,genre,description,created_at,user_id',
+    teachers:   'id,name,city,avatar_url,instrument,hourly_rate,created_at,user_id',
+    rehearsal:  'id,name,city,avatar_url,capacity,hourly_rate,created_at,user_id',
+  } as const;
+
   private async fetchPage(offset: number): Promise<any[]> {
     const tab = this.activeTab();
     const city = this.selectedCity();
@@ -198,7 +207,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
     if (tab === 'musicians') {
       const instrument = this.selectedInstrument();
-      let q = this.supabase.client.from('musicians').select('*');
+      let q = this.supabase.client.from('musicians').select(SearchComponent.SEARCH_COLS.musicians);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
@@ -210,7 +219,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'events') {
       const localToday = new Date();
       const todayStr = `${localToday.getFullYear()}-${String(localToday.getMonth()+1).padStart(2,'0')}-${String(localToday.getDate()).padStart(2,'0')}`;
-      let q = this.supabase.client.from('events').select('*').gte('date', todayStr);
+      let q = this.supabase.client.from('events').select(SearchComponent.SEARCH_COLS.events).gte('date', todayStr);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.eq('genre', genre);
       if (query) q = q.ilike('title', `%${query}%`);
@@ -219,7 +228,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
 
     if (tab === 'bands') {
-      let q = this.supabase.client.from('bands').select('*');
+      let q = this.supabase.client.from('bands').select(SearchComponent.SEARCH_COLS.bands);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.eq('genre', genre);
       if (query) q = q.ilike('name', `%${query}%`);
@@ -228,7 +237,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
 
     if (tab === 'venues') {
-      let q = this.supabase.client.from('venues').select('*');
+      let q = this.supabase.client.from('venues').select(SearchComponent.SEARCH_COLS.venues);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.ilike('genres', `%${genre}%`);
       if (query) q = q.ilike('name', `%${query}%`);
@@ -238,7 +247,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
     if (tab === 'teachers') {
       const instrument = this.selectedInstrument();
-      let q = this.supabase.client.from('teachers').select('*');
+      let q = this.supabase.client.from('teachers').select(SearchComponent.SEARCH_COLS.teachers);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
       if (query) { q = q.ilike('name', `%${query}%`); }
@@ -247,7 +256,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
 
     if (tab === 'rehearsal') {
-      let q = this.supabase.client.from('rehearsal_spaces').select('*');
+      let q = this.supabase.client.from('rehearsal_spaces').select(SearchComponent.SEARCH_COLS.rehearsal);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (query) q = q.ilike('name', `%${query}%`);
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);

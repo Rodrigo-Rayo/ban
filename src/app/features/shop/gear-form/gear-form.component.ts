@@ -101,7 +101,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
   }
 
   removeImage(idx: number) {
-    this.imageFiles.splice(idx, 1);
+    this.imageFiles = this.imageFiles.filter((_, i) => i !== idx);
     this.refreshPreviews();
   }
 

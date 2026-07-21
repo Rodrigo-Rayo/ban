@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
@@ -58,11 +58,9 @@ export class PostDetailComponent implements OnInit {
     this.loading.set(false);
   }
 
-  get isOwner() {
-    return this.currentUser()?.id === this.post()?.user_id;
-  }
+  readonly isOwner = computed(() => this.currentUser()?.id === this.post()?.user_id);
 
-  profileRoute(): string[] | null {
+  readonly profileRoute = computed((): string[] | null => {
     const p = this.post();
     if (!p?.author_profile_id || !p?.author_profile_type) return null;
     const map: Record<string, string> = {
@@ -71,7 +69,7 @@ export class PostDetailComponent implements OnInit {
     };
     const seg = map[p.author_profile_type];
     return seg ? [`/${seg}`, p.author_profile_id] : null;
-  }
+  });
 
   async contactAuthor() {
     if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
@@ -98,13 +96,10 @@ export class PostDetailComponent implements OnInit {
     this.router.navigate(['/feed']);
   }
 
-  typeLabel(type: PostType) {
-    return this.postTypes.find(t => t.id === type)?.label ?? 'Anuncio';
-  }
+  private readonly postTypeMap = new Map(this.postTypes.map(t => [t.id, t]));
 
-  typeIcon(type: PostType) {
-    return this.postTypes.find(t => t.id === type)?.icon ?? 'newspaper';
-  }
+  typeLabel(type: PostType) { return this.postTypeMap.get(type)?.label ?? 'Anuncio'; }
+  typeIcon(type: PostType)  { return this.postTypeMap.get(type)?.icon  ?? 'newspaper'; }
 
   timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();

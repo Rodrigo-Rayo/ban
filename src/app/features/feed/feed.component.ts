@@ -94,11 +94,13 @@ export class FeedComponent implements OnInit, OnDestroy {
     if (!this.formOnly()) await this.loadPosts();
   }
 
+  private static readonly POST_COLS = 'id,user_id,type,text,city,instrument,genre,author_name,author_profile_type,author_profile_id,created_at';
+
   async loadPosts() {
     this.loading.set(true);
     this.hasMore.set(true);
     try {
-      let q = this.supabase.client.from('posts').select('*').order('created_at', { ascending: false });
+      let q = this.supabase.client.from('posts').select(FeedComponent.POST_COLS).order('created_at', { ascending: false });
       if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
       if (this.filterType()) q = q.eq('type', this.filterType() as string);
       if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
@@ -121,7 +123,7 @@ export class FeedComponent implements OnInit, OnDestroy {
     if (this.loadingMore() || !this.hasMore()) return;
     this.loadingMore.set(true);
     const last = this.posts().at(-1);
-    let q = this.supabase.client.from('posts').select('*')
+    let q = this.supabase.client.from('posts').select(FeedComponent.POST_COLS)
       .order('created_at', { ascending: false })
       .lt('created_at', last?.created_at ?? new Date().toISOString());
     if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
@@ -176,9 +178,10 @@ export class FeedComponent implements OnInit, OnDestroy {
   }
 
   async deletePost(id: string) {
-    if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
+    const user = this.currentUser();
+    if (!user) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Eliminar este anuncio?')) return;
-    const { error } = await this.supabase.client.from('posts').delete().eq('id', id);
+    const { error } = await this.supabase.client.from('posts').delete().eq('id', id).eq('user_id', user.id);
     if (error) { this.toast.error('No se pudo eliminar.'); return; }
     this.posts.update(list => list.filter(p => p.id !== id));
     this.toast.success('Anuncio eliminado.');

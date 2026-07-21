@@ -90,7 +90,7 @@
           </div>
 
           <!-- Actions -->
-          @if (!isOwner && auth.isLoggedIn()) {
+          @if (!isOwner() && auth.isLoggedIn()) {
             <button (click)="contactAuthor()" [disabled]="contacting()"
               class="btn-primary w-full py-3 flex items-center justify-center gap-2 disabled:opacity-60">
               @if (contacting()) {
@@ -109,7 +109,7 @@
             </a>
           }
 
-          @if (isOwner) {
+          @if (isOwner()) {
             <div class="flex flex-col gap-2">
               <p class="text-xs text-ink-muted text-center">Este es tu anuncio</p>
               <button (click)="deletePost()" [disabled]="deleting()"

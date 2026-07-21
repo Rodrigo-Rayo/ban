@@ -182,7 +182,7 @@ export class MessagesService {
     // we only see messages from conversations we participate in.
     const { count } = await this.supabase.client
       .from('messages')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('read', false)
       .neq('sender_id', user.id);
 

@@ -20,7 +20,6 @@ export class RegisterComponent implements OnInit {
   private registrationState = inject(RegistrationStateService);
   auth = inject(AuthService);
 
-  loading = signal(false);
   error = signal('');
 
   form = this.fb.group({

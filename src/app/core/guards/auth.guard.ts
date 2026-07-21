@@ -25,7 +25,6 @@ export const authGuard: CanActivateFn = async (route, state) => {
   // If the query itself failed (network / RLS error), allow navigation rather than
   // silently bouncing the user to onboarding — they are authenticated.
   if (profileError) {
-    console.warn('[AuthGuard] profiles query error:', profileError.message);
     return true;
   }
 

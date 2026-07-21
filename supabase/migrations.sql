@@ -1331,3 +1331,435 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION delete_user_account() TO authenticated;
+
+
+-- ============= SECTION 31: SECURITY DEFINER functions missing SET search_path =============
+-- Fix: get_profile_name and get_profile_avatar are SECURITY DEFINER but lack SET search_path.
+-- Without pinning the search_path, a user who can create schemas could shadow the public tables
+-- by placing identically-named objects earlier in the search_path, causing these functions to
+-- read attacker-controlled data while running with elevated privileges.
+-- Both functions are recreated here with SET search_path = public.
+
+CREATE OR REPLACE FUNCTION get_profile_name(p_user_id UUID)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(
+    (
+      SELECT name FROM (
+        SELECT name FROM musicians        WHERE user_id = p_user_id
+        UNION ALL
+        SELECT name FROM bands            WHERE user_id = p_user_id
+        UNION ALL
+        SELECT name FROM venues           WHERE user_id = p_user_id
+        UNION ALL
+        SELECT name FROM teachers         WHERE user_id = p_user_id
+        UNION ALL
+        SELECT name FROM rehearsal_spaces WHERE user_id = p_user_id
+      ) t
+      WHERE name IS NOT NULL
+      LIMIT 1
+    ),
+    (SELECT name FROM profiles WHERE id = p_user_id AND name IS NOT NULL LIMIT 1)
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION get_profile_avatar(p_user_id UUID)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT avatar_url FROM (
+    SELECT avatar_url FROM musicians        WHERE user_id = p_user_id
+    UNION ALL
+    SELECT avatar_url FROM bands            WHERE user_id = p_user_id
+    UNION ALL
+    SELECT avatar_url FROM venues           WHERE user_id = p_user_id
+    UNION ALL
+    SELECT avatar_url FROM teachers         WHERE user_id = p_user_id
+    UNION ALL
+    SELECT avatar_url FROM rehearsal_spaces WHERE user_id = p_user_id
+  ) t
+  WHERE avatar_url IS NOT NULL
+  LIMIT 1;
+$$;
+
+
+-- ============= SECTION 32: RLS on core profile tables =============
+-- Fix: profiles, musicians, bands, venues, teachers, rehearsal_spaces, and events were created
+-- outside this migration file (initial Supabase setup). Their RLS status is unknown.
+-- ALTER TABLE ... ENABLE ROW LEVEL SECURITY is idempotent on an already-secured table.
+-- Policies are guarded with IF NOT EXISTS so re-runs are safe.
+
+ALTER TABLE profiles          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE musicians         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bands             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE venues            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teachers          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rehearsal_spaces  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE events            ENABLE ROW LEVEL SECURITY;
+
+-- profiles: public directory — anyone can read; only owner can write
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Anyone can view profiles') THEN
+    CREATE POLICY "Anyone can view profiles"
+      ON profiles FOR SELECT USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Users can insert own profile') THEN
+    CREATE POLICY "Users can insert own profile"
+      ON profiles FOR INSERT
+      WITH CHECK (id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='profiles' AND policyname='Users can update own profile') THEN
+    CREATE POLICY "Users can update own profile"
+      ON profiles FOR UPDATE
+      USING    (id = (SELECT auth.uid()))
+      WITH CHECK (id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- musicians
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='musicians' AND policyname='Anyone can view musicians') THEN
+    CREATE POLICY "Anyone can view musicians"
+      ON musicians FOR SELECT USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='musicians' AND policyname='Musicians can manage own profile') THEN
+    CREATE POLICY "Musicians can manage own profile"
+      ON musicians FOR ALL
+      USING    (user_id = (SELECT auth.uid()))
+      WITH CHECK (user_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- bands
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='bands' AND policyname='Anyone can view bands') THEN
+    CREATE POLICY "Anyone can view bands"
+      ON bands FOR SELECT USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='bands' AND policyname='Bands can manage own profile') THEN
+    CREATE POLICY "Bands can manage own profile"
+      ON bands FOR ALL
+      USING    (user_id = (SELECT auth.uid()))
+      WITH CHECK (user_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- venues
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='venues' AND policyname='Anyone can view venues') THEN
+    CREATE POLICY "Anyone can view venues"
+      ON venues FOR SELECT USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='venues' AND policyname='Venues can manage own profile') THEN
+    CREATE POLICY "Venues can manage own profile"
+      ON venues FOR ALL
+      USING    (user_id = (SELECT auth.uid()))
+      WITH CHECK (user_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- teachers
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='teachers' AND policyname='Anyone can view teachers') THEN
+    CREATE POLICY "Anyone can view teachers"
+      ON teachers FOR SELECT USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='teachers' AND policyname='Teachers can manage own profile') THEN
+    CREATE POLICY "Teachers can manage own profile"
+      ON teachers FOR ALL
+      USING    (user_id = (SELECT auth.uid()))
+      WITH CHECK (user_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- rehearsal_spaces
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='rehearsal_spaces' AND policyname='Anyone can view rehearsal spaces') THEN
+    CREATE POLICY "Anyone can view rehearsal spaces"
+      ON rehearsal_spaces FOR SELECT USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='rehearsal_spaces' AND policyname='Spaces can manage own profile') THEN
+    CREATE POLICY "Spaces can manage own profile"
+      ON rehearsal_spaces FOR ALL
+      USING    (user_id = (SELECT auth.uid()))
+      WITH CHECK (user_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- events
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='events' AND policyname='Anyone can view events') THEN
+    CREATE POLICY "Anyone can view events"
+      ON events FOR SELECT USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='events' AND policyname='Users can manage own events') THEN
+    CREATE POLICY "Users can manage own events"
+      ON events FOR ALL
+      USING    (user_id = (SELECT auth.uid()))
+      WITH CHECK (user_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+
+-- ============= SECTION 33: Data integrity constraints =============
+
+-- Fix: rehearsal_bookings — end_time must be strictly after start_time.
+-- Without this, a booking with end_time = start_time or inverted times is accepted.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.check_constraints
+    WHERE constraint_name = 'rehearsal_bookings_time_order_check'
+  ) THEN
+    ALTER TABLE rehearsal_bookings
+      ADD CONSTRAINT rehearsal_bookings_time_order_check CHECK (end_time > start_time);
+  END IF;
+END $$;
+
+-- Fix: gear_listings — price must be non-negative when provided.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.check_constraints
+    WHERE constraint_name = 'gear_listings_price_nonnegative_check'
+  ) THEN
+    ALTER TABLE gear_listings
+      ADD CONSTRAINT gear_listings_price_nonnegative_check CHECK (price IS NULL OR price >= 0);
+  END IF;
+END $$;
+
+-- Fix: teachers.modality — restrict to known values to prevent garbage data.
+-- The column was added with DEFAULT 'presencial' (section 12) but no CHECK.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.check_constraints
+    WHERE constraint_name = 'teachers_modality_check'
+  ) THEN
+    ALTER TABLE teachers
+      ADD CONSTRAINT teachers_modality_check
+      CHECK (modality IS NULL OR modality IN ('presencial', 'online', 'ambas'));
+  END IF;
+END $$;
+
+-- Fix: favorites.entity_type — restrict to the five known entity types.
+-- Currently any arbitrary string is accepted, allowing stale/invalid references.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.check_constraints
+    WHERE constraint_name = 'favorites_entity_type_check'
+  ) THEN
+    ALTER TABLE favorites
+      ADD CONSTRAINT favorites_entity_type_check
+      CHECK (entity_type IN ('musician', 'band', 'venue', 'teacher', 'rehearsal'));
+  END IF;
+END $$;
+
+-- Fix: band_vacancies.open — set NOT NULL (DEFAULT true is already present, but NULL can
+-- be inserted explicitly). Backfill NULLs to the default first to avoid constraint failure.
+UPDATE band_vacancies SET open = true WHERE open IS NULL;
+ALTER TABLE band_vacancies ALTER COLUMN open SET NOT NULL;
+
+-- Fix: conversations — enforce user1_id < user2_id at the database level.
+-- CLAUDE.md documents this ordering convention but only the application enforces it today.
+-- A client bug could create a duplicate conversation with the pair in reverse order,
+-- bypassing the UNIQUE(user1_id, user2_id) constraint.
+-- Guard: only add the constraint if no existing rows violate it.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM conversations WHERE user1_id >= user2_id
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.check_constraints
+    WHERE constraint_name = 'conversations_user_order_check'
+  ) THEN
+    ALTER TABLE conversations
+      ADD CONSTRAINT conversations_user_order_check CHECK (user1_id < user2_id);
+  END IF;
+END $$;
+
+
+-- ============= SECTION 34: Missing indexes =============
+
+-- Fix: notifications — (user_id, created_at DESC) for inbox/notification-list pagination.
+-- The existing idx_notifications_user_read covers (user_id, read) but not ordered retrieval,
+-- so any query ordered by created_at forces a sort step on every notification fetch.
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created
+  ON notifications(user_id, created_at DESC);
+
+-- Fix: gear_listings — (city, created_at DESC) for city-filtered marketplace browsing.
+-- City is a common filter in the marketplace but has no dedicated index.
+CREATE INDEX IF NOT EXISTS idx_gear_listings_city_created
+  ON gear_listings(city, created_at DESC)
+  WHERE city IS NOT NULL;
+
+-- Fix: gear_listings — category index for category-filtered browsing.
+CREATE INDEX IF NOT EXISTS idx_gear_listings_category_created
+  ON gear_listings(category, created_at DESC)
+  WHERE category IS NOT NULL;
+
+-- Fix: rehearsal_bookings — (space_id, date) composite index for overlap detection.
+-- Any booking conflict check runs WHERE space_id = $1 AND date = $2. Without this index
+-- every check scans all bookings for the space.
+CREATE INDEX IF NOT EXISTS idx_rehearsal_bookings_space_date
+  ON rehearsal_bookings(space_id, date);
+
+-- Fix: rehearsal_bookings — (user_id, created_at DESC) for the "my bookings" user view.
+CREATE INDEX IF NOT EXISTS idx_rehearsal_bookings_user_created
+  ON rehearsal_bookings(user_id, created_at DESC);
+
+-- Fix: band_vacancies — partial index on open=true so vacancy search skips closed vacancies.
+CREATE INDEX IF NOT EXISTS idx_band_vacancies_open_created
+  ON band_vacancies(band_id, created_at DESC)
+  WHERE open = true;
+
+-- Fix: posts — (user_id, created_at DESC) for "my posts" profile page queries.
+CREATE INDEX IF NOT EXISTS idx_posts_user_created
+  ON posts(user_id, created_at DESC);
+
+-- Fix: reviews — (entity_type, entity_id, created_at DESC) for paginated entity review lists.
+-- The existing idx_reviews_entity covers (entity_type, entity_id) but forces a separate sort.
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='reviews' AND table_schema='public') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_reviews_entity_created ON reviews(entity_type, entity_id, created_at DESC)';
+  END IF;
+END $$;
+
+
+-- ============= SECTION 35: Missing RLS policies =============
+
+-- Fix: notifications — no DELETE policy exists, so users cannot dismiss/clear notifications.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'notifications' AND policyname = 'Users can delete their notifications'
+  ) THEN
+    CREATE POLICY "Users can delete their notifications"
+      ON notifications FOR DELETE
+      USING (user_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- Fix: posts — no UPDATE policy. If the app ever adds post editing, owners are locked out.
+-- Adding a permissive owner-only UPDATE policy now so the feature requires no schema change.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'posts' AND policyname = 'Owners can update their posts'
+  ) THEN
+    CREATE POLICY "Owners can update their posts"
+      ON posts FOR UPDATE
+      USING    (user_id = (SELECT auth.uid()))
+      WITH CHECK (user_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- Fix: gear_listings SELECT policy was named "Anyone can view active listings" but the
+-- USING clause is USING (true), which returns ALL listings (including sold/reserved).
+-- The policy name was misleading to future reviewers; rename it to match actual behavior.
+DROP POLICY IF EXISTS "Anyone can view active listings" ON gear_listings;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'gear_listings' AND policyname = 'Anyone can view gear listings'
+  ) THEN
+    CREATE POLICY "Anyone can view gear listings"
+      ON gear_listings FOR SELECT USING (true);
+  END IF;
+END $$;
+
+
+-- ============= SECTION 36: vacancy_applications unique constraint NULL bypass =============
+-- Fix: UNIQUE(vacancy_id, musician_id) from section 5 is ineffective when musician_id is NULL.
+-- ON DELETE SET NULL on the musician FK means a deleted musician profile sets musician_id to NULL.
+-- PostgreSQL unique constraints do not treat two NULLs as equal, so multiple users without a
+-- musician profile can each apply to the same vacancy without triggering the constraint.
+-- Add UNIQUE(vacancy_id, user_id) which is always non-null and correctly prevents duplicate applies.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'vacancy_applications'
+      AND constraint_name = 'vacancy_applications_vacancy_id_user_id_key'
+  ) THEN
+    ALTER TABLE vacancy_applications
+      ADD CONSTRAINT vacancy_applications_vacancy_id_user_id_key
+      UNIQUE (vacancy_id, user_id);
+  END IF;
+END $$;
+
+
+-- ============= SECTION 37: Harden create_notification — spam rate limit ======
+--
+-- Problem: create_notification(p_user_id => <any_uuid>) is callable by any
+-- authenticated user and will insert a notification targeting anyone. There is
+-- no relationship check — a malicious user could spam another user's notification
+-- inbox indefinitely.
+--
+-- Fix: reject the call if the target user has already received ≥ 20 notifications
+-- in the last hour from ANY source. Legitimate flows (vacancy application, one
+-- message notification) are well below this threshold.
+--
+CREATE OR REPLACE FUNCTION create_notification(
+  p_user_id     UUID,
+  p_type        TEXT,
+  p_title       TEXT,
+  p_body        TEXT  DEFAULT NULL,
+  p_entity_type TEXT  DEFAULT NULL,
+  p_entity_id   UUID  DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  recent_count INT;
+BEGIN
+  -- Caller must be authenticated
+  IF (SELECT auth.uid()) IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- Rate-limit: at most 20 notifications received by this user per rolling hour.
+  SELECT COUNT(*) INTO recent_count
+  FROM notifications
+  WHERE user_id = p_user_id
+    AND created_at > now() - interval '1 hour';
+
+  IF recent_count >= 20 THEN
+    RAISE EXCEPTION 'Notification rate limit exceeded — too many notifications sent to this user';
+  END IF;
+
+  INSERT INTO notifications (user_id, type, title, body, entity_type, entity_id)
+  VALUES (p_user_id, p_type, p_title, p_body, p_entity_type, p_entity_id);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION create_notification(UUID, TEXT, TEXT, TEXT, TEXT, UUID) TO authenticated;

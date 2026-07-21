@@ -47,7 +47,10 @@ export class HomeComponent implements OnInit {
 
   async ngOnInit() {
     this.seo.set({ title: 'Inicio', description: 'Músicos, bandas, salas y eventos cerca de ti. Conecta con la escena musical de España.' });
+    await this.loadContent();
+  }
 
+  private async loadContent() {
     try {
       const { data: { session } } = await this.supabase.auth.getSession();
 
@@ -116,11 +119,12 @@ export class HomeComponent implements OnInit {
         teachers: teacherCols,
         rehearsal_spaces: rehearsalCols,
       };
-      const globalFallback = (table: string, limit: number, extraFilter?: (q: any) => any) => {
+      const globalFallback = async (table: string, limit: number, extraFilter?: (q: any) => any): Promise<any[]> => {
         const cols = fallbackCols[table] ?? 'id, name, city, avatar_url, created_at';
         let q = this.supabase.client.from(table).select(cols).order('created_at', { ascending: false }).limit(limit);
         if (extraFilter) q = extraFilter(q);
-        return q.then(({ data }: { data: any }) => data || []);
+        const { data } = await q;
+        return (data as any[]) || [];
       };
 
       this.recentMusicians.set((musicians || []).slice(0, 6));
@@ -135,22 +139,22 @@ export class HomeComponent implements OnInit {
       // Fallbacks run in background and update signals when ready
       if (city) {
         if ((musicians?.length ?? 0) < 6) {
-          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6)));
+          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6))).catch(() => {});
         }
         if ((bands?.length ?? 0) < 6) {
-          globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6)));
+          globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6))).catch(() => {});
         }
         if ((events?.length ?? 0) < 2) {
-          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d));
+          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d)).catch(() => {});
         }
         if ((venues?.length ?? 0) < 2) {
-          globalFallback('venues', 5).then(d => this.recentVenues.set(d));
+          globalFallback('venues', 5).then(d => this.recentVenues.set(d)).catch(() => {});
         }
         if ((teachers?.length ?? 0) < 2) {
-          globalFallback('teachers', 5).then(d => this.recentTeachers.set(d));
+          globalFallback('teachers', 5).then(d => this.recentTeachers.set(d)).catch(() => {});
         }
         if ((rehearsals?.length ?? 0) < 2) {
-          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d));
+          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d)).catch(() => {});
         }
       }
     } catch {
@@ -158,10 +162,6 @@ export class HomeComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  private async loadContent() {
-    await this.ngOnInit();
   }
 
   retryLoad() {

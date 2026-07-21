@@ -100,10 +100,6 @@
   .card-flat {
     @apply bg-dark-800 border border-dark-600 rounded-2xl shadow-sm;
   }
-  .card-night {
-    @apply bg-night text-white rounded-2xl overflow-hidden;
-  }
-
   /* ── Form fields ─────────────────────────────── */
   .input-field {
     @apply w-full bg-dark-700 border border-dark-600
@@ -132,13 +128,6 @@
            bg-signal-gBg border border-signal-green/20
            inline-flex items-center gap-1;
   }
-  .tag-night {
-    @apply text-[10px] font-semibold tracking-wide uppercase
-           px-2.5 py-0.5 rounded-full
-           bg-night-3 text-white/80 border border-night-4
-           inline-flex items-center;
-  }
-
   /* ── Meta label ──────────────────────────────── */
   .meta {
     @apply text-[10px] font-bold text-ink-muted tracking-widest uppercase
@@ -186,24 +175,10 @@
            flex items-center justify-center mb-1 text-ink-muted;
   }
 
-  /* ── Section empty placeholder ───────────────── */
-  .section-empty {
-    @apply block text-center py-8 text-xs font-medium text-ink-muted
-           border border-dashed border-dark-600 rounded-2xl
-           hover:border-primary-500 hover:text-primary-600
-           transition-colors cursor-pointer;
-  }
-
   /* ── Serif display helper ────────────────────── */
   .display-serif {
     font-family: 'Instrument Serif', Georgia, serif;
     font-style: italic;
-  }
-
-  /* ── Profile cover area ──────────────────────── */
-  .profile-cover {
-    @apply relative overflow-hidden bg-gradient-to-br from-dark-700 via-dark-800 to-primary-900/30;
-    min-height: 180px;
   }
 
   /* ── Search tab states ──────────────────────────── */
@@ -225,10 +200,6 @@
   .genre-pill-inactive { @apply border-dark-600 text-ink-muted; }
   .genre-pill-inactive:hover { @apply text-ink-2 border-ink-muted/40; }
 
-  /* ── Event featured card ─────────────────────────── */
-  .event-featured { border-color: rgba(160,68,42,0.35); }
-  .event-featured-time-border { border-color: rgba(160,68,42,0.2); }
-
   /* ── Directory listing: event date boxes ─────────── */
   .date-box-featured {
     background-color: #fef0e8;       /* primary-900 light peach */
@@ -241,42 +212,10 @@
   /* ── Directory card featured event outer border ──── */
   .event-card-featured { border-color: rgba(160,68,42,0.4); }
 
-  /* ── Chat ────────────────────────────────────── */
-  .text-white-muted { color: rgba(255,255,255,0.55); }
-
   /* ── Scrollbar hidden ────────────────────────── */
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  /* ── Page section header ──────────────────────── */
-  .page-section-title {
-    @apply text-sm font-black text-ink tracking-tight flex items-center gap-2;
-  }
-  .page-section-eyebrow {
-    @apply text-[10px] font-semibold uppercase tracking-wider text-primary-400;
-  }
-
-  /* ── Stat card ────────────────────────────────── */
-  .stat-card {
-    @apply bg-dark-800 border border-dark-600 rounded-2xl p-3 text-center
-           transition-all duration-200 hover:border-primary-500/40 hover:shadow-sm;
-  }
-  .stat-card-active {
-    @apply border-primary-500 bg-primary-900;
-  }
-
-  /* ── Profile cover ────────────────────────────── */
-  .profile-hero-cover {
-    @apply h-20 bg-gradient-to-br from-primary-700/50 via-primary-900/40 to-dark-800 relative flex-shrink-0;
-  }
-
-  /* ── Toast slot ───────────────────────────────── */
-  .toast-notification {
-    @apply fixed bottom-20 md:bottom-6 right-4 z-50 flex items-center gap-3
-           bg-dark-800 border border-primary-500/30 shadow-2xl
-           px-4 py-3 rounded-2xl cursor-pointer hover:bg-dark-700
-           transition-colors animate-slide-in max-w-xs text-left;
-  }
 }
 
 /* ── Animations ──────────────────────────────────── */

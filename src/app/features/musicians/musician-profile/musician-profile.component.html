@@ -52,8 +52,14 @@
 
   } @else if (!musician()) {
     <div class="empty-state">
-      <p class="text-ink-muted font-semibold mb-4">Músico no encontrado</p>
-      <a routerLink="/search" class="btn-primary text-sm">Volver al directorio</a>
+      <div class="w-14 h-14 rounded-2xl bg-dark-800 border border-dark-600 flex items-center justify-center mb-3">
+        <svg class="w-7 h-7 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+        </svg>
+      </div>
+      <p class="text-sm font-bold text-ink mb-1">Músico no encontrado</p>
+      <p class="text-xs text-ink-muted mb-4">Este perfil no existe o fue eliminado</p>
+      <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="btn-primary text-sm">Explorar músicos</a>
     </div>
 
   } @else {

@@ -36,6 +36,15 @@ export class FavoritesComponent implements OnInit {
     event: 'events', teacher: 'teachers', rehearsal: 'rehearsal_spaces',
   };
 
+  private readonly entityCols: Record<string, string> = {
+    musician:  'id,name,city,avatar_url,instrument,genre',
+    band:      'id,name,city,avatar_url,genre',
+    venue:     'id,name,city,avatar_url,genres',
+    event:     'id,title,city,date,genre',
+    teacher:   'id,name,city,avatar_url,instrument,hourly_rate',
+    rehearsal: 'id,name,city,avatar_url,capacity,hourly_rate',
+  };
+
   readonly routeMap: Record<string, string> = {
     musician: '/musicians', band: '/bands', venue: '/venues',
     event: '/events', teacher: '/teachers', rehearsal: '/rehearsal',
@@ -103,10 +112,11 @@ export class FavoritesComponent implements OnInit {
 
       const entries = Object.entries(groups).filter(([type]) => this.tableMap[type]);
       const results = await Promise.all(
-        entries.map(([type, ids]) =>
-          this.supabase.client.from(this.tableMap[type]).select('*').in('id', ids)
-            .then(({ data }) => ({ type, data: data || [] }))
-        )
+        entries.map(([type, ids]) => {
+          const cols = this.entityCols[type] ?? 'id,name,city,avatar_url';
+          return this.supabase.client.from(this.tableMap[type]).select(cols).in('id', ids)
+            .then(({ data }) => ({ type, data: (data as any[] | null) || [] }));
+        })
       );
       const map: Record<string, any> = {};
       for (const { type, data } of results) {

@@ -4,6 +4,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { NotificationsService } from '../../../core/services/notifications.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -33,8 +34,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
   avatarUrl = signal<string | null>(null);
   toast = signal<{ name: string; preview: string; conversationId: string } | null>(null);
-  private channel: any = null;
-  private notifChannel: any = null;
+  private channel: RealtimeChannel | null = null;
+  private notifChannel: RealtimeChannel | null = null;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   async ngOnInit() {

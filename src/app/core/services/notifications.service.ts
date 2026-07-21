@@ -11,7 +11,7 @@ export class NotificationsService {
 
   async loadUnread(userId: string) {
     const { count, error } = await this.supabase.client
-      .from('notifications').select('*', { count: 'exact', head: true })
+      .from('notifications').select('id', { count: 'exact', head: true })
       .eq('user_id', userId).eq('read', false);
     if (!error) this.unreadCount.set(count || 0);
   }
@@ -61,11 +61,7 @@ export class NotificationsService {
         this.unreadCount.update(n => n + 1);
         onNew();
       })
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          console.error('[NotificationsService] Realtime channel error — notifications may be delayed');
-        }
-      });
+      .subscribe();
     return this.channel;
   }
 

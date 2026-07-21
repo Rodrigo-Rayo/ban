@@ -250,9 +250,9 @@
               </button>
             }
           </div>
-          @if (tabNewRoute) {
-            <a [routerLink]="tabNewRoute" class="btn-primary text-xs px-3 py-1.5 mr-2 flex-shrink-0">
-              {{ tabNewLabel }}
+          @if (tabNewRoute()) {
+            <a [routerLink]="tabNewRoute()" class="btn-primary text-xs px-3 py-1.5 mr-2 flex-shrink-0">
+              {{ tabNewLabel() }}
             </a>
           }
         </div>

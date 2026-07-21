@@ -96,8 +96,10 @@ export class GearListComponent implements OnInit {
     this.loadingMore.set(false);
   }
 
+  private readonly conditionLabelMap = new Map(this.conditions.map(x => [x.id, x.label]));
+
   conditionLabel(c: string) {
-    return this.conditions.find(x => x.id === c)?.label ?? c;
+    return this.conditionLabelMap.get(c) ?? c;
   }
 
   conditionClass(c: string) {

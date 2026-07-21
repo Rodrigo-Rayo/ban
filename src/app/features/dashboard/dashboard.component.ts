@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -107,7 +107,7 @@ export class DashboardComponent implements OnInit {
 
   async loadBookings() {
     const { data, error } = await this.supabase.client
-      .from('rehearsal_bookings').select('*')
+      .from('rehearsal_bookings').select('id,name,phone,date,start_time,end_time,message,status')
       .eq('space_id', this.profile()!.id)
       .order('date', { ascending: true });
     if (error) { this.toast.error('No se pudieron cargar las reservas.'); return; }
@@ -182,6 +182,8 @@ export class DashboardComponent implements OnInit {
   cancelEditEvent() { this.editingEventId.set(null); }
 
   async saveEditEvent(id: string) {
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
     this.editSaving.set(true);
     const { error } = await this.supabase.client.from('events').update({
       title: this.editEventData.title,
@@ -194,7 +196,7 @@ export class DashboardComponent implements OnInit {
       description: this.editEventData.description || null,
       contact_email: this.editEventData.contact_email || null,
       ticket_url: this.editEventData.ticket_url || null,
-    }).eq('id', id);
+    }).eq('id', id).eq('user_id', uid);
     this.editSaving.set(false);
     if (error) { this.toast.error('No se pudo guardar el evento.'); return; }
     this.events.update(evs => evs.map(ev => ev.id === id ? { ...ev, ...this.editEventData } : ev));
@@ -204,8 +206,10 @@ export class DashboardComponent implements OnInit {
 
   async deleteEvent(id: string, e: Event) {
     e.preventDefault(); e.stopPropagation();
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
     if (!confirm('¿Eliminar este evento?')) return;
-    const { error } = await this.supabase.client.from('events').delete().eq('id', id);
+    const { error } = await this.supabase.client.from('events').delete().eq('id', id).eq('user_id', uid);
     if (error) { this.toast.error('No se pudo eliminar el evento.'); return; }
     this.events.update(evs => evs.filter(ev => ev.id !== id));
     this.toast.success('Evento eliminado.');
@@ -213,8 +217,10 @@ export class DashboardComponent implements OnInit {
 
   async deletePost(id: string, e: Event) {
     e.preventDefault(); e.stopPropagation();
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
     if (!confirm('¿Eliminar este anuncio?')) return;
-    const { error } = await this.supabase.client.from('posts').delete().eq('id', id);
+    const { error } = await this.supabase.client.from('posts').delete().eq('id', id).eq('user_id', uid);
     if (error) { this.toast.error('No se pudo eliminar el anuncio.'); return; }
     this.myPosts.update(ps => ps.filter(p => p.id !== id));
     this.toast.success('Anuncio eliminado.');
@@ -222,8 +228,10 @@ export class DashboardComponent implements OnInit {
 
   async deleteListing(id: string, e: Event) {
     e.preventDefault(); e.stopPropagation();
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
     if (!confirm('¿Eliminar este producto?')) return;
-    const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', id);
+    const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', id).eq('user_id', uid);
     if (error) { this.toast.error('No se pudo eliminar el producto.'); return; }
     this.myListings.update(ls => ls.filter(l => l.id !== id));
     this.toast.success('Producto eliminado.');
@@ -231,22 +239,25 @@ export class DashboardComponent implements OnInit {
 
   async markListingSold(id: string, e: Event) {
     e.preventDefault(); e.stopPropagation();
-    const { error } = await this.supabase.client.from('gear_listings').update({ status: 'sold' }).eq('id', id);
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
+    const { error } = await this.supabase.client.from('gear_listings').update({ status: 'sold' }).eq('id', id).eq('user_id', uid);
     if (error) { this.toast.error('No se pudo marcar como vendido.'); return; }
     this.myListings.update(ls => ls.map(l => l.id === id ? { ...l, status: 'sold' } : l));
     this.toast.success('Marcado como vendido.');
   }
 
-  profileLabel() {
-    return ({ musician: 'Músico', band: 'Banda', venue: 'Local', teacher: 'Profesor', rehearsal: 'Ensayo', listener: 'Oyente' } as any)[this.profileType()] ?? '';
-  }
+  readonly profileLabel = computed(() =>
+    ({ musician: 'Músico', band: 'Banda', venue: 'Local', teacher: 'Profesor', rehearsal: 'Ensayo', listener: 'Oyente' } as Record<string, string>)[this.profileType()] ?? ''
+  );
 
-  publicProfilePath(): string | null {
+  readonly publicProfilePath = computed((): string | null => {
     const id = this.profile()?.id;
     if (!id) return null;
     const seg: Record<string, string> = { musician: 'musicians', band: 'bands', venue: 'venues', teacher: 'teachers', rehearsal: 'rehearsal' };
-    return seg[this.profileType()] ? `/${seg[this.profileType()]}/${id}` : null;
-  }
+    const type = this.profileType();
+    return seg[type] ? `/${seg[type]}/${id}` : null;
+  });
 
   async copyProfileLink() {
     const path = this.publicProfilePath();
@@ -318,13 +329,13 @@ export class DashboardComponent implements OnInit {
     this.toast.success('Reserva cancelada.');
   }
 
-  get tabNewRoute() {
+  readonly tabNewRoute = computed(() => {
     const map: Record<string, string> = { events: '/events/create', posts: '/feed?new=1', gear: '/shop/new', bookings: '', reservas: '' };
     return map[this.activeTab()] ?? '';
-  }
+  });
 
-  get tabNewLabel() {
+  readonly tabNewLabel = computed(() => {
     const map: Record<string, string> = { events: '+ Evento', posts: '+ Anuncio', gear: '+ Vender', bookings: '', reservas: '' };
     return map[this.activeTab()] ?? '';
-  }
+  });
 }
