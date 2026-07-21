@@ -10,6 +10,7 @@ import { SeoService } from '../../core/services/seo.service';
 import { Post, PostType } from '../../core/models';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { avatarColor, timeAgo } from '../../core/utils/display.utils';
 
 @Component({
   selector: 'app-feed',
@@ -18,6 +19,9 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
   templateUrl: './feed.component.html',
 })
 export class FeedComponent implements OnInit, OnDestroy {
+  readonly avatarColor = avatarColor;
+  readonly timeAgo = timeAgo;
+
   private supabase = inject(SupabaseService);
   private auth = inject(AuthService);
   private toast = inject(ToastService);
@@ -196,15 +200,6 @@ export class FeedComponent implements OnInit, OnDestroy {
   typeEmoji(type: PostType) { return this.postTypeMap.get(type)?.emoji ?? '📢'; }
   typeIcon(type: PostType)  { return this.postTypeMap.get(type)?.icon ?? 'newspaper'; }
 
-  private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
-  ];
-
-  avatarColor(name: string): string {
-    const code = name?.charCodeAt(0) ?? 65;
-    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
-  }
-
   profileRoute(p: Post): string[] | null {
     if (!p.author_profile_id || !p.author_profile_type) return null;
     const map: Record<string, string> = {
@@ -218,14 +213,5 @@ export class FeedComponent implements OnInit, OnDestroy {
     return Date.now() - new Date(post.created_at).getTime() < 86400000;
   }
 
-  timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'ahora';
-    if (mins < 60) return `hace ${mins}m`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `hace ${hrs}h`;
-    const days = Math.floor(hrs / 24);
-    return `hace ${days}d`;
-  }
 }
+

@@ -7,6 +7,7 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { avatarColor } from '../../../core/utils/display.utils';
 
 @Component({
   selector: 'app-musician-profile',
@@ -15,6 +16,8 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
   templateUrl: './musician-profile.component.html',
 })
 export class MusicianProfileComponent implements OnInit {
+  readonly avatarColor = avatarColor;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
@@ -43,7 +46,7 @@ export class MusicianProfileComponent implements OnInit {
       ]);
       this.musician.set(data);
       if (data) {
-        this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url);
+        this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url, undefined, data.instrument);
         this.seo.injectJsonLd({
           '@context': 'https://schema.org',
           '@type': 'Person',
@@ -109,11 +112,4 @@ export class MusicianProfileComponent implements OnInit {
     }
   }
 
-  private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
-  ];
-  avatarColor(name: string): string {
-    const code = name?.charCodeAt(0) ?? 65;
-    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
-  }
 }

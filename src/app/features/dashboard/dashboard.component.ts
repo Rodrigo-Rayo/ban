@@ -9,6 +9,7 @@ import { MessagesService } from '../../core/services/messages.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { CITIES } from '../../core/constants/cities';
+import { timeAgo } from '../../core/utils/display.utils';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -16,6 +17,8 @@ import { CITIES } from '../../core/constants/cities';
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
+  readonly timeAgo = timeAgo;
+
   auth          = inject(AuthService);
   private supabase = inject(SupabaseService);
   private seo   = inject(SeoService);
@@ -289,13 +292,6 @@ export class DashboardComponent implements OnInit {
 
   conditionLabel(c: string) {
     return ({ new: 'Nuevo', like_new: 'Como nuevo', good: 'Bueno', acceptable: 'Aceptable' } as any)[c] ?? c;
-  }
-
-  timeAgo(d: string): string {
-    const mins = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
-    if (mins < 60) return `${mins}m`;
-    if (mins < 1440) return `${Math.floor(mins / 60)}h`;
-    return `${Math.floor(mins / 1440)}d`;
   }
 
   openDeleteConfirm() {

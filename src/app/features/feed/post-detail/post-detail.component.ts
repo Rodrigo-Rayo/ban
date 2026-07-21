@@ -8,6 +8,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Post, PostType } from '../../../core/models';
+import { avatarColor, timeAgo } from '../../../core/utils/display.utils';
 
 @Component({
   selector: 'app-post-detail',
@@ -16,6 +17,9 @@ import { Post, PostType } from '../../../core/models';
   templateUrl: './post-detail.component.html',
 })
 export class PostDetailComponent implements OnInit {
+  readonly avatarColor = avatarColor;
+  readonly timeAgo = timeAgo;
+
   private supabase = inject(SupabaseService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -101,22 +105,5 @@ export class PostDetailComponent implements OnInit {
   typeLabel(type: PostType) { return this.postTypeMap.get(type)?.label ?? 'Anuncio'; }
   typeIcon(type: PostType)  { return this.postTypeMap.get(type)?.icon  ?? 'newspaper'; }
 
-  timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'ahora';
-    if (mins < 60) return `hace ${mins}m`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `hace ${hrs}h`;
-    return `hace ${Math.floor(hrs / 24)}d`;
-  }
 
-  private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
-  ];
-
-  avatarColor(name: string): string {
-    const code = name?.charCodeAt(0) ?? 65;
-    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
-  }
 }

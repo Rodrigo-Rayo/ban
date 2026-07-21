@@ -26,6 +26,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
   existingImages = signal<string[]>([]);
   submitting = signal(false);
   error = signal('');
+  formTouched = signal(false);
   imageFiles: File[] = [];
   imagePreviews = signal<string[]>([]);
   uploadProgress = signal(0);
@@ -135,6 +136,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
   }
 
   async submit() {
+    this.formTouched.set(true);
     if (!this.canSubmit) return;
     const user = this.currentUser();
     if (!user) return;

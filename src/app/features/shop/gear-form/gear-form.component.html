@@ -75,7 +75,11 @@
           Título <span class="text-signal-red" aria-hidden="true">*</span>
         </label>
         <input id="gear-title" [(ngModel)]="form.title" placeholder="Ej: Gibson Les Paul Standard 2019"
-          autocomplete="off" class="input-field">
+          autocomplete="off" class="input-field"
+          [class.border-signal-red]="formTouched() && !form.title.trim()">
+        @if (formTouched() && !form.title.trim()) {
+          <p class="text-xs text-signal-red mt-1.5">El título es obligatorio.</p>
+        }
       </div>
 
       <!-- Price + Condition -->
@@ -84,8 +88,12 @@
           <label for="gear-price" class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">
             Precio (€) <span class="text-signal-red" aria-hidden="true">*</span>
           </label>
-          <input id="gear-price" [(ngModel)]="form.price" type="number" min="1" placeholder="500"
-            class="input-field">
+          <input id="gear-price" [(ngModel)]="form.price" type="number" min="1" step="0.01" placeholder="500"
+            class="input-field"
+            [class.border-signal-red]="formTouched() && (!form.price || form.price <= 0)">
+          @if (formTouched() && (!form.price || form.price <= 0)) {
+            <p class="text-xs text-signal-red mt-1.5">Introduce un precio válido (mín. 1 €).</p>
+          }
         </div>
         <div>
           <label for="gear-condition" class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-1.5">Estado</label>

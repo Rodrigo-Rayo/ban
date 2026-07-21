@@ -1,15 +1,36 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
+  <!-- Header -->
   <div class="border-b border-dark-600 bg-dark-800/50">
     <div class="max-w-2xl mx-auto px-6 lg:px-10 py-6">
       <div class="section-label mb-2">Actividad</div>
-      <h1 class="text-2xl font-black text-ink tracking-tight">Notificaciones</h1>
+      <div class="flex items-end justify-between gap-3">
+        <h1 class="text-2xl font-black text-ink tracking-tight">Notificaciones</h1>
+        @if (!loading() && notifications().length > 0) {
+          <div class="flex items-center gap-2 pb-0.5">
+            @if (hasUnread()) {
+              <button
+                (click)="markAllRead()"
+                class="text-xs text-primary-400 hover:text-primary-300 font-medium transition-colors">
+                Marcar todo leído
+              </button>
+            }
+            <button
+              (click)="deleteAll()"
+              [disabled]="deleting()"
+              class="text-xs text-ink-muted hover:text-red-400 font-medium transition-colors disabled:opacity-40">
+              Borrar todo
+            </button>
+          </div>
+        }
+      </div>
     </div>
   </div>
 
   <div class="max-w-2xl mx-auto px-6 lg:px-10 py-8">
 
     @if (loading()) {
+      <!-- Skeleton -->
       <div class="card-flat overflow-hidden animate-pulse" role="status" aria-label="Cargando notificaciones...">
         <div class="divide-y divide-dark-600">
           @for (i of [1,2,3,4,5]; track i) {
@@ -25,57 +46,87 @@
           }
         </div>
       </div>
+
     } @else if (notifications().length === 0) {
+      <!-- Empty state -->
       <div class="flex flex-col items-center py-20 gap-3 text-center">
         <div class="w-16 h-16 rounded-2xl bg-dark-700 flex items-center justify-center">
           <svg aria-hidden="true" class="w-8 h-8 text-dark-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
         </div>
         <p class="font-semibold text-ink">Sin notificaciones</p>
         <p class="text-sm text-ink-muted">Te avisaremos cuando alguien te escriba o se interese por tu perfil</p>
       </div>
+
     } @else {
-      <div class="card-flat overflow-hidden" aria-live="polite">
-        <div class="divide-y divide-dark-600">
-          @for (n of notifications(); track n.id) {
-            @if (getRoute(n); as r) {
-              <a [routerLink]="r" class="flex items-start gap-4 px-5 py-4 hover:bg-dark-700 transition-colors cursor-pointer"
-                [class.opacity-60]="n.read">
-                <div class="w-9 h-9 rounded-xl bg-dark-700 border border-dark-600 flex items-center justify-center flex-shrink-0 text-ink-3">
-                  <app-icon [name]="typeIcon(n.type)" [size]="16"/>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-ink">{{ n.title }}</p>
-                  @if (n.body) {
-                    <p class="text-xs text-ink-3 mt-0.5 leading-relaxed">{{ n.body }}</p>
+      <!-- Grouped notification list -->
+      <div class="space-y-6" aria-live="polite">
+        @for (group of groupedNotifications(); track group.label) {
+          <section>
+            <!-- Group date label -->
+            <h2 class="text-[10px] font-bold tracking-widest uppercase text-ink-muted mb-2 px-1">
+              {{ group.label }}
+            </h2>
+            <div class="card-flat overflow-hidden">
+              <div class="divide-y divide-dark-600">
+                @for (n of group.items; track n.id) {
+                  @if (getRoute(n); as r) {
+                    <a [routerLink]="r"
+                       class="flex items-start gap-4 px-5 py-4 hover:bg-dark-700 transition-colors cursor-pointer"
+                       [class.opacity-60]="n.read">
+                      <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center border"
+                           [class.bg-primary-900]="!n.read"
+                           [class.border-primary-500]="!n.read"
+                           [class.text-primary-400]="!n.read"
+                           [class.bg-dark-700]="n.read"
+                           [class.border-dark-600]="n.read"
+                           [class.text-ink-3]="n.read">
+                        <app-icon [name]="typeIcon(n.type)" [size]="16"/>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-ink">{{ n.title }}</p>
+                        @if (n.body) {
+                          <p class="text-xs text-ink-3 mt-0.5 leading-relaxed">{{ n.body }}</p>
+                        }
+                        <p class="text-[10px] text-ink-muted mt-1.5">{{ n.created_at | date:'d MMM, HH:mm' }}</p>
+                      </div>
+                      @if (!n.read) {
+                        <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-2" aria-label="Sin leer"></span>
+                      }
+                    </a>
+                  } @else {
+                    <div class="flex items-start gap-4 px-5 py-4"
+                         [class.opacity-60]="n.read">
+                      <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center border"
+                           [class.bg-primary-900]="!n.read"
+                           [class.border-primary-500]="!n.read"
+                           [class.text-primary-400]="!n.read"
+                           [class.bg-dark-700]="n.read"
+                           [class.border-dark-600]="n.read"
+                           [class.text-ink-3]="n.read">
+                        <app-icon [name]="typeIcon(n.type)" [size]="16"/>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-ink">{{ n.title }}</p>
+                        @if (n.body) {
+                          <p class="text-xs text-ink-3 mt-0.5 leading-relaxed">{{ n.body }}</p>
+                        }
+                        <p class="text-[10px] text-ink-muted mt-1.5">{{ n.created_at | date:'d MMM, HH:mm' }}</p>
+                      </div>
+                      @if (!n.read) {
+                        <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-2" aria-label="Sin leer"></span>
+                      }
+                    </div>
                   }
-                  <p class="text-[10px] text-ink-muted mt-1.5">{{ n.created_at | date:'d MMM, HH:mm' }}</p>
-                </div>
-                @if (!n.read) {
-                  <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-2"></span>
-                }
-              </a>
-            } @else {
-              <div class="flex items-start gap-4 px-5 py-4" [class.opacity-60]="n.read">
-                <div class="w-9 h-9 rounded-xl bg-dark-700 border border-dark-600 flex items-center justify-center flex-shrink-0 text-ink-3">
-                  <app-icon [name]="typeIcon(n.type)" [size]="16"/>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-ink">{{ n.title }}</p>
-                  @if (n.body) {
-                    <p class="text-xs text-ink-3 mt-0.5 leading-relaxed">{{ n.body }}</p>
-                  }
-                  <p class="text-[10px] text-ink-muted mt-1.5">{{ n.created_at | date:'d MMM, HH:mm' }}</p>
-                </div>
-                @if (!n.read) {
-                  <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-2"></span>
                 }
               </div>
-            }
-          }
-        </div>
+            </div>
+          </section>
+        }
       </div>
     }
+
   </div>
 </div>

@@ -4,6 +4,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessagesService } from '../../core/services/messages.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { avatarColor } from '../../core/utils/display.utils';
 
 @Component({
   selector: 'app-inbox',
@@ -12,6 +13,8 @@ import { SupabaseService } from '../../core/services/supabase.service';
   templateUrl: './inbox.component.html',
 })
 export class InboxComponent implements OnInit {
+  readonly avatarColor = avatarColor;
+
   private messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
   private destroyRef = inject(DestroyRef);
@@ -65,15 +68,6 @@ export class InboxComponent implements OnInit {
     }
     this.conversations.update(convs => convs.filter(c => c.id !== id));
     this.unreadIds.update(set => { set.delete(id); return new Set(set); });
-  }
-
-  private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
-  ];
-
-  avatarColor(name: string): string {
-    const code = name?.charCodeAt(0) ?? 65;
-    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
   }
 
 }

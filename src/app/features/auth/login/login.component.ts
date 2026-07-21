@@ -43,6 +43,7 @@ export class LoginComponent implements OnInit {
       await this.auth.signInWithEmail(email!, password!);
     } catch (e: any) {
       this.error.set(e.message ?? 'Error al iniciar sesión');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       this.loading.set(false);
     }
@@ -54,6 +55,7 @@ export class LoginComponent implements OnInit {
       await this.auth.signInWithGoogle();
     } catch (e: any) {
       this.error.set(e.message ?? 'Error con Google');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 }

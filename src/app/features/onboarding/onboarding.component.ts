@@ -100,7 +100,7 @@ export class OnboardingComponent implements OnInit {
   hasLevelStep      = computed(() => this.role() === 'musician' || this.role() === 'teacher');
   totalSteps        = computed(() => {
     if (this.isListener()) return 2;
-    return this.hasInstrumentStep() ? 5 : 4;
+    return this.hasInstrumentStep() ? 6 : 4;
   });
 
   get namePlaceholder() {
@@ -326,6 +326,7 @@ export class OnboardingComponent implements OnInit {
       if (profileRetryError) {
         this.loading.set(false);
         this.error.set(`Error al crear perfil: ${profileRetryError.message}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
@@ -345,6 +346,7 @@ export class OnboardingComponent implements OnInit {
       if (deleteRoleError) {
         this.loading.set(false);
         this.error.set('No se pudo eliminar el perfil anterior. Inténtalo de nuevo.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
@@ -421,6 +423,7 @@ export class OnboardingComponent implements OnInit {
 
       if (saveError) {
         this.error.set('No se pudo guardar el perfil. Por favor, inténtalo de nuevo.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         localStorage.removeItem('bandyou_role');
         this.router.navigate(['/home']);

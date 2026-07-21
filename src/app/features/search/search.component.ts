@@ -7,6 +7,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
+import { avatarColor } from '../../core/utils/display.utils';
 
 type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal';
 
@@ -17,6 +18,8 @@ type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 're
   templateUrl: './search.component.html',
 })
 export class SearchComponent implements OnInit, OnDestroy {
+  readonly avatarColor = avatarColor;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
@@ -60,7 +63,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   ];
 
   async ngOnInit() {
-    this.seo.set({ title: 'Buscar', description: 'Busca músicos, bandas, salas, eventos, profesores y locales de ensayo en España.' });
+    this.seo.set({ title: 'Buscar', description: 'Encuentra músicos, bandas, locales y profesores de música en España.' });
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.isLoggedIn.set(!!user);
@@ -272,15 +275,6 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
 
     return [];
-  }
-
-  private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
-  ];
-
-  avatarColor(name: string): string {
-    const code = name?.charCodeAt(0) ?? 65;
-    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
   }
 
   async joinAs(role: string) {

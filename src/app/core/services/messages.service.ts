@@ -112,16 +112,21 @@ export class MessagesService {
     return convs;
   }
 
-  async getMessages(conversationId: string): Promise<Message[]> {
+  async getMessages(
+    conversationId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<{ messages: Message[]; hasMore: boolean }> {
     const { data } = await this.supabase.client
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: false })
-      .limit(100);
+      .range(offset, offset + limit - 1);
 
     // Reverse so oldest-first in UI while fetching newest-first from DB
-    return ((data || []) as Message[]).reverse();
+    const messages = ((data || []) as Message[]).reverse();
+    return { messages, hasMore: (data?.length ?? 0) === limit };
   }
 
   async sendMessage(conversationId: string, content: string): Promise<Message | null> {

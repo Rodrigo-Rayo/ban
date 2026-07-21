@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SeoService } from '../../../core/services/seo.service';
 
 @Component({
   selector: 'app-cookies',
@@ -99,4 +100,14 @@ import { RouterLink } from '@angular/router';
     </div>
   `,
 })
-export class CookiesComponent {}
+export class CookiesComponent implements OnInit {
+  private seo = inject(SeoService);
+
+  ngOnInit() {
+    this.seo.set({
+      title: 'Política de Cookies',
+      description: 'Política de cookies de BandYou. Solo usamos cookies técnicas esenciales para el funcionamiento de la sesión.',
+      url: 'https://bandyou.es/legal/cookies',
+    });
+  }
+}

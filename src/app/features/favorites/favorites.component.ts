@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { avatarColor } from '../../core/utils/display.utils';
 
 @Component({
   selector: 'app-favorites',
@@ -12,6 +13,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
   templateUrl: './favorites.component.html',
 })
 export class FavoritesComponent implements OnInit {
+  readonly avatarColor = avatarColor;
+
   private favSvc = inject(FavoritesService);
   private supabase = inject(SupabaseService);
 
@@ -86,15 +89,6 @@ export class FavoritesComponent implements OnInit {
       event: 'calendar', teacher: 'book-open', rehearsal: 'headphones',
     };
     return map[type] || 'user';
-  }
-
-  private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
-  ];
-
-  avatarColor(name: string): string {
-    const code = name?.charCodeAt(0) ?? 65;
-    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
   }
 
   async ngOnInit() {

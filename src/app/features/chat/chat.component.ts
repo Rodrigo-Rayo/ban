@@ -21,12 +21,17 @@ export class ChatComponent implements OnInit, OnDestroy {
   private messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
 
+  private readonly MESSAGES_LIMIT = 50;
+  private messageOffset = 0;
+
   messages = signal<Message[]>([]);
   otherName = signal('');
   newMessage = '';
   currentUserId = '';
   loading = signal(true);
   sending = signal(false);
+  loadingMore = signal(false);
+  hasMore = signal(false);
   sendError = signal('');
   private subscription: RealtimeChannel | undefined;
   private conversationId = '';
@@ -44,11 +49,13 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.currentUserId = user?.id || '';
 
     try {
-      const [msgs, conv] = await Promise.all([
-        this.messagesService.getMessages(this.conversationId),
+      const [{ messages: msgs, hasMore }, conv] = await Promise.all([
+        this.messagesService.getMessages(this.conversationId, this.MESSAGES_LIMIT, 0),
         this.messagesService.getConversationById(this.conversationId),
       ]);
       this.messages.set(msgs);
+      this.hasMore.set(hasMore);
+      this.messageOffset = msgs.length;
       setTimeout(() => this.scrollToBottom(), 0);
 
       this.messagesService.markAsRead(this.conversationId);
@@ -70,8 +77,8 @@ export class ChatComponent implements OnInit, OnDestroy {
           list.some(m => m.id === msg.id) ? list : [...list, msg]
         );
         setTimeout(() => this.scrollToBottom(), 0);
-        // Skip count refresh — we're actively viewing this chat
-        this.messagesService.markAsRead(this.conversationId, true);
+        // Mark new message as read and refresh the navbar badge
+        this.messagesService.markAsRead(this.conversationId);
       }
     );
   }
@@ -121,6 +128,47 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
     this.router.navigate(['/inbox']);
+  }
+
+  async loadMore() {
+    if (this.loadingMore() || !this.hasMore()) return;
+    this.loadingMore.set(true);
+    try {
+      const { messages: older, hasMore } = await this.messagesService.getMessages(
+        this.conversationId,
+        this.MESSAGES_LIMIT,
+        this.messageOffset,
+      );
+      this.messages.update(list => [...older, ...list]);
+      this.hasMore.set(hasMore);
+      this.messageOffset += older.length;
+    } catch {
+      // non-critical — user can retry
+    } finally {
+      this.loadingMore.set(false);
+    }
+  }
+
+  formatMessageTime(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60_000);
+    const diffH = Math.floor(diffMs / 3_600_000);
+    const hhmm = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+    if (diffMin < 1) return 'ahora';
+    if (diffMin < 60) return `hace ${diffMin} min`;
+    if (diffH < 24) return `hace ${diffH} h`;
+
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) return `ayer ${hhmm}`;
+
+    const dd = date.getDate().toString().padStart(2, '0');
+    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+    return `${dd}/${mm} ${hhmm}`;
   }
 
   private scrollToBottom() {

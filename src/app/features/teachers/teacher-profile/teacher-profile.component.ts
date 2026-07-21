@@ -8,6 +8,7 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { avatarColor } from '../../../core/utils/display.utils';
 
 @Component({
   selector: 'app-teacher-profile',
@@ -16,6 +17,8 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
   templateUrl: './teacher-profile.component.html',
 })
 export class TeacherProfileComponent implements OnInit {
+  readonly avatarColor = avatarColor;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
@@ -67,7 +70,22 @@ export class TeacherProfileComponent implements OnInit {
         this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'teacher').eq('entity_id', id!).order('created_at', { ascending: false }),
       ]);
       this.teacher.set(teacher);
-      if (teacher) this.seo.setProfile(teacher.name, 'teacher', teacher.city, teacher.description, teacher.avatar_url);
+      if (teacher) {
+        this.seo.setProfile(teacher.name, 'teacher', teacher.city, teacher.description, teacher.avatar_url, undefined, teacher.instrument);
+        this.seo.injectJsonLd({
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          name: teacher.name,
+          description: teacher.description || '',
+          image: teacher.avatar_url || '',
+          url:  + teacher.id,
+          hasOccupation: {
+            '@type': 'Occupation',
+            name: teacher.instrument ? ('Profesor de ' + teacher.instrument) : 'Profesor de música',
+          },
+          address: { '@type': 'PostalAddress', addressLocality: teacher.city || '', addressCountry: 'ES' },
+        });
+      }
       this.reviews.set(reviews || []);
       if (session) {
         this.currentUserId.set(session.user.id);
@@ -177,11 +195,4 @@ export class TeacherProfileComponent implements OnInit {
     }
   }
 
-  private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
-  ];
-  avatarColor(name: string): string {
-    const code = name?.charCodeAt(0) ?? 65;
-    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
-  }
 }

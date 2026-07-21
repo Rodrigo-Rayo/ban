@@ -72,6 +72,19 @@ export class LandingComponent implements OnInit {
       url: 'https://bandyou.es/',
     });
 
+    this.seo.injectJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'BandYou',
+      url: 'https://bandyou.es',
+      logo: 'https://bandyou.es/assets/og-default.jpg',
+      description: 'La red musical de España. Conecta con músicos, bandas, salas de conciertos, profesores y locales de ensayo sin algoritmos ni intermediarios.',
+      address: {
+        '@type': 'PostalAddress',
+        addressCountry: 'ES',
+      },
+    });
+
     const [
       { count: musicians },
       { count: bands },

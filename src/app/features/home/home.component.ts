@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { avatarColor, timeAgo } from '../../core/utils/display.utils';
 
 @Component({
   selector: 'app-home',
@@ -13,6 +14,9 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements OnInit {
+  readonly avatarColor = avatarColor;
+  readonly timeAgo = timeAgo;
+
   auth = inject(AuthService);
   private supabase = inject(SupabaseService);
   private seo = inject(SeoService);
@@ -170,24 +174,6 @@ export class HomeComponent implements OnInit {
     this.loadContent();
   }
 
-  private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
-  ];
-
-  avatarColor(name: string): string {
-    const code = name?.charCodeAt(0) ?? 65;
-    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
-  }
-
-  timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'ahora';
-    if (mins < 60) return `hace ${mins}m`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `hace ${hrs}h`;
-    return `hace ${Math.floor(hrs / 24)}d`;
-  }
 
   postInfo(type: string) {
     return this.postTypeMap[type] ?? { label: 'Anuncio', icon: 'newspaper' };

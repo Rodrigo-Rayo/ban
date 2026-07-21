@@ -7,6 +7,8 @@ import { SupabaseService } from './supabase.service';
 export class NotificationsService {
   private supabase = inject(SupabaseService);
   unreadCount = signal(0);
+  /** Emits the most-recently received notification via Realtime (null on init / after reset). */
+  latestNotification = signal<AppNotification | null>(null);
   private channel: RealtimeChannel | null = null;
 
   async loadUnread(userId: string) {
@@ -57,12 +59,21 @@ export class NotificationsService {
       .channel(`notifications_${userId}`)
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}`,
-      }, (_payload) => {
-        this.unreadCount.update(n => n + 1);
+      }, (payload) => {
+        const n = payload.new as AppNotification;
+        this.latestNotification.set(n);
+        this.unreadCount.update(c => c + 1);
         onNew();
       })
       .subscribe();
     return this.channel;
+  }
+
+  /** Hard-delete all notifications for the user and reset the unread counter. */
+  async deleteAll(userId: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('notifications').delete().eq('user_id', userId);
+    if (!error) this.unreadCount.set(0);
   }
 
   unsubscribe() {

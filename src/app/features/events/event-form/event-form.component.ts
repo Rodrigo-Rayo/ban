@@ -88,6 +88,7 @@ export class EventFormComponent {
     this.loading.set(false);
     if (error) {
       this.error.set('Error al crear el evento. Inténtalo de nuevo.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       this.toast.success('Evento publicado correctamente.');
       this._submitted = true;

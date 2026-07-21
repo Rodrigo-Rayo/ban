@@ -50,6 +50,34 @@
             @if (form.get('password')?.invalid && form.get('password')?.touched) {
               <p class="text-xs text-signal-red mt-1.5">Mínimo 6 caracteres.</p>
             }
+            @if (form.get('password')?.value) {
+              <div class="mt-2" aria-live="polite">
+                <!-- 3-segment bar -->
+                <div class="flex gap-1 mb-1" aria-hidden="true">
+                  <div class="h-1 flex-1 rounded-full transition-all duration-300"
+                    [class.bg-signal-red]="pwStrengthSegments >= 1 && pwStrength <= 2"
+                    [class.bg-signal-amber]="pwStrengthSegments >= 1 && pwStrength > 2 && pwStrength <= 4"
+                    [class.bg-signal-green]="pwStrengthSegments >= 1 && pwStrength > 4"
+                    [class.bg-dark-600]="pwStrengthSegments < 1"></div>
+                  <div class="h-1 flex-1 rounded-full transition-all duration-300"
+                    [class.bg-signal-red]="pwStrengthSegments >= 2 && pwStrength <= 2"
+                    [class.bg-signal-amber]="pwStrengthSegments >= 2 && pwStrength > 2 && pwStrength <= 4"
+                    [class.bg-signal-green]="pwStrengthSegments >= 2 && pwStrength > 4"
+                    [class.bg-dark-600]="pwStrengthSegments < 2"></div>
+                  <div class="h-1 flex-1 rounded-full transition-all duration-300"
+                    [class.bg-signal-red]="pwStrengthSegments >= 3 && pwStrength <= 2"
+                    [class.bg-signal-amber]="pwStrengthSegments >= 3 && pwStrength > 2 && pwStrength <= 4"
+                    [class.bg-signal-green]="pwStrengthSegments >= 3 && pwStrength > 4"
+                    [class.bg-dark-600]="pwStrengthSegments < 3"></div>
+                </div>
+                <p class="text-xs font-medium"
+                  [class.text-signal-red]="pwStrength <= 2"
+                  [class.text-signal-amber]="pwStrength > 2 && pwStrength <= 4"
+                  [class.text-signal-green]="pwStrength > 4">
+                  {{ pwStrengthLabel }}
+                </p>
+              </div>
+            }
           </div>
 
           @if (error()) {

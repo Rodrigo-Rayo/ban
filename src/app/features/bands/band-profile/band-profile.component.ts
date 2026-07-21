@@ -9,6 +9,7 @@ import { MessagesService } from '../../../core/services/messages.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { avatarColor } from '../../../core/utils/display.utils';
 
 @Component({
   selector: 'app-band-profile',
@@ -17,6 +18,8 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
   templateUrl: './band-profile.component.html',
 })
 export class BandProfileComponent implements OnInit {
+  readonly avatarColor = avatarColor;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
@@ -74,7 +77,19 @@ export class BandProfileComponent implements OnInit {
       ]);
 
       this.band.set(band);
-      if (band) this.seo.setProfile(band.name, 'band', band.city, band.description, band.avatar_url);
+      if (band) {
+        this.seo.setProfile(band.name, 'band', band.city, band.description, band.avatar_url);
+        this.seo.injectJsonLd({
+          '@context': 'https://schema.org',
+          '@type': 'MusicGroup',
+          name: band.name,
+          description: band.description || '',
+          image: band.avatar_url || '',
+          url: `${window.location.origin}/bands/${band.id}`,
+          genre: band.genre || '',
+          address: { '@type': 'PostalAddress', addressLocality: band.city || '', addressCountry: 'ES' },
+        });
+      }
       this.vacancies.set(vac || []);
       this.members.set(membersData || []);
       this.loading.set(false);
@@ -247,11 +262,4 @@ export class BandProfileComponent implements OnInit {
     }
   }
 
-  private readonly AVATAR_COLORS = [
-    '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
-  ];
-  avatarColor(name: string): string {
-    const code = name?.charCodeAt(0) ?? 65;
-    return this.AVATAR_COLORS[code % this.AVATAR_COLORS.length];
-  }
 }

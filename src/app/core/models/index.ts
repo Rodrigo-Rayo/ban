@@ -198,7 +198,7 @@ export interface Message {
   created_at: string;
 }
 
-export type NotificationType = 'message' | 'application' | 'rsvp' | 'review' | 'system';
+export type NotificationType = 'message' | 'application' | 'rsvp' | 'review' | 'system' | 'favorite' | 'event_reminder' | 'booking';
 
 export interface Notification {
   id: string;
