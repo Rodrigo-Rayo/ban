@@ -79,8 +79,8 @@
           </div>
 
           @if (error()) {
-            <p class="text-xs text-signal-red mb-3 flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <p role="alert" aria-live="assertive" class="text-xs text-signal-red mb-3 flex items-center gap-1.5">
+              <svg aria-hidden="true" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               {{ error() }}
@@ -114,7 +114,7 @@
           <button (click)="filterCity.set('Toda España'); filterType.set(''); filterInstrument.set(''); loadPosts()"
             class="flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink border border-dark-600 hover:border-ink-muted/40 rounded-full px-3.5 py-2 transition-colors min-h-[44px]"
             aria-label="Limpiar filtros">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
             Limpiar
@@ -268,7 +268,7 @@
                     <button (click)="deletePost(post.id)"
                       class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-colors"
                       aria-label="Eliminar anuncio">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                       </svg>
@@ -289,7 +289,7 @@
         <button (click)="loadMore()" [disabled]="loadingMore()"
           class="btn-secondary text-sm px-8 disabled:opacity-50 gap-2">
           @if (loadingMore()) {
-            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>

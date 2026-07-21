@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, HostListener, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -118,6 +118,16 @@ export class GearFormComponent implements OnInit, OnDestroy {
     this.currentPreviewUrls.forEach(url => URL.revokeObjectURL(url));
   }
 
+  private _submitted = false;
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (!this._submitted && !this.submitting() && (this.form.title.trim().length > 0 || this.imageFiles.length > 0)) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
   goBack() { this.location.back(); }
 
   get canSubmit() {
@@ -160,6 +170,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
       this.submitting.set(false);
       if (error) { this.toast.error('No se pudo guardar el anuncio. Inténtalo de nuevo.'); return; }
       this.toast.success('Anuncio actualizado.');
+      this._submitted = true;
       this.router.navigate(['/shop', editId]);
       return;
     }
@@ -182,6 +193,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
     this.submitting.set(false);
     if (error) { this.toast.error('No se pudo publicar el anuncio. Inténtalo de nuevo.'); return; }
     this.toast.success('Anuncio publicado.');
+    this._submitted = true;
     this.router.navigate(['/shop', data.id]);
   }
 }

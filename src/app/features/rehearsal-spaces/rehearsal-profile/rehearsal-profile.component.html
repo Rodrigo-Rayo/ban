@@ -59,7 +59,7 @@
         <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center text-3xl font-black text-white shadow-xl border-4 border-dark-900"
              [style.background]="avatarColor(space()!.name)">
           @if (space()!.avatar_url && !avatarError()) {
-            <img [src]="space()!.avatar_url" [alt]="space()!.name" class="w-full h-full object-cover" (error)="avatarError.set(true)"/>
+            <img [src]="space()!.avatar_url" [alt]="space()!.name" class="w-full h-full object-cover" fetchpriority="high" (error)="avatarError.set(true)"/>
           } @else {
             {{ space()!.name?.slice(0,1).toUpperCase() }}
           }
@@ -73,9 +73,9 @@
             }
             @if (space()!.capacity) { <span class="tag">{{ space()!.capacity }} personas</span> }
             @if (space()!.rooms_count) { <span class="tag">{{ space()!.rooms_count }} sala{{ space()!.rooms_count > 1 ? 's' : '' }}</span> }
-            @if (avgRating) {
+            @if (avgRating()) {
               <span class="tag-accent">
-                <app-icon name="star" [size]="9" class="mr-0.5"/>{{ avgRating }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}
+                <app-icon name="star" [size]="9" class="mr-0.5"/>{{ avgRating() }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}
               </span>
             }
           </div>
@@ -97,7 +97,7 @@
               {{ sending() ? 'Abriendo...' : 'Contactar' }}
             </button>
             @if (msgError()) {
-              <p class="text-xs text-signal-red text-center">{{ msgError() }}</p>
+              <p role="alert" aria-live="assertive" class="text-xs text-signal-red text-center">{{ msgError() }}</p>
             }
           }
           @if (space()!.phone) {
@@ -105,7 +105,7 @@
           }
           <button (click)="toggleFav()" [disabled]="favLoading()"
             class="btn-secondary text-sm flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
+            <svg aria-hidden="true" class="w-4 h-4" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
               [class.text-primary-500]="isFav()" [class.text-ink-muted]="!isFav()">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
             </svg>
@@ -114,7 +114,7 @@
           <button (click)="shareLink()"
             class="btn-secondary text-sm flex items-center justify-center gap-2"
             [class.text-signal-green]="linkShared()" [class.border-signal-green]="linkShared()">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
             </svg>
             {{ linkShared() ? 'Copiado' : 'Compartir' }}
@@ -148,7 +148,7 @@
           <div class="px-5 py-3 border-b border-dark-600 flex items-center justify-between">
             <h2 class="section-label">
               Reseñas @if (reviews().length > 0) { <span class="text-ink-muted font-normal">({{ reviews().length }})</span> }
-              @if (avgRating) { <span class="ml-2 text-primary-500 font-bold">★ {{ avgRating }}</span> }
+              @if (avgRating()) { <span class="ml-2 text-primary-500 font-bold">★ {{ avgRating() }}</span> }
             </h2>
             @if (currentUserId() && !myReview()) {
               <button (click)="showReviewForm.set(!showReviewForm())"
@@ -181,7 +181,7 @@
                 <button (click)="showReviewForm.set(false)" class="btn-secondary text-sm">Cancelar</button>
               </div>
               @if (reviewError()) {
-                <p class="text-xs text-signal-red mt-2">{{ reviewError() }}</p>
+                <p role="alert" aria-live="assertive" class="text-xs text-signal-red mt-2">{{ reviewError() }}</p>
               }
             </div>
           }
@@ -263,7 +263,7 @@
     <button (click)="toggleFav()" [disabled]="favLoading()"
       class="btn-secondary text-sm flex items-center justify-center gap-1.5 px-4"
       [class.text-primary-500]="isFav()" [class.border-primary-500]="isFav()">
-      <svg class="w-4 h-4 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+      <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
       </svg>
       {{ isFav() ? 'Guardado' : 'Guardar' }}
@@ -271,7 +271,7 @@
     <button (click)="shareLink()"
       class="btn-secondary text-sm flex items-center justify-center gap-1.5 px-4"
       [class.text-signal-green]="linkShared()" [class.border-signal-green]="linkShared()">
-      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
       </svg>
       {{ linkShared() ? 'Copiado' : 'Compartir' }}

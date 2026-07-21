@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, HostListener, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, FormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -171,6 +171,14 @@ export class OnboardingComponent implements OnInit {
   addMember() { this.bandMembers = [...this.bandMembers, { name: '', instrument: '' }]; }
   removeMember(i: number) { this.bandMembers = this.bandMembers.filter((_, idx) => idx !== i); }
 
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (this.step() > 0 && (this.nameForm.dirty || this.zoneForm.dirty) && !this.loading()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
   next() { this.step.update(s => s + 1); }
   back() { this.step.update(s => Math.max(0, s - 1)); }
 
@@ -299,6 +307,7 @@ export class OnboardingComponent implements OnInit {
   async onSubmit() {
     this.loading.set(true);
     this.error.set('');
+    try {
 
     const { data: { user } } = await this.supabase.auth.getUser();
     if (!user) { this.loading.set(false); this.router.navigate(['/auth/login']); return; }
@@ -410,12 +419,14 @@ export class OnboardingComponent implements OnInit {
       saveError = null;
     }
 
-    this.loading.set(false);
-    if (saveError) {
-      this.error.set('No se pudo guardar el perfil. Por favor, inténtalo de nuevo.');
-    } else {
-      localStorage.removeItem('bandyou_role');
-      this.router.navigate(['/home']);
+      if (saveError) {
+        this.error.set('No se pudo guardar el perfil. Por favor, inténtalo de nuevo.');
+      } else {
+        localStorage.removeItem('bandyou_role');
+        this.router.navigate(['/home']);
+      }
+    } finally {
+      this.loading.set(false);
     }
   }
 

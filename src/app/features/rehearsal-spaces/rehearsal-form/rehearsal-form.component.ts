@@ -51,28 +51,31 @@ export class RehearsalFormComponent implements OnInit {
   });
 
   async ngOnInit() {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) { this.router.navigate(['/auth/login']); return; }
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) { this.router.navigate(['/auth/login']); return; }
 
-    const { data } = await this.supabase.client
-      .from('rehearsal_spaces').select('*').eq('user_id', user.id).maybeSingle();
+      const { data } = await this.supabase.client
+        .from('rehearsal_spaces').select('*').eq('user_id', user.id).maybeSingle();
 
-    if (data) {
-      this.isEditing.set(true);
-      this.profileId.set(data.id);
-      this.form.patchValue({
-        name:          data.name ?? '',
-        city:          data.city ?? 'Madrid',
-        hourly_rate:   data.hourly_rate ?? '',
-        capacity:      data.capacity ?? '',
-        address:       data.address ?? '',
-        description:   data.description ?? '',
-        phone:         data.phone ?? '',
-        instagram_url: data.instagram_url ?? '',
-        website_url:   data.website_url ?? '',
-      });
+      if (data) {
+        this.isEditing.set(true);
+        this.profileId.set(data.id);
+        this.form.patchValue({
+          name:          data.name ?? '',
+          city:          data.city ?? 'Madrid',
+          hourly_rate:   data.hourly_rate ?? '',
+          capacity:      data.capacity ?? '',
+          address:       data.address ?? '',
+          description:   data.description ?? '',
+          phone:         data.phone ?? '',
+          instagram_url: data.instagram_url ?? '',
+          website_url:   data.website_url ?? '',
+        });
+      }
+    } finally {
+      this.loading.set(false);
     }
-    this.loading.set(false);
   }
 
   goBack() { this.location.back(); }
@@ -100,7 +103,7 @@ export class RehearsalFormComponent implements OnInit {
     }, { onConflict: 'user_id' }).select('id').single();
 
     this.saving.set(false);
-    if (error) {
+    if (error || !data) {
       this.error.set('No se pudo guardar el local. Inténtalo de nuevo.');
       return;
     }

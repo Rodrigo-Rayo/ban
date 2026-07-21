@@ -5,7 +5,7 @@
     <div class="flex-1 flex items-center justify-center px-5 py-12">
       <div class="w-full max-w-sm text-center">
         <div class="w-20 h-20 rounded-3xl bg-primary-900 border border-primary-500/30 flex items-center justify-center mx-auto mb-6">
-          <svg class="w-10 h-10 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" class="w-10 h-10 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
           </svg>
@@ -64,7 +64,7 @@
               </div>
             }
             <button type="button" (click)="role.set(r.id)"
-              class="w-full text-left px-5 py-4 rounded-2xl border transition-all duration-150 flex items-center gap-4 focus:outline-none"
+              class="w-full text-left px-5 py-4 rounded-2xl border transition-all duration-150 flex items-center gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
               [attr.aria-pressed]="role() === r.id"
               [ngClass]="role() === r.id
                 ? 'border-primary-500 bg-primary-500/10'
@@ -108,6 +108,8 @@
 
         <input formControlName="name" type="text"
           [placeholder]="namePlaceholder"
+          aria-label="Nombre"
+          aria-required="true"
           class="input-field text-lg py-4 mb-1"/>
         @if (nameForm.get('name')?.invalid && nameForm.get('name')?.touched) {
           <p class="text-xs text-signal-red mb-5">El nombre es obligatorio.</p>
@@ -116,7 +118,7 @@
         }
 
         @if (error()) {
-          <div class="text-xs text-signal-red mb-4">{{ error() }}</div>
+          <div role="alert" aria-live="assertive" class="text-xs text-signal-red mb-4">{{ error() }}</div>
         }
 
         <div class="flex gap-3">
@@ -150,7 +152,7 @@
         <div class="flex flex-wrap gap-2 mb-8">
           @for (inst of instruments; track inst) {
             <button type="button" (click)="toggleInstrument(inst)"
-              class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 focus:outline-none"
+              class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
               [attr.aria-pressed]="selectedInstruments().includes(inst)"
               [class.border-ink]="selectedInstruments().includes(inst)"
               [class.bg-ink]="selectedInstruments().includes(inst)"
@@ -189,7 +191,7 @@
           @for (g of genres; track g) {
             <button type="button" (click)="toggleGenre(g)"
               [disabled]="!selectedGenres().includes(g) && selectedGenres().length >= 5"
-              class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 disabled:opacity-30 focus:outline-none"
+              class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
               [attr.aria-pressed]="selectedGenres().includes(g)"
               [class.border-primary-500]="selectedGenres().includes(g)"
               [class.bg-primary-500]="selectedGenres().includes(g)"
@@ -230,7 +232,7 @@
           @for (g of genres; track g) {
             <button type="button" (click)="toggleGenre(g)"
               [disabled]="!selectedGenres().includes(g) && selectedGenres().length >= 5"
-              class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 disabled:opacity-30 focus:outline-none"
+              class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
               [attr.aria-pressed]="selectedGenres().includes(g)"
               [class.border-primary-500]="selectedGenres().includes(g)"
               [class.bg-primary-500]="selectedGenres().includes(g)"
@@ -278,17 +280,25 @@
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Capacidad <span class="opacity-50">(personas)</span></label>
-                <input formControlName="capacity" type="number" placeholder="200" class="input-field"/>
+                <input formControlName="capacity" type="number" inputmode="numeric" placeholder="200" class="input-field"/>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
-                <input formControlName="hourly_rate" type="number" placeholder="25" class="input-field"/>
+                <input formControlName="hourly_rate" type="number" inputmode="decimal" placeholder="25" class="input-field"/>
               </div>
             </div>
           }
           <div>
             <label class="block text-xs font-semibold text-ink-muted mb-1.5">Descripción <span class="opacity-50">(opcional)</span></label>
-            <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" class="input-field resize-none"></textarea>
+            <div class="relative">
+              <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" class="input-field resize-none pb-6"></textarea>
+              <span class="absolute bottom-2 right-2.5 text-[10px] font-medium pointer-events-none select-none"
+                    [class.text-ink-muted]="(zoneForm.get('description')?.value?.length || 0) <= 425"
+                    [class.text-signal-amber]="(zoneForm.get('description')?.value?.length || 0) > 425 && (zoneForm.get('description')?.value?.length || 0) <= 475"
+                    [class.text-signal-red]="(zoneForm.get('description')?.value?.length || 0) > 475">
+                {{ zoneForm.get('description')?.value?.length || 0 }}/500
+              </span>
+            </div>
           </div>
           @if (role() === 'venue' || role() === 'rehearsal') {
             <div class="grid sm:grid-cols-2 gap-4">
@@ -314,22 +324,26 @@
                 </button>
               </div>
               @for (m of bandMembers; track $index) {
-                <div class="flex gap-2 mb-2 items-center">
-                  <input [value]="m.name" (input)="m.name = $any($event.target).value"
-                    type="text" placeholder="Nombre"
-                    class="input-field text-sm py-2 flex-1"/>
+                <div class="mb-2 bg-dark-800 border border-dark-600 rounded-xl p-3 flex flex-col gap-2">
+                  <div class="flex items-center gap-2">
+                    <input [value]="m.name" (input)="m.name = $any($event.target).value"
+                      type="text" placeholder="Nombre del miembro"
+                      aria-label="Nombre del miembro"
+                      class="input-field text-sm py-2 flex-1"/>
+                    <button type="button" (click)="removeMember($index)"
+                      aria-label="Eliminar miembro"
+                      class="text-ink-muted hover:text-signal-red transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-dark-700">
+                      <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
                   <select [value]="m.instrument" (change)="m.instrument = $any($event.target).value"
-                    class="input-field text-sm py-2 w-40">
+                    aria-label="Instrumento del miembro"
+                    class="input-field text-sm py-2">
                     <option value="">Instrumento</option>
                     @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
                   </select>
-                  <button type="button" (click)="removeMember($index)"
-                    aria-label="Eliminar miembro"
-                    class="text-ink-muted hover:text-signal-red transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-dark-700">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  </button>
                 </div>
               }
               @if (bandMembers.length === 0) {
@@ -358,7 +372,7 @@
         </div>
 
         @if (error()) {
-          <div class="text-xs text-signal-red mb-4">{{ error() }}</div>
+          <div role="alert" aria-live="assertive" class="text-xs text-signal-red mb-4">{{ error() }}</div>
         }
 
         <div class="flex gap-3">
@@ -385,7 +399,7 @@
         <div class="flex flex-col gap-2.5 mb-8">
           @for (lv of levels; track lv.id; let i = $index) {
             <button type="button" (click)="selectedLevel.set(lv.id)"
-              class="w-full text-left px-5 py-4 rounded-2xl border transition-all duration-150 flex items-center gap-4 focus:outline-none"
+              class="w-full text-left px-5 py-4 rounded-2xl border transition-all duration-150 flex items-center gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
               [attr.aria-pressed]="selectedLevel() === lv.id"
               [ngClass]="selectedLevel() === lv.id
                 ? 'border-primary-500 bg-primary-500/10'
@@ -437,7 +451,7 @@
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
-                <input formControlName="hourly_rate" type="number" placeholder="25" class="input-field"/>
+                <input formControlName="hourly_rate" type="number" inputmode="decimal" placeholder="25" class="input-field"/>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Años de experiencia <span class="opacity-50">(opcional)</span></label>
@@ -447,7 +461,15 @@
           }
           <div>
             <label class="block text-xs font-semibold text-ink-muted mb-1.5">Sobre ti <span class="opacity-50">(opcional)</span></label>
-            <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" class="input-field resize-none"></textarea>
+            <div class="relative">
+              <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" class="input-field resize-none pb-6"></textarea>
+              <span class="absolute bottom-2 right-2.5 text-[10px] font-medium pointer-events-none select-none"
+                    [class.text-ink-muted]="(zoneForm.get('description')?.value?.length || 0) <= 425"
+                    [class.text-signal-amber]="(zoneForm.get('description')?.value?.length || 0) > 425 && (zoneForm.get('description')?.value?.length || 0) <= 475"
+                    [class.text-signal-red]="(zoneForm.get('description')?.value?.length || 0) > 475">
+                {{ zoneForm.get('description')?.value?.length || 0 }}/500
+              </span>
+            </div>
           </div>
           @if (role() === 'musician') {
             <div>
@@ -456,10 +478,10 @@
             </div>
             <div>
               <label class="block text-xs font-semibold text-ink-muted mb-1.5">Disponibilidad <span class="opacity-50">(opcional)</span></label>
-              <div class="flex gap-1.5 mb-2">
+              <div class="grid grid-cols-7 gap-1 mb-2">
                 @for (d of DAYS; track d; let i = $index) {
                   <button type="button" (click)="toggleDay(d)"
-                    class="w-11 h-11 text-xs font-bold rounded-xl border transition-all duration-150 flex items-center justify-center focus:outline-none"
+                    class="min-h-[44px] text-xs font-bold rounded-xl border transition-all duration-150 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
                     [attr.aria-pressed]="selectedDays().includes(d)"
                     [class.border-ink]="selectedDays().includes(d)"
                     [class.bg-ink]="selectedDays().includes(d)"
@@ -474,7 +496,7 @@
               <div class="flex gap-2">
                 @for (s of SLOTS; track s) {
                   <button type="button" (click)="toggleSlot(s)"
-                    class="text-xs font-medium px-4 py-2 rounded-full border transition-all duration-150 focus:outline-none"
+                    class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
                     [attr.aria-pressed]="selectedSlots().includes(s)"
                     [class.border-primary-500]="selectedSlots().includes(s)"
                     [class.bg-primary-500]="selectedSlots().includes(s)"
@@ -500,7 +522,7 @@
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Años de experiencia <span class="opacity-50">(opcional)</span></label>
-                <input formControlName="experience_years" type="number" placeholder="5" class="input-field"/>
+                <input formControlName="experience_years" type="number" inputmode="numeric" placeholder="5" class="input-field"/>
               </div>
             </div>
           }
@@ -523,7 +545,7 @@
         </div>
 
         @if (error()) {
-          <div class="text-xs text-signal-red mb-4">{{ error() }}</div>
+          <div role="alert" aria-live="assertive" class="text-xs text-signal-red mb-4">{{ error() }}</div>
         }
 
         <div class="flex gap-3">

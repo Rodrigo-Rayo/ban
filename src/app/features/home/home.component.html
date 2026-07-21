@@ -8,8 +8,8 @@
 
       <!-- ── ERROR STATE ── -->
       @if (!loading() && loadError()) {
-        <div class="flex flex-col items-center justify-center py-20 gap-4 text-center">
-          <svg class="w-12 h-12 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div role="alert" aria-live="assertive" class="flex flex-col items-center justify-center py-20 gap-4 text-center">
+          <svg aria-hidden="true" class="w-12 h-12 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
           </svg>
           <p class="text-ink-muted text-sm">No se pudo cargar el contenido</p>
@@ -21,15 +21,15 @@
       @if (auth.user()) {
         <div class="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-5 border-b border-dark-600/60">
           <a routerLink="/feed" [queryParams]="{new:'1'}" class="btn-primary text-xs px-4 py-2.5 flex-shrink-0 min-h-[44px]">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
             Publicar anuncio
           </a>
           <a routerLink="/events/create" class="btn-secondary text-xs px-4 py-2.5 flex-shrink-0 min-h-[44px]">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             Crear evento
           </a>
           <a routerLink="/shop/new" class="btn-secondary text-xs px-4 py-2.5 flex-shrink-0 min-h-[44px]">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             Vender equipo
           </a>
         </div>
@@ -39,7 +39,7 @@
       @if (userCity()) {
         <div class="flex items-center gap-2 mb-5">
           <span class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted bg-dark-800 border border-dark-600 px-3 py-1.5 rounded-full">
-            <svg class="w-3 h-3 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" class="w-3 h-3 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
             </svg>
             <span><strong class="text-ink font-semibold">{{ userCity() }}</strong></span>
@@ -94,7 +94,7 @@
             <a routerLink="/events/create"
                class="flex-shrink-0 w-40 card flex flex-col items-center justify-center gap-2 p-4 border-dashed hover:border-primary-500/50 transition-all group">
               <div class="w-9 h-9 rounded-xl bg-primary-900 border border-primary-500/30 flex items-center justify-center text-primary-500">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
               </div>
               <span class="text-xs font-semibold text-ink-muted text-center group-hover:text-primary-500 transition-colors">Publicar evento</span>
             </a>
@@ -343,7 +343,7 @@
         <div class="absolute -right-8 -top-8 w-40 h-40 rounded-full opacity-10" style="background: radial-gradient(circle, #c4623e 0%, transparent 70%)"></div>
         <div class="relative flex items-start gap-4">
           <div class="w-10 h-10 rounded-xl border border-primary-500/30 flex items-center justify-center flex-shrink-0 text-primary-400" style="background:rgba(196,98,62,0.12)">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg>
+            <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg>
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-[10px] font-black uppercase tracking-widest text-primary-400 mb-1">Bandyou Pro</p>

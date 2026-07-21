@@ -122,17 +122,20 @@ export class FeedComponent implements OnInit, OnDestroy {
   async loadMore() {
     if (this.loadingMore() || !this.hasMore()) return;
     this.loadingMore.set(true);
-    const last = this.posts().at(-1);
-    let q = this.supabase.client.from('posts').select(FeedComponent.POST_COLS)
-      .order('created_at', { ascending: false })
-      .lt('created_at', last?.created_at ?? new Date().toISOString());
-    if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
-    if (this.filterType()) q = q.eq('type', this.filterType() as string);
-    if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
-    const { data } = await q.limit(this.PAGE_SIZE);
-    this.posts.update(p => [...p, ...(data || [])]);
-    this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
-    this.loadingMore.set(false);
+    try {
+      const last = this.posts().at(-1);
+      let q = this.supabase.client.from('posts').select(FeedComponent.POST_COLS)
+        .order('created_at', { ascending: false })
+        .lt('created_at', last?.created_at ?? new Date().toISOString());
+      if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+      if (this.filterType()) q = q.eq('type', this.filterType() as string);
+      if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
+      const { data } = await q.limit(this.PAGE_SIZE);
+      this.posts.update(p => [...p, ...(data || [])]);
+      this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
+    } finally {
+      this.loadingMore.set(false);
+    }
   }
 
   async submitPost() {

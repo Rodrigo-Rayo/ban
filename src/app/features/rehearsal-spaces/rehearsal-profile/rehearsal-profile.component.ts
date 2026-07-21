@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,11 +43,11 @@ export class RehearsalProfileComponent implements OnInit {
   myReview = signal<any>(null);
   linkShared = signal(false);
 
-  get avgRating() {
+  readonly avgRating = computed(() => {
     const r = this.reviews();
     if (!r.length) return null;
     return (r.reduce((s, x) => s + x.rating, 0) / r.length).toFixed(1);
-  }
+  });
 
   async ngOnInit() {
     try {
@@ -55,7 +55,7 @@ export class RehearsalProfileComponent implements OnInit {
       const [{ data: space }, { data: { session } }, { data: reviews }] = await Promise.all([
         this.supabase.client.from('rehearsal_spaces').select('*').eq('id', id!).maybeSingle(),
         this.supabase.auth.getSession(),
-        this.supabase.client.from('reviews').select('*').eq('entity_type', 'rehearsal').eq('entity_id', id!).order('created_at', { ascending: false }),
+        this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'rehearsal').eq('entity_id', id!).order('created_at', { ascending: false }),
       ]);
       this.space.set(space);
       if (space) this.seo.setProfile(space.name, 'rehearsal', space.city, space.description, space.avatar_url);
@@ -111,7 +111,7 @@ export class RehearsalProfileComponent implements OnInit {
     if (error) {
       this.reviewError.set(error.message || 'Error al guardar la reseña');
     } else {
-      const { data } = await this.supabase.client.from('reviews').select('*').eq('entity_type', 'rehearsal').eq('entity_id', this.space()!.id).order('created_at', { ascending: false });
+      const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'rehearsal').eq('entity_id', this.space()!.id).order('created_at', { ascending: false });
       this.reviews.set(data || []);
       this.myReview.set(data?.find((r: any) => r.user_id === this.currentUserId()) || null);
       this.showReviewForm.set(false);

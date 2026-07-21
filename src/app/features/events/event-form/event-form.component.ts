@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
@@ -21,6 +21,7 @@ export class EventFormComponent {
 
   loading = signal(false);
   error = signal('');
+  private _submitted = false;
   readonly today = new Date().toISOString().split('T')[0];
 
   goBack() { this.location.back(); }
@@ -40,6 +41,14 @@ export class EventFormComponent {
     contactEmail: ['', [Validators.email]],
     ticketUrl: [''],
   });
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (this.form.dirty && !this.loading() && !this._submitted) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
 
   async onSubmit() {
     if (this.form.invalid) {
@@ -81,6 +90,7 @@ export class EventFormComponent {
       this.error.set('Error al crear el evento. Inténtalo de nuevo.');
     } else {
       this.toast.success('Evento publicado correctamente.');
+      this._submitted = true;
       this.router.navigate(['/events', data.id]);
     }
   }

@@ -92,6 +92,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.paramsSub?.unsubscribe();
+    if (this.searchDebounceTimer !== undefined) clearTimeout(this.searchDebounceTimer);
   }
 
   private readonly tabLabelMap = new Map(this.tabs.map(t => [t.id, t.label]));
@@ -108,6 +109,13 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'rehearsal') return this.rehearsals().length;
     return 0;
   });
+
+  readonly hasActiveFilters = computed(() =>
+    !!this.searchQuery() ||
+    !!this.selectedGenre() ||
+    this.selectedCity() !== (this.userCity() || 'Toda España') ||
+    !!this.selectedInstrument()
+  );
 
   async setTab(tab: SearchType) {
     this.activeTab.set(tab);

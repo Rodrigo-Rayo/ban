@@ -53,30 +53,33 @@ export class VenueFormComponent implements OnInit {
   });
 
   async ngOnInit() {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) { this.router.navigate(['/auth/login']); return; }
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) { this.router.navigate(['/auth/login']); return; }
 
-    const { data } = await this.supabase.client
-      .from('venues').select('*').eq('user_id', user.id).maybeSingle();
+      const { data } = await this.supabase.client
+        .from('venues').select('*').eq('user_id', user.id).maybeSingle();
 
-    if (data) {
-      this.isEditing.set(true);
-      this.profileId.set(data.id);
-      this.form.patchValue({
-        name:          data.name ?? '',
-        city:          data.city ?? 'Madrid',
-        capacity:      data.capacity ?? '',
-        address:       data.address ?? '',
-        description:   data.description ?? '',
-        phone:         data.phone ?? '',
-        instagram_url: data.instagram_url ?? '',
-        website_url:   data.website_url ?? '',
-      });
-      if (data.genres) {
-        this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
+      if (data) {
+        this.isEditing.set(true);
+        this.profileId.set(data.id);
+        this.form.patchValue({
+          name:          data.name ?? '',
+          city:          data.city ?? 'Madrid',
+          capacity:      data.capacity ?? '',
+          address:       data.address ?? '',
+          description:   data.description ?? '',
+          phone:         data.phone ?? '',
+          instagram_url: data.instagram_url ?? '',
+          website_url:   data.website_url ?? '',
+        });
+        if (data.genres) {
+          this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
+        }
       }
+    } finally {
+      this.loading.set(false);
     }
-    this.loading.set(false);
   }
 
   toggleGenre(g: string) {
@@ -109,7 +112,7 @@ export class VenueFormComponent implements OnInit {
     }, { onConflict: 'user_id' }).select('id').single();
 
     this.saving.set(false);
-    if (error) {
+    if (error || !data) {
       this.error.set('No se pudo guardar la sala. Inténtalo de nuevo.');
       return;
     }

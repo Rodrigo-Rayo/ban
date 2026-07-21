@@ -68,33 +68,36 @@ export class TeacherFormComponent implements OnInit {
   });
 
   async ngOnInit() {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) { this.router.navigate(['/auth/login']); return; }
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) { this.router.navigate(['/auth/login']); return; }
 
-    const { data } = await this.supabase.client
-      .from('teachers').select('*').eq('user_id', user.id).maybeSingle();
+      const { data } = await this.supabase.client
+        .from('teachers').select('*').eq('user_id', user.id).maybeSingle();
 
-    if (data) {
-      this.isEditing.set(true);
-      this.profileId.set(data.id);
-      this.form.patchValue({
-        name:             data.name ?? '',
-        city:             data.city ?? 'Madrid',
-        hourly_rate:      data.hourly_rate ?? '',
-        modality:         data.modality ?? 'presencial',
-        experience_years: data.experience_years ?? '',
-        experience:       data.experience ?? '',
-        description:      data.description ?? '',
-        instagram_url:    data.instagram_url ?? '',
-        youtube_url:      data.youtube_url ?? '',
-        website_url:      data.website_url ?? '',
-      });
-      if (data.instrument) {
-        this.selectedInstruments.set(data.instrument.split(',').map((s: string) => s.trim()).filter(Boolean));
+      if (data) {
+        this.isEditing.set(true);
+        this.profileId.set(data.id);
+        this.form.patchValue({
+          name:             data.name ?? '',
+          city:             data.city ?? 'Madrid',
+          hourly_rate:      data.hourly_rate ?? '',
+          modality:         data.modality ?? 'presencial',
+          experience_years: data.experience_years ?? '',
+          experience:       data.experience ?? '',
+          description:      data.description ?? '',
+          instagram_url:    data.instagram_url ?? '',
+          youtube_url:      data.youtube_url ?? '',
+          website_url:      data.website_url ?? '',
+        });
+        if (data.instrument) {
+          this.selectedInstruments.set(data.instrument.split(',').map((s: string) => s.trim()).filter(Boolean));
+        }
+        if (data.level) this.selectedLevel.set(data.level);
       }
-      if (data.level) this.selectedLevel.set(data.level);
+    } finally {
+      this.loading.set(false);
     }
-    this.loading.set(false);
   }
 
   toggleInstrument(i: string) {
@@ -130,7 +133,7 @@ export class TeacherFormComponent implements OnInit {
     }, { onConflict: 'user_id' }).select('id').single();
 
     this.saving.set(false);
-    if (error) {
+    if (error || !data) {
       this.error.set('No se pudo guardar el perfil. Inténtalo de nuevo.');
       return;
     }

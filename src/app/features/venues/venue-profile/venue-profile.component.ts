@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -42,11 +42,11 @@ export class VenueProfileComponent implements OnInit {
   msgError = signal<string | null>(null);
   linkShared = signal(false);
 
-  get avgRating() {
+  readonly avgRating = computed(() => {
     const r = this.reviews();
     if (!r.length) return null;
     return (r.reduce((s, x) => s + x.rating, 0) / r.length).toFixed(1);
-  }
+  });
 
   async ngOnInit() {
     try {
@@ -54,7 +54,7 @@ export class VenueProfileComponent implements OnInit {
       const [{ data: venue }, { data: { session } }, { data: reviews }] = await Promise.all([
         this.supabase.client.from('venues').select('*').eq('id', id!).maybeSingle(),
         this.supabase.auth.getSession(),
-        this.supabase.client.from('reviews').select('*').eq('entity_type', 'venue').eq('entity_id', id!).order('created_at', { ascending: false }),
+        this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', id!).order('created_at', { ascending: false }),
       ]);
       this.venue.set(venue);
       if (venue) this.seo.setProfile(venue.name, 'venue', venue.city, venue.description, venue.avatar_url);
@@ -111,7 +111,7 @@ export class VenueProfileComponent implements OnInit {
     if (error) {
       this.reviewError.set(error.message || 'Error al guardar la reseña');
     } else {
-      const { data } = await this.supabase.client.from('reviews').select('*').eq('entity_type', 'venue').eq('entity_id', this.venue()!.id).order('created_at', { ascending: false });
+      const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', this.venue()!.id).order('created_at', { ascending: false });
       this.reviews.set(data || []);
       this.myReview.set(data?.find((r: any) => r.user_id === this.currentUserId()) || null);
       this.showReviewForm.set(false);
