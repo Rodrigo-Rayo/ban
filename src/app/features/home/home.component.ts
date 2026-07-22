@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
@@ -20,6 +20,26 @@ export class HomeComponent implements OnInit {
   auth = inject(AuthService);
   private supabase = inject(SupabaseService);
   private seo = inject(SeoService);
+
+  constructor() {
+    // Watch the auth user signal. When the user becomes available (which may be
+    // after the initial render on SPA navigation), load the profile to get the
+    // personalized city. Does NOT block the data queries in ngOnInit.
+    effect(() => {
+      const user = this.auth.user();
+      if (!user) return;
+      this.auth.loadUserProfile(user.id).then(() => {
+        const profile = this.auth.userProfileData();
+        if (!profile) return;
+        this.userProfile.set(profile);
+        this.userType.set(this.auth.userProfileType());
+        if (profile.city) {
+          this.userCity.set(profile.city);
+          try { localStorage.setItem('bandyou_city', profile.city); } catch {}
+        }
+      }).catch(() => {});
+    });
+  }
 
   recentMusicians  = signal<any[]>([]);
   recentBands      = signal<any[]>([]);
@@ -57,25 +77,10 @@ export class HomeComponent implements OnInit {
   private async loadContent() {
     try {
       // Read city from cache synchronously — no network round-trip, no timing issues.
-      // Profile is loaded in the background and doesn't block the data queries.
+      // Profile personalization is handled reactively via effect() in the constructor.
       let cachedCity = '';
       try { cachedCity = localStorage.getItem('bandyou_city') || ''; } catch {}
       this.userCity.set(cachedCity);
-
-      // Load profile in background: updates sidebar avatar/name and may refresh city.
-      this.supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) return;
-        this.auth.loadUserProfile(session.user.id).then(() => {
-          const profile = this.auth.userProfileData();
-          if (!profile) return;
-          this.userProfile.set(profile);
-          this.userType.set(this.auth.userProfileType());
-          if (profile.city) {
-            this.userCity.set(profile.city);
-            try { localStorage.setItem('bandyou_city', profile.city); } catch {}
-          }
-        }).catch((err: unknown) => console.error('[Home] fallback failed:', err));
-      }).catch((err: unknown) => console.error('[Home] fallback failed:', err));
 
       const city = this.userCity();
       const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
