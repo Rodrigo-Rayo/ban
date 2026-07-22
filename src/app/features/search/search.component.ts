@@ -83,9 +83,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.activeTab.set(tab);
       if (params['city']) {
         this.selectedCity.set(params['city']);
-      } else if (this.userCity()) {
-        // Default to user's city when no city param in URL
-        this.selectedCity.set(this.userCity());
+      } else {
+        this.selectedCity.set('Toda España');
       }
       if (params['genre'] !== undefined)   this.selectedGenre.set(params['genre'] || '');
       if (params['q'] !== undefined)       this.searchQuery.set(params['q'] || '');
@@ -119,7 +118,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   readonly hasActiveFilters = computed(() =>
     !!this.searchQuery() ||
     !!this.selectedGenre() ||
-    this.selectedCity() !== (this.userCity() || 'Toda España') ||
+    this.selectedCity() !== 'Toda España' ||
     !!this.selectedInstrument()
   );
 
