@@ -56,20 +56,26 @@ export class HomeComponent implements OnInit {
 
   private async loadContent() {
     try {
-      const { data: { session } } = await this.supabase.auth.getSession();
+      // Read city from cache synchronously — no network round-trip, no timing issues.
+      // Profile is loaded in the background and doesn't block the data queries.
+      let cachedCity = '';
+      try { cachedCity = localStorage.getItem('bandyou_city') || ''; } catch {}
+      this.userCity.set(cachedCity);
 
-      if (session) {
-        await this.auth.loadUserProfile(session.user.id);
-        const profile = this.auth.userProfileData();
-        if (profile) {
+      // Load profile in background: updates sidebar avatar/name and may refresh city.
+      this.supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) return;
+        this.auth.loadUserProfile(session.user.id).then(() => {
+          const profile = this.auth.userProfileData();
+          if (!profile) return;
           this.userProfile.set(profile);
           this.userType.set(this.auth.userProfileType());
-          this.userCity.set(profile.city || '');
           if (profile.city) {
+            this.userCity.set(profile.city);
             try { localStorage.setItem('bandyou_city', profile.city); } catch {}
           }
-        }
-      }
+        }).catch(() => {});
+      }).catch(() => {});
 
       const city = this.userCity();
       const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
