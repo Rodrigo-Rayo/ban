@@ -74,8 +74,8 @@ export class HomeComponent implements OnInit {
             this.userCity.set(profile.city);
             try { localStorage.setItem('bandyou_city', profile.city); } catch {}
           }
-        }).catch(() => {});
-      }).catch(() => {});
+        }).catch((err: unknown) => console.error('[Home] fallback failed:', err));
+      }).catch((err: unknown) => console.error('[Home] fallback failed:', err));
 
       const city = this.userCity();
       const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
@@ -149,22 +149,22 @@ export class HomeComponent implements OnInit {
       // Fallbacks run in background and update signals when ready
       if (city) {
         if ((musicians?.length ?? 0) < 6) {
-          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6))).catch(() => {});
+          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6))).catch((err: unknown) => console.error('[Home] fallback failed:', err));
         }
         if ((bands?.length ?? 0) < 6) {
-          globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6))).catch(() => {});
+          globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6))).catch((err: unknown) => console.error('[Home] fallback failed:', err));
         }
         if ((events?.length ?? 0) < 2) {
-          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d)).catch(() => {});
+          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d)).catch((err: unknown) => console.error('[Home] fallback failed:', err));
         }
         if ((venues?.length ?? 0) < 2) {
-          globalFallback('venues', 5).then(d => this.recentVenues.set(d)).catch(() => {});
+          globalFallback('venues', 5).then(d => this.recentVenues.set(d)).catch((err: unknown) => console.error('[Home] fallback failed:', err));
         }
         if ((teachers?.length ?? 0) < 2) {
-          globalFallback('teachers', 5).then(d => this.recentTeachers.set(d)).catch(() => {});
+          globalFallback('teachers', 5).then(d => this.recentTeachers.set(d)).catch((err: unknown) => console.error('[Home] fallback failed:', err));
         }
         if ((rehearsals?.length ?? 0) < 2) {
-          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d)).catch(() => {});
+          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d)).catch((err: unknown) => console.error('[Home] fallback failed:', err));
         }
       }
     } catch (err) {
