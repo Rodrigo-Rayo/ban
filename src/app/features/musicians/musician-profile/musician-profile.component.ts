@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+﻿import { Component, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -60,7 +60,7 @@ export class MusicianProfileComponent implements OnInit {
       if (session) {
         this.currentUserId.set(session.user.id);
         // isFav runs in background — doesn't block UI
-        this.favSvc.isFavorite(session.user.id, 'musician', id).then(v => this.isFav.set(v));
+        this.favSvc.isFavorite(session.user.id, 'musician', id).then(v => this.isFav.set(v)).catch(() => { /* non-critical background check */ });
       }
     } catch {
       // Profile not found: musician() stays null and the template shows the empty state.
