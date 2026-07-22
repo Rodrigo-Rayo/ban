@@ -76,17 +76,30 @@ NOT `pb-36 sm:pb-8` — between 640px and 768px the bottom nav is still visible 
 - Pill buttons (onboarding instrument/genre selection): `py-2.5 min-h-[44px]`
 - Icon-only buttons: always `min-w-[44px] min-h-[44px] flex items-center justify-center`
 - Desktop navbar icon buttons: use `min-w-[44px] min-h-[44px] flex items-center justify-center` even though they are desktop-only — hybrid devices benefit
+- Image navigation arrows (gear-detail, carousels): use `w-11 h-11` (44px) not `w-9 h-9`
+- Dot indicators in image carousels: wrap `w-2 h-2` dots in `w-8 h-8` parent buttons with `flex items-center justify-center` — never use the dot element itself as the tap target
+- Secondary action buttons (Vendido, Cancelar status buttons): `py-2 min-h-[36px]` is acceptable for secondary in-list actions when 44px would dominate the layout
 
 ## Form fields on mobile
 
 - Multi-column grids on mobile: prefer `grid-cols-1 sm:grid-cols-N` over `grid-cols-2 sm:grid-cols-3`
 - Exception: 2-column grids for very short fields (date/time side by side) are acceptable
 - Type selector pills: use `flex overflow-x-auto no-scrollbar snap-x` + `flex-shrink-0 snap-start` on items instead of `flex-wrap` to avoid multi-line pill groups
+- Number inputs: always add `inputmode="decimal"` for prices/rates, `inputmode="numeric"` for integer fields (capacity, years)
+- Search inputs: add `type="search"` for correct iOS keyboard with X clear button
+- Band member form rows: use card-based vertical layout (`flex-col gap-2` within a card) — never put name + select + delete button in a horizontal `flex` row (overflows at 320px)
+- 7-day availability pickers: use `grid grid-cols-7 gap-1` not `flex gap-1.5` — 7 × 44px buttons in flex overflows 320px viewport
 
 ## Typography on mobile
 
 - Hero headings: `text-3xl sm:text-4xl` (not `text-4xl` directly — too large at 320px)
 - Container padding: `px-5 py-8 sm:py-12` not `px-6 py-12`
+- Landing hero headline clamp: `text-[clamp(2.4rem,8vw,5.5rem)]` — 2.8rem minimum was too large for "La red musical" at 320px
+
+## Landing page specifics
+
+- Footer: `pt-8 pb-24 sm:pb-8` — the 96px bottom padding (pb-24) clears the mobile bottom nav bar. Do NOT use `py-8` which leaves the footer content obscured by the nav.
+- Hero section `pt-20` (80px) is sufficient to clear the 64px fixed navbar — no separate wrapper div needed for landing since the first `<section>` has the padding.
 
 **Why:** Mobile is the PRIMARY access channel for Bandyou users.
 **How to apply:** Apply these patterns first when designing or reviewing any feature, before considering desktop layout.
