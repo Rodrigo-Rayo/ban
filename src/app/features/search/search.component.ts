@@ -126,6 +126,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   async setTab(tab: SearchType) {
     this.activeTab.set(tab);
     this.selectedGenre.set('');
+    const hasInstrumentTab = tab === 'musicians' || tab === 'teachers' || tab === 'vacancies';
+    if (!hasInstrumentTab) this.selectedInstrument.set('');
     this.filterChanged();
   }
 
@@ -246,7 +248,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'bands') {
       let q = this.supabase.client.from('bands').select(SearchComponent.SEARCH_COLS.bands);
       if (city !== 'Toda España') q = q.eq('city', city);
-      if (genre && genre !== 'Todos') q = q.eq('genre', genre);
+      if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
       if (query) q = q.ilike('name', `%${query}%`);
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       return data || [];
@@ -266,6 +268,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       let q = this.supabase.client.from('teachers').select(SearchComponent.SEARCH_COLS.teachers);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
+      if (genre && genre !== 'Todos') q = q.ilike('specialty', `%${genre}%`);
       if (query) { q = q.ilike('name', `%${query}%`); }
       const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       return data || [];
