@@ -42,15 +42,22 @@ export class GearDetailComponent implements OnInit {
   };
 
   async ngOnInit() {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    this.currentUser.set(user);
-
-    const id = this.route.snapshot.paramMap.get('id');
-    const { data } = await this.supabase.client
-      .from('gear_listings').select('*').eq('id', id).maybeSingle();
-    this.listing.set(data);
-    if (data) this.seo.setListing(data.title, data.price, data.city);
-    this.loading.set(false);
+    try {
+      const [{ data: { user } }, listingResult] = await Promise.all([
+        this.supabase.auth.getUser(),
+        this.supabase.client.from('gear_listings').select('*')
+          .eq('id', this.route.snapshot.paramMap.get('id')!).maybeSingle(),
+      ]);
+      this.currentUser.set(user);
+      const { data, error } = listingResult;
+      if (error) { this.toast.error('No se pudo cargar el anuncio. Recarga la página.'); return; }
+      this.listing.set(data);
+      if (data) this.seo.setListing(data.title, data.price, data.city);
+    } catch {
+      this.toast.error('No se pudo cargar el anuncio. Recarga la página.');
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   get isOwner() {

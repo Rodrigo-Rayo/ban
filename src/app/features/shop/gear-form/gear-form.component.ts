@@ -53,31 +53,36 @@ export class GearFormComponent implements OnInit, OnDestroy {
   readonly cities = CITIES;
 
   async ngOnInit() {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) { this.router.navigate(['/auth/login']); return; }
-    this.currentUser.set(user);
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) { this.router.navigate(['/auth/login']); return; }
+      this.currentUser.set(user);
 
-    const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'] as const;
-    const types  = ['musician', 'band', 'venue', 'teacher', 'rehearsal'] as const;
-    const results = await Promise.all(
-      tables.map(t => this.supabase.client.from(t).select('id,name').eq('user_id', user.id).maybeSingle())
-    );
-    const idx = results.findIndex(r => r.data);
-    if (idx !== -1) this.userProfile.set({ ...results[idx].data, type: types[idx] });
+      const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'] as const;
+      const types  = ['musician', 'band', 'venue', 'teacher', 'rehearsal'] as const;
+      const results = await Promise.all(
+        tables.map(t => this.supabase.client.from(t).select('id,name').eq('user_id', user.id).maybeSingle())
+      );
+      const idx = results.findIndex(r => r.data);
+      if (idx !== -1) this.userProfile.set({ ...results[idx].data, type: types[idx] });
 
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.editId.set(id);
-      const { data: listing } = await this.supabase.client
-        .from('gear_listings').select('*').eq('id', id).eq('user_id', user.id).maybeSingle();
-      if (!listing) { this.router.navigate(['/shop']); return; }
-      this.form.title = listing.title;
-      this.form.description = listing.description ?? '';
-      this.form.price = listing.price;
-      this.form.category = listing.category;
-      this.form.condition = listing.condition;
-      this.form.city = listing.city;
-      this.existingImages.set(listing.images ?? []);
+      const id = this.route.snapshot.paramMap.get('id');
+      if (id) {
+        this.editId.set(id);
+        const { data: listing } = await this.supabase.client
+          .from('gear_listings').select('*').eq('id', id).eq('user_id', user.id).maybeSingle();
+        if (!listing) { this.router.navigate(['/shop']); return; }
+        this.form.title = listing.title;
+        this.form.description = listing.description ?? '';
+        this.form.price = listing.price;
+        this.form.category = listing.category;
+        this.form.condition = listing.condition;
+        this.form.city = listing.city;
+        this.existingImages.set(listing.images ?? []);
+      }
+    } catch {
+      this.toast.error('No se pudo cargar el formulario. Inténtalo de nuevo.');
+      this.router.navigate(['/shop']);
     }
   }
 
@@ -143,6 +148,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
 
     this.submitting.set(true);
     this.error.set('');
+    try {
 
     const newImageUrls = (await Promise.all(
       this.imageFiles.map(async (file) => {
@@ -169,7 +175,6 @@ export class GearFormComponent implements OnInit, OnDestroy {
         city:        this.form.city,
         images:      allImages,
       }).eq('id', editId).eq('user_id', user.id);
-      this.submitting.set(false);
       if (error) { this.toast.error('No se pudo guardar el anuncio. Inténtalo de nuevo.'); return; }
       this.toast.success('Anuncio actualizado.');
       this._submitted = true;
@@ -192,10 +197,14 @@ export class GearFormComponent implements OnInit, OnDestroy {
       seller_profile_id:   profile?.id ?? null,
     }).select().single();
 
-    this.submitting.set(false);
-    if (error) { this.toast.error('No se pudo publicar el anuncio. Inténtalo de nuevo.'); return; }
-    this.toast.success('Anuncio publicado.');
-    this._submitted = true;
-    this.router.navigate(['/shop', data.id]);
+      if (error) { this.toast.error('No se pudo publicar el anuncio. Inténtalo de nuevo.'); return; }
+      this.toast.success('Anuncio publicado.');
+      this._submitted = true;
+      this.router.navigate(['/shop', data.id]);
+    } catch {
+      this.toast.error('Error inesperado. Inténtalo de nuevo.');
+    } finally {
+      this.submitting.set(false);
+    }
   }
 }

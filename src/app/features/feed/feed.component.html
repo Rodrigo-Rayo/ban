@@ -100,7 +100,7 @@
     <!-- ── FILTERS ── -->
     <div class="mb-5 space-y-2.5">
       <!-- City + instrument row -->
-      <div class="flex items-center flex-wrap gap-2">
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
         <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadPosts()"
           class="bg-dark-800 border border-dark-600 hover:border-ink-muted/40 rounded-full px-3.5 py-2 text-xs text-ink outline-none focus:border-primary-500 transition-colors min-h-[44px]"
           aria-label="Filtrar por ciudad">
@@ -183,20 +183,39 @@
     <!-- ── POSTS ── -->
     @if (!loading()) {
       @if (posts().length === 0) {
-        <div class="empty-state">
-          <div class="w-16 h-16 rounded-2xl bg-dark-800 border border-dark-600 flex items-center justify-center mb-4">
-            <app-icon name="newspaper" [size]="28" class="text-ink-muted"/>
-          </div>
-          <p class="text-sm font-bold text-ink mb-2">Sin anuncios aún</p>
-          <p class="text-xs text-ink-muted mb-5">Sé el primero en publicar en tu zona</p>
-          @if (currentUser()) {
-            <button (click)="showForm.set(true)" class="btn-primary text-xs px-5 py-2">
-              Publicar anuncio
+        @if (filterCity() !== 'Toda España' || filterType() || filterInstrument()) {
+          <!-- Filtered empty state -->
+          <div class="empty-state">
+            <div class="w-16 h-16 rounded-2xl bg-dark-800 border border-dark-600 flex items-center justify-center mb-4">
+              <svg aria-hidden="true" class="w-7 h-7 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+              </svg>
+            </div>
+            <p class="text-sm font-bold text-ink mb-2">Sin resultados</p>
+            <p class="text-xs text-ink-muted mb-5 max-w-[200px]">No hay anuncios que coincidan con tus filtros</p>
+            <button (click)="filterCity.set('Toda España'); filterType.set(''); filterInstrument.set(''); loadPosts()"
+              class="btn-secondary text-sm">
+              Limpiar filtros
             </button>
-          } @else {
-            <a routerLink="/auth/register" class="btn-primary text-xs px-5 py-2">Crear cuenta gratis</a>
-          }
-        </div>
+          </div>
+        } @else {
+          <!-- Truly empty -->
+          <div class="empty-state">
+            <div class="w-16 h-16 rounded-2xl bg-dark-800 border border-dark-600 flex items-center justify-center mb-4">
+              <app-icon name="newspaper" [size]="28" class="text-ink-muted"/>
+            </div>
+            <p class="text-sm font-bold text-ink mb-2">Sin anuncios aún</p>
+            <p class="text-xs text-ink-muted mb-5">Sé el primero en publicar en tu zona</p>
+            @if (currentUser()) {
+              <button (click)="showForm.set(true)" class="btn-primary text-xs px-5 py-2">
+                Publicar anuncio
+              </button>
+            } @else {
+              <a routerLink="/auth/register" class="btn-primary text-xs px-5 py-2">Crear cuenta gratis</a>
+            }
+          </div>
+        }
       } @else {
         <div class="flex flex-col gap-3">
           @for (post of posts(); track post.id) {
@@ -304,4 +323,15 @@
     } <!-- end @if (!formOnly()) -->
 
   </div>
+
+  <!-- Mobile FAB: sticky Publicar button (hidden on lg+, covered by header button) -->
+  @if (currentUser() && !formOnly() && !showForm()) {
+    <button (click)="cancelOrToggleForm()"
+      class="fixed bottom-24 right-4 z-50 lg:hidden w-14 h-14 rounded-full bg-primary-500 hover:bg-primary-600 active:scale-95 text-white shadow-xl shadow-black/40 flex items-center justify-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+      aria-label="Nuevo anuncio">
+      <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+    </button>
+  }
 </div>

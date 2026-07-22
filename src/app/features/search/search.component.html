@@ -24,54 +24,107 @@
   <!-- ══ Sticky filter bar ══ -->
   <div class="sticky top-16 z-30 bg-dark-800/95 backdrop-blur border-b border-dark-600">
     <form role="search" aria-label="Filtros de búsqueda" (submit)="$event.preventDefault()">
-    <div class="px-4 lg:px-8 py-2.5 flex items-center gap-2 flex-wrap">
-      <!-- Search input -->
-      <div class="relative flex-1 min-w-[140px]">
-        <app-icon name="search" [size]="14" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"/>
-        <input [ngModel]="searchQuery()" (ngModelChange)="onSearchQueryChange($event)"
-          type="search"
-          placeholder="Buscar {{ tabLabel().toLowerCase() }}..."
-          aria-label="Buscar en el directorio"
-          class="w-full bg-dark-700 border border-dark-600 rounded-lg pl-7 pr-3 py-1.5 text-xs text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors"/>
-      </div>
-      <!-- City select -->
-      <select [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event); filterChanged()"
-        aria-label="Filtrar por ciudad"
-        class="bg-dark-700 border border-dark-600 rounded-lg px-2 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors max-w-[140px] truncate">
-        @for (city of cities; track city) { <option [value]="city">{{ city }}</option> }
-      </select>
-      <!-- Instrument filter (musicians & teachers) -->
-      @if (activeTab() === 'musicians' || activeTab() === 'teachers' || activeTab() === 'vacancies') {
-        <input [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
-          placeholder="Instrumento..."
-          aria-label="Filtrar por instrumento"
-          class="bg-dark-700 border border-dark-600 rounded-lg px-3 py-1.5 text-xs text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors w-36"/>
-      }
-      <!-- Reset button -->
-      @if (hasActiveFilters()) {
-        <button (click)="selectedGenre.set(''); selectedCity.set(userCity() || 'Toda España'); searchQuery.set(''); selectedInstrument.set(''); filterChanged()"
-          aria-label="Limpiar filtros"
-          class="w-7 h-7 flex items-center justify-center rounded-lg bg-dark-700 border border-dark-600 text-ink-muted hover:text-signal-red hover:border-signal-red/30 transition-colors flex-shrink-0">
-          <app-icon name="x" [size]="14"/>
-        </button>
-      }
-    </div>
-    <!-- Genre pills row -->
-    @if (activeTab() !== 'rehearsal' && activeTab() !== 'events') {
-      <div class="px-4 lg:px-8 pb-2.5 overflow-x-auto no-scrollbar">
-        <div class="flex gap-1.5 min-w-max" role="group" aria-label="Filtrar por género">
-          @for (g of genres; track g) {
-            <button (click)="selectedGenre.set(g === 'Todos' ? '' : g); filterChanged()"
-              [attr.aria-pressed]="(g === 'Todos' && !selectedGenre()) || selectedGenre() === g"
-              class="px-2.5 py-1 rounded-full text-[10px] font-semibold border whitespace-nowrap transition-all flex-shrink-0"
-              [class.genre-pill-active]="(g === 'Todos' && !selectedGenre()) || selectedGenre() === g"
-              [class.genre-pill-inactive]="(g !== 'Todos' || !!selectedGenre()) && selectedGenre() !== g">
-              {{ g }}
+
+      <!-- Row 1: Prominent search input -->
+      <div class="px-4 lg:px-8 pt-3 pb-2">
+        <div class="relative">
+          <svg aria-hidden="true" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input [ngModel]="searchQuery()" (ngModelChange)="onSearchQueryChange($event)"
+            type="search"
+            placeholder="Buscar {{ tabLabel().toLowerCase() }}..."
+            aria-label="Buscar en el directorio"
+            class="w-full bg-dark-700 border border-dark-600 rounded-xl pl-10 pr-9 py-2.5 text-sm text-ink placeholder-ink-muted outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 transition-all duration-150"/>
+          @if (searchQuery()) {
+            <button type="button" (click)="onSearchQueryChange('')"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-ink-muted hover:text-ink rounded-full hover:bg-dark-600 transition-colors"
+              aria-label="Borrar búsqueda">
+              <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
             </button>
           }
         </div>
       </div>
-    }
+
+      <!-- Row 2: Compact filters + active removable chips -->
+      <div class="px-4 lg:px-8 pb-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <!-- City select -->
+        <select [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event); filterChanged()"
+          aria-label="Filtrar por ciudad"
+          class="bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors flex-shrink-0 max-w-[130px]">
+          @for (city of cities; track city) { <option [value]="city">{{ city }}</option> }
+        </select>
+        <!-- Instrument filter -->
+        @if (activeTab() === 'musicians' || activeTab() === 'teachers' || activeTab() === 'vacancies') {
+          <input [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
+            placeholder="Instrumento..."
+            aria-label="Filtrar por instrumento"
+            class="bg-dark-700 border border-dark-600 rounded-lg px-3 py-1.5 text-xs text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors w-28 flex-shrink-0"/>
+        }
+        <!-- Active filter chips: removable -->
+        @if (selectedCity() !== 'Toda España') {
+          <button type="button" (click)="selectedCity.set(userCity() || 'Toda España'); filterChanged()"
+            class="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-900 text-primary-400 border border-primary-500/30 rounded-full px-2.5 py-1 flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
+            aria-label="Quitar filtro de ciudad">
+            <svg aria-hidden="true" class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+            </svg>
+            {{ selectedCity() }}
+            <svg aria-hidden="true" class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        }
+        @if (selectedInstrument()) {
+          <button type="button" (click)="selectedInstrument.set(''); filterChanged()"
+            class="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-900 text-primary-400 border border-primary-500/30 rounded-full px-2.5 py-1 flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
+            aria-label="Quitar filtro de instrumento">
+            {{ selectedInstrument() }}
+            <svg aria-hidden="true" class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        }
+        @if (selectedGenre()) {
+          <button type="button" (click)="selectedGenre.set(''); filterChanged()"
+            class="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-900 text-primary-400 border border-primary-500/30 rounded-full px-2.5 py-1 flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
+            aria-label="Quitar filtro de género">
+            {{ selectedGenre() }}
+            <svg aria-hidden="true" class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        }
+        <!-- Clear all -->
+        @if (hasActiveFilters()) {
+          <button type="button" (click)="selectedGenre.set(''); selectedCity.set(userCity() || 'Toda España'); searchQuery.set(''); selectedInstrument.set(''); filterChanged()"
+            aria-label="Limpiar todos los filtros"
+            class="w-7 h-7 flex items-center justify-center rounded-full bg-dark-700 border border-dark-600 text-ink-muted hover:text-signal-red hover:border-signal-red/30 transition-colors flex-shrink-0 ml-auto">
+            <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        }
+      </div>
+
+      <!-- Genre pills row -->
+      @if (activeTab() !== 'rehearsal' && activeTab() !== 'events') {
+        <div class="px-4 lg:px-8 pb-2.5 overflow-x-auto no-scrollbar">
+          <div class="flex gap-1.5 min-w-max" role="group" aria-label="Filtrar por género">
+            @for (g of genres; track g) {
+              <button (click)="selectedGenre.set(g === 'Todos' ? '' : g); filterChanged()"
+                [attr.aria-pressed]="(g === 'Todos' && !selectedGenre()) || selectedGenre() === g"
+                class="px-2.5 py-1 rounded-full text-[10px] font-semibold border whitespace-nowrap transition-all flex-shrink-0"
+                [class.genre-pill-active]="(g === 'Todos' && !selectedGenre()) || selectedGenre() === g"
+                [class.genre-pill-inactive]="(g !== 'Todos' || !!selectedGenre()) && selectedGenre() !== g">
+                {{ g }}
+              </button>
+            }
+          </div>
+        </div>
+      }
     </form>
   </div>
 

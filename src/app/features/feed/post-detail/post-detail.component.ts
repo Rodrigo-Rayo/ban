@@ -46,20 +46,26 @@ export class PostDetailComponent implements OnInit {
   ];
 
   async ngOnInit() {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    this.currentUser.set(user);
-
-    const id = this.route.snapshot.paramMap.get('id');
-    const { data } = await this.supabase.client
-      .from('posts').select('*').eq('id', id).maybeSingle();
-    this.post.set(data);
-    if (data) {
-      const typeInfo = this.postTypes.find(t => t.id === data.type);
-      const label = typeInfo?.label ?? 'Anuncio';
-      const desc = data.text?.slice(0, 155) ?? `${label} — BandYou`;
-      this.seo.set({ title: `${label} · ${data.author_name}`, description: desc, type: 'article' });
+    try {
+      const id = this.route.snapshot.paramMap.get('id');
+      const [{ data: { user } }, { data, error }] = await Promise.all([
+        this.supabase.auth.getUser(),
+        this.supabase.client.from('posts').select('*').eq('id', id!).maybeSingle(),
+      ]);
+      this.currentUser.set(user);
+      if (error) { this.toast.error('No se pudo cargar el anuncio.'); return; }
+      this.post.set(data);
+      if (data) {
+        const typeInfo = this.postTypes.find(t => t.id === data.type);
+        const label = typeInfo?.label ?? 'Anuncio';
+        const desc = data.text?.slice(0, 155) ?? `${label} — BandYou`;
+        this.seo.set({ title: `${label} · ${data.author_name}`, description: desc, type: 'article' });
+      }
+    } catch {
+      this.toast.error('No se pudo cargar el anuncio. Recarga la página.');
+    } finally {
+      this.loading.set(false);
     }
-    this.loading.set(false);
   }
 
   readonly isOwner = computed(() => this.currentUser()?.id === this.post()?.user_id);

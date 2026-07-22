@@ -63,42 +63,41 @@ export class EventFormComponent {
     }
     this.loading.set(true);
     this.error.set('');
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) { this.router.navigate(['/auth/login']); return; }
 
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) {
+      const v = this.form.value;
+      const { error, data } = await this.supabase.client
+        .from('events')
+        .insert({
+          user_id: user.id,
+          title: v.title,
+          venue: v.venue,
+          city: v.city,
+          date: v.date,
+          time: v.time,
+          genre: v.genre,
+          price: v.price != null && v.price > 0 ? String(v.price) : null,
+          description: v.description,
+          contact_email: v.contactEmail,
+          ticket_url: v.ticketUrl,
+        })
+        .select('id')
+        .single();
+
+      if (error) {
+        this.error.set('Error al crear el evento. Inténtalo de nuevo.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        this.toast.success('Evento publicado correctamente.');
+        this._submitted = true;
+        this.router.navigate(['/events', data.id]);
+      }
+    } catch {
+      this.error.set('Error inesperado. Inténtalo de nuevo.');
+    } finally {
       this.loading.set(false);
-      this.router.navigate(['/auth/login']);
-      return;
-    }
-
-    const v = this.form.value;
-
-    const { error, data } = await this.supabase.client
-      .from('events')
-      .insert({
-        user_id: user.id,
-        title: v.title,
-        venue: v.venue,
-        city: v.city,
-        date: v.date,
-        time: v.time,
-        genre: v.genre,
-        price: v.price != null && v.price > 0 ? String(v.price) : null,
-        description: v.description,
-        contact_email: v.contactEmail,
-        ticket_url: v.ticketUrl,
-      })
-      .select('id')
-      .single();
-
-    this.loading.set(false);
-    if (error) {
-      this.error.set('Error al crear el evento. Inténtalo de nuevo.');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      this.toast.success('Evento publicado correctamente.');
-      this._submitted = true;
-      this.router.navigate(['/events', data.id]);
     }
   }
 }
