@@ -13,7 +13,7 @@ export class SeoService {
     const appName = 'BandYou';
     const fullTitle = options.title ? `${options.title} · ${appName}` : `${appName} — La red musical de España`;
     const desc = options.description ?? 'Directorio de músicos, bandas, salas y profesores. Mensajes directos, agenda de eventos.';
-    const image = options.image ?? 'https://bandyou.es/assets/og-default.jpg';
+    const image = options.image ?? 'https://bandyou.es/og-default.jpg';
     const url = options.url ?? this.document.URL;
     const type = options.type ?? 'website';
 

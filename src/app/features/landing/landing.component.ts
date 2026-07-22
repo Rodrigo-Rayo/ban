@@ -77,7 +77,7 @@ export class LandingComponent implements OnInit {
       '@type': 'Organization',
       name: 'BandYou',
       url: 'https://bandyou.es',
-      logo: 'https://bandyou.es/assets/og-default.jpg',
+      logo: 'https://bandyou.es/og-default.jpg',
       description: 'La red musical de España. Conecta con músicos, bandas, salas de conciertos, profesores y locales de ensayo sin algoritmos ni intermediarios.',
       address: {
         '@type': 'PostalAddress',
