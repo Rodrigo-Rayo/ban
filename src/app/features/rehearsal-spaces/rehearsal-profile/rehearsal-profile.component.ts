@@ -184,53 +184,62 @@ export class RehearsalProfileComponent implements OnInit {
 
     this.bookingLoading.set(true);
 
-    // Overlap detection: query existing bookings for that date
-    const { data: conflicts } = await this.supabase.client
-      .from('rehearsal_bookings')
-      .select('start_time, end_time')
-      .eq('space_id', this.space()!.id)
-      .eq('date', this.bookingDate)
-      .neq('status', 'cancelled');
+    try {
+      // Overlap detection: query existing bookings for that date
+      const { data: conflicts, error: conflictError } = await this.supabase.client
+        .from('rehearsal_bookings')
+        .select('start_time, end_time')
+        .eq('space_id', this.space()!.id)
+        .eq('date', this.bookingDate)
+        .neq('status', 'cancelled');
 
-    const hasOverlap = (conflicts || []).some((c: { start_time: string; end_time: string }) =>
-      c.start_time < this.bookingEndTime && c.end_time > this.bookingStartTime
-    );
+      if (conflictError) {
+        this.bookingError.set('No se pudo verificar la disponibilidad. Inténtalo de nuevo.');
+        return;
+      }
 
-    if (hasOverlap) {
-      this.bookingError.set('Ese horario ya está ocupado. Por favor elige otro.');
-      this.bookingLoading.set(false);
-      return;
-    }
+      const hasOverlap = (conflicts || []).some((c: { start_time: string; end_time: string }) =>
+        c.start_time < this.bookingEndTime && c.end_time > this.bookingStartTime
+      );
 
-    const name = this.bookingName.trim() || await this.getAuthorName();
+      if (hasOverlap) {
+        this.bookingError.set('Ese horario ya está ocupado. Por favor elige otro.');
+        return;
+      }
 
-    const { error } = await this.supabase.client
-      .from('rehearsal_bookings')
-      .insert({
-        space_id:   this.space()!.id,
-        user_id:    this.currentUserId(),
-        date:       this.bookingDate,
-        start_time: this.bookingStartTime,
-        end_time:   this.bookingEndTime,
-        name,
-        phone:      this.bookingPhone.trim() || null,
-        message:    this.bookingNotes.trim() || null,
-        status:     'pending',
-      });
+      const name = this.bookingName.trim() || await this.getAuthorName();
 
-    this.bookingLoading.set(false);
-    if (error) {
+      const { error } = await this.supabase.client
+        .from('rehearsal_bookings')
+        .insert({
+          space_id:   this.space()!.id,
+          user_id:    this.currentUserId(),
+          date:       this.bookingDate,
+          start_time: this.bookingStartTime,
+          end_time:   this.bookingEndTime,
+          name,
+          phone:      this.bookingPhone.trim() || null,
+          message:    this.bookingNotes.trim() || null,
+          status:     'pending',
+        });
+
+      if (error) {
+        this.bookingError.set('No se pudo solicitar la reserva. Inténtalo de nuevo.');
+      } else {
+        this.bookingDone.set(true);
+        this.showBookingForm.set(false);
+        this.bookingDate = '';
+        this.bookingStartTime = '';
+        this.bookingEndTime = '';
+        this.bookingName = '';
+        this.bookingPhone = '';
+        this.bookingNotes = '';
+        this.toast.success('¡Solicitud enviada! El local confirmará tu reserva.');
+      }
+    } catch {
       this.bookingError.set('No se pudo solicitar la reserva. Inténtalo de nuevo.');
-    } else {
-      this.bookingDone.set(true);
-      this.showBookingForm.set(false);
-      this.bookingDate = '';
-      this.bookingStartTime = '';
-      this.bookingEndTime = '';
-      this.bookingName = '';
-      this.bookingPhone = '';
-      this.bookingNotes = '';
-      this.toast.success('¡Solicitud enviada! El local confirmará tu reserva.');
+    } finally {
+      this.bookingLoading.set(false);
     }
   }
 

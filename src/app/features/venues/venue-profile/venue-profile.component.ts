@@ -77,7 +77,7 @@ export class VenueProfileComponent implements OnInit {
         this.currentUserId.set(session.user.id);
         this.myReview.set(reviews?.find((r: any) => r.user_id === session.user.id) || null);
         // isFav runs in background — doesn't block the UI
-        if (venue) this.favSvc.isFavorite(session.user.id, 'venue', venue.id).then(v => this.isFav.set(v));
+        if (venue) this.favSvc.isFavorite(session.user.id, 'venue', venue.id).then(v => this.isFav.set(v)).catch(() => { /* non-critical background check */ });
       }
     } catch {
       this.toast.error('No se pudo cargar el perfil. Recarga la página.');
@@ -114,24 +114,29 @@ export class VenueProfileComponent implements OnInit {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     this.reviewLoading.set(true);
     this.reviewError.set(null);
-    const authorName = await this.getAuthorName();
-    const { error } = await this.supabase.client.from('reviews').upsert({
-      user_id: this.currentUserId(),
-      entity_type: 'venue',
-      entity_id: this.venue()!.id,
-      rating: this.reviewRating,
-      comment: this.reviewComment,
-      author_name: authorName,
-    }, { onConflict: 'user_id,entity_type,entity_id' });
-    if (error) {
+    try {
+      const authorName = await this.getAuthorName();
+      const { error } = await this.supabase.client.from('reviews').upsert({
+        user_id: this.currentUserId(),
+        entity_type: 'venue',
+        entity_id: this.venue()!.id,
+        rating: this.reviewRating,
+        comment: this.reviewComment,
+        author_name: authorName,
+      }, { onConflict: 'user_id,entity_type,entity_id' });
+      if (error) {
+        this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
+      } else {
+        const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', this.venue()!.id).order('created_at', { ascending: false });
+        this.reviews.set(data || []);
+        this.myReview.set(data?.find((r: any) => r.user_id === this.currentUserId()) || null);
+        this.showReviewForm.set(false);
+      }
+    } catch {
       this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
-    } else {
-      const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', this.venue()!.id).order('created_at', { ascending: false });
-      this.reviews.set(data || []);
-      this.myReview.set(data?.find((r: any) => r.user_id === this.currentUserId()) || null);
-      this.showReviewForm.set(false);
+    } finally {
+      this.reviewLoading.set(false);
     }
-    this.reviewLoading.set(false);
   }
 
   async sendMessage() {

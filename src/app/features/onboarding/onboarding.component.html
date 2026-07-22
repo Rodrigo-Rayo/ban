@@ -68,7 +68,7 @@
               [attr.aria-pressed]="role() === r.id"
               [ngClass]="role() === r.id
                 ? 'border-primary-500 bg-primary-500/10'
-                : 'border-dark-600 bg-dark-800 hover:border-dark-500'">
+                : 'border-dark-600 bg-dark-800 hover:border-primary-500/30'">
               <span class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                 [ngClass]="role() === r.id
                   ? 'bg-primary-500/20 text-primary-400'
@@ -160,7 +160,7 @@
               [class.border-dark-600]="!selectedInstruments().includes(inst)"
               [class.bg-dark-800]="!selectedInstruments().includes(inst)"
               [class.text-ink-muted]="!selectedInstruments().includes(inst)"
-              [class.hover:border-dark-500]="!selectedInstruments().includes(inst)">
+              [class.hover:border-primary-500]="!selectedInstruments().includes(inst)">
               {{ inst }}
             </button>
           }
@@ -406,7 +406,7 @@
                 : 'border-dark-600 bg-dark-800'">
               <span class="text-xl font-bold w-8 text-center flex-shrink-0"
                 [class.text-primary-400]="selectedLevel() === lv.id"
-                [class.text-dark-500]="selectedLevel() !== lv.id">
+                [class.text-ink-muted]="selectedLevel() !== lv.id">
                 {{ i + 1 }}
               </span>
               <div class="flex-1">

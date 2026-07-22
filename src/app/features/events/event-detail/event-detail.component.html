@@ -77,7 +77,7 @@
           @if (event()!.time) {
             <p class="text-xs font-medium mt-2.5 pt-2.5 border-t"
                [class.text-white]="!isPast()" [class.text-ink-muted]="isPast()"
-               [ngClass]="isPast() ? 'border-dark-500' : 'border-white/20'">{{ event()!.time?.slice(0,5) }}h</p>
+               [ngClass]="isPast() ? 'border-dark-600' : 'border-white/20'">{{ event()!.time?.slice(0,5) }}h</p>
           }
         </div>
 

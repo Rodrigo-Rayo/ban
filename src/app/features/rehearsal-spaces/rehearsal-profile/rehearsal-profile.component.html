@@ -195,7 +195,7 @@
                   <div class="flex items-center justify-between mb-1">
                     <span class="text-xs font-semibold text-ink">{{ r.author_name || 'Usuario' }}</span>
                     <span class="text-sm">
-                      <span class="text-primary-500">{{ '★'.repeat(r.rating) }}</span><span class="text-dark-500 opacity-50">{{ '★'.repeat(5 - r.rating) }}</span>
+                      <span class="text-primary-500">{{ '★'.repeat(r.rating) }}</span><span class="text-dark-600 opacity-60">{{ '★'.repeat(5 - r.rating) }}</span>
                     </span>
                   </div>
                   @if (r.comment) { <p class="text-xs text-ink-3 leading-relaxed">{{ r.comment }}</p> }
