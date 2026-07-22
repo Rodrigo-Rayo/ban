@@ -163,8 +163,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       if (seq !== this.fetchSeq) return;
       this.setResults(data);
       this.hasMore.set(data.length === this.LIMIT);
-    } catch {
-      // Results stay as empty arrays — user sees empty state instead of crash
+    } catch (err) {
+      console.error('[Search] fetchPage error:', err);
     } finally {
       if (seq === this.fetchSeq) this.loading.set(false);
     }
@@ -208,8 +208,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   private static readonly SEARCH_COLS = {
-    musicians:  'id,name,city,avatar_url,instrument,genre,looking_for,created_at,user_id',
-    bands:      'id,name,city,avatar_url,genre,looking_for,created_at,user_id',
+    musicians:  'id,name,city,avatar_url,instrument,genre,created_at,user_id',
+    bands:      'id,name,city,avatar_url,genre,created_at,user_id',
     venues:     'id,name,city,avatar_url,capacity,genres,created_at,user_id',
     events:     'id,title,venue,city,date,time,genre,description,created_at,user_id',
     teachers:   'id,name,city,avatar_url,instrument,hourly_rate,created_at,user_id',
