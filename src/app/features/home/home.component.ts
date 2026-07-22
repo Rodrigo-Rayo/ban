@@ -37,7 +37,7 @@ export class HomeComponent implements OnInit {
           this.userCity.set(profile.city);
           try { localStorage.setItem('bandyou_city', profile.city); } catch {}
         }
-      }).catch(() => {});
+      }).catch((err: unknown) => console.error('[Home] loadUserProfile failed:', err));
     });
   }
 
