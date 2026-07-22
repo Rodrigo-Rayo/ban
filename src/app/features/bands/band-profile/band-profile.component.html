@@ -213,10 +213,10 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-signal-green"></span>
                             Abierta
                           </span>
-                          <!-- Applicant count badge for owners (total across all vacancies) -->
-                          @if (isOwner() && applications().length > 0) {
-                            <span class="text-[10px] font-semibold text-ink-muted bg-dark-700 border border-dark-600 px-1.5 py-0.5 rounded-full">
-                              {{ applications().length }} sol.
+                          <!-- Applicant count badge per vacancy -->
+                          @if (isOwner() && vacancyApplicationCount(v.id) > 0) {
+                            <span class="text-[10px] font-semibold text-primary-400 bg-primary-900/40 border border-primary-500/25 px-1.5 py-0.5 rounded-full">
+                              {{ vacancyApplicationCount(v.id) }} sol.
                             </span>
                           }
                         </div>
@@ -352,13 +352,20 @@
                       }
                     </div>
 
-                    <!-- View profile button -->
-                    @if (app.musician?.id) {
-                      <a [routerLink]="['/musicians', app.musician.id]"
-                         class="btn-secondary text-xs px-3 py-1.5 flex-shrink-0 min-h-[44px]">
-                        Ver perfil
-                      </a>
-                    }
+                    <!-- Actions -->
+                    <div class="flex flex-col gap-2 flex-shrink-0">
+                      <button (click)="contactApplicant(app)"
+                        [disabled]="contactingApp() === app.id"
+                        class="btn-primary text-xs px-3 py-1.5 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed">
+                        {{ contactingApp() === app.id ? '...' : 'Contactar' }}
+                      </button>
+                      @if (app.musician?.id) {
+                        <a [routerLink]="['/musicians', app.musician.id]"
+                           class="btn-secondary text-xs px-3 py-1.5 text-center min-h-[44px]">
+                          Ver perfil
+                        </a>
+                      }
+                    </div>
                   </div>
                 }
               </div>

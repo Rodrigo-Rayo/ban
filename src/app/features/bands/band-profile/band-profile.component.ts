@@ -262,6 +262,25 @@ export class BandProfileComponent implements OnInit {
     this.router.navigate(['/inbox', result.id], { state: { name: this.band()!.name } });
   }
 
+  contactingApp = signal<string | null>(null);
+
+  async contactApplicant(app: any) {
+    const uid = this.currentUserId();
+    if (!uid || !app.user_id) return;
+    this.contactingApp.set(app.id);
+    const result = await this.messagesService.getOrCreateConversation(app.user_id, app.musician?.name);
+    this.contactingApp.set(null);
+    if (!result || 'error' in result) {
+      this.toast.error('No se pudo abrir la conversación.');
+      return;
+    }
+    this.router.navigate(['/inbox', result.id], { state: { name: app.musician?.name } });
+  }
+
+  vacancyApplicationCount(vacancyId: string): number {
+    return this.applications().filter(a => a.vacancy_id === vacancyId).length;
+  }
+
   async shareLink() {
     const url = `${window.location.origin}/bands/${this.band()!.id}`;
     if (navigator.share) {
