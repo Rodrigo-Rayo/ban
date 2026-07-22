@@ -7,6 +7,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
+import { INSTRUMENTS } from '../../core/constants/music.constants';
 import { avatarColor } from '../../core/utils/display.utils';
 
 type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal' | 'vacancies';
@@ -53,6 +54,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   genres = ['Todos', 'Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Reggae', 'Punk', 'Clásico', 'Experimental', 'Bossa Nova'];
   cities = CITIES_WITH_ALL;
+  instruments = INSTRUMENTS;
 
   tabs: { id: SearchType; label: string; icon: string }[] = [
     { id: 'musicians', label: 'Músicos',         icon: 'music'      },

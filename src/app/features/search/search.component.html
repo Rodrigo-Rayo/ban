@@ -58,10 +58,14 @@
         </select>
         <!-- Instrument filter -->
         @if (activeTab() === 'musicians' || activeTab() === 'teachers' || activeTab() === 'vacancies') {
-          <input [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
-            placeholder="Instrumento..."
+          <select [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
             aria-label="Filtrar por instrumento"
-            class="bg-dark-700 border border-dark-600 rounded-lg px-3 py-1.5 text-xs text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors w-28 flex-shrink-0"/>
+            class="bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors flex-shrink-0 max-w-[130px]">
+            <option value="">Instrumento</option>
+            @for (inst of instruments; track inst) {
+              <option [value]="inst">{{ inst }}</option>
+            }
+          </select>
         }
         <!-- Active filter chips: removable -->
         @if (selectedCity() !== 'Toda España') {
