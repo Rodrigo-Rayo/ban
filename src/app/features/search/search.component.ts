@@ -288,7 +288,7 @@ export class SearchComponent implements OnInit, OnDestroy {
         .from('band_vacancies')
         .select('id, instrument, description, genre, created_at, bands!inner(id, name, city, avatar_url)')
         .eq('open', true);
-      if (city !== 'Toda España') q = (q as any).eq('bands.city', city);
+      if (city !== 'Toda España') q = (q as any).filter('bands.city', 'eq', city);
       if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
       if (query) q = q.ilike('instrument', `%${query}%`);

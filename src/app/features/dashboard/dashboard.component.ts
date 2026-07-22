@@ -67,7 +67,7 @@ export class DashboardComponent implements OnInit {
         this.supabase.client.from('venues').select('*').eq('user_id', uid).maybeSingle(),
         this.supabase.client.from('teachers').select('*').eq('user_id', uid).maybeSingle(),
         this.supabase.client.from('rehearsal_spaces').select('*').eq('user_id', uid).maybeSingle(),
-        this.supabase.client.from('events').select('*').eq('user_id', uid).order('date', { ascending: false }),
+        this.supabase.client.from('events').select('*').eq('user_id', uid).order('date', { ascending: false }).limit(50),
         this.supabase.client.from('posts').select('id, type, text, city, created_at').eq('user_id', uid).order('created_at', { ascending: false }),
         this.supabase.client.from('gear_listings').select('id, title, price, status, condition, category, created_at').eq('user_id', uid).order('created_at', { ascending: false }),
         this.supabase.client.from('posts').select('id, type, text, city, author_name, created_at').order('created_at', { ascending: false }).limit(5),

@@ -8,6 +8,7 @@ import { PushNotificationService } from './push-notification.service';
 export class AuthService {
   private _session = signal<Session | null>(null);
   private _signingOut = false;
+  private _loadedUserId: string | null = null;
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   private push = inject(PushNotificationService);
@@ -68,6 +69,10 @@ export class AuthService {
   }
 
   async loadUserProfile(userId: string): Promise<void> {
+    // Skip if already loaded for this user
+    if (this.userProfileData() && this._loadedUserId === userId) return;
+    this._loadedUserId = userId;
+
     // Try localStorage first (fast path)
     try {
       const cached = localStorage.getItem('bandyou_profile_type');
@@ -103,6 +108,7 @@ export class AuthService {
   clearUserProfile() {
     this.userProfileType.set('');
     this.userProfileData.set(null);
+    this._loadedUserId = null;
     try { localStorage.removeItem('bandyou_profile_type'); } catch {}
   }
 

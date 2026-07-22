@@ -1764,3 +1764,12 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION create_notification(UUID, TEXT, TEXT, TEXT, TEXT, UUID) TO authenticated;
+
+-- ── bands: add missing columns used in band-profile component ──
+ALTER TABLE bands ADD COLUMN IF NOT EXISTS looking_for   TEXT;
+ALTER TABLE bands ADD COLUMN IF NOT EXISTS members_count INTEGER;
+
+-- ── favorites: allow favoriting events ──────────────────────
+ALTER TABLE favorites DROP CONSTRAINT IF EXISTS favorites_entity_type_check;
+ALTER TABLE favorites ADD CONSTRAINT favorites_entity_type_check
+  CHECK (entity_type IN ('musician', 'band', 'venue', 'teacher', 'rehearsal', 'event'));
