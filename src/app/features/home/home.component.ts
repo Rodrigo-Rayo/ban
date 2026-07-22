@@ -161,7 +161,8 @@ export class HomeComponent implements OnInit {
           globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d)).catch(() => {});
         }
       }
-    } catch {
+    } catch (err) {
+      console.error('[Home] loadContent error:', err);
       this.loadError.set(true);
     } finally {
       this.loading.set(false);
