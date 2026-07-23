@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -14,16 +15,17 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 })
 export class EventDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private supabase = inject(SupabaseService);
+  private favSvc = inject(FavoritesService);
   private seo = inject(SeoService);
   private toast = inject(ToastService);
 
   event = signal<any>(null);
   loading = signal(true);
   currentUserId = signal<string | null>(null);
-  isGoing = signal(false);
-  rsvpCount = signal(0);
-  rsvpLoading = signal(false);
+  isFav = signal(false);
+  favLoading = signal(false);
   linkShared = signal(false);
 
   readonly isPast = computed(() => {
@@ -71,13 +73,9 @@ export class EventDetailComponent implements OnInit {
       }
       if (session) {
         this.currentUserId.set(session.user.id);
-        // RSVP count and user RSVP status run in parallel after render
-        const [{ count }, { data: myRsvp }] = await Promise.all([
-          this.supabase.client.from('event_rsvps').select('id', { count: 'exact', head: true }).eq('event_id', id!),
-          this.supabase.client.from('event_rsvps').select('id').eq('event_id', id!).eq('user_id', session.user.id).maybeSingle(),
-        ]);
-        this.rsvpCount.set(count ?? 0);
-        this.isGoing.set(!!myRsvp);
+        if (data) {
+          this.favSvc.isFavorite(session.user.id, 'event', data.id).then(v => this.isFav.set(v));
+        }
       }
     } catch {
       this.toast.error('No se pudo cargar el evento. Recarga la página.');
@@ -86,22 +84,17 @@ export class EventDetailComponent implements OnInit {
     }
   }
 
-  async toggleRsvp() {
-    const userId = this.currentUserId();
-    const eventId = this.event()?.id;
-    if (!userId || !eventId) return;
-    this.rsvpLoading.set(true);
-    if (this.isGoing()) {
-      const { error } = await this.supabase.client.from('event_rsvps')
-        .delete().eq('event_id', eventId).eq('user_id', userId);
-      if (!error) { this.isGoing.set(false); this.rsvpCount.update(n => Math.max(0, n - 1)); }
-      else { this.toast.error('No se pudo actualizar tu asistencia. Inténtalo de nuevo.'); }
-    } else {
-      const { error } = await this.supabase.client.from('event_rsvps')
-        .insert({ event_id: eventId, user_id: userId });
-      if (!error) { this.isGoing.set(true); this.rsvpCount.update(n => n + 1); this.toast.success('¡Apuntado al evento!'); }
-      else { this.toast.error('No se pudo confirmar tu asistencia. Inténtalo de nuevo.'); }
+  async toggleFav() {
+    const uid = this.currentUserId();
+    if (!uid) { this.router.navigate(['/auth/login']); return; }
+    this.favLoading.set(true);
+    try {
+      const result = await this.favSvc.toggle(uid, 'event', this.event()!.id);
+      this.isFav.set(result);
+    } catch {
+      this.toast.error('No se pudo actualizar favoritos. Inténtalo de nuevo.');
+    } finally {
+      this.favLoading.set(false);
     }
-    this.rsvpLoading.set(false);
   }
 }

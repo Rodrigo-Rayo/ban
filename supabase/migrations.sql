@@ -1875,3 +1875,14 @@ GRANT EXECUTE ON FUNCTION create_notification(UUID, TEXT, TEXT, TEXT, TEXT, UUID
 
 -- 6. messages.text: enforce NOT NULL (consistent with the existing length constraint).
 ALTER TABLE messages ALTER COLUMN text SET NOT NULL;
+
+
+-- ── Section 41: Remove event_rsvps — replaced by favorites ────────────────────
+-- The RSVP feature has been replaced by the existing favorites system
+-- (entity_type = 'event'). The event_rsvps table is no longer used by the app.
+-- Drop it once you've confirmed no rows need to be migrated.
+--
+-- DROP TABLE IF EXISTS event_rsvps;
+--
+-- To keep production safe, this is intentionally left as a comment.
+-- Run manually in the Supabase SQL editor when ready.

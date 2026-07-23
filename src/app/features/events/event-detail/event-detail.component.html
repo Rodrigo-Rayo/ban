@@ -86,9 +86,6 @@
           <div class="flex flex-wrap gap-2 mb-3">
             @if (event()!.genre) { <span class="tag">{{ event()!.genre }}</span> }
             @if (event()!.price) { <span class="tag-accent">{{ event()!.price }}</span> }
-            @if (rsvpCount() > 0) {
-              <span class="tag">{{ rsvpCount() }} {{ rsvpCount() === 1 ? 'asistente' : 'asistentes' }}</span>
-            }
           </div>
           <h1 class="text-2xl lg:text-3xl font-bold text-ink leading-tight mb-2">{{ event()!.title }}</h1>
           <p class="text-sm text-ink-muted flex items-center gap-1.5">
@@ -113,30 +110,28 @@
           Comprar entradas
         </a>
       }
-      @if (!isPast()) {
-        @if (currentUserId()) {
-          <button (click)="toggleRsvp()" [disabled]="rsvpLoading()"
-            [attr.aria-pressed]="isGoing()"
-            [attr.aria-label]="isGoing() ? 'Cancelar asistencia' : 'Apuntarme al evento'"
-            class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-colors disabled:opacity-50 flex items-center gap-2"
-            [class.bg-primary-600]="isGoing()"
-            [class.border-primary-500]="isGoing()"
-            [class.text-white]="isGoing()"
-            [class.bg-dark-700]="!isGoing()"
-            [class.border-dark-600]="!isGoing()"
-            [class.text-ink]="!isGoing()">
-            @if (isGoing()) {
-              <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-              Asistiré
-            } @else {
-              + Apuntarme
-            }
-          </button>
-        } @else {
-          <a routerLink="/auth/login" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border border-dark-600 bg-dark-700 text-ink-muted hover:border-primary-500/50 hover:text-ink transition-colors flex items-center">
-            Inicia sesión para apuntarte
-          </a>
-        }
+      @if (currentUserId()) {
+        <button (click)="toggleFav()" [disabled]="favLoading()"
+          [attr.aria-pressed]="isFav()"
+          [attr.aria-label]="isFav() ? 'Quitar de guardados' : 'Guardar evento'"
+          class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-colors disabled:opacity-50 flex items-center gap-2"
+          [class.bg-primary-600]="isFav()"
+          [class.border-primary-500]="isFav()"
+          [class.text-white]="isFav()"
+          [class.bg-dark-700]="!isFav()"
+          [class.border-dark-600]="!isFav()"
+          [class.text-ink]="!isFav()">
+          <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+               [attr.fill]="isFav() ? 'currentColor' : 'none'">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+          {{ isFav() ? 'Guardado' : 'Guardar' }}
+        </button>
+      } @else {
+        <a routerLink="/auth/login" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border border-dark-600 bg-dark-700 text-ink-muted hover:border-primary-500/50 hover:text-ink transition-colors flex items-center">
+          Inicia sesión para guardar
+        </a>
       }
       <button (click)="shareLink()"
         class="px-4 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-colors flex items-center gap-2"
@@ -189,12 +184,6 @@
           <div class="flex justify-between px-5 py-2.5">
             <span class="text-ink-muted">Precio</span>
             <span class="font-medium text-ink">{{ +event()!.price > 0 ? (event()!.price | number:'1.0-2') + ' €' : event()!.price }}</span>
-          </div>
-        }
-        @if (rsvpCount() > 0) {
-          <div class="flex justify-between px-5 py-2.5">
-            <span class="text-ink-muted">Asistentes</span>
-            <span class="font-medium text-ink">{{ rsvpCount() }}</span>
           </div>
         }
         @if (event()!.contact_email) {
