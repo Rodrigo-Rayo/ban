@@ -1781,6 +1781,7 @@ ALTER TABLE favorites ADD CONSTRAINT favorites_entity_type_check
 --    Previous policy allowed any conversation participant to update any column
 --    as long as the new row had read=true — enabling message content tampering.
 DROP POLICY IF EXISTS "Participants can mark messages read" ON messages;
+DROP POLICY IF EXISTS "Recipients can mark messages read" ON messages;
 CREATE POLICY "Recipients can mark messages read"
   ON messages FOR UPDATE
   USING (
@@ -1797,6 +1798,7 @@ CREATE POLICY "Recipients can mark messages read"
 -- 2. conversations UPDATE: pin user columns so a participant cannot redirect
 --    a conversation to a third user they don't share a thread with.
 DROP POLICY IF EXISTS "Participants can update conversation" ON conversations;
+DROP POLICY IF EXISTS "Participants can update conversation" ON conversations;
 CREATE POLICY "Participants can update conversation"
   ON conversations FOR UPDATE
   USING (user1_id = (SELECT auth.uid()) OR user2_id = (SELECT auth.uid()))
@@ -1807,6 +1809,7 @@ CREATE POLICY "Participants can update conversation"
 
 -- 3. rehearsal_bookings: add WITH CHECK to space-owner UPDATE policy so only
 --    the status column can be changed (not name, phone, date, etc.).
+DROP POLICY IF EXISTS "Space owner can update booking status" ON rehearsal_bookings;
 DROP POLICY IF EXISTS "Space owner can update booking status" ON rehearsal_bookings;
 CREATE POLICY "Space owner can update booking status"
   ON rehearsal_bookings FOR UPDATE
@@ -1829,6 +1832,7 @@ CREATE POLICY "Space owner can update booking status"
 -- 4. event_rsvps SELECT: restrict to own records to prevent anonymous
 --    enumeration of which users attend which events.
 DROP POLICY IF EXISTS "Anyone can view RSVPs" ON event_rsvps;
+DROP POLICY IF EXISTS "Users can view their own RSVPs" ON event_rsvps;
 CREATE POLICY "Users can view their own RSVPs"
   ON event_rsvps FOR SELECT
   USING (user_id = (SELECT auth.uid()));
