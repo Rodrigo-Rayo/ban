@@ -112,7 +112,7 @@ export class BandProfileComponent implements OnInit {
       }
 
       if (band && session.user.id === band.user_id) {
-        this.loadApplications();
+        this.loadApplications().catch(err => console.error('[BandProfile] loadApplications failed:', err));
       }
     } catch {
       this.toast.error('No se pudo cargar el perfil de la banda. Inténtalo de nuevo.');
@@ -126,7 +126,7 @@ export class BandProfileComponent implements OnInit {
 
   async createVacancy() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
-    if (!this.newVacancy.instrument) return;
+    if (!this.band() || !this.newVacancy.instrument) return;
     this.vacancyLoading.set(true);
     const { data, error } = await this.supabase.client.from('band_vacancies').insert({
       band_id: this.band()!.id,
@@ -154,7 +154,8 @@ export class BandProfileComponent implements OnInit {
         .from('vacancy_applications')
         .select('*, band_vacancies(instrument)')
         .in('vacancy_id', vacancyIds)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(200);
       if (error) { this.toast.error('No se pudieron cargar las solicitudes.'); return; }
       const musicianIds = [...new Set((apps || []).map((a: any) => a.musician_id).filter(Boolean))];
       const { data: musicians } = musicianIds.length

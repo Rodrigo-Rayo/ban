@@ -58,11 +58,11 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.messageOffset = msgs.length;
       setTimeout(() => this.scrollToBottom(), 0);
 
-      this.messagesService.markAsRead(this.conversationId);
+      this.messagesService.markAsRead(this.conversationId).catch(() => {});
       if (conv) {
         this.messagesService.getOtherUserProfile(conv).then(resolved => {
           if (resolved && resolved !== 'Usuario') this.otherName.set(resolved);
-        });
+        }).catch(() => {});
       }
     } catch {
       this.sendError.set('No se pudieron cargar los mensajes. Inténtalo de nuevo.');
@@ -78,7 +78,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         );
         setTimeout(() => this.scrollToBottom(), 0);
         // Mark new message as read and refresh the navbar badge
-        this.messagesService.markAsRead(this.conversationId);
+        this.messagesService.markAsRead(this.conversationId).catch(() => {});
       }
     );
   }

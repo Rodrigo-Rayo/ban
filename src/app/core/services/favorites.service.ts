@@ -23,14 +23,17 @@ export class FavoritesService {
       return false;
     }
     const { error } = await this.supabase.client.from('favorites')
-      .insert({ user_id: userId, entity_type: entityType, entity_id: entityId });
+      .upsert(
+        { user_id: userId, entity_type: entityType, entity_id: entityId },
+        { onConflict: 'user_id,entity_type,entity_id', ignoreDuplicates: true }
+      );
     if (error) throw new Error(error.message);
     return true;
   }
 
   async getByUser(userId: string): Promise<Favorite[]> {
     const { data } = await this.supabase.client.from('favorites').select('id,user_id,entity_type,entity_id,created_at')
-      .eq('user_id', userId).order('created_at', { ascending: false });
+      .eq('user_id', userId).order('created_at', { ascending: false }).limit(200);
     return data || [];
   }
 }

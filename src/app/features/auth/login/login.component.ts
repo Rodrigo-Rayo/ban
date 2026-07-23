@@ -31,7 +31,14 @@ export class LoginComponent implements OnInit {
     this.meta.updateTag({ name: 'robots', content: 'noindex,nofollow' });
     // Display OAuth errors forwarded by the callback component (e.g. access_denied)
     const oauthError = this.route.snapshot.queryParamMap.get('error');
-    if (oauthError) this.error.set(oauthError);
+    if (oauthError) {
+      const KNOWN: Record<string, string> = {
+        'access_denied':           'Acceso denegado. Inténtalo de nuevo.',
+        'server_error':            'Error del servidor. Inténtalo más tarde.',
+        'temporarily_unavailable': 'Servicio temporalmente no disponible.',
+      };
+      this.error.set(KNOWN[oauthError] ?? 'Error de autenticación. Inténtalo de nuevo.');
+    }
   }
 
   async onSubmit() {

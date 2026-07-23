@@ -68,7 +68,7 @@ export class VenueProfileComponent implements OnInit {
           name: venue.name,
           description: venue.description || '',
           image: venue.avatar_url || '',
-          url:  + venue.id,
+          url: `https://bandyou.es/venues/${venue.id}`,
           address: { '@type': 'PostalAddress', addressLocality: venue.city || '', addressCountry: 'ES' },
         });
       }

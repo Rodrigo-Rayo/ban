@@ -78,7 +78,7 @@ export class TeacherProfileComponent implements OnInit {
           name: teacher.name,
           description: teacher.description || '',
           image: teacher.avatar_url || '',
-          url:  + teacher.id,
+          url: `https://bandyou.es/teachers/${teacher.id}`,
           hasOccupation: {
             '@type': 'Occupation',
             name: teacher.instrument ? ('Profesor de ' + teacher.instrument) : 'Profesor de música',

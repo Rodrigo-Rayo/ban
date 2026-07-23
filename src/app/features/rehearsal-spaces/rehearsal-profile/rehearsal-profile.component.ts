@@ -81,7 +81,7 @@ export class RehearsalProfileComponent implements OnInit {
           name: space.name,
           description: space.description || '',
           image: space.avatar_url || '',
-          url:  + space.id,
+          url: `https://bandyou.es/rehearsal/${space.id}`,
           address: { '@type': 'PostalAddress', addressLocality: space.city || '', addressCountry: 'ES' },
         });
       }

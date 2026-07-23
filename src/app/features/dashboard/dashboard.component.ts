@@ -68,11 +68,11 @@ export class DashboardComponent implements OnInit {
         this.supabase.client.from('teachers').select('*').eq('user_id', uid).maybeSingle(),
         this.supabase.client.from('rehearsal_spaces').select('*').eq('user_id', uid).maybeSingle(),
         this.supabase.client.from('events').select('*').eq('user_id', uid).order('date', { ascending: false }).limit(50),
-        this.supabase.client.from('posts').select('id, type, text, city, created_at').eq('user_id', uid).order('created_at', { ascending: false }),
+        this.supabase.client.from('posts').select('id, type, text, city, created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(100),
         this.supabase.client.from('gear_listings').select('id, title, price, status, images, condition, category, created_at').eq('user_id', uid).order('created_at', { ascending: false }),
         this.supabase.client.from('posts').select('id, type, text, city, author_name, created_at').order('created_at', { ascending: false }).limit(5),
         this.supabase.client.from('events').select('id, title, venue, city, date, time, genre').gte('date', new Date().toISOString().split('T')[0]).order('date', { ascending: true }).limit(4),
-        this.supabase.client.from('rehearsal_bookings').select('id, date, start_time, end_time, name, status, space_id, rehearsal_spaces(name, city)').eq('user_id', uid).order('date', { ascending: true }),
+        this.supabase.client.from('rehearsal_bookings').select('id, date, start_time, end_time, name, status, space_id, rehearsal_spaces(name, city)').eq('user_id', uid).order('date', { ascending: true }).limit(100),
         this.supabase.client.from('profiles').select('role, name').eq('id', uid).maybeSingle(),
       ]);
       if (e1 || e2 || e3 || e4 || e5) {
@@ -99,7 +99,7 @@ export class DashboardComponent implements OnInit {
 
       if (this.profileType() === 'rehearsal' && this.profile()) {
         this.activeTab.set('bookings');
-        this.loadBookings(); // fire in background for rehearsal space owners
+        this.loadBookings().catch(err => console.error('[Dashboard] loadBookings failed:', err));
       }
     } catch {
       this.toast.error('Error al cargar el panel. Recarga la página.');
@@ -109,10 +109,13 @@ export class DashboardComponent implements OnInit {
   }
 
   async loadBookings() {
+    const today = new Date().toISOString().split('T')[0];
     const { data, error } = await this.supabase.client
       .from('rehearsal_bookings').select('id,name,phone,date,start_time,end_time,message,status')
       .eq('space_id', this.profile()!.id)
-      .order('date', { ascending: true });
+      .gte('date', today)
+      .order('date', { ascending: true })
+      .limit(100);
     if (error) { this.toast.error('No se pudieron cargar las reservas.'); return; }
     this.bookings.set(data || []);
   }
@@ -323,9 +326,10 @@ export class DashboardComponent implements OnInit {
   }
 
   async cancelMyBooking(id: string) {
-    if (!confirm('¿Cancelar esta reserva?')) return;
+    const uid = this.auth.user()?.id;
+    if (!uid || !confirm('¿Cancelar esta reserva?')) return;
     const { error } = await this.supabase.client
-      .from('rehearsal_bookings').update({ status: 'cancelled' }).eq('id', id);
+      .from('rehearsal_bookings').update({ status: 'cancelled' }).eq('id', id).eq('user_id', uid);
     if (error) { this.toast.error('No se pudo cancelar la reserva.'); return; }
     this.myBookings.update(bs => bs.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
     this.toast.success('Reserva cancelada.');

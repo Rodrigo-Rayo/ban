@@ -1773,3 +1773,105 @@ ALTER TABLE bands ADD COLUMN IF NOT EXISTS members_count INTEGER;
 ALTER TABLE favorites DROP CONSTRAINT IF EXISTS favorites_entity_type_check;
 ALTER TABLE favorites ADD CONSTRAINT favorites_entity_type_check
   CHECK (entity_type IN ('musician', 'band', 'venue', 'teacher', 'rehearsal', 'event'));
+
+
+-- ── Section 40: Security hardening (audit 2026-07-23) ─────────────────────────
+
+-- 1. messages UPDATE: only the recipient can flip the read flag.
+--    Previous policy allowed any conversation participant to update any column
+--    as long as the new row had read=true — enabling message content tampering.
+DROP POLICY IF EXISTS "Participants can mark messages read" ON messages;
+CREATE POLICY "Recipients can mark messages read"
+  ON messages FOR UPDATE
+  USING (
+    sender_id <> (SELECT auth.uid())
+    AND EXISTS (
+      SELECT 1 FROM conversations
+      WHERE conversations.id = messages.conversation_id
+        AND (conversations.user1_id = (SELECT auth.uid())
+          OR conversations.user2_id = (SELECT auth.uid()))
+    )
+  )
+  WITH CHECK (read = true);
+
+-- 2. conversations UPDATE: pin user columns so a participant cannot redirect
+--    a conversation to a third user they don't share a thread with.
+DROP POLICY IF EXISTS "Participants can update conversation" ON conversations;
+CREATE POLICY "Participants can update conversation"
+  ON conversations FOR UPDATE
+  USING (user1_id = (SELECT auth.uid()) OR user2_id = (SELECT auth.uid()))
+  WITH CHECK (
+    user1_id = (SELECT c.user1_id FROM conversations c WHERE c.id = conversations.id)
+    AND user2_id = (SELECT c.user2_id FROM conversations c WHERE c.id = conversations.id)
+  );
+
+-- 3. rehearsal_bookings: add WITH CHECK to space-owner UPDATE policy so only
+--    the status column can be changed (not name, phone, date, etc.).
+DROP POLICY IF EXISTS "Space owner can update booking status" ON rehearsal_bookings;
+CREATE POLICY "Space owner can update booking status"
+  ON rehearsal_bookings FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM rehearsal_spaces
+      WHERE rehearsal_spaces.id = rehearsal_bookings.space_id
+        AND rehearsal_spaces.user_id = (SELECT auth.uid())
+    )
+  )
+  WITH CHECK (
+    status IN ('pending', 'confirmed', 'rejected', 'cancelled')
+    AND EXISTS (
+      SELECT 1 FROM rehearsal_spaces
+      WHERE rehearsal_spaces.id = rehearsal_bookings.space_id
+        AND rehearsal_spaces.user_id = (SELECT auth.uid())
+    )
+  );
+
+-- 4. event_rsvps SELECT: restrict to own records to prevent anonymous
+--    enumeration of which users attend which events.
+DROP POLICY IF EXISTS "Anyone can view RSVPs" ON event_rsvps;
+CREATE POLICY "Users can view their own RSVPs"
+  ON event_rsvps FOR SELECT
+  USING (user_id = (SELECT auth.uid()));
+
+-- 5. create_notification: add title/body length validation + tighten rate limit.
+CREATE OR REPLACE FUNCTION create_notification(
+  p_user_id     UUID,
+  p_type        TEXT,
+  p_title       TEXT,
+  p_body        TEXT  DEFAULT NULL,
+  p_entity_type TEXT  DEFAULT NULL,
+  p_entity_id   UUID  DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  recent_count INT;
+BEGIN
+  IF (SELECT auth.uid()) IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  IF char_length(p_title) > 200 THEN
+    RAISE EXCEPTION 'Notification title too long';
+  END IF;
+  IF p_body IS NOT NULL AND char_length(p_body) > 1000 THEN
+    RAISE EXCEPTION 'Notification body too long';
+  END IF;
+  SELECT COUNT(*) INTO recent_count
+  FROM notifications
+  WHERE user_id = p_user_id
+    AND created_at > now() - interval '1 hour';
+  IF recent_count >= 10 THEN
+    RAISE EXCEPTION 'Notification rate limit exceeded';
+  END IF;
+  INSERT INTO notifications (user_id, type, title, body, entity_type, entity_id)
+  VALUES (p_user_id, p_type, p_title, p_body, p_entity_type, p_entity_id);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION create_notification(UUID, TEXT, TEXT, TEXT, TEXT, UUID) TO authenticated;
+
+-- 6. messages.text: enforce NOT NULL (consistent with the existing length constraint).
+ALTER TABLE messages ALTER COLUMN text SET NOT NULL;
