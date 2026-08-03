@@ -25,23 +25,6 @@ export class ResetPasswordComponent implements OnInit {
   });
 
   async ngOnInit() {
-    const code = new URLSearchParams(window.location.search).get('code');
-
-    if (code) {
-      // Exchange the PKCE code for a session. detectSessionInUrl is disabled so
-      // Supabase never auto-consumes it — this is the only place it's exchanged.
-      const { data, error } = await this.supabase.auth.exchangeCodeForSession(code);
-      if (error || !data.session) {
-        this.error.set('El enlace ha expirado o no es válido. Solicita uno nuevo.');
-        return;
-      }
-      // Remove the code from the URL bar without triggering a new navigation.
-      window.history.replaceState({}, '', '/auth/reset-password');
-      this.sessionReady.set(true);
-      return;
-    }
-
-    // No code in URL — check for an existing recovery session (e.g. page refresh).
     const { data: { session } } = await this.supabase.auth.getSession();
     if (!session) {
       this.error.set('El enlace ha expirado o no es válido. Solicita uno nuevo.');

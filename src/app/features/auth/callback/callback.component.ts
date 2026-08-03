@@ -43,15 +43,33 @@ export class CallbackComponent implements OnInit {
     }
 
     if (code) {
-      const { data, error } = await this.supabase.auth.exchangeCodeForSession(code);
-      if (data?.session) {
-        await this.redirect(data.session.user.id);
-        return;
-      }
+      // Listen for the auth event BEFORE exchanging the code.
+      // PASSWORD_RECOVERY fires for reset links; SIGNED_IN fires for OAuth/magic-link.
+      // This is the only reliable way to distinguish recovery from a normal login
+      // without depending on URL params being preserved by Supabase's server.
+      let handled = false;
+      const { data: { subscription } } = this.supabase.auth.onAuthStateChange(async (event, session) => {
+        if (handled) return;
+        handled = true;
+        subscription.unsubscribe();
+        if (event === 'PASSWORD_RECOVERY') {
+          this.router.navigate(['/auth/reset-password']);
+        } else if (session) {
+          await this.redirect(session.user.id);
+        } else {
+          this.router.navigate(['/auth/login']);
+        }
+      });
+
+      const { error } = await this.supabase.auth.exchangeCodeForSession(code);
+
       if (error) {
+        if (!handled) { handled = true; subscription.unsubscribe(); }
         this.router.navigate(['/auth/login']);
         return;
       }
+      // onAuthStateChange already handled the navigation — nothing else to do.
+      return;
     }
 
     const { data: { session } } = await this.supabase.getSession();
