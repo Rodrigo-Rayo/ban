@@ -117,6 +117,7 @@ export class AuthService {
     this.userProfileData.set(null);
     this._loadedUserId = null;
     try { localStorage.removeItem('bandyou_profile_type'); } catch {}
+    try { localStorage.removeItem('bandyou_city'); } catch {}
   }
 
   async signOut() {
