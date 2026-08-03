@@ -8,6 +8,8 @@ class MockSupabaseService {
   private sessionUser: { id: string; email: string } | null = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private fromResponses: Map<string, any> = new Map();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private rpcResponse: any = { data: null, error: null };
 
   private _channelMock: any = {
     on: jasmine.createSpy('on').and.callFake(function(this: any) { return this; }),
@@ -18,7 +20,11 @@ class MockSupabaseService {
     from: (table: string) => this._makeBuilder(table),
     channel: jasmine.createSpy('channel').and.callFake(() => this._channelMock),
     removeChannel: jasmine.createSpy('removeChannel'),
+    rpc: jasmine.createSpy('rpc').and.callFake(() => Promise.resolve(this.rpcResponse)),
   };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setRpcResponse(response: any) { this.rpcResponse = response; }
 
   setUser(user: { id: string; email: string } | null) { this.sessionUser = user; }
 
@@ -30,6 +36,9 @@ class MockSupabaseService {
     return {
       getSession: jasmine.createSpy('getSession').and.callFake(() =>
         Promise.resolve({ data: { session: self.sessionUser ? { user: self.sessionUser } : null } })
+      ),
+      getUser: jasmine.createSpy('getUser').and.callFake(() =>
+        Promise.resolve({ data: { user: self.sessionUser }, error: null })
       ),
     };
   }
@@ -104,22 +113,39 @@ describe('MessagesService', () => {
   });
 
   describe('getMessages', () => {
-    it('returns messages ordered ascending', async () => {
+    it('presents messages oldest-first after reversing the desc fetch', async () => {
+      // Service fetches DESC (newest first), then reverses to oldest-first
       const fakeMessages: Partial<Message>[] = [
-        { id: 'msg-1', conversation_id: 'conv-1', sender_id: 'user-aaa', text: 'hello', read: false, created_at: '2024-01-01T10:00:00Z' },
         { id: 'msg-2', conversation_id: 'conv-1', sender_id: 'user-zzz', text: 'world', read: false, created_at: '2024-01-01T10:01:00Z' },
+        { id: 'msg-1', conversation_id: 'conv-1', sender_id: 'user-aaa', text: 'hello', read: false, created_at: '2024-01-01T10:00:00Z' },
       ];
       mockSupabase.setFromResponse('messages', { data: fakeMessages, error: null, count: null });
       const result = await service.getMessages('conv-1');
-      expect(result.length).toBe(2);
-      expect(result[0].id).toBe('msg-1');
-      expect(result[1].id).toBe('msg-2');
+      expect(result.messages.length).toBe(2);
+      expect(result.messages[0].id).toBe('msg-1');
+      expect(result.messages[1].id).toBe('msg-2');
     });
 
     it('returns empty array when data is null', async () => {
       mockSupabase.setFromResponse('messages', { data: null, error: null, count: null });
       const result = await service.getMessages('conv-1');
-      expect(result).toEqual([]);
+      expect(result.messages).toEqual([]);
+    });
+
+    it('sets hasMore true when returned count equals limit', async () => {
+      const msgs = Array.from({ length: 50 }, (_, i) => ({
+        id: `msg-${i}`, conversation_id: 'conv-1', sender_id: 'user-aaa', text: 'x', read: false, created_at: '',
+      }));
+      mockSupabase.setFromResponse('messages', { data: msgs, error: null, count: null });
+      const result = await service.getMessages('conv-1', 50);
+      expect(result.hasMore).toBeTrue();
+    });
+
+    it('sets hasMore false when returned count is less than limit', async () => {
+      const msgs = [{ id: 'msg-1', conversation_id: 'conv-1', sender_id: 'user-aaa', text: 'x', read: false, created_at: '' }];
+      mockSupabase.setFromResponse('messages', { data: msgs, error: null, count: null });
+      const result = await service.getMessages('conv-1', 50);
+      expect(result.hasMore).toBeFalse();
     });
   });
 
@@ -147,11 +173,10 @@ describe('MessagesService', () => {
       expect((result as Message).id).toBe('msg-new');
     });
 
-    it('returns null when insert throws an error', async () => {
+    it('throws when insert returns an error', async () => {
       mockSupabase.setUser(fakeUser);
       mockSupabase.setFromResponse('messages', { data: null, error: { message: 'insert failed' }, count: null });
-      const result = await service.sendMessage('conv-1', 'hello');
-      expect(result).toBeNull();
+      await expectAsync(service.sendMessage('conv-1', 'hello')).toBeRejectedWithError('insert failed');
     });
 
     it('inserts with field text not content', async () => {
@@ -317,32 +342,23 @@ describe('MessagesService', () => {
   });
 
   describe('deleteConversation', () => {
-    it('returns null on successful deletion when convCount is greater than zero', async () => {
+    it('returns null on successful deletion', async () => {
       mockSupabase.setUser(fakeUser);
-      mockSupabase.setFromResponse('messages', { data: null, error: null, count: 1 });
       mockSupabase.setFromResponse('conversations', { data: null, error: null, count: 1 });
       const result = await service.deleteConversation('conv-1');
       expect(result).toBeNull();
     });
 
-    it('returns error message when message deletion fails', async () => {
+    it('returns error string when conversation deletion fails', async () => {
       mockSupabase.setUser(fakeUser);
-      mockSupabase.setFromResponse('messages', { data: null, error: { message: 'msg delete error' }, count: null });
+      mockSupabase.setFromResponse('conversations', { data: null, error: { message: 'db error' }, count: null });
       const result = await service.deleteConversation('conv-1');
-      expect(result).toBe('msg delete error');
-    });
-
-    it('returns error message when conversation deletion fails', async () => {
-      mockSupabase.setUser(fakeUser);
-      mockSupabase.setFromResponse('messages', { data: null, error: null, count: 1 });
-      mockSupabase.setFromResponse('conversations', { data: null, error: { message: 'conv delete error' }, count: null });
-      const result = await service.deleteConversation('conv-1');
-      expect(result).toBe('conv delete error');
+      expect(result).toBeTruthy();
+      expect(typeof result).toBe('string');
     });
 
     it('returns permissions error message when convCount is 0', async () => {
       mockSupabase.setUser(fakeUser);
-      mockSupabase.setFromResponse('messages', { data: null, error: null, count: 0 });
       mockSupabase.setFromResponse('conversations', { data: null, error: null, count: 0 });
       const result = await service.deleteConversation('conv-1');
       expect(result).toBeTruthy();
@@ -362,15 +378,14 @@ describe('MessagesService', () => {
       expect(result).toBe('Usuario');
     });
 
-    it('returns name from first table that has data', async () => {
-      mockSupabase.setFromResponse('musicians', { data: { name: 'Marta' }, error: null, count: null });
+    it('returns name from rpc when profile exists', async () => {
+      mockSupabase.setRpcResponse({ data: 'Marta', error: null });
       const result = await service.getUserName('user-aaa');
       expect(result).toBe('Marta');
     });
 
-    it('returns Usuario when no table has data for userId', async () => {
-      const tables = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'];
-      tables.forEach(t => mockSupabase.setFromResponse(t, { data: null, error: null, count: null }));
+    it('returns Usuario when rpc returns null', async () => {
+      mockSupabase.setRpcResponse({ data: null, error: null });
       const result = await service.getUserName('user-unknown');
       expect(result).toBe('Usuario');
     });
@@ -444,29 +459,29 @@ describe('MessagesService', () => {
   describe('getOtherUserProfile', () => {
     it('returns Usuario when no user is logged in', async () => {
       mockSupabase.setUser(null);
-      const conv = { id: 'conv-1', user1_id: 'user-aaa', user2_id: 'user-zzz', user1_name: 'Alice', user2_name: 'Bob' };
+      const conv = { id: 'conv-1', user1_id: 'user-aaa', user2_id: 'user-zzz', user1_name: 'Alice', user2_name: 'Bob', last_message: null, last_message_at: null, created_at: '' };
       const result = await service.getOtherUserProfile(conv);
       expect(result).toBe('Usuario');
     });
 
     it('returns cached user2_name when current user is user1', async () => {
       mockSupabase.setUser(fakeUser);
-      const conv = { id: 'conv-1', user1_id: fakeUser.id, user2_id: otherUser.id, user1_name: 'Alice', user2_name: 'Bob' };
+      const conv = { id: 'conv-1', user1_id: fakeUser.id, user2_id: otherUser.id, user1_name: 'Alice', user2_name: 'Bob', last_message: null, last_message_at: null, created_at: '' };
       const result = await service.getOtherUserProfile(conv);
       expect(result).toBe('Bob');
     });
 
     it('returns cached user1_name when current user is user2', async () => {
       mockSupabase.setUser(fakeUser);
-      const conv = { id: 'conv-1', user1_id: otherUser.id, user2_id: fakeUser.id, user1_name: 'Alice', user2_name: 'Bob' };
+      const conv = { id: 'conv-1', user1_id: otherUser.id, user2_id: fakeUser.id, user1_name: 'Alice', user2_name: 'Bob', last_message: null, last_message_at: null, created_at: '' };
       const result = await service.getOtherUserProfile(conv);
       expect(result).toBe('Alice');
     });
 
     it('falls back to getUserName when cached name is null', async () => {
       mockSupabase.setUser(fakeUser);
-      mockSupabase.setFromResponse('musicians', { data: { name: 'FallbackName' }, error: null, count: null });
-      const conv = { id: 'conv-1', user1_id: fakeUser.id, user2_id: otherUser.id, user1_name: null, user2_name: null };
+      mockSupabase.setRpcResponse({ data: 'FallbackName', error: null });
+      const conv = { id: 'conv-1', user1_id: fakeUser.id, user2_id: otherUser.id, user1_name: null, user2_name: null, last_message: null, last_message_at: null, created_at: '' };
       const result = await service.getOtherUserProfile(conv);
       expect(result).toBe('FallbackName');
     });

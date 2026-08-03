@@ -753,6 +753,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_city_type           ON posts(city, type);
 CREATE INDEX IF NOT EXISTS idx_gear_listings_status      ON gear_listings(status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_favorites_user_id         ON favorites(user_id);
 CREATE INDEX IF NOT EXISTS idx_favorites_entity          ON favorites(user_id, entity_type);
+CREATE INDEX IF NOT EXISTS idx_favorites_lookup          ON favorites(user_id, entity_type, entity_id);
 
 
 -- ──────────────────────────────────────────────

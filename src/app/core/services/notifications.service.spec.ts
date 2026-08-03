@@ -27,6 +27,7 @@ describe('NotificationsService', () => {
     from: jasmine.Spy;
     channel: jasmine.Spy;
     removeChannel: jasmine.Spy;
+    rpc: jasmine.Spy;
   };
 
   beforeEach(() => {
@@ -34,6 +35,7 @@ describe('NotificationsService', () => {
       from: jasmine.createSpy('from'),
       channel: jasmine.createSpy('channel'),
       removeChannel: jasmine.createSpy('removeChannel'),
+      rpc: jasmine.createSpy('rpc').and.returnValue(Promise.resolve({ data: null, error: null })),
     };
 
     TestBed.configureTestingModule({
@@ -84,7 +86,7 @@ describe('NotificationsService', () => {
 
       const result = await service.getAll('user-1');
 
-      expect(result).toEqual(fakeData);
+      expect(result).toEqual(fakeData as any[]);
     });
 
     it('returns empty array when error is returned', async () => {
@@ -129,19 +131,16 @@ describe('NotificationsService', () => {
   });
 
   describe('create', () => {
-    it('calls insert() with the correct payload', async () => {
-      const builder = mockBuilder({ data: null, error: null });
-      mockClient.from.and.returnValue(builder);
-
+    it('calls rpc create_notification with the correct payload', async () => {
       await service.create('user-1', 'message', 'You have a new message', 'Hello there', 'musician', 'entity-42');
 
-      expect(builder.insert).toHaveBeenCalledWith({
-        user_id: 'user-1',
-        type: 'message',
-        title: 'You have a new message',
-        body: 'Hello there',
-        entity_type: 'musician',
-        entity_id: 'entity-42',
+      expect(mockClient.rpc).toHaveBeenCalledWith('create_notification', {
+        p_user_id: 'user-1',
+        p_type: 'message',
+        p_title: 'You have a new message',
+        p_body: 'Hello there',
+        p_entity_type: 'musician',
+        p_entity_id: 'entity-42',
       });
     });
   });

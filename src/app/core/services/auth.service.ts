@@ -4,6 +4,13 @@ import { Session } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { PushNotificationService } from './push-notification.service';
 
+interface UserProfileData {
+  id: string;
+  name: string;
+  city: string;
+  avatar_url: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private _session = signal<Session | null>(null);
@@ -17,7 +24,7 @@ export class AuthService {
   readonly user = computed(() => this._session()?.user ?? null);
   readonly isLoggedIn = computed(() => !!this._session());
   readonly userProfileType = signal<string>('');
-  readonly userProfileData = signal<any>(null);
+  readonly userProfileData = signal<UserProfileData | null>(null);
 
   constructor() {
     this.supabase.getSession()

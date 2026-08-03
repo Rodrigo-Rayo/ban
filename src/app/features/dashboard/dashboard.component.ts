@@ -10,6 +10,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { CITIES } from '../../core/constants/cities';
 import { timeAgo } from '../../core/utils/display.utils';
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -99,7 +100,7 @@ export class DashboardComponent implements OnInit {
 
       if (this.profileType() === 'rehearsal' && this.profile()) {
         this.activeTab.set('bookings');
-        this.loadBookings().catch(err => console.error('[Dashboard] loadBookings failed:', err));
+        this.loadBookings().catch(err => { if (!environment.production) console.error('[Dashboard] loadBookings failed:', err); });
       }
     } catch {
       this.toast.error('Error al cargar el panel. Recarga la página.');

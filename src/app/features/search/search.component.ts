@@ -9,6 +9,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
 import { INSTRUMENTS } from '../../core/constants/music.constants';
 import { avatarColor } from '../../core/utils/display.utils';
+import { environment } from '../../../environments/environment';
 
 type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal' | 'vacancies';
 
@@ -166,7 +167,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.setResults(data);
       this.hasMore.set(data.length === this.LIMIT);
     } catch (err) {
-      console.error('[Search] fetchPage error:', err);
+      if (!environment.production) console.error('[Search] fetchPage error:', err);
     } finally {
       if (seq === this.fetchSeq) this.loading.set(false);
     }

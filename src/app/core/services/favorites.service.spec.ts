@@ -80,7 +80,7 @@ describe('FavoritesService', () => {
       expect(secondBuilder.delete).toHaveBeenCalled();
     });
 
-    it('calls insert() and returns true when not yet a favorite', async () => {
+    it('calls upsert() and returns true when not yet a favorite', async () => {
       let callCount = 0;
       mockClient.from.and.callFake(() => {
         callCount++;
@@ -94,11 +94,10 @@ describe('FavoritesService', () => {
 
       expect(result).toBeTrue();
       const secondBuilder = mockClient.from.calls.all()[1].returnValue;
-      expect(secondBuilder.insert).toHaveBeenCalledWith({
-        user_id: 'user-1',
-        entity_type: 'musician',
-        entity_id: 'entity-1',
-      });
+      expect(secondBuilder.upsert).toHaveBeenCalledWith(
+        { user_id: 'user-1', entity_type: 'musician', entity_id: 'entity-1' },
+        jasmine.objectContaining({ onConflict: 'user_id,entity_type,entity_id' }),
+      );
     });
   });
 
@@ -110,7 +109,7 @@ describe('FavoritesService', () => {
 
       const result = await service.getByUser('user-1');
 
-      expect(result).toEqual(fakeData);
+      expect(result).toEqual(fakeData as any[]);
     });
 
     it('returns empty array when data is null', async () => {

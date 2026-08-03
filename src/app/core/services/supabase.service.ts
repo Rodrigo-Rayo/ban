@@ -11,6 +11,10 @@ export class SupabaseService {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       auth: {
+        // Disable automatic URL token processing so the callback/reset-password
+        // components can exchange the PKCE code themselves, avoiding the race
+        // condition where Supabase consumes the code before ngOnInit runs.
+        detectSessionInUrl: false,
         // Bypass Navigator Locks API — in a PWA the service worker already
         // holds the exclusive lock, so the new page instance fails immediately
         // and can't read the auth session. Single-tab PWAs don't need

@@ -6,6 +6,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { avatarColor, timeAgo } from '../../core/utils/display.utils';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -37,7 +38,7 @@ export class HomeComponent implements OnInit {
           this.userCity.set(profile.city);
           try { localStorage.setItem('bandyou_city', profile.city); } catch {}
         }
-      }).catch((err: unknown) => console.error('[Home] loadUserProfile failed:', err));
+      }).catch((err: unknown) => { if (!environment.production) console.error('[Home] loadUserProfile failed:', err); });
     });
   }
 
@@ -154,26 +155,26 @@ export class HomeComponent implements OnInit {
       // Fallbacks run in background and update signals when ready
       if (city) {
         if ((musicians?.length ?? 0) < 6) {
-          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6))).catch((err: unknown) => console.error('[Home] fallback failed:', err));
+          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6))).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((bands?.length ?? 0) < 6) {
-          globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6))).catch((err: unknown) => console.error('[Home] fallback failed:', err));
+          globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6))).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((events?.length ?? 0) < 2) {
-          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d)).catch((err: unknown) => console.error('[Home] fallback failed:', err));
+          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d)).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((venues?.length ?? 0) < 2) {
-          globalFallback('venues', 5).then(d => this.recentVenues.set(d)).catch((err: unknown) => console.error('[Home] fallback failed:', err));
+          globalFallback('venues', 5).then(d => this.recentVenues.set(d)).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((teachers?.length ?? 0) < 2) {
-          globalFallback('teachers', 5).then(d => this.recentTeachers.set(d)).catch((err: unknown) => console.error('[Home] fallback failed:', err));
+          globalFallback('teachers', 5).then(d => this.recentTeachers.set(d)).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((rehearsals?.length ?? 0) < 2) {
-          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d)).catch((err: unknown) => console.error('[Home] fallback failed:', err));
+          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d)).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
       }
     } catch (err) {
-      console.error('[Home] loadContent error:', err);
+      if (!environment.production) console.error('[Home] loadContent error:', err);
       this.loadError.set(true);
     } finally {
       this.loading.set(false);

@@ -2,11 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
+import { PushNotificationService } from './push-notification.service';
 
 describe('AuthService', () => {
   let service: AuthService;
   let supabaseSpy: jasmine.SpyObj<SupabaseService>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let pushSpy: jasmine.SpyObj<PushNotificationService>;
 
   const nullSessionResponse = { data: { session: null }, error: null };
   const authChangesStub = { data: { subscription: { unsubscribe: () => {} } } };
@@ -20,7 +22,9 @@ describe('AuthService', () => {
       'signOut',
       'authChanges',
     ]);
-    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl']);
+    pushSpy = jasmine.createSpyObj<PushNotificationService>('PushNotificationService', ['unsubscribeDevice']);
+    pushSpy.unsubscribeDevice.and.returnValue(Promise.resolve());
 
     supabaseSpy.getSession.and.returnValue(Promise.resolve(nullSessionResponse as never));
     supabaseSpy.authChanges.and.returnValue(authChangesStub as never);
@@ -30,6 +34,7 @@ describe('AuthService', () => {
         AuthService,
         { provide: SupabaseService, useValue: supabaseSpy },
         { provide: Router, useValue: routerSpy },
+        { provide: PushNotificationService, useValue: pushSpy },
       ],
     });
 

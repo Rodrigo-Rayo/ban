@@ -10,6 +10,7 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-band-profile',
@@ -112,7 +113,7 @@ export class BandProfileComponent implements OnInit {
       }
 
       if (band && session.user.id === band.user_id) {
-        this.loadApplications().catch(err => console.error('[BandProfile] loadApplications failed:', err));
+        this.loadApplications().catch(err => { if (!environment.production) console.error('[BandProfile] loadApplications failed:', err); });
       }
     } catch {
       this.toast.error('No se pudo cargar el perfil de la banda. Inténtalo de nuevo.');

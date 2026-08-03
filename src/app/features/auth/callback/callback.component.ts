@@ -22,7 +22,7 @@ export class CallbackComponent implements OnInit {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
 
-    // Detect OAuth/Supabase error in query string (e.g. access_denied)
+    // Detect OAuth/Supabase error in query string
     const oauthError = params.get('error');
     if (oauthError) {
       this.router.navigate(['/auth/login'], {
@@ -31,9 +31,7 @@ export class CallbackComponent implements OnInit {
       return;
     }
 
-    // Detect password recovery from implicit-flow hash
     const hash = new URLSearchParams(window.location.hash.substring(1));
-    const isRecovery = hash.get('type') === 'recovery';
 
     // Detect error in hash (implicit-flow error)
     const hashError = hash.get('error');
@@ -56,13 +54,8 @@ export class CallbackComponent implements OnInit {
       }
     }
 
-    // No code — session may already exist (implicit flow auto-detected from hash)
     const { data: { session } } = await this.supabase.getSession();
     if (session) {
-      if (isRecovery) {
-        this.router.navigate(['/auth/reset-password']);
-        return;
-      }
       await this.redirect(session.user.id);
       return;
     }
