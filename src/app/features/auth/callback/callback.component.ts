@@ -42,36 +42,33 @@ export class CallbackComponent implements OnInit {
       return;
     }
 
+    // Implicit flow: token delivered in URL hash (type=recovery for password resets).
+    // detectSessionInUrl auto-establishes the session before ngOnInit runs.
+    const isHashRecovery = hash.get('type') === 'recovery';
+    if (isHashRecovery) {
+      this.router.navigate(['/auth/reset-password']);
+      return;
+    }
+
     if (code) {
-      // Listen for the auth event BEFORE exchanging the code.
-      // PASSWORD_RECOVERY fires for reset links; SIGNED_IN fires for OAuth/magic-link.
-      // This is the only reliable way to distinguish recovery from a normal login
-      // without depending on URL params being preserved by Supabase's server.
+      // PKCE flow (Google OAuth). Listen for the auth event before exchanging.
       let handled = false;
       const { data: { subscription } } = this.supabase.auth.onAuthStateChange(async (event, session) => {
         if (handled) return;
         handled = true;
         subscription.unsubscribe();
-        if (event === 'PASSWORD_RECOVERY') {
-          this.router.navigate(['/auth/reset-password']);
-        } else if (session) {
-          await this.redirect(session.user.id);
-        } else {
-          this.router.navigate(['/auth/login']);
-        }
+        if (session) { await this.redirect(session.user.id); }
+        else { this.router.navigate(['/auth/login']); }
       });
-
       const { error } = await this.supabase.auth.exchangeCodeForSession(code);
-
       if (error) {
         if (!handled) { handled = true; subscription.unsubscribe(); }
         this.router.navigate(['/auth/login']);
-        return;
       }
-      // onAuthStateChange already handled the navigation — nothing else to do.
       return;
     }
 
+    // Implicit flow OAuth: session auto-established from hash, no code param.
     const { data: { session } } = await this.supabase.getSession();
     if (session) {
       await this.redirect(session.user.id);

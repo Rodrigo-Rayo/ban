@@ -11,10 +11,12 @@ export class SupabaseService {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       auth: {
-        // Disable automatic URL token processing so the callback/reset-password
-        // components can exchange the PKCE code themselves, avoiding the race
-        // condition where Supabase consumes the code before ngOnInit runs.
-        detectSessionInUrl: false,
+        // Use implicit flow for email-based auth (password reset, magic links).
+        // PKCE requires a code_verifier stored in localStorage, which breaks when
+        // the email link opens in a different browser context (Gmail app, Chrome
+        // Custom Tab, incognito). Implicit flow delivers the token in the URL
+        // hash and works across all browser contexts.
+        flowType: 'implicit',
         // Bypass Navigator Locks API — in a PWA the service worker already
         // holds the exclusive lock, so the new page instance fails immediately
         // and can't read the auth session. Single-tab PWAs don't need
