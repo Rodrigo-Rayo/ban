@@ -1,8 +1,8 @@
 import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { Location } from '@angular/common';
+import { User } from '@supabase/supabase-js';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -47,8 +47,8 @@ export class FeedComponent implements OnInit, OnDestroy {
   filterType = signal<PostType | ''>('');
   filterInstrument = signal('');
 
-  currentUser = signal<any>(null);
-  userProfile = signal<any>(null);
+  currentUser = signal<User | null>(null);
+  userProfile = signal<{ id: string; name: string; city: string; avatar_url: string | null; type: string } | null>(null);
 
   newPost = {
     type: 'musician_seeking_band' as PostType,
@@ -79,21 +79,25 @@ export class FeedComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.seo.set({ title: 'Anuncios', description: 'Anuncios de músicos, bandas y profesionales de la música en España. Publica y encuentra colaboraciones.' });
-    const { data: { user } } = await this.supabase.auth.getUser();
-    this.currentUser.set(user);
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      this.currentUser.set(user);
 
-    if (this.route.snapshot.queryParamMap.get('new') === '1') {
-      if (!user) { this.router.navigate(['/auth/login']); return; }
-      this.showForm.set(true);
-      this.formOnly.set(true);
-    }
-
-    if (user) {
-      await this.auth.loadUserProfile(user.id);
-      const profile = this.auth.userProfileData();
-      if (profile) {
-        this.userProfile.set({ ...profile, type: this.auth.userProfileType() });
+      if (this.route.snapshot.queryParamMap.get('new') === '1') {
+        if (!user) { this.router.navigate(['/auth/login']); return; }
+        this.showForm.set(true);
+        this.formOnly.set(true);
       }
+
+      if (user) {
+        await this.auth.loadUserProfile(user.id);
+        const profile = this.auth.userProfileData();
+        if (profile) {
+          this.userProfile.set({ ...profile, type: this.auth.userProfileType() });
+        }
+      }
+    } catch {
+      // Auth errors are non-fatal — continue to load posts for anonymous view
     }
 
     if (!this.formOnly()) await this.loadPosts();
@@ -135,7 +139,8 @@ export class FeedComponent implements OnInit, OnDestroy {
       if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
       if (this.filterType()) q = q.eq('type', this.filterType() as string);
       if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
-      const { data } = await q.limit(this.PAGE_SIZE);
+      const { data, error } = await q.limit(this.PAGE_SIZE);
+      if (error) { this.toast.error('No se pudieron cargar más anuncios.'); return; }
       this.posts.update(p => [...p, ...(data || [])]);
       this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
     } finally {
@@ -152,29 +157,32 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.submitting.set(true);
     this.error.set('');
 
-    const profile = this.userProfile();
-    const { error } = await this.supabase.client.from('posts').insert({
-      user_id: user.id,
-      type: this.newPost.type,
-      text: this.newPost.text.trim(),
-      city: this.newPost.city,
-      instrument: this.newPost.instrument,
-      genre: this.newPost.genre,
-      author_name: profile?.name ?? user.email?.split('@')[0] ?? 'Usuario',
-      author_profile_type: profile?.type ?? '',
-      author_profile_id: profile?.id ?? '',
-    });
+    try {
+      const profile = this.userProfile();
+      const { error } = await this.supabase.client.from('posts').insert({
+        user_id: user.id,
+        type: this.newPost.type,
+        text: this.newPost.text.trim(),
+        city: this.newPost.city,
+        instrument: this.newPost.instrument,
+        genre: this.newPost.genre,
+        author_name: profile?.name ?? user.email?.split('@')[0] ?? 'Usuario',
+        author_profile_type: profile?.type ?? '',
+        author_profile_id: profile?.id ?? '',
+      });
 
-    this.submitting.set(false);
-    if (error) {
-      this.toast.error('No se pudo publicar. Intenta de nuevo.');
-      return;
+      if (error) {
+        this.toast.error('No se pudo publicar. Intenta de nuevo.');
+        return;
+      }
+      this.newPost = { type: 'musician_seeking_band', text: '', city: 'Madrid', instrument: '', genre: '' };
+      this.showForm.set(false);
+      this.formOnly.set(false);
+      this.toast.success('Anuncio publicado.');
+      await this.loadPosts();
+    } finally {
+      this.submitting.set(false);
     }
-    this.newPost = { type: 'musician_seeking_band', text: '', city: 'Madrid', instrument: '', genre: '' };
-    this.showForm.set(false);
-    this.formOnly.set(false);
-    this.toast.success('Anuncio publicado.');
-    await this.loadPosts();
   }
 
   cancelOrToggleForm() {

@@ -8,6 +8,7 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
+import { Musician } from '../../../core/models';
 
 @Component({
   selector: 'app-musician-profile',
@@ -26,7 +27,7 @@ export class MusicianProfileComponent implements OnInit {
   private seo = inject(SeoService);
   private toast = inject(ToastService);
 
-  musician = signal<any>(null);
+  musician = signal<Musician | null>(null);
   loading = signal(true);
   isFav = signal(false);
   avatarError = signal(false);
@@ -94,11 +95,16 @@ export class MusicianProfileComponent implements OnInit {
     if (uid === musician.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);
     this.msgError.set(null);
-    const result = await this.messagesService.getOrCreateConversation(musician.user_id, musician.name);
-    this.sending.set(false);
-    if (!result) return;
-    if ('error' in result) { this.msgError.set(result.error); return; }
-    this.router.navigate(['/inbox', result.id], { state: { name: musician.name } });
+    try {
+      const result = await this.messagesService.getOrCreateConversation(musician.user_id, musician.name);
+      if (!result) return;
+      if ('error' in result) { this.msgError.set(result.error); return; }
+      this.router.navigate(['/inbox', result.id], { state: { name: musician.name } });
+    } catch {
+      this.msgError.set('No se pudo abrir la conversación.');
+    } finally {
+      this.sending.set(false);
+    }
   }
 
   async shareLink() {
@@ -108,9 +114,13 @@ export class MusicianProfileComponent implements OnInit {
     if (navigator.share) {
       await navigator.share({ title: musician.name, url }).catch(() => {});
     } else {
-      await navigator.clipboard.writeText(url);
-      this.linkShared.set(true);
-      setTimeout(() => this.linkShared.set(false), 2000);
+      try {
+        await navigator.clipboard.writeText(url);
+        this.linkShared.set(true);
+        setTimeout(() => this.linkShared.set(false), 2000);
+      } catch {
+        this.toast.error('No se pudo copiar el enlace.');
+      }
     }
   }
 

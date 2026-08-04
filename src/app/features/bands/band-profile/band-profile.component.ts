@@ -10,7 +10,19 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
+import { Band, BandVacancy, BandMember } from '../../../core/models';
 import { environment } from '../../../../environments/environment';
+
+interface VacancyApplication {
+  id: string;
+  vacancy_id: string;
+  musician_id: string;
+  user_id: string;
+  message: string | null;
+  created_at: string;
+  band_vacancies: { instrument: string } | null;
+  musician: { id: string; name: string; city: string; genre: string | null; avatar_url: string | null } | null;
+}
 
 @Component({
   selector: 'app-band-profile',
@@ -30,9 +42,9 @@ export class BandProfileComponent implements OnInit {
   private notifSvc = inject(NotificationsService);
   private toast = inject(ToastService);
 
-  band = signal<any>(null);
-  vacancies = signal<any[]>([]);
-  members = signal<any[]>([]);
+  band = signal<Band | null>(null);
+  vacancies = signal<BandVacancy[]>([]);
+  members = signal<BandMember[]>([]);
   loading = signal(true);
   currentUserId = signal<string | null>(null);
   myMusicianId = signal<string | null>(null);
@@ -56,7 +68,7 @@ export class BandProfileComponent implements OnInit {
   readonly instruments = ['Guitarra', 'Bajo', 'Batería', 'Teclados', 'Voz', 'Violín', 'Trompeta', 'Saxofón', 'Piano', 'Percusión', 'Otro'];
   readonly genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Cualquiera'];
 
-  applications = signal<any[]>([]);
+  applications = signal<VacancyApplication[]>([]);
   applicationsLoading = signal(false);
 
   async ngOnInit() {
@@ -73,8 +85,8 @@ export class BandProfileComponent implements OnInit {
       ] = await Promise.all([
         this.supabase.client.from('bands').select('*').eq('id', id).maybeSingle(),
         this.supabase.auth.getSession(),
-        this.supabase.client.from('band_vacancies').select('id, instrument, description, genre, open').eq('band_id', id).order('created_at'),
-        this.supabase.client.from('band_members').select('id, name, instrument').eq('band_id', id).order('created_at'),
+        this.supabase.client.from('band_vacancies').select('*').eq('band_id', id).order('created_at'),
+        this.supabase.client.from('band_members').select('*').eq('band_id', id).order('created_at'),
       ]);
 
       this.band.set(band);
@@ -109,7 +121,7 @@ export class BandProfileComponent implements OnInit {
         this.myMusicianUserId.set(musician.user_id);
         const { data: apps } = await this.supabase.client
           .from('vacancy_applications').select('vacancy_id').eq('musician_id', musician.id);
-        this.appliedVacancies.set((apps || []).map((a: any) => a.vacancy_id));
+        this.appliedVacancies.set((apps || []).map(a => a.vacancy_id));
       }
 
       if (band && session.user.id === band.user_id) {
@@ -122,8 +134,8 @@ export class BandProfileComponent implements OnInit {
   }
 
   readonly isOwner = computed(() => !!(this.currentUserId() && this.band()?.user_id === this.currentUserId()));
-  readonly openVacancies = computed(() => this.vacancies().filter((v: any) => v.open));
-  readonly closedVacancies = computed(() => this.vacancies().filter((v: any) => !v.open));
+  readonly openVacancies = computed(() => this.vacancies().filter(v => v.open));
+  readonly closedVacancies = computed(() => this.vacancies().filter(v => !v.open));
 
   async createVacancy() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
@@ -149,7 +161,7 @@ export class BandProfileComponent implements OnInit {
   async loadApplications() {
     this.applicationsLoading.set(true);
     try {
-      const vacancyIds = this.vacancies().map((v: any) => v.id);
+      const vacancyIds = this.vacancies().map(v => v.id);
       if (vacancyIds.length === 0) return;
       const { data: apps, error } = await this.supabase.client
         .from('vacancy_applications')
@@ -158,12 +170,12 @@ export class BandProfileComponent implements OnInit {
         .order('created_at', { ascending: false })
         .limit(200);
       if (error) { this.toast.error('No se pudieron cargar las solicitudes.'); return; }
-      const musicianIds = [...new Set((apps || []).map((a: any) => a.musician_id).filter(Boolean))];
+      const musicianIds = [...new Set((apps || []).map(a => a.musician_id).filter(Boolean))] as string[];
       const { data: musicians } = musicianIds.length
         ? await this.supabase.client.from('musicians').select('id, name, city, genre, avatar_url').in('id', musicianIds)
         : { data: [] };
-      const musicianMap = new Map((musicians || []).map((m: any) => [m.id, m]));
-      this.applications.set((apps || []).map((app: any) => ({ ...app, musician: musicianMap.get(app.musician_id) ?? null })));
+      const musicianMap = new Map((musicians || []).map(m => [m.id, m]));
+      this.applications.set((apps || []).map(app => ({ ...app, musician: musicianMap.get(app.musician_id) ?? null })) as VacancyApplication[]);
     } finally {
       this.applicationsLoading.set(false);
     }
@@ -253,15 +265,22 @@ export class BandProfileComponent implements OnInit {
 
   async sendMessage() {
     const uid = this.currentUserId();
+    const band = this.band();
     if (!uid) { this.router.navigate(['/auth/login']); return; }
-    if (uid === this.band()!.user_id) { this.router.navigate(['/inbox']); return; }
+    if (!band) return;
+    if (uid === band.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);
     this.msgError.set(null);
-    const result = await this.messagesService.getOrCreateConversation(this.band()!.user_id, this.band()!.name);
-    this.sending.set(false);
-    if (!result) return;
-    if ('error' in result) { this.msgError.set(result.error); return; }
-    this.router.navigate(['/inbox', result.id], { state: { name: this.band()!.name } });
+    try {
+      const result = await this.messagesService.getOrCreateConversation(band.user_id, band.name);
+      if (!result) return;
+      if ('error' in result) { this.msgError.set(result.error); return; }
+      this.router.navigate(['/inbox', result.id], { state: { name: band.name } });
+    } catch {
+      this.msgError.set('No se pudo abrir la conversación.');
+    } finally {
+      this.sending.set(false);
+    }
   }
 
   contactingApp = signal<string | null>(null);
@@ -284,13 +303,19 @@ export class BandProfileComponent implements OnInit {
   }
 
   async shareLink() {
-    const url = `${window.location.origin}/bands/${this.band()!.id}`;
+    const band = this.band();
+    if (!band) return;
+    const url = `${window.location.origin}/bands/${band.id}`;
     if (navigator.share) {
-      await navigator.share({ title: this.band()!.name, url }).catch(() => {});
+      await navigator.share({ title: band.name, url }).catch(() => {});
     } else {
-      await navigator.clipboard.writeText(url);
-      this.linkShared.set(true);
-      setTimeout(() => this.linkShared.set(false), 2000);
+      try {
+        await navigator.clipboard.writeText(url);
+        this.linkShared.set(true);
+        setTimeout(() => this.linkShared.set(false), 2000);
+      } catch {
+        this.toast.error('No se pudo copiar el enlace.');
+      }
     }
   }
 

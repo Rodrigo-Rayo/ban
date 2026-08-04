@@ -17,6 +17,7 @@ export interface Musician {
   youtube_url: string | null;
   instagram_url: string | null;
   soundcloud_url: string | null;
+  website_url: string | null;
   created_at: string;
 }
 
@@ -33,6 +34,7 @@ export interface Band {
   contact_email: string | null;
   spotify_url: string | null;
   youtube_url: string | null;
+  soundcloud_url: string | null;
   instagram_url: string | null;
   website_url: string | null;
   created_at: string;

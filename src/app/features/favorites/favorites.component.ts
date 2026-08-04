@@ -5,6 +5,21 @@ import { FavoritesService } from '../../core/services/favorites.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { avatarColor } from '../../core/utils/display.utils';
+import { Favorite } from '../../core/models';
+
+interface ResolvedEntity {
+  id: string;
+  name?: string | null;
+  title?: string | null;
+  city?: string | null;
+  avatar_url?: string | null;
+  instrument?: string | null;
+  genre?: string | null;
+  genres?: string | null;
+  hourly_rate?: number | null;
+  capacity?: number | null;
+  date?: string | null;
+}
 
 @Component({
   selector: 'app-favorites',
@@ -21,8 +36,8 @@ export class FavoritesComponent implements OnInit {
   loading = signal(true);
   loadError = signal(false);
   activeTab = signal('all');
-  favorites = signal<any[]>([]);
-  resolved = signal<Record<string, any>>({});
+  favorites = signal<Favorite[]>([]);
+  resolved = signal<Record<string, ResolvedEntity>>({});
 
   readonly tabs = [
     { id: 'all',       label: 'Todo' },
@@ -67,11 +82,11 @@ export class FavoritesComponent implements OnInit {
     return counts;
   });
 
-  item(fav: any) {
-    return this.resolved()[`${fav.entity_type}:${fav.entity_id}`] || null;
+  item(fav: Favorite): ResolvedEntity | null {
+    return this.resolved()[`${fav.entity_type}:${fav.entity_id}`] ?? null;
   }
 
-  route(fav: any) {
+  route(fav: Favorite) {
     return [this.routeMap[fav.entity_type] || '/', fav.entity_id];
   }
 
@@ -109,7 +124,7 @@ export class FavoritesComponent implements OnInit {
         entries.map(([type, ids]) => {
           const cols = this.entityCols[type] ?? 'id,name,city,avatar_url';
           return this.supabase.client.from(this.tableMap[type]).select(cols).in('id', ids)
-            .then(({ data }) => ({ type, data: (data as any[] | null) || [] }));
+            .then(({ data }) => ({ type, data: (data ?? []) as unknown as ResolvedEntity[] }));
         })
       );
       const map: Record<string, any> = {};

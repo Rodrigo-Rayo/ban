@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessagesService } from '../../core/services/messages.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
+import { Conversation } from '../../core/models';
 import { avatarColor } from '../../core/utils/display.utils';
 
 @Component({
@@ -21,7 +22,7 @@ export class InboxComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private toast = inject(ToastService);
 
-  conversations = signal<any[]>([]);
+  conversations = signal<Conversation[]>([]);
   names = signal<Record<string, string>>({});
   unreadIds = signal<Set<string>>(new Set());
   loading = signal(true);
@@ -69,7 +70,7 @@ export class InboxComponent implements OnInit {
       return;
     }
     this.conversations.update(convs => convs.filter(c => c.id !== id));
-    this.unreadIds.update(set => { set.delete(id); return new Set(set); });
+    this.unreadIds.update(set => new Set([...set].filter(existingId => existingId !== id)));
     this.toast.success('Conversación eliminada.');
   }
 
