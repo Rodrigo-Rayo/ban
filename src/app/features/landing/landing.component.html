@@ -42,6 +42,24 @@
 </section>
 
 
+<!-- STATS BAR ───────────────────────────────────────── -->
+@if (stats().musicians > 0 || stats().bands > 0) {
+  <section class="px-5 sm:px-8 lg:px-14 py-10 border-b border-dark-600" aria-label="Estadísticas de la comunidad">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
+        @for (item of statItems(); track item.label) {
+          <div class="text-center">
+            <div class="text-3xl sm:text-4xl font-black text-ink leading-none mb-1.5 display-serif">
+              {{ item.value }}<span class="text-primary-500 text-2xl sm:text-3xl">+</span>
+            </div>
+            <p class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{{ item.label }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+}
+
 <!-- CÓMO FUNCIONA ────────────────────────────────────── -->
 <section class="px-5 sm:px-8 lg:px-14 py-20 max-w-7xl mx-auto">
   <div class="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
@@ -125,6 +143,33 @@
   </div>
 </section>
 
+
+<!-- CTA FINAL ───────────────────────────────────────── -->
+<section class="px-5 sm:px-8 lg:px-14 py-20 max-w-7xl mx-auto text-center">
+  <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-400 mb-4">Únete a la comunidad</p>
+  <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight leading-tight mb-4">
+    Tu próxima banda<br>
+    <span class="display-serif text-primary-500">te está esperando.</span>
+  </h2>
+  <p class="text-sm text-ink-muted max-w-sm mx-auto mb-8 leading-relaxed">
+    Perfil gratuito. Sin algoritmos. Sin comisiones.
+  </p>
+  <div class="flex flex-wrap justify-center gap-3 mb-10">
+    @for (role of roles; track role.id) {
+      <a [routerLink]="['/auth/register']"
+         class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/50 hover:bg-dark-750 transition-all group cursor-pointer min-h-[44px]">
+        <span class="w-7 h-7 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all flex-shrink-0">
+          <app-icon [name]="role.icon" [size]="14"/>
+        </span>
+        <div class="text-left">
+          <div class="text-xs font-bold text-ink">{{ role.label }}</div>
+          <div class="text-[10px] text-ink-muted">{{ role.desc }}</div>
+        </div>
+      </a>
+    }
+  </div>
+  <a routerLink="/auth/register" class="btn-primary px-10 py-4 text-base">Crear perfil gratis</a>
+</section>
 
 <!-- FOOTER ───────────────────────────────────────────── -->
 <footer class="px-5 sm:px-8 lg:px-14 pt-8 pb-24 sm:pb-8 border-t border-dark-600">

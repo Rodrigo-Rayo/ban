@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { optionalUrl } from '../../../core/utils/form-validators';
 import { CITIES } from '../../../core/constants/cities';
 
 function futureDate(control: AbstractControl): ValidationErrors | null {
@@ -45,7 +46,7 @@ export class EventFormComponent {
     price: [null as number | null],
     description: ['', [Validators.maxLength(500)]],
     contactEmail: ['', [Validators.email]],
-    ticketUrl: [''],
+    ticketUrl: ['', optionalUrl],
   });
 
   @HostListener('window:beforeunload', ['$event'])

@@ -35,18 +35,86 @@
         </div>
       }
 
-      <!-- ── LOCATION INDICATOR ── -->
-      @if (userCity()) {
-        <div class="flex items-center gap-2 mb-5">
-          <span class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted bg-dark-800 border border-dark-600 px-3 py-1.5 rounded-full">
-            <svg aria-hidden="true" class="w-3 h-3 text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+      <!-- ── DISCOVERY HERO ── -->
+      <div class="relative overflow-hidden rounded-2xl mb-5 p-5" style="background: linear-gradient(135deg, #2d1109 0%, #1c0e08 55%, #120c09 100%); border: 1px solid rgba(160,68,42,0.3)">
+        <!-- Atmospheric glow -->
+        <div class="absolute -top-6 -right-6 w-36 h-36 rounded-full opacity-25 blur-2xl pointer-events-none" style="background: radial-gradient(circle, #c4623e 0%, transparent 70%)"></div>
+        <div class="relative">
+          <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-400 mb-1.5">Directorio musical</p>
+          <h2 class="text-lg font-black text-white leading-tight mb-3">¿A quién buscas hoy?</h2>
+          <!-- Fake search input — links to full search page -->
+          <a routerLink="/search" aria-label="Ir al buscador"
+             class="flex items-center gap-2.5 w-full rounded-xl px-4 py-3 text-sm text-ink-muted hover:text-ink transition-all mb-4 group"
+             style="background: rgba(15,11,7,0.65); border: 1px solid rgba(160,68,42,0.25)">
+            <svg aria-hidden="true" class="w-4 h-4 text-primary-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <span><strong class="text-ink font-semibold">{{ userCity() }}</strong></span>
-          </span>
-          <a routerLink="/search" class="text-xs font-medium text-primary-500 hover:text-primary-400 transition-colors">Ver toda España →</a>
+            <span class="group-hover:text-ink-muted transition-colors">Músicos, bandas, salas, profesores…</span>
+            <span class="ml-auto text-[10px] font-semibold text-primary-500 group-hover:text-primary-400 transition-colors flex-shrink-0">Buscar →</span>
+          </a>
+          <!-- Location + city chips -->
+          <div class="flex items-center gap-2 flex-wrap">
+            @if (userCity()) {
+              <span class="text-[10px] text-primary-400/60 font-medium flex-shrink-0">En tu zona:</span>
+              <a [routerLink]="['/search']" [queryParams]="{city: userCity()}"
+                 class="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 transition-colors"
+                 style="background: rgba(160,68,42,0.25); border: 1px solid rgba(160,68,42,0.4); color: #f4a47a">
+                <svg aria-hidden="true" class="w-2.5 h-2.5 inline mr-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+                {{ userCity() }}
+              </a>
+            }
+            <a routerLink="/search" class="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 text-ink-muted border border-dark-600 hover:border-primary-500/40 hover:text-ink transition-colors" style="background: rgba(255,255,255,0.04)">
+              Toda España
+            </a>
+          </div>
         </div>
-      }
+      </div>
+
+      <!-- ── CATEGORY QUICK-NAV ── -->
+      <nav aria-label="Categorías del directorio" class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6">
+        <a routerLink="/search" [queryParams]="userCity() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}"
+           class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
+          <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
+            <app-icon name="music" [size]="16"/>
+          </span>
+          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Músicos</span>
+        </a>
+        <a routerLink="/search" [queryParams]="userCity() ? {tab:'bands', city: userCity()} : {tab:'bands'}"
+           class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
+          <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
+            <app-icon name="mic" [size]="16"/>
+          </span>
+          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Bandas</span>
+        </a>
+        <a routerLink="/search" [queryParams]="userCity() ? {tab:'venues', city: userCity()} : {tab:'venues'}"
+           class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
+          <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
+            <app-icon name="building" [size]="16"/>
+          </span>
+          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Salas</span>
+        </a>
+        <a routerLink="/search" [queryParams]="userCity() ? {tab:'teachers', city: userCity()} : {tab:'teachers'}"
+           class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
+          <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
+            <app-icon name="book-open" [size]="16"/>
+          </span>
+          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Clases</span>
+        </a>
+        <a routerLink="/search" [queryParams]="userCity() ? {tab:'rehearsal', city: userCity()} : {tab:'rehearsal'}"
+           class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
+          <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
+            <app-icon name="headphones" [size]="16"/>
+          </span>
+          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Ensayo</span>
+        </a>
+        <a routerLink="/shop"
+           class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
+          <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
+            <app-icon name="shopping-cart" [size]="16"/>
+          </span>
+          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Equipo</span>
+        </a>
+      </nav>
 
       <!-- ── PRÓXIMOS EVENTOS ── -->
       @if (loading() || recentEvents().length > 0) {
@@ -244,22 +312,22 @@
         </div>
 
         @if (loading()) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
-            @for (i of [1,2,3,4,5,6]; track i) {
-              <div class="flex-shrink-0 w-28 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center animate-pulse">
-                <div class="w-12 h-12 rounded-full bg-dark-700 mx-auto mb-2 ring-2 ring-dark-600"></div>
-                <div class="h-2 bg-dark-700 rounded w-3/4 mx-auto mb-1.5"></div>
-                <div class="h-1.5 bg-dark-600 rounded w-1/2 mx-auto"></div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="rounded-2xl border border-dark-700 bg-dark-800 p-4 text-center animate-pulse">
+                <div class="w-14 h-14 rounded-full bg-dark-700 mx-auto mb-3 ring-2 ring-dark-600"></div>
+                <div class="h-2.5 bg-dark-700 rounded w-3/4 mx-auto mb-2"></div>
+                <div class="h-2 bg-dark-600 rounded w-1/2 mx-auto"></div>
               </div>
             }
           </div>
         } @else if (recentMusicians().length > 0) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             @for (m of recentMusicians(); track m.id) {
               <a [routerLink]="['/musicians', m.id]"
-                 class="flex-shrink-0 w-28 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group">
-                <div class="relative mx-auto mb-2.5 w-12 h-12">
-                  <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-black text-white overflow-hidden ring-2 ring-dark-600 group-hover:ring-primary-500/50 transition-all"
+                 class="rounded-2xl border border-dark-700 bg-dark-800 p-4 text-center hover:border-primary-500/50 hover:bg-dark-750 hover:-translate-y-0.5 hover:shadow-md transition-all active:scale-95 group">
+                <div class="relative mx-auto mb-3 w-14 h-14">
+                  <div class="w-14 h-14 rounded-full flex items-center justify-center text-sm font-black text-white overflow-hidden ring-2 ring-dark-600 group-hover:ring-primary-500/50 transition-all"
                        [style.background]="avatarColor(m.name)">
                     @if (m.avatar_url) {
                       <img [src]="m.avatar_url" [alt]="m.name" class="w-full h-full object-cover" loading="lazy"/>
@@ -268,15 +336,20 @@
                     }
                   </div>
                 </div>
-                <p class="text-[11px] font-bold text-ink truncate leading-tight">{{ m.name }}</p>
-                @if (m.instrument) { <p class="text-[10px] text-primary-400 truncate mt-0.5">{{ m.instrument }}</p> }
+                <p class="text-xs font-bold text-ink truncate leading-tight">{{ m.name }}</p>
+                @if (m.instrument) { <p class="text-[10px] text-primary-400 truncate mt-1">{{ m.instrument }}</p> }
                 @if (m.city) { <p class="text-[10px] text-ink-muted truncate mt-0.5">{{ m.city }}</p> }
+                <span class="mt-2 text-[9px] font-bold text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity block">Ver perfil →</span>
               </a>
             }
           </div>
         } @else {
-          <div class="flex flex-col items-center justify-center py-6 gap-3 text-center">
-            <p class="text-sm text-ink-muted">Aún no hay músicos registrados cerca de ti.</p>
+          <div class="card p-8 flex flex-col items-center gap-3 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center text-ink-muted">
+              <app-icon name="music" [size]="20"/>
+            </div>
+            <p class="text-sm font-bold text-ink">Sin músicos cerca de ti</p>
+            <p class="text-xs text-ink-muted">Amplía la búsqueda a toda España</p>
             <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="btn-primary text-xs px-5 py-2">Explorar músicos</a>
           </div>
         }
@@ -298,24 +371,24 @@
         </div>
 
         @if (loading()) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
-            @for (i of [1,2,3,4,5,6]; track i) {
-              <div class="flex-shrink-0 w-28 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center animate-pulse">
-                <div class="w-12 h-12 rounded-full bg-dark-700 mx-auto mb-2 ring-2 ring-dark-600"></div>
-                <div class="h-2 bg-dark-700 rounded w-3/4 mx-auto mb-1.5"></div>
-                <div class="h-1.5 bg-dark-600 rounded w-1/2 mx-auto"></div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            @for (i of [1,2,3,4]; track i) {
+              <div class="rounded-2xl border border-dark-700 bg-dark-800 p-4 text-center animate-pulse">
+                <div class="w-14 h-14 rounded-full bg-dark-700 mx-auto mb-3 ring-2 ring-dark-600"></div>
+                <div class="h-2.5 bg-dark-700 rounded w-3/4 mx-auto mb-2"></div>
+                <div class="h-2 bg-dark-600 rounded w-1/2 mx-auto"></div>
               </div>
             }
           </div>
         } @else if (recentBands().length > 0) {
-          <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             @for (band of recentBands(); track band.id) {
               <a [routerLink]="['/bands', band.id]"
-                 class="flex-shrink-0 w-28 lg:w-auto rounded-2xl border border-dark-700 bg-dark-800 p-3 text-center hover:border-primary-500/50 hover:bg-dark-750 transition-all active:scale-95 group relative">
+                 class="rounded-2xl border border-dark-700 bg-dark-800 p-4 text-center hover:border-primary-500/50 hover:bg-dark-750 hover:-translate-y-0.5 hover:shadow-md transition-all active:scale-95 group relative">
                 @if (band.looking_for) {
-                  <span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-signal-green"></span>
+                  <span class="absolute top-3 right-3 w-2 h-2 rounded-full bg-signal-green ring-2 ring-dark-800"></span>
                 }
-                <div class="w-12 h-12 rounded-full mx-auto mb-2.5 flex items-center justify-center text-sm font-black text-white overflow-hidden ring-2 ring-dark-600 group-hover:ring-primary-500/50 transition-all"
+                <div class="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center text-sm font-black text-white overflow-hidden ring-2 ring-dark-600 group-hover:ring-primary-500/50 transition-all"
                      [style.background]="avatarColor(band.name)">
                   @if (band.avatar_url) {
                     <img [src]="band.avatar_url" [alt]="band.name" class="w-full h-full object-cover" loading="lazy"/>
@@ -323,15 +396,24 @@
                     {{ band.name?.slice(0,2).toUpperCase() }}
                   }
                 </div>
-                <p class="text-[11px] font-bold text-ink truncate leading-tight">{{ band.name }}</p>
-                @if (band.genre) { <p class="text-[10px] text-primary-400 truncate mt-0.5">{{ band.genre }}</p> }
+                <p class="text-xs font-bold text-ink truncate leading-tight">{{ band.name }}</p>
+                @if (band.genre) { <p class="text-[10px] text-primary-400 truncate mt-1">{{ band.genre }}</p> }
                 @if (band.city) { <p class="text-[10px] text-ink-muted truncate mt-0.5">{{ band.city }}</p> }
+                @if (band.looking_for) {
+                  <span class="mt-2 inline-block text-[9px] font-bold text-signal-green">Busca miembros</span>
+                } @else {
+                  <span class="mt-2 text-[9px] font-bold text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity block">Ver banda →</span>
+                }
               </a>
             }
           </div>
         } @else {
-          <div class="flex flex-col items-center justify-center py-6 gap-3 text-center">
-            <p class="text-sm text-ink-muted">Aún no hay bandas registradas cerca de ti.</p>
+          <div class="card p-8 flex flex-col items-center gap-3 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center text-ink-muted">
+              <app-icon name="mic" [size]="20"/>
+            </div>
+            <p class="text-sm font-bold text-ink">Sin bandas cerca de ti</p>
+            <p class="text-xs text-ink-muted">Amplía la búsqueda a toda España</p>
             <a routerLink="/search" [queryParams]="{tab:'bands'}" class="btn-primary text-xs px-5 py-2">Explorar bandas</a>
           </div>
         }

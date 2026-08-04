@@ -127,6 +127,9 @@
                 Link de entradas <span class="opacity-50 normal-case">(opcional)</span>
               </label>
               <input formControlName="ticketUrl" type="url" placeholder="https://..." class="input-field"/>
+              @if (form.get('ticketUrl')?.errors?.['url'] && form.get('ticketUrl')?.touched) {
+                <p class="text-xs text-signal-red mt-1.5">Introduce una URL válida (https://...).</p>
+              }
             </div>
             <div>
               <label class="block text-xs font-semibold text-ink-muted mb-1.5">

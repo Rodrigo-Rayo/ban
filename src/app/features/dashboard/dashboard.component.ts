@@ -44,7 +44,11 @@ export class DashboardComponent implements OnInit {
   showDeleteConfirm = signal(false);
   deleteConfirmText = signal('');
   editingEventId = signal<string | null>(null);
-  editEventData: any = {};
+  editEventData: {
+    title: string; venue: string; city: string; date: string;
+    time: string; genre: string; price: string | null;
+    description: string; contact_email: string; ticket_url: string;
+  } = { title: '', venue: '', city: '', date: '', time: '', genre: '', price: null, description: '', contact_email: '', ticket_url: '' };
   editSaving = signal(false);
   readonly genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Otro'];
   readonly cities = CITIES;
@@ -175,6 +179,16 @@ export class DashboardComponent implements OnInit {
   }
 
 
+  private sanitizeUrl(value: string | null | undefined): string | null {
+    if (!value) return null;
+    try {
+      const parsed = new URL(value);
+      return (parsed.protocol === 'https:' || parsed.protocol === 'http:') ? value : null;
+    } catch {
+      return null;
+    }
+  }
+
   startEditEvent(event: any, e: Event) {
     e.preventDefault(); e.stopPropagation();
     this.editingEventId.set(event.id);
@@ -208,7 +222,7 @@ export class DashboardComponent implements OnInit {
       price: this.editEventData.price != null && +this.editEventData.price > 0 ? String(this.editEventData.price) : null,
       description: this.editEventData.description || null,
       contact_email: this.editEventData.contact_email || null,
-      ticket_url: this.editEventData.ticket_url || null,
+      ticket_url: this.sanitizeUrl(this.editEventData.ticket_url),
     }).eq('id', id).eq('user_id', uid);
     this.editSaving.set(false);
     if (error) { this.toast.error('No se pudo guardar el evento.'); return; }
@@ -301,7 +315,8 @@ export class DashboardComponent implements OnInit {
   }
 
   conditionLabel(c: string) {
-    return ({ new: 'Nuevo', like_new: 'Como nuevo', good: 'Bueno', acceptable: 'Aceptable' } as any)[c] ?? c;
+    const map: Record<string, string> = { new: 'Nuevo', like_new: 'Como nuevo', good: 'Bueno', acceptable: 'Aceptable' };
+    return map[c] ?? c;
   }
 
   openDeleteConfirm() {
