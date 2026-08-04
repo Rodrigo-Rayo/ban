@@ -262,8 +262,8 @@
             @for (item of recentListings(); track item.id) {
               <a [routerLink]="['/shop', item.id]" class="card overflow-hidden group/card hover:border-primary-500/40 transition-all active:scale-95 flex-shrink-0 w-36 lg:w-auto">
                 <div class="h-28 relative overflow-hidden bg-dark-750">
-                  @if (item.images?.length > 0) {
-                    <img [src]="item.images[0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"/>
+                  @if ((item.images?.length ?? 0) > 0) {
+                    <img [src]="item.images![0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"/>
                   } @else {
                     <div class="w-full h-full flex items-center justify-center text-ink-muted/20">
                       <app-icon name="shopping-cart" [size]="24"/>
@@ -332,7 +332,7 @@
                     @if (m.avatar_url) {
                       <img [src]="m.avatar_url" [alt]="m.name" class="w-full h-full object-cover" loading="lazy"/>
                     } @else {
-                      {{ m.name?.slice(0,2).toUpperCase() }}
+                      {{ m.name.slice(0,2).toUpperCase() }}
                     }
                   </div>
                 </div>
@@ -393,7 +393,7 @@
                   @if (band.avatar_url) {
                     <img [src]="band.avatar_url" [alt]="band.name" class="w-full h-full object-cover" loading="lazy"/>
                   } @else {
-                    {{ band.name?.slice(0,2).toUpperCase() }}
+                    {{ band.name.slice(0,2).toUpperCase() }}
                   }
                 </div>
                 <p class="text-xs font-bold text-ink truncate leading-tight">{{ band.name }}</p>
@@ -474,7 +474,7 @@
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
                      [style.background]="avatarColor(r.name)">
                   @if (r.avatar_url) { <img [src]="r.avatar_url" [alt]="r.name" class="w-full h-full object-cover" loading="lazy"/> }
-                  @else { {{ r.name?.slice(0,2).toUpperCase() }} }
+                  @else { {{ r.name.slice(0,2).toUpperCase() }} }
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ r.name }}</p>
@@ -517,7 +517,7 @@
                 <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
                      [style.background]="avatarColor(t.name)">
                   @if (t.avatar_url) { <img [src]="t.avatar_url" [alt]="t.name" class="w-full h-full object-cover" loading="lazy"/> }
-                  @else { {{ t.name?.slice(0,2).toUpperCase() }} }
+                  @else { {{ t.name.slice(0,2).toUpperCase() }} }
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ t.name }}</p>
@@ -560,7 +560,7 @@
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden"
                      [style.background]="avatarColor(venue.name)">
                   @if (venue.avatar_url) { <img [src]="venue.avatar_url" [alt]="venue.name" class="w-full h-full object-cover" loading="lazy"/> }
-                  @else { {{ venue.name?.slice(0,2).toUpperCase() }} }
+                  @else { {{ venue.name.slice(0,2).toUpperCase() }} }
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ venue.name }}</p>

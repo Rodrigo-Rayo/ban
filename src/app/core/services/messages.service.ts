@@ -72,13 +72,13 @@ export class MessagesService {
     return created ? { id: created.id } : null;
   }
 
-  async getConversationById(conversationId: string) {
+  async getConversationById(conversationId: string): Promise<Conversation | null> {
     const { data } = await this.supabase.client
       .from('conversations')
       .select('*')
       .eq('id', conversationId)
       .maybeSingle();
-    return data;
+    return (data as Conversation) ?? null;
   }
 
   async deleteConversation(conversationId: string): Promise<string | null> {

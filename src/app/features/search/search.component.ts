@@ -13,6 +13,14 @@ import { environment } from '../../../environments/environment';
 
 type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal' | 'vacancies';
 
+interface MusicianResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; genre: string; created_at: string; user_id: string; }
+interface BandResult { id: string; name: string; city: string; avatar_url: string | null; genre: string; looking_for?: string | null; created_at: string; user_id: string; }
+interface VenueResult { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; genres: string | null; created_at: string; user_id: string; }
+interface EventResult { id: string; title: string; venue: string; city: string; date: string; time: string | null; genre: string; description: string | null; price?: string | null; created_at: string; user_id: string; }
+interface TeacherResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; hourly_rate: number | null; modality?: string | null; created_at: string; user_id: string; }
+interface RehearsalResult { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate: number | null; rooms_count?: number | null; created_at: string; user_id: string; }
+interface VacancyResult { id: string; instrument: string; description: string | null; genre: string | null; created_at: string; bands: { id: string; name: string; city: string; avatar_url: string | null } | null; }
+
 @Component({
   selector: 'app-search',
   standalone: true,
@@ -44,13 +52,13 @@ export class SearchComponent implements OnInit, OnDestroy {
   private fetchSeq = 0;
   private searchDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 
-  musicians = signal<any[]>([]);
-  events = signal<any[]>([]);
-  bands = signal<any[]>([]);
-  venues = signal<any[]>([]);
-  teachers = signal<any[]>([]);
-  rehearsals = signal<any[]>([]);
-  vacancyResults = signal<any[]>([]);
+  musicians      = signal<MusicianResult[]>([]);
+  events         = signal<EventResult[]>([]);
+  bands          = signal<BandResult[]>([]);
+  venues         = signal<VenueResult[]>([]);
+  teachers       = signal<TeacherResult[]>([]);
+  rehearsals     = signal<RehearsalResult[]>([]);
+  vacancyResults = signal<VacancyResult[]>([]);
 
 
   genres = ['Todos', 'Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Reggae', 'Punk', 'Clásico', 'Experimental', 'Bossa Nova'];
@@ -188,38 +196,38 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
   }
 
-  private setResults(data: any[]) {
+  private setResults(data: unknown[]) {
     const tab = this.activeTab();
-    if (tab === 'musicians') this.musicians.set(data);
-    else if (tab === 'events') this.events.set(data);
-    else if (tab === 'bands') this.bands.set(data);
-    else if (tab === 'venues') this.venues.set(data);
-    else if (tab === 'teachers') this.teachers.set(data);
-    else if (tab === 'rehearsal') this.rehearsals.set(data);
-    else if (tab === 'vacancies') this.vacancyResults.set(data);
+    if (tab === 'musicians') this.musicians.set(data as MusicianResult[]);
+    else if (tab === 'events') this.events.set(data as EventResult[]);
+    else if (tab === 'bands') this.bands.set(data as BandResult[]);
+    else if (tab === 'venues') this.venues.set(data as VenueResult[]);
+    else if (tab === 'teachers') this.teachers.set(data as TeacherResult[]);
+    else if (tab === 'rehearsal') this.rehearsals.set(data as RehearsalResult[]);
+    else if (tab === 'vacancies') this.vacancyResults.set(data as VacancyResult[]);
   }
 
-  private appendResults(data: any[]) {
+  private appendResults(data: unknown[]) {
     const tab = this.activeTab();
-    if (tab === 'musicians') this.musicians.update(r => [...r, ...data]);
-    else if (tab === 'events') this.events.update(r => [...r, ...data]);
-    else if (tab === 'bands') this.bands.update(r => [...r, ...data]);
-    else if (tab === 'venues') this.venues.update(r => [...r, ...data]);
-    else if (tab === 'teachers') this.teachers.update(r => [...r, ...data]);
-    else if (tab === 'rehearsal') this.rehearsals.update(r => [...r, ...data]);
-    else if (tab === 'vacancies') this.vacancyResults.update(r => [...r, ...data]);
+    if (tab === 'musicians') this.musicians.update(r => [...r, ...data as MusicianResult[]]);
+    else if (tab === 'events') this.events.update(r => [...r, ...data as EventResult[]]);
+    else if (tab === 'bands') this.bands.update(r => [...r, ...data as BandResult[]]);
+    else if (tab === 'venues') this.venues.update(r => [...r, ...data as VenueResult[]]);
+    else if (tab === 'teachers') this.teachers.update(r => [...r, ...data as TeacherResult[]]);
+    else if (tab === 'rehearsal') this.rehearsals.update(r => [...r, ...data as RehearsalResult[]]);
+    else if (tab === 'vacancies') this.vacancyResults.update(r => [...r, ...data as VacancyResult[]]);
   }
 
   private static readonly SEARCH_COLS = {
     musicians:  'id,name,city,avatar_url,instrument,genre,created_at,user_id',
     bands:      'id,name,city,avatar_url,genre,created_at,user_id',
     venues:     'id,name,city,avatar_url,capacity,genres,created_at,user_id',
-    events:     'id,title,venue,city,date,time,genre,description,created_at,user_id',
-    teachers:   'id,name,city,avatar_url,instrument,hourly_rate,created_at,user_id',
-    rehearsal:  'id,name,city,avatar_url,capacity,hourly_rate,created_at,user_id',
+    events:     'id,title,venue,city,date,time,genre,description,price,created_at,user_id',
+    teachers:   'id,name,city,avatar_url,instrument,hourly_rate,modality,created_at,user_id',
+    rehearsal:  'id,name,city,avatar_url,capacity,hourly_rate,rooms_count,created_at,user_id',
   } as const;
 
-  private async fetchPage(offset: number): Promise<any[]> {
+  private async fetchPage(offset: number): Promise<unknown[]> {
     const tab = this.activeTab();
     const city = this.selectedCity();
     const genre = this.selectedGenre();
@@ -289,6 +297,7 @@ export class SearchComponent implements OnInit, OnDestroy {
         .from('band_vacancies')
         .select('id, instrument, description, genre, created_at, bands!inner(id, name, city, avatar_url)')
         .eq('open', true);
+      // Supabase TS types don't expose dot-notation foreign table filters; cast is intentional
       if (city !== 'Toda España') q = (q as any).filter('bands.city', 'eq', city);
       if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);

@@ -100,7 +100,7 @@ export class AuthService {
           .select('id, name, city, avatar_url')
           .eq('user_id', userId)
           .maybeSingle()
-          .then(({ data }: { data: any }) => data ? { data, type } : null)
+          .then(({ data }: { data: UserProfileData | null }) => data ? { data, type } : null)
       )
     );
     const found = results.find(r => r !== null);

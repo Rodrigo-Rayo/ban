@@ -21,10 +21,10 @@
     </div>
 
     <!-- Delete button -->
-    <button (click)="deleteConversation()"
+    <button (click)="deleteConversation()" [disabled]="isDeleting()"
       title="Borrar conversación"
       aria-label="Borrar conversación"
-      class="p-2 text-ink-muted hover:text-signal-red hover:bg-dark-700 rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0">
+      class="p-2 text-ink-muted hover:text-signal-red hover:bg-dark-700 rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed">
       <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -96,21 +96,21 @@
 
       <!-- Messages -->
       @for (msg of messages(); track msg.id) {
-        <div class="flex" [class.justify-end]="msg.sender_id === currentUserId">
+        <div class="flex" [class.justify-end]="msg.sender_id === currentUserId()">
           <div class="max-w-[78%] sm:max-w-sm px-4 py-2.5 text-sm leading-relaxed"
-               [class.bg-primary-500]="msg.sender_id === currentUserId"
-               [class.text-white]="msg.sender_id === currentUserId"
-               [class.shadow-md]="msg.sender_id === currentUserId"
+               [class.bg-primary-500]="msg.sender_id === currentUserId()"
+               [class.text-white]="msg.sender_id === currentUserId()"
+               [class.shadow-md]="msg.sender_id === currentUserId()"
                [class.rounded-2xl]="true"
-               [class.rounded-br-sm]="msg.sender_id === currentUserId"
-               [class.bg-dark-800]="msg.sender_id !== currentUserId"
-               [class.text-ink]="msg.sender_id !== currentUserId"
-               [class.border]="msg.sender_id !== currentUserId"
-               [class.border-dark-600]="msg.sender_id !== currentUserId"
-               [class.rounded-bl-sm]="msg.sender_id !== currentUserId">
+               [class.rounded-br-sm]="msg.sender_id === currentUserId()"
+               [class.bg-dark-800]="msg.sender_id !== currentUserId()"
+               [class.text-ink]="msg.sender_id !== currentUserId()"
+               [class.border]="msg.sender_id !== currentUserId()"
+               [class.border-dark-600]="msg.sender_id !== currentUserId()"
+               [class.rounded-bl-sm]="msg.sender_id !== currentUserId()">
             <span class="break-words">{{ msg.text }}</span>
             <div class="text-[10px] mt-1.5 text-right select-none"
-                 [ngClass]="msg.sender_id === currentUserId ? 'text-white/60' : 'text-ink-muted'">
+                 [ngClass]="msg.sender_id === currentUserId() ? 'text-white/60' : 'text-ink-muted'">
               {{ formatMessageTime(msg.created_at) }}
             </div>
           </div>

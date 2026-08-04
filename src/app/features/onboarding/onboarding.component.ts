@@ -1,6 +1,6 @@
 import { Component, HostListener, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { RegistrationStateService } from '../../core/services/registration-state.service';
@@ -14,7 +14,7 @@ export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'li
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent],
+  imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink],
   templateUrl: './onboarding.component.html',
 })
 export class OnboardingComponent implements OnInit {
@@ -193,6 +193,7 @@ export class OnboardingComponent implements OnInit {
       this.role.set(stored as Role);
     }
 
+    try {
     const { data: { user } } = await this.supabase.auth.getUser();
     if (!user) {
       if (!this.registrationState.hasPending) {
@@ -285,14 +286,16 @@ export class OnboardingComponent implements OnInit {
       if (role === 'band') {
         const { data: members } = await this.supabase.client
           .from('band_members').select('name,instrument').eq('band_id', data.id);
-        if (members) this.bandMembers = members.map((m: any) => ({ name: m.name, instrument: m.instrument }));
+        if (members) this.bandMembers = members.map((m: { name: string; instrument: string | null }) => ({ name: m.name, instrument: m.instrument ?? '' }));
       }
       if (role === 'musician') {
         if (data.availability_days)  this.selectedDays.set(data.availability_days.split(',').filter(Boolean));
         if (data.availability_slots) this.selectedSlots.set(data.availability_slots.split(',').filter(Boolean));
       }
     }
-
+    } catch {
+      this.error.set('Error al cargar tu perfil. Recarga la página.');
+    }
   }
 
   async onSubmit() {
@@ -301,7 +304,7 @@ export class OnboardingComponent implements OnInit {
     try {
 
     const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) { this.loading.set(false); this.router.navigate(['/auth/login']); return; }
+    if (!user) { this.router.navigate(['/auth/login']); return; }
     const userId = user.id;
 
     const z = this.zoneForm.value;
@@ -315,7 +318,6 @@ export class OnboardingComponent implements OnInit {
       const { error: profileRetryError } = await this.supabase.client
         .from('profiles').upsert({ id: userId, role }, { onConflict: 'id' });
       if (profileRetryError) {
-        this.loading.set(false);
         this.error.set(`Error al crear perfil: ${profileRetryError.message}`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
@@ -330,12 +332,10 @@ export class OnboardingComponent implements OnInit {
     if (prev && prev !== role && roleTableMap[prev]) {
       const roleLabels: Record<string, string> = { musician: 'músico', band: 'banda', venue: 'sala', teacher: 'profesor', rehearsal: 'local de ensayo', listener: 'oyente' };
       if (!confirm(`¿Cambiar tu perfil de ${roleLabels[prev] ?? prev} a ${roleLabels[role] ?? role}? Tu perfil anterior se eliminará permanentemente.`)) {
-        this.loading.set(false);
         return;
       }
       const { error: deleteRoleError } = await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', userId);
       if (deleteRoleError) {
-        this.loading.set(false);
         this.error.set('No se pudo eliminar el perfil anterior. Inténtalo de nuevo.');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;

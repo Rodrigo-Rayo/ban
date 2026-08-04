@@ -11,6 +11,85 @@ import { SeoService } from '../../core/services/seo.service';
 import { CITIES } from '../../core/constants/cities';
 import { timeAgo } from '../../core/utils/display.utils';
 import { environment } from '../../../environments/environment';
+import { Event as AppEvent, EventGenre, Post, GearListing } from '../../core/models';
+
+interface DashboardProfile {
+  id?: string;
+  user_id?: string;
+  name: string;
+  city?: string | null;
+  avatar_url?: string | null;
+  genre?: string | null;
+  genres?: string | null;
+  instrument?: string | null;
+  hourly_rate?: number | null;
+  capacity?: number | null;
+  looking_for?: string | null;
+  contact_email?: string | null;
+  description?: string | null;
+}
+
+interface DashboardPost {
+  id: string;
+  type: string;
+  text: string;
+  city: string | null;
+  created_at: string;
+}
+
+interface DashboardListing {
+  id: string;
+  title: string;
+  price: number | null;
+  status: string;
+  images: string[] | null;
+  condition: string | null;
+  category: string | null;
+  created_at: string;
+}
+
+interface SpaceBooking {
+  id: string;
+  name: string;
+  phone?: string | null;
+  date: string;
+  start_time: string;
+  end_time: string;
+  message?: string | null;
+  status: string;
+}
+
+interface MyBooking {
+  id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  name: string;
+  status: string;
+  space_id?: string | null;
+  message?: string | null;
+  rehearsal_spaces?: { name: string; city: string } | null;
+}
+
+interface SidebarPost {
+  id: string;
+  type: string;
+  text: string;
+  city: string | null;
+  author_name: string;
+  created_at: string;
+}
+
+interface SidebarEvent {
+  id: string;
+  title: string;
+  venue: string;
+  city: string;
+  date: string;
+  time: string | null;
+  genre: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -27,15 +106,15 @@ export class DashboardComponent implements OnInit {
   messagesService = inject(MessagesService);
   private toast = inject(ToastService);
 
-  profile    = signal<any>(null);
+  profile    = signal<DashboardProfile | null>(null);
   profileType = signal('');
-  events     = signal<any[]>([]);
-  myPosts    = signal<any[]>([]);
-  myListings = signal<any[]>([]);
-  bookings      = signal<any[]>([]);
-  myBookings    = signal<any[]>([]);
-  sidebarPosts  = signal<any[]>([]);
-  sidebarEvents = signal<any[]>([]);
+  events     = signal<AppEvent[]>([]);
+  myPosts    = signal<DashboardPost[]>([]);
+  myListings = signal<DashboardListing[]>([]);
+  bookings      = signal<SpaceBooking[]>([]);
+  myBookings    = signal<MyBooking[]>([]);
+  sidebarPosts  = signal<SidebarPost[]>([]);
+  sidebarEvents = signal<SidebarEvent[]>([]);
   loading    = signal(true);
   uploadingAvatar = signal(false);
   activeTab  = signal('events');
@@ -100,7 +179,7 @@ export class DashboardComponent implements OnInit {
       this.myListings.set(listings || []);
       this.sidebarPosts.set(sbPosts || []);
       this.sidebarEvents.set(sbEvents || []);
-      this.myBookings.set(userBookings || []);
+      this.myBookings.set((userBookings || []) as unknown as MyBooking[]);
 
       if (this.profileType() === 'rehearsal' && this.profile()) {
         this.activeTab.set('bookings');
@@ -113,11 +192,13 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  async loadBookings() {
+  private async loadBookings() {
+    const p = this.profile();
+    if (!p) return;
     const today = new Date().toISOString().split('T')[0];
     const { data, error } = await this.supabase.client
       .from('rehearsal_bookings').select('id,name,phone,date,start_time,end_time,message,status')
-      .eq('space_id', this.profile()!.id)
+      .eq('space_id', p.id)
       .gte('date', today)
       .order('date', { ascending: true })
       .limit(100);
@@ -131,10 +212,14 @@ export class DashboardComponent implements OnInit {
       this.toast.error('Estado de reserva no válido.');
       return;
     }
-    const { error } = await this.supabase.client.from('rehearsal_bookings').update({ status }).eq('id', id);
-    if (error) { this.toast.error('No se pudo actualizar el estado de la reserva.'); return; }
-    this.bookings.update(bs => bs.map(b => b.id === id ? { ...b, status } : b));
-    this.toast.success('Estado de la reserva actualizado.');
+    try {
+      const { error } = await this.supabase.client.from('rehearsal_bookings').update({ status }).eq('id', id);
+      if (error) { this.toast.error('No se pudo actualizar el estado de la reserva.'); return; }
+      this.bookings.update(bs => bs.map(b => b.id === id ? { ...b, status } : b));
+      this.toast.success('Estado de la reserva actualizado.');
+    } catch {
+      this.toast.error('No se pudo actualizar el estado de la reserva.');
+    }
   }
 
   async uploadAvatar(event: Event) {
@@ -166,7 +251,7 @@ export class DashboardComponent implements OnInit {
           if (dbErr) {
             this.toast.error('Foto subida pero no se pudo guardar. Inténtalo de nuevo.');
           } else {
-            this.profile.update(p => ({ ...p, avatar_url: avatarUrl }));
+            this.profile.update(p => p ? { ...p, avatar_url: avatarUrl } : p);
             this.toast.success('Foto de perfil actualizada.');
           }
         }
@@ -189,7 +274,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  startEditEvent(event: any, e: Event) {
+  startEditEvent(event: AppEvent, e: Event) {
     e.preventDefault(); e.stopPropagation();
     this.editingEventId.set(event.id);
     this.editEventData = {
@@ -212,23 +297,43 @@ export class DashboardComponent implements OnInit {
     const uid = this.auth.user()?.id;
     if (!uid) return;
     this.editSaving.set(true);
-    const { error } = await this.supabase.client.from('events').update({
-      title: this.editEventData.title,
-      venue: this.editEventData.venue,
-      city: this.editEventData.city,
-      date: this.editEventData.date,
-      time: this.editEventData.time || null,
-      genre: this.editEventData.genre,
-      price: this.editEventData.price != null && +this.editEventData.price > 0 ? String(this.editEventData.price) : null,
-      description: this.editEventData.description || null,
-      contact_email: this.editEventData.contact_email || null,
-      ticket_url: this.sanitizeUrl(this.editEventData.ticket_url),
-    }).eq('id', id).eq('user_id', uid);
-    this.editSaving.set(false);
-    if (error) { this.toast.error('No se pudo guardar el evento.'); return; }
-    this.events.update(evs => evs.map(ev => ev.id === id ? { ...ev, ...this.editEventData } : ev));
-    this.editingEventId.set(null);
-    this.toast.success('Evento actualizado.');
+    try {
+      const { error } = await this.supabase.client.from('events').update({
+        title: this.editEventData.title,
+        venue: this.editEventData.venue,
+        city: this.editEventData.city,
+        date: this.editEventData.date,
+        time: this.editEventData.time || null,
+        genre: this.editEventData.genre,
+        price: this.editEventData.price != null && +this.editEventData.price > 0 ? String(this.editEventData.price) : null,
+        description: this.editEventData.description || null,
+        contact_email: this.editEventData.contact_email || null,
+        ticket_url: this.sanitizeUrl(this.editEventData.ticket_url),
+      }).eq('id', id).eq('user_id', uid);
+      if (error) { this.toast.error('No se pudo guardar el evento.'); return; }
+      this.events.update(evs => evs.map(ev => {
+        if (ev.id !== id) return ev;
+        return {
+          ...ev,
+          title: this.editEventData.title,
+          venue: this.editEventData.venue,
+          city: this.editEventData.city,
+          date: this.editEventData.date,
+          time: this.editEventData.time || null,
+          genre: this.editEventData.genre as EventGenre,
+          price: this.editEventData.price,
+          description: this.editEventData.description || null,
+          contact_email: this.editEventData.contact_email || null,
+          ticket_url: this.editEventData.ticket_url || null,
+        };
+      }));
+      this.editingEventId.set(null);
+      this.toast.success('Evento actualizado.');
+    } catch {
+      this.toast.error('No se pudo guardar el evento.');
+    } finally {
+      this.editSaving.set(false);
+    }
   }
 
   async deleteEvent(id: string, e: Event) {
@@ -236,10 +341,14 @@ export class DashboardComponent implements OnInit {
     const uid = this.auth.user()?.id;
     if (!uid) return;
     if (!confirm('¿Eliminar este evento?')) return;
-    const { error } = await this.supabase.client.from('events').delete().eq('id', id).eq('user_id', uid);
-    if (error) { this.toast.error('No se pudo eliminar el evento.'); return; }
-    this.events.update(evs => evs.filter(ev => ev.id !== id));
-    this.toast.success('Evento eliminado.');
+    try {
+      const { error } = await this.supabase.client.from('events').delete().eq('id', id).eq('user_id', uid);
+      if (error) { this.toast.error('No se pudo eliminar el evento.'); return; }
+      this.events.update(evs => evs.filter(ev => ev.id !== id));
+      this.toast.success('Evento eliminado.');
+    } catch {
+      this.toast.error('No se pudo eliminar el evento.');
+    }
   }
 
   async deletePost(id: string, e: Event) {
@@ -247,10 +356,14 @@ export class DashboardComponent implements OnInit {
     const uid = this.auth.user()?.id;
     if (!uid) return;
     if (!confirm('¿Eliminar este anuncio?')) return;
-    const { error } = await this.supabase.client.from('posts').delete().eq('id', id).eq('user_id', uid);
-    if (error) { this.toast.error('No se pudo eliminar el anuncio.'); return; }
-    this.myPosts.update(ps => ps.filter(p => p.id !== id));
-    this.toast.success('Anuncio eliminado.');
+    try {
+      const { error } = await this.supabase.client.from('posts').delete().eq('id', id).eq('user_id', uid);
+      if (error) { this.toast.error('No se pudo eliminar el anuncio.'); return; }
+      this.myPosts.update(ps => ps.filter(p => p.id !== id));
+      this.toast.success('Anuncio eliminado.');
+    } catch {
+      this.toast.error('No se pudo eliminar el anuncio.');
+    }
   }
 
   async deleteListing(id: string, e: Event) {
@@ -258,20 +371,28 @@ export class DashboardComponent implements OnInit {
     const uid = this.auth.user()?.id;
     if (!uid) return;
     if (!confirm('¿Eliminar este producto?')) return;
-    const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', id).eq('user_id', uid);
-    if (error) { this.toast.error('No se pudo eliminar el producto.'); return; }
-    this.myListings.update(ls => ls.filter(l => l.id !== id));
-    this.toast.success('Producto eliminado.');
+    try {
+      const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', id).eq('user_id', uid);
+      if (error) { this.toast.error('No se pudo eliminar el producto.'); return; }
+      this.myListings.update(ls => ls.filter(l => l.id !== id));
+      this.toast.success('Producto eliminado.');
+    } catch {
+      this.toast.error('No se pudo eliminar el producto.');
+    }
   }
 
   async markListingSold(id: string, e: Event) {
     e.preventDefault(); e.stopPropagation();
     const uid = this.auth.user()?.id;
     if (!uid) return;
-    const { error } = await this.supabase.client.from('gear_listings').update({ status: 'sold' }).eq('id', id).eq('user_id', uid);
-    if (error) { this.toast.error('No se pudo marcar como vendido.'); return; }
-    this.myListings.update(ls => ls.map(l => l.id === id ? { ...l, status: 'sold' } : l));
-    this.toast.success('Marcado como vendido.');
+    try {
+      const { error } = await this.supabase.client.from('gear_listings').update({ status: 'sold' as const }).eq('id', id).eq('user_id', uid);
+      if (error) { this.toast.error('No se pudo marcar como vendido.'); return; }
+      this.myListings.update(ls => ls.map(l => l.id === id ? { ...l, status: 'sold' } : l));
+      this.toast.success('Marcado como vendido.');
+    } catch {
+      this.toast.error('No se pudo marcar como vendido.');
+    }
   }
 
   readonly profileLabel = computed(() =>
@@ -344,11 +465,15 @@ export class DashboardComponent implements OnInit {
   async cancelMyBooking(id: string) {
     const uid = this.auth.user()?.id;
     if (!uid || !confirm('¿Cancelar esta reserva?')) return;
-    const { error } = await this.supabase.client
-      .from('rehearsal_bookings').update({ status: 'cancelled' }).eq('id', id).eq('user_id', uid);
-    if (error) { this.toast.error('No se pudo cancelar la reserva.'); return; }
-    this.myBookings.update(bs => bs.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
-    this.toast.success('Reserva cancelada.');
+    try {
+      const { error } = await this.supabase.client
+        .from('rehearsal_bookings').update({ status: 'cancelled' }).eq('id', id).eq('user_id', uid);
+      if (error) { this.toast.error('No se pudo cancelar la reserva.'); return; }
+      this.myBookings.update(bs => bs.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
+      this.toast.success('Reserva cancelada.');
+    } catch {
+      this.toast.error('No se pudo cancelar la reserva.');
+    }
   }
 
   readonly tabNewRoute = computed(() => {

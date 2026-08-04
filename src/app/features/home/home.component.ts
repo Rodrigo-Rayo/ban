@@ -8,6 +8,16 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { avatarColor, timeAgo } from '../../core/utils/display.utils';
 import { environment } from '../../../environments/environment';
 
+interface HomeMusician { id: string; name: string; city: string; instrument: string; avatar_url: string | null; created_at: string; }
+interface HomeBand { id: string; name: string; city: string; genre: string; avatar_url: string | null; looking_for?: string | null; created_at: string; }
+interface HomeEvent { id: string; title: string; city: string; date: string; genre: string; description: string | null; venue?: string | null; created_at: string; }
+interface HomeVenue { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; created_at: string; }
+interface HomeTeacher { id: string; name: string; city: string; instrument: string; avatar_url: string | null; hourly_rate?: number | null; created_at: string; }
+interface HomeRehearsal { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate?: number | null; created_at: string; }
+interface HomePost { id: string; type: string; text: string; city: string | null; instrument: string | null; author_name: string; author_profile_type: string | null; author_profile_id: string | null; created_at: string; }
+interface HomeListing { id: string; title: string; price: number | null; condition: string | null; category: string | null; city: string | null; images: string[] | null; created_at: string; }
+interface HomeProfile { id?: string; name: string; city?: string | null; avatar_url?: string | null; }
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -42,19 +52,19 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  recentMusicians  = signal<any[]>([]);
-  recentBands      = signal<any[]>([]);
-  recentEvents     = signal<any[]>([]);
-  recentVenues     = signal<any[]>([]);
-  recentTeachers   = signal<any[]>([]);
-  recentRehearsals = signal<any[]>([]);
-  recentPosts      = signal<any[]>([]);
-  recentListings   = signal<any[]>([]);
+  recentMusicians  = signal<HomeMusician[]>([]);
+  recentBands      = signal<HomeBand[]>([]);
+  recentEvents     = signal<HomeEvent[]>([]);
+  recentVenues     = signal<HomeVenue[]>([]);
+  recentTeachers   = signal<HomeTeacher[]>([]);
+  recentRehearsals = signal<HomeRehearsal[]>([]);
+  recentPosts      = signal<HomePost[]>([]);
+  recentListings   = signal<HomeListing[]>([]);
 
   loading      = signal(true);
   loadError    = signal(false);
   userCity     = signal('');
-  userProfile  = signal<any>(null);
+  userProfile  = signal<HomeProfile | null>(null);
   userType     = signal('');
 
   today = new Date();
@@ -88,10 +98,10 @@ export class HomeComponent implements OnInit {
 
       const musicianCols   = 'id, name, city, instrument, avatar_url, created_at';
       const bandCols       = 'id, name, city, genre, avatar_url, created_at';
-      const eventCols      = 'id, title, city, date, genre, description, created_at';
+      const eventCols      = 'id, title, city, date, genre, description, venue, created_at';
       const venueCols      = 'id, name, city, avatar_url, capacity, created_at';
-      const teacherCols    = 'id, name, city, instrument, avatar_url, created_at';
-      const rehearsalCols  = 'id, name, city, avatar_url, capacity, created_at';
+      const teacherCols    = 'id, name, city, instrument, avatar_url, hourly_rate, created_at';
+      const rehearsalCols  = 'id, name, city, avatar_url, capacity, hourly_rate, created_at';
       const postCols       = 'id, type, text, city, instrument, author_name, author_profile_type, author_profile_id, created_at';
       const listingCols    = 'id, title, price, condition, category, city, images, created_at';
 
@@ -135,42 +145,43 @@ export class HomeComponent implements OnInit {
         teachers: teacherCols,
         rehearsal_spaces: rehearsalCols,
       };
-      const globalFallback = async (table: string, limit: number, extraFilter?: (q: any) => any): Promise<any[]> => {
+      // extraFilter uses `any` because Supabase's PostgrestFilterBuilder generic is too complex to type here
+      const globalFallback = async (table: string, limit: number, extraFilter?: (q: any) => any): Promise<Record<string, unknown>[]> => {
         const cols = fallbackCols[table] ?? 'id, name, city, avatar_url, created_at';
         let q = this.supabase.client.from(table).select(cols).order('created_at', { ascending: false }).limit(limit);
         if (extraFilter) q = extraFilter(q);
         const { data } = await q;
-        return (data as any[]) || [];
+        return (data as unknown as Record<string, unknown>[]) || [];
       };
 
-      this.recentMusicians.set((musicians || []).slice(0, 6));
-      this.recentBands.set((bands || []).slice(0, 6));
-      this.recentEvents.set(events || []);
-      this.recentVenues.set(venues || []);
-      this.recentTeachers.set(teachers || []);
-      this.recentRehearsals.set(rehearsals || []);
-      this.recentPosts.set((posts || []).slice(0, 4));
-      this.recentListings.set((listings || []).slice(0, 6));
+      this.recentMusicians.set(((musicians || []) as unknown as HomeMusician[]).slice(0, 6));
+      this.recentBands.set(((bands || []) as unknown as HomeBand[]).slice(0, 6));
+      this.recentEvents.set((events || []) as unknown as HomeEvent[]);
+      this.recentVenues.set((venues || []) as unknown as HomeVenue[]);
+      this.recentTeachers.set((teachers || []) as unknown as HomeTeacher[]);
+      this.recentRehearsals.set((rehearsals || []) as unknown as HomeRehearsal[]);
+      this.recentPosts.set(((posts || []) as unknown as HomePost[]).slice(0, 4));
+      this.recentListings.set(((listings || []) as unknown as HomeListing[]).slice(0, 6));
 
       // Fallbacks run in background and update signals when ready
       if (city) {
         if ((musicians?.length ?? 0) < 6) {
-          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6))).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
+          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 6) as unknown as HomeMusician[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((bands?.length ?? 0) < 6) {
-          globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6))).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
+          globalFallback('bands', 12).then(d => this.recentBands.set(d.slice(0, 6) as unknown as HomeBand[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((events?.length ?? 0) < 2) {
-          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d)).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
+          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d as unknown as HomeEvent[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((venues?.length ?? 0) < 2) {
-          globalFallback('venues', 5).then(d => this.recentVenues.set(d)).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
+          globalFallback('venues', 5).then(d => this.recentVenues.set(d as unknown as HomeVenue[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((teachers?.length ?? 0) < 2) {
-          globalFallback('teachers', 5).then(d => this.recentTeachers.set(d)).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
+          globalFallback('teachers', 5).then(d => this.recentTeachers.set(d as unknown as HomeTeacher[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((rehearsals?.length ?? 0) < 2) {
-          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d)).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
+          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d as unknown as HomeRehearsal[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
       }
     } catch (err) {
@@ -192,7 +203,7 @@ export class HomeComponent implements OnInit {
     return this.postTypeMap[type] ?? { label: 'Anuncio', icon: 'newspaper' };
   }
 
-  isNearby(item: any): boolean {
+  isNearby(item: { city: string | null }): boolean {
     return !!this.userCity() && item.city === this.userCity();
   }
 }

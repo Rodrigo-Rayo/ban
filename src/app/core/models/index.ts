@@ -127,9 +127,9 @@ export interface Event {
   venue: string;
   city: string;
   date: string;
-  time: string;
+  time: string | null;
   genre: EventGenre;
-  price: string;
+  price: string | null;
   description: string | null;
   contact_email: string | null;
   ticket_url: string | null;

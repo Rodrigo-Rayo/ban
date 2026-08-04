@@ -27,14 +27,16 @@ export class ChatComponent implements OnInit, OnDestroy {
   messages = signal<Message[]>([]);
   otherName = signal('');
   newMessage = '';
-  currentUserId = '';
+  currentUserId = signal('');
   loading = signal(true);
   sending = signal(false);
+  isDeleting = signal(false);
   loadingMore = signal(false);
   hasMore = signal(false);
   sendError = signal('');
   private subscription: RealtimeChannel | undefined;
   private conversationId = '';
+  private destroyed = false;
 
   async ngOnInit() {
     const routeId = this.route.snapshot.paramMap.get('id');
@@ -46,7 +48,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (navName && typeof navName === 'string') this.otherName.set(navName);
 
     const { data: { user } } = await this.supabase.auth.getUser();
-    this.currentUserId = user?.id || '';
+    this.currentUserId.set(user?.id ?? '');
 
     try {
       const [{ messages: msgs, hasMore }, conv] = await Promise.all([
@@ -81,9 +83,15 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.messagesService.markAsRead(this.conversationId).catch(() => {});
       }
     );
+    // Guard against early navigation: if destroyed before the Promise.all resolved,
+    // ngOnDestroy already ran and won't run again — clean up the channel here.
+    if (this.destroyed) {
+      this.supabase.client.removeChannel(this.subscription);
+    }
   }
 
   ngOnDestroy() {
+    this.destroyed = true;
     this.messagesService.setActiveChat(null);
     if (this.subscription) {
       this.supabase.client.removeChannel(this.subscription);
@@ -97,7 +105,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.sendError.set('');
     try {
       const msg = await this.messagesService.sendMessage(this.conversationId, content);
-      this.sending.set(false);
       if (msg) {
         this.newMessage = '';
         this.messages.update(list =>
@@ -108,8 +115,9 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.sendError.set('Error desconocido al enviar.');
       }
     } catch {
-      this.sending.set(false);
       this.sendError.set('No se pudo enviar. Inténtalo de nuevo.');
+    } finally {
+      this.sending.set(false);
     }
   }
 
@@ -121,13 +129,18 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   async deleteConversation() {
+    if (this.isDeleting()) return;
     if (!confirm('¿Borrar esta conversación? Se eliminarán todos los mensajes.')) return;
-    const err = await this.messagesService.deleteConversation(this.conversationId);
-    if (err) {
-      this.sendError.set(err);
-      return;
+    this.isDeleting.set(true);
+    try {
+      const err = await this.messagesService.deleteConversation(this.conversationId);
+      if (err) { this.sendError.set(err); return; }
+      this.router.navigate(['/inbox']);
+    } catch {
+      this.sendError.set('No se pudo eliminar la conversación.');
+    } finally {
+      this.isDeleting.set(false);
     }
-    this.router.navigate(['/inbox']);
   }
 
   async loadMore() {
@@ -172,9 +185,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private scrollToBottom() {
-    try {
-      const el = this.messagesList?.nativeElement;
-      if (el) el.scrollTop = el.scrollHeight;
-    } catch {}
+    const el = this.messagesList?.nativeElement;
+    if (el) el.scrollTop = el.scrollHeight;
   }
 }
