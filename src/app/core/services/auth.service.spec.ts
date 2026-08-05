@@ -39,6 +39,7 @@ describe('AuthService', () => {
     });
 
     service = TestBed.inject(AuthService);
+    sessionStorage.clear();
   });
 
   it('is created', () => {
