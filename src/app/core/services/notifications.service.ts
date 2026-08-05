@@ -39,7 +39,7 @@ export class NotificationsService {
    * direct cross-user INSERTs are not needed (and are blocked by RLS).
    */
   async create(userId: string, type: string, title: string, body?: string, entityType?: string, entityId?: string) {
-    await this.supabase.client.rpc('create_notification', {
+    const { error } = await this.supabase.client.rpc('create_notification', {
       p_user_id: userId,
       p_type: type,
       p_title: title,
@@ -47,6 +47,7 @@ export class NotificationsService {
       p_entity_type: entityType ?? null,
       p_entity_id: entityId ?? null,
     });
+    if (error) throw new Error(error.message);
   }
 
   subscribe(userId: string, onNew: () => void) {
@@ -63,7 +64,7 @@ export class NotificationsService {
         const n = payload.new as AppNotification;
         this.latestNotification.set(n);
         this.unreadCount.update(c => c + 1);
-        onNew();
+        try { onNew(); } catch { /* non-critical: callback errors must not break Realtime */ }
       })
       .subscribe();
     return this.channel;

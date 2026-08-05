@@ -67,17 +67,22 @@ export class GearListComponent implements OnInit {
   async loadListings() {
     this.loading.set(true);
     this.loadError.set(false);
-    let q = this.supabase.client.from('gear_listings').select(this.LISTING_COLS).eq('status', 'active');
-    if (this.filterCategory()) q = q.eq('category', this.filterCategory());
-    if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
-    if (this.filterCondition()) q = q.eq('condition', this.filterCondition());
-    const { data, error } = await q.order('created_at', { ascending: false }).limit(this.PAGE_SIZE);
-    if (error) { this.loadError.set(true); }
-    else {
-      this.listings.set((data || []) as GearListing[]);
-      this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
+    try {
+      let q = this.supabase.client.from('gear_listings').select(this.LISTING_COLS).eq('status', 'active');
+      if (this.filterCategory()) q = q.eq('category', this.filterCategory());
+      if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+      if (this.filterCondition()) q = q.eq('condition', this.filterCondition());
+      const { data, error } = await q.order('created_at', { ascending: false }).limit(this.PAGE_SIZE);
+      if (error) { this.loadError.set(true); }
+      else {
+        this.listings.set((data || []) as GearListing[]);
+        this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
+      }
+    } catch {
+      this.loadError.set(true);
+    } finally {
+      this.loading.set(false);
     }
-    this.loading.set(false);
   }
 
   async loadMore() {

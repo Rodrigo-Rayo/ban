@@ -3,10 +3,13 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import type { User } from '@supabase/supabase-js';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { CITIES } from '../../../core/constants/cities';
+
+interface GearFormUserProfile { id: string; name: string; type: 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal'; }
 
 @Component({
   selector: 'app-gear-form',
@@ -40,8 +43,8 @@ export class GearFormComponent implements OnInit, OnDestroy {
     city: 'Madrid',
   };
 
-  currentUser = signal<any>(null);
-  userProfile = signal<any>(null);
+  currentUser = signal<User | null>(null);
+  userProfile = signal<GearFormUserProfile | null>(null);
 
   readonly categories = ['Guitarras', 'Bajos', 'Batería', 'Teclados', 'Amplificadores', 'Efectos', 'PA/Sonido', 'Accesorios', 'Otro'];
   readonly conditions = [
@@ -64,7 +67,10 @@ export class GearFormComponent implements OnInit, OnDestroy {
         tables.map(t => this.supabase.client.from(t).select('id,name').eq('user_id', user.id).maybeSingle())
       );
       const idx = results.findIndex(r => r.data);
-      if (idx !== -1) this.userProfile.set({ ...results[idx].data, type: types[idx] });
+      if (idx !== -1) {
+        const d = results[idx].data;
+        if (d?.id && d?.name) this.userProfile.set({ id: d.id, name: d.name, type: types[idx] });
+      }
 
       const id = this.route.snapshot.paramMap.get('id');
       if (id) {

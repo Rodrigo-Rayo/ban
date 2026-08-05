@@ -7,10 +7,11 @@ export class FavoritesService {
   private supabase = inject(SupabaseService);
 
   async isFavorite(userId: string, entityType: string, entityId: string): Promise<boolean> {
-    const { data } = await this.supabase.client
+    const { data, error } = await this.supabase.client
       .from('favorites').select('id')
       .eq('user_id', userId).eq('entity_type', entityType).eq('entity_id', entityId)
       .maybeSingle();
+    if (error) throw new Error(error.message);
     return !!data;
   }
 
@@ -32,8 +33,9 @@ export class FavoritesService {
   }
 
   async getByUser(userId: string): Promise<Favorite[]> {
-    const { data } = await this.supabase.client.from('favorites').select('id,user_id,entity_type,entity_id,created_at')
+    const { data, error } = await this.supabase.client.from('favorites').select('id,user_id,entity_type,entity_id,created_at')
       .eq('user_id', userId).order('created_at', { ascending: false }).limit(200);
+    if (error) throw new Error(error.message);
     return data || [];
   }
 }

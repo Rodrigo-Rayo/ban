@@ -1,12 +1,14 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import type { User } from '@supabase/supabase-js';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { GearListing } from '../../../core/models';
 
 @Component({
   selector: 'app-gear-detail',
@@ -23,10 +25,10 @@ export class GearDetailComponent implements OnInit {
   private messages = inject(MessagesService);
   auth = inject(AuthService);
 
-  listing = signal<any>(null);
+  listing = signal<GearListing | null>(null);
   loading = signal(true);
   currentImageIdx = signal(0);
-  currentUser = signal<any>(null);
+  currentUser = signal<User | null>(null);
   deleting = signal(false);
   contacting = signal(false);
 
@@ -77,20 +79,30 @@ export class GearDetailComponent implements OnInit {
   async markAsSold() {
     if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Marcar como vendido? El anuncio dejará de aparecer en la tienda.')) return;
-    const { error } = await this.supabase.client.from('gear_listings').update({ status: 'sold' }).eq('id', this.listing().id).eq('user_id', this.currentUser()!.id);
-    if (error) { this.toast.error('No se pudo actualizar el anuncio.'); return; }
-    this.listing.update(l => ({ ...l, status: 'sold' }));
-    this.toast.success('Anuncio marcado como vendido.');
+    try {
+      const { error } = await this.supabase.client.from('gear_listings').update({ status: 'sold' }).eq('id', this.listing()!.id).eq('user_id', this.currentUser()!.id);
+      if (error) { this.toast.error('No se pudo actualizar el anuncio.'); return; }
+      this.listing.update(l => l ? { ...l, status: 'sold' as const } : l);
+      this.toast.success('Anuncio marcado como vendido.');
+    } catch {
+      this.toast.error('No se pudo actualizar el anuncio.');
+    }
   }
 
   async deleteListing() {
     if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Eliminar este anuncio? Esta acción no se puede deshacer.')) return;
     this.deleting.set(true);
-    const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', this.listing().id).eq('user_id', this.currentUser()!.id);
-    if (error) { this.toast.error('No se pudo eliminar el anuncio.'); this.deleting.set(false); return; }
-    this.toast.success('Anuncio eliminado.');
-    this.router.navigate(['/shop']);
+    try {
+      const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', this.listing()!.id).eq('user_id', this.currentUser()!.id);
+      if (error) { this.toast.error('No se pudo eliminar el anuncio.'); return; }
+      this.toast.success('Anuncio eliminado.');
+      this.router.navigate(['/shop']);
+    } catch {
+      this.toast.error('No se pudo eliminar el anuncio.');
+    } finally {
+      this.deleting.set(false);
+    }
   }
 
   async contactSeller() {
@@ -98,10 +110,11 @@ export class GearDetailComponent implements OnInit {
     if (this.contacting()) return;
     this.contacting.set(true);
     const l = this.listing();
-    const result = await this.messages.getOrCreateConversation(l.user_id, l.seller_name);
+    if (!l) { this.contacting.set(false); return; }
+    const result = await this.messages.getOrCreateConversation(l.user_id, l.seller_name ?? undefined);
     this.contacting.set(false);
     if (!result || 'error' in result) {
-      this.toast.error((result as any)?.error ?? 'No se pudo abrir el chat.');
+      this.toast.error('error' in (result ?? {}) ? (result as { error: string }).error : 'No se pudo abrir el chat.');
       return;
     }
     this.router.navigate(['/inbox', result.id]);
@@ -109,11 +122,13 @@ export class GearDetailComponent implements OnInit {
 
   prevImage() {
     const len = this.listing()?.images?.length ?? 0;
+    if (len === 0) return;
     this.currentImageIdx.update(i => (i - 1 + len) % len);
   }
 
   nextImage() {
     const len = this.listing()?.images?.length ?? 0;
+    if (len === 0) return;
     this.currentImageIdx.update(i => (i + 1) % len);
   }
 }

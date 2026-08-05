@@ -9,6 +9,7 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
+import { Venue, Review } from '../../../core/models';
 
 @Component({
   selector: 'app-venue-profile',
@@ -27,8 +28,8 @@ export class VenueProfileComponent implements OnInit {
   private seo = inject(SeoService);
   private toast = inject(ToastService);
 
-  venue = signal<any>(null);
-  reviews = signal<any[]>([]);
+  venue = signal<Venue | null>(null);
+  reviews = signal<Review[]>([]);
   loading = signal(true);
   currentUserId = signal<string | null>(null);
   isFav = signal(false);
@@ -40,7 +41,7 @@ export class VenueProfileComponent implements OnInit {
   reviewComment = '';
   reviewLoading = signal(false);
   reviewError = signal<string | null>(null);
-  myReview = signal<any>(null);
+  myReview = signal<Review | null>(null);
   sending = signal(false);
   msgError = signal<string | null>(null);
   linkShared = signal(false);
@@ -72,10 +73,10 @@ export class VenueProfileComponent implements OnInit {
           address: { '@type': 'PostalAddress', addressLocality: venue.city || '', addressCountry: 'ES' },
         });
       }
-      this.reviews.set(reviews || []);
+      this.reviews.set((reviews || []) as Review[]);
       if (session) {
         this.currentUserId.set(session.user.id);
-        this.myReview.set(reviews?.find((r: any) => r.user_id === session.user.id) || null);
+        this.myReview.set((reviews?.find((r: any) => r.user_id === session.user.id) || null) as Review | null);
         // isFav runs in background — doesn't block the UI
         if (venue) this.favSvc.isFavorite(session.user.id, 'venue', venue.id).then(v => this.isFav.set(v)).catch(() => { /* non-critical background check */ });
       }
@@ -128,8 +129,8 @@ export class VenueProfileComponent implements OnInit {
         this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
       } else {
         const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', this.venue()!.id).order('created_at', { ascending: false });
-        this.reviews.set(data || []);
-        this.myReview.set(data?.find((r: any) => r.user_id === this.currentUserId()) || null);
+        this.reviews.set((data || []) as Review[]);
+        this.myReview.set((data?.find((r: any) => r.user_id === this.currentUserId()) || null) as Review | null);
         this.showReviewForm.set(false);
       }
     } catch {
@@ -145,11 +146,16 @@ export class VenueProfileComponent implements OnInit {
     if (uid === this.venue()!.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);
     this.msgError.set(null);
-    const result = await this.messagesService.getOrCreateConversation(this.venue()!.user_id, this.venue()!.name);
-    this.sending.set(false);
-    if (!result) return;
-    if ('error' in result) { this.msgError.set(result.error); return; }
-    this.router.navigate(['/inbox', result.id], { state: { name: this.venue()!.name } });
+    try {
+      const result = await this.messagesService.getOrCreateConversation(this.venue()!.user_id, this.venue()!.name);
+      if (!result) return;
+      if ('error' in result) { this.msgError.set(result.error); return; }
+      this.router.navigate(['/inbox', result.id], { state: { name: this.venue()!.name } });
+    } catch {
+      this.msgError.set('No se pudo abrir el chat. Inténtalo de nuevo.');
+    } finally {
+      this.sending.set(false);
+    }
   }
 
   async shareLink() {
@@ -157,7 +163,7 @@ export class VenueProfileComponent implements OnInit {
     if (navigator.share) {
       await navigator.share({ title: this.venue()!.name, url }).catch(() => {});
     } else {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(url).catch(() => {});
       this.linkShared.set(true);
       setTimeout(() => this.linkShared.set(false), 2000);
     }

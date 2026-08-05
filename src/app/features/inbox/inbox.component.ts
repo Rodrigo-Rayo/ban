@@ -64,14 +64,18 @@ export class InboxComponent implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     if (!confirm('¿Borrar esta conversación? Se eliminarán todos los mensajes para ambos participantes.')) return;
-    const err = await this.messagesService.deleteConversation(id);
-    if (err) {
+    try {
+      const err = await this.messagesService.deleteConversation(id);
+      if (err) {
+        this.toast.error('No se pudo borrar la conversación. Inténtalo de nuevo.');
+        return;
+      }
+      this.conversations.update(convs => convs.filter(c => c.id !== id));
+      this.unreadIds.update(set => new Set([...set].filter(existingId => existingId !== id)));
+      this.toast.success('Conversación eliminada.');
+    } catch {
       this.toast.error('No se pudo borrar la conversación. Inténtalo de nuevo.');
-      return;
     }
-    this.conversations.update(convs => convs.filter(c => c.id !== id));
-    this.unreadIds.update(set => new Set([...set].filter(existingId => existingId !== id)));
-    this.toast.success('Conversación eliminada.');
   }
 
 }

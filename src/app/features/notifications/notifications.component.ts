@@ -53,7 +53,11 @@ export class NotificationsComponent implements OnInit {
     const uid = this.userId();
     if (!uid) return;
     this.notifications.update(ns => ns.map(n => ({ ...n, read: true })));
-    await this.notifSvc.markAllRead(uid);
+    try {
+      await this.notifSvc.markAllRead(uid);
+    } catch {
+      this.toast.error('No se pudo marcar como leído.');
+    }
   }
 
   async deleteAll() {
@@ -81,7 +85,7 @@ export class NotificationsComponent implements OnInit {
     return map[type] || 'bell';
   }
 
-  getRoute(n: any): any[] | null {
+  getRoute(n: AppNotification): string[] | null {
     if (n.type === 'message') {
       return n.entity_type === 'conversation' && n.entity_id
         ? ['/inbox', n.entity_id]

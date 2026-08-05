@@ -9,6 +9,7 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
+import { Teacher, Review } from '../../../core/models';
 
 @Component({
   selector: 'app-teacher-profile',
@@ -27,14 +28,14 @@ export class TeacherProfileComponent implements OnInit {
   private seo = inject(SeoService);
   private toast = inject(ToastService);
 
-  teacher = signal<any>(null);
+  teacher = signal<Teacher | null>(null);
   avatarError = signal(false);
 
   toggleBookingForm() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     this.showBookingForm.set(!this.showBookingForm());
   }
-  reviews = signal<any[]>([]);
+  reviews = signal<Review[]>([]);
   loading = signal(true);
   currentUserId = signal<string | null>(null);
   isFav = signal(false);
@@ -44,7 +45,7 @@ export class TeacherProfileComponent implements OnInit {
   reviewComment = '';
   reviewLoading = signal(false);
   reviewError = signal<string | null>(null);
-  myReview = signal<any>(null);
+  myReview = signal<Review | null>(null);
   sending = signal(false);
   msgError = signal<string | null>(null);
   showBookingForm = signal(false);
@@ -86,10 +87,10 @@ export class TeacherProfileComponent implements OnInit {
           address: { '@type': 'PostalAddress', addressLocality: teacher.city || '', addressCountry: 'ES' },
         });
       }
-      this.reviews.set(reviews || []);
+      this.reviews.set((reviews || []) as Review[]);
       if (session) {
         this.currentUserId.set(session.user.id);
-        this.myReview.set(reviews?.find((r: any) => r.user_id === session.user.id) || null);
+        this.myReview.set((reviews?.find((r: any) => r.user_id === session.user.id) || null) as Review | null);
         if (teacher) this.favSvc.isFavorite(session.user.id, 'teacher', teacher.id).then(v => this.isFav.set(v)).catch(() => { /* non-critical background check */ });
       }
     } catch {
@@ -141,8 +142,8 @@ export class TeacherProfileComponent implements OnInit {
         this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
       } else {
         const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'teacher').eq('entity_id', this.teacher()!.id).order('created_at', { ascending: false });
-        this.reviews.set(data || []);
-        this.myReview.set(data?.find((r: any) => r.user_id === this.currentUserId()) || null);
+        this.reviews.set((data || []) as Review[]);
+        this.myReview.set((data?.find((r: any) => r.user_id === this.currentUserId()) || null) as Review | null);
         this.showReviewForm.set(false);
       }
     } catch {
@@ -162,7 +163,7 @@ export class TeacherProfileComponent implements OnInit {
       const text = `📅 Solicitud de clase\n\nFecha: ${this.bookingDate}${this.bookingTime ? '\nHora preferida: ' + this.bookingTime : ''}${this.bookingMessage ? '\n\nMensaje: ' + this.bookingMessage : ''}`;
       const result = await this.messagesService.getOrCreateConversation(this.teacher()!.user_id, this.teacher()!.name);
       if (!result || 'error' in result) {
-        this.toast.error((result as any)?.error ?? 'No se pudo enviar la solicitud. Inténtalo de nuevo.');
+        this.toast.error(result && 'error' in result ? result.error : 'No se pudo enviar la solicitud. Inténtalo de nuevo.');
         return;
       }
       await this.messagesService.sendMessage(result.id, text);
@@ -185,11 +186,16 @@ export class TeacherProfileComponent implements OnInit {
     if (uid === this.teacher()!.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);
     this.msgError.set(null);
-    const result = await this.messagesService.getOrCreateConversation(this.teacher()!.user_id, this.teacher()!.name);
-    this.sending.set(false);
-    if (!result) return;
-    if ('error' in result) { this.msgError.set(result.error); return; }
-    this.router.navigate(['/inbox', result.id], { state: { name: this.teacher()!.name } });
+    try {
+      const result = await this.messagesService.getOrCreateConversation(this.teacher()!.user_id, this.teacher()!.name);
+      if (!result) return;
+      if ('error' in result) { this.msgError.set(result.error); return; }
+      this.router.navigate(['/inbox', result.id], { state: { name: this.teacher()!.name } });
+    } catch {
+      this.msgError.set('No se pudo abrir el chat. Inténtalo de nuevo.');
+    } finally {
+      this.sending.set(false);
+    }
   }
 
   async shareLink() {
@@ -197,7 +203,7 @@ export class TeacherProfileComponent implements OnInit {
     if (navigator.share) {
       await navigator.share({ title: this.teacher()!.name, url }).catch(() => {});
     } else {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(url).catch(() => {});
       this.linkShared.set(true);
       setTimeout(() => this.linkShared.set(false), 2000);
     }
