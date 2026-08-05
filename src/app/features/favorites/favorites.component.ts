@@ -127,7 +127,7 @@ export class FavoritesComponent implements OnInit {
             .then(({ data }) => ({ type, data: (data ?? []) as unknown as ResolvedEntity[] }));
         })
       );
-      const map: Record<string, any> = {};
+      const map: Record<string, ResolvedEntity> = {};
       for (const { type, data } of results) {
         for (const it of data) map[`${type}:${it.id}`] = it;
       }

@@ -1890,4 +1890,37 @@ ALTER TABLE messages ALTER COLUMN text SET NOT NULL;
 -- DROP TABLE IF EXISTS event_rsvps;
 --
 -- To keep production safe, this is intentionally left as a comment.
+
+
+-- ── Section 42: Schema integrity fixes ────────────────────────────────────────
+
+-- Fix gear_listings SELECT policy to only expose active listings to anonymous users.
+-- Sold/reserved items should only be visible to the seller.
+DROP POLICY IF EXISTS "Anyone can view gear listings" ON gear_listings;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'gear_listings' AND policyname = 'View active gear listings'
+  ) THEN
+    CREATE POLICY "View active gear listings"
+      ON gear_listings FOR SELECT
+      USING (status = 'active' OR user_id = (SELECT auth.uid()));
+  END IF;
+END $$;
+
+-- Add CHECK constraint to notifications.type to enforce the TypeScript union at DB level.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'notifications' AND constraint_name = 'notifications_type_check'
+  ) THEN
+    ALTER TABLE notifications ADD CONSTRAINT notifications_type_check
+      CHECK (type IN ('message', 'application', 'rsvp', 'review', 'system', 'favorite', 'event_reminder', 'booking'));
+  END IF;
+END $$;
+
+-- rehearsal_bookings.user_id should not be nullable after CASCADE FK was added in section 27.
+-- The SET NULL reason is gone; enforce NOT NULL to prevent orphaned bookings invisible to RLS.
+UPDATE rehearsal_bookings SET user_id = '00000000-0000-0000-0000-000000000000'::uuid WHERE user_id IS NULL;
+ALTER TABLE rehearsal_bookings ALTER COLUMN user_id SET NOT NULL;
 -- Run manually in the Supabase SQL editor when ready.

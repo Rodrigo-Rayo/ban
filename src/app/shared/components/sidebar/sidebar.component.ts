@@ -40,7 +40,7 @@ export class SidebarComponent implements OnInit {
   ngOnInit() {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
-      .subscribe((e: any) => { this.currentUrl.set(e.urlAfterRedirects); this.publishOpen = false; });
+      .subscribe((e: NavigationEnd) => { this.currentUrl.set(e.urlAfterRedirects); this.publishOpen = false; });
   }
 
   get isSearch()    { return this.currentUrl().startsWith('/search'); }

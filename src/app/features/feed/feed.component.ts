@@ -197,10 +197,14 @@ export class FeedComponent implements OnInit, OnDestroy {
     const user = this.currentUser();
     if (!user) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Eliminar este anuncio?')) return;
-    const { error } = await this.supabase.client.from('posts').delete().eq('id', id).eq('user_id', user.id);
-    if (error) { this.toast.error('No se pudo eliminar.'); return; }
-    this.posts.update(list => list.filter(p => p.id !== id));
-    this.toast.success('Anuncio eliminado.');
+    try {
+      const { error } = await this.supabase.client.from('posts').delete().eq('id', id).eq('user_id', user.id);
+      if (error) { this.toast.error('No se pudo eliminar.'); return; }
+      this.posts.update(list => list.filter(p => p.id !== id));
+      this.toast.success('Anuncio eliminado.');
+    } catch {
+      this.toast.error('No se pudo eliminar el anuncio.');
+    }
   }
 
   private readonly postTypeMap = new Map(this.postTypes.map(t => [t.id, t]));

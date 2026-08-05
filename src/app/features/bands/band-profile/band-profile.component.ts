@@ -125,7 +125,10 @@ export class BandProfileComponent implements OnInit {
       }
 
       if (band && session.user.id === band.user_id) {
-        this.loadApplications().catch(err => { if (!environment.production) console.error('[BandProfile] loadApplications failed:', err); });
+        this.loadApplications().catch(err => {
+          if (!environment.production) console.error('[BandProfile] loadApplications failed:', err);
+          this.toast.error('No se pudieron cargar las solicitudes.');
+        });
       }
     } catch {
       this.toast.error('No se pudo cargar el perfil de la banda. Inténtalo de nuevo.');
@@ -184,16 +187,24 @@ export class BandProfileComponent implements OnInit {
   async closeVacancy(id: string) {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
     if (!confirm('¿Cerrar esta vacante?')) return;
-    const { error } = await this.supabase.client.from('band_vacancies').update({ open: false }).eq('id', id);
-    if (error) { this.toast.error('No se pudo cerrar la vacante.'); return; }
-    this.vacancies.update(v => v.map(x => x.id === id ? { ...x, open: false } : x));
+    try {
+      const { error } = await this.supabase.client.from('band_vacancies').update({ open: false }).eq('id', id);
+      if (error) { this.toast.error('No se pudo cerrar la vacante.'); return; }
+      this.vacancies.update(v => v.map(x => x.id === id ? { ...x, open: false } : x));
+    } catch {
+      this.toast.error('No se pudo cerrar la vacante.');
+    }
   }
 
   async reopenVacancy(id: string) {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
-    const { error } = await this.supabase.client.from('band_vacancies').update({ open: true }).eq('id', id);
-    if (error) { this.toast.error('No se pudo reabrir la vacante.'); return; }
-    this.vacancies.update(v => v.map(x => x.id === id ? { ...x, open: true } : x));
+    try {
+      const { error } = await this.supabase.client.from('band_vacancies').update({ open: true }).eq('id', id);
+      if (error) { this.toast.error('No se pudo reabrir la vacante.'); return; }
+      this.vacancies.update(v => v.map(x => x.id === id ? { ...x, open: true } : x));
+    } catch {
+      this.toast.error('No se pudo reabrir la vacante.');
+    }
   }
 
   hasApplied(vacancyId: string) {
@@ -285,7 +296,7 @@ export class BandProfileComponent implements OnInit {
 
   contactingApp = signal<string | null>(null);
 
-  async contactApplicant(app: any) {
+  async contactApplicant(app: VacancyApplication) {
     const uid = this.currentUserId();
     if (!uid || !app.user_id) return;
     this.contactingApp.set(app.id);

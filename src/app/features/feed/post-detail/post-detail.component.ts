@@ -86,7 +86,7 @@ export class PostDetailComponent implements OnInit {
     if (this.contacting()) return;
     this.contacting.set(true);
     const p = this.post()!;
-    const result = await this.messages.getOrCreateConversation(p.user_id, p.author_name);
+    const result = await this.messages.getOrCreateConversation(p.user_id, p.author_name ?? undefined);
     this.contacting.set(false);
     if (!result || 'error' in result) {
       this.toast.error((result as any)?.error ?? 'No se pudo abrir el chat.');

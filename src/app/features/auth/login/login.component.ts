@@ -48,7 +48,7 @@ export class LoginComponent implements OnInit {
     try {
       const { email, password } = this.form.value;
       await this.auth.signInWithEmail(email!, password!);
-    } catch (e: any) {
+    } catch {
       this.error.set('Credenciales incorrectas. Verifica tu email y contraseña.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
@@ -60,8 +60,8 @@ export class LoginComponent implements OnInit {
     this.error.set('');
     try {
       await this.auth.signInWithGoogle();
-    } catch (e: any) {
-      this.error.set(e.message ?? 'Error con Google');
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error con Google');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }

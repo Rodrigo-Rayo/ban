@@ -39,21 +39,25 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   async ngOnInit() {
-    const { data: { session } } = await this.supabase.auth.getSession();
-    if (session) {
-      await this.messagesService.refreshUnreadCount();
-      this.loadAvatar(session.user.id);
-      this.channel = this.messagesService.subscribeToInboxUpdates(
-        session.user.id,
-        (senderName, preview, convId) => {
-          this.messagesService.inboxUpdate$.next({ senderName, preview, conversationId: convId });
-          if (this.messagesService.activeChatConversationId() === convId) return;
-          this.messagesService.unreadCount.update(n => n + 1);
-          this.showToast(senderName, preview, convId);
-        }
-      );
-      await this.notifSvc.loadUnread(session.user.id);
-      this.notifChannel = this.notifSvc.subscribe(session.user.id, () => {});
+    try {
+      const { data: { session } } = await this.supabase.auth.getSession();
+      if (session) {
+        await this.messagesService.refreshUnreadCount();
+        this.loadAvatar(session.user.id).catch(() => {});
+        this.channel = this.messagesService.subscribeToInboxUpdates(
+          session.user.id,
+          (senderName, preview, convId) => {
+            this.messagesService.inboxUpdate$.next({ senderName, preview, conversationId: convId });
+            if (this.messagesService.activeChatConversationId() === convId) return;
+            this.messagesService.unreadCount.update(n => n + 1);
+            this.showToast(senderName, preview, convId);
+          }
+        );
+        await this.notifSvc.loadUnread(session.user.id);
+        this.notifChannel = this.notifSvc.subscribe(session.user.id, () => {});
+      }
+    } catch {
+      // Navbar errors are non-fatal — app continues to render without realtime features
     }
 
     this.router.events.pipe(

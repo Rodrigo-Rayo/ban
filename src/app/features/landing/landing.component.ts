@@ -85,23 +85,27 @@ export class LandingComponent implements OnInit {
       },
     });
 
-    const [
-      { count: musicians },
-      { count: bands },
-      { count: events },
-      { count: venues },
-    ] = await Promise.all([
-      this.supabase.client.from('musicians').select('*', { count: 'exact', head: true }),
-      this.supabase.client.from('bands').select('*', { count: 'exact', head: true }),
-      this.supabase.client.from('events').select('*', { count: 'exact', head: true })
-        .gte('date', new Date().toISOString().split('T')[0]),
-      this.supabase.client.from('venues').select('*', { count: 'exact', head: true }),
-    ]);
-    this.stats.set({
-      musicians: musicians ?? 0,
-      bands: bands ?? 0,
-      events: events ?? 0,
-      venues: venues ?? 0,
-    });
+    try {
+      const [
+        { count: musicians },
+        { count: bands },
+        { count: events },
+        { count: venues },
+      ] = await Promise.all([
+        this.supabase.client.from('musicians').select('*', { count: 'exact', head: true }),
+        this.supabase.client.from('bands').select('*', { count: 'exact', head: true }),
+        this.supabase.client.from('events').select('*', { count: 'exact', head: true })
+          .gte('date', new Date().toISOString().split('T')[0]),
+        this.supabase.client.from('venues').select('*', { count: 'exact', head: true }),
+      ]);
+      this.stats.set({
+        musicians: musicians ?? 0,
+        bands: bands ?? 0,
+        events: events ?? 0,
+        venues: venues ?? 0,
+      });
+    } catch {
+      // Stats are non-critical — landing page renders fine with zeros
+    }
   }
 }

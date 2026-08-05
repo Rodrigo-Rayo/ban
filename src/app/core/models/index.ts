@@ -91,6 +91,7 @@ export interface RehearsalSpace {
   rooms_count: number | null;
   capacity: number | null;
   equipment: string | null;
+  opening_hours: string | null;
   contact_email: string | null;
   instagram_url: string | null;
   website_url: string | null;
@@ -154,7 +155,7 @@ export interface Post {
   city: string | null;
   instrument: string | null;
   genre: string | null;
-  author_name: string;
+  author_name: string | null;
   author_profile_type: string | null;
   author_profile_id: string | null;
   created_at: string;
@@ -207,7 +208,7 @@ export interface Notification {
   user_id: string;
   type: NotificationType;
   title: string;
-  body: string;
+  body: string | null;
   entity_type: string | null;
   entity_id: string | null;
   read: boolean;
@@ -235,7 +236,6 @@ export interface Review {
 
 export interface Profile {
   id: string;
-  user_id: string;
   role: string | null;
   created_at: string;
 }

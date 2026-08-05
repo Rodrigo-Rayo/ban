@@ -71,8 +71,8 @@ export class RegisterComponent implements OnInit {
     this.error.set('');
     try {
       await this.auth.signInWithGoogle();
-    } catch (e: any) {
-      this.error.set(e.message ?? 'Error con Google');
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error con Google');
     }
   }
 }
