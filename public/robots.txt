@@ -15,5 +15,6 @@ Disallow: /inbox
 Disallow: /inbox/
 Disallow: /notifications
 Disallow: /favorites
+Disallow: /search?*
 
 Sitemap: https://bandyou.es/sitemap.xml

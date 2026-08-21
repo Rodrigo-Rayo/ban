@@ -78,7 +78,7 @@
           @if (venue()!.avatar_url && !avatarError()) {
             <img [src]="venue()!.avatar_url" [alt]="venue()!.name" class="w-full h-full object-cover" fetchpriority="high" (error)="avatarError.set(true)"/>
           } @else {
-            {{ venue()!.name?.slice(0,1).toUpperCase() }}
+            {{ venue()!.name.slice(0,1).toUpperCase() }}
           }
         </div>
 
@@ -86,8 +86,7 @@
         <div class="flex-1 min-w-0 pt-14 sm:pt-16">
           <div class="flex flex-wrap gap-1.5 mb-2">
             @if (venue()!.city) { <span class="tag"><app-icon name="map-pin" [size]="9" class="mr-0.5"/>{{ venue()!.city }}</span> }
-            @if (venue()!.venue_type) { <span class="tag">{{ venue()!.venue_type }}</span> }
-            @if (venue()!.rental_rate) { <span class="tag">{{ venue()!.rental_rate }}€/h</span> }
+
             @if (avgRating()) { <span class="tag-accent">★ {{ avgRating() }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}</span> }
           </div>
           <h1 class="text-2xl sm:text-3xl font-black text-ink leading-tight mb-1 tracking-tight">{{ venue()!.name }}</h1>
@@ -167,12 +166,7 @@
           </div>
         }
 
-        @if (venue()!.equipment) {
-          <div class="card-flat p-5">
-            <h2 class="section-label mb-3">Equipamiento técnico</h2>
-            <p class="text-sm text-ink-3 leading-relaxed">{{ venue()!.equipment }}</p>
-          </div>
-        }
+
 
         <!-- Map placeholder -->
         @if (venue()!.city || venue()!.address) {
@@ -269,7 +263,7 @@
       <div class="flex flex-col gap-4">
 
         <!-- Contact card with icon rows -->
-        @if (venue()!.phone || venue()!.email) {
+        @if (venue()!.phone || venue()!.contact_email) {
           <div class="card-flat overflow-hidden">
             <div class="px-4 py-3 border-b border-dark-600"><h2 class="section-label">Contacto</h2></div>
             <div class="divide-y divide-dark-600">
@@ -287,8 +281,8 @@
                   </div>
                 </a>
               }
-              @if (venue()!.email) {
-                <a [href]="'mailto:' + venue()!.email"
+              @if (venue()!.contact_email) {
+                <a [href]="'mailto:' + venue()!.contact_email"
                    class="flex items-center gap-3 px-4 py-3 hover:bg-dark-700/50 transition-colors group">
                   <div class="w-8 h-8 rounded-lg bg-dark-700 border border-dark-600 flex items-center justify-center flex-shrink-0 group-hover:border-primary-500/40 transition-colors">
                     <svg aria-hidden="true" class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -297,7 +291,7 @@
                   </div>
                   <div class="min-w-0">
                     <p class="section-label mb-0">Email</p>
-                    <p class="text-sm font-medium text-primary-400 truncate">{{ venue()!.email }}</p>
+                    <p class="text-sm font-medium text-primary-400 truncate">{{ venue()!.contact_email }}</p>
                   </div>
                 </a>
               }
@@ -312,15 +306,11 @@
             @if (venue()!.city) {
               <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Ciudad</span><span class="font-medium text-ink">{{ venue()!.city }}</span></div>
             }
-            @if (venue()!.venue_type) {
-              <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Tipo</span><span class="font-medium text-ink capitalize">{{ venue()!.venue_type }}</span></div>
-            }
+
             @if (venue()!.capacity) {
               <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Aforo</span><span class="font-medium text-ink">{{ venue()!.capacity }} personas</span></div>
             }
-            @if (venue()!.rental_rate) {
-              <div class="flex justify-between px-4 py-2.5"><span class="text-ink-muted">Alquiler</span><span class="font-medium text-ink">{{ venue()!.rental_rate }}€/hora</span></div>
-            }
+
             @if (venue()!.phone) {
               <div class="flex justify-between px-4 py-2.5 items-center">
                 <span class="text-ink-muted">Teléfono</span>

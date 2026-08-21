@@ -43,3 +43,6 @@ Thumbs.db
 
 # Supabase CLI temp files
 supabase/.temp/
+
+# Production environment (injected at build time via CI/CD)
+src/environments/environment.prod.ts

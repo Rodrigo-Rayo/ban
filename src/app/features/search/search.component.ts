@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -24,6 +24,7 @@ interface VacancyResult { id: string; instrument: string; description: string | 
 @Component({
   selector: 'app-search',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, RouterLink, CommonModule, DatePipe, IconComponent],
   templateUrl: './search.component.html',
 })
@@ -45,6 +46,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   loading = signal(false);
   loadingMore = signal(false);
   hasMore = signal(false);
+  searchError = signal(false);
   isLoggedIn = signal(false);
   private offset = 0;
   private readonly LIMIT = 30;
@@ -76,7 +78,6 @@ export class SearchComponent implements OnInit, OnDestroy {
   ];
 
   async ngOnInit() {
-    this.seo.set({ title: 'Buscar', description: 'Encuentra músicos, bandas, locales y profesores de música en España.' });
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.isLoggedIn.set(!!user);
@@ -89,9 +90,24 @@ export class SearchComponent implements OnInit, OnDestroy {
       } catch {}
     }
 
+    const tabTitles: Record<SearchType, string> = {
+      musicians: 'Músicos en España',
+      bands: 'Bandas de música',
+      vacancies: 'Vacantes de bandas',
+      venues: 'Salas de conciertos',
+      events: 'Agenda de eventos',
+      teachers: 'Clases de música',
+      rehearsal: 'Locales de ensayo',
+    };
+
     this.paramsSub = this.route.queryParams.subscribe(params => {
       const tab = (params['tab'] as SearchType) || 'musicians';
       this.activeTab.set(tab);
+      this.seo.set({
+        title: tabTitles[tab] || 'Buscar',
+        description: `Encuentra ${(tabTitles[tab] || 'músicos, bandas y salas').toLowerCase()} — BandYou`,
+        url: 'https://bandyou.es/search',
+      });
       if (params['city']) {
         this.selectedCity.set(params['city']);
       } else {
@@ -169,6 +185,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.hasMore.set(false);
     this.loading.set(true);
     const seq = ++this.fetchSeq;
+    this.searchError.set(false);
     try {
       const data = await this.fetchPage(0);
       if (seq !== this.fetchSeq) return;
@@ -176,6 +193,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.hasMore.set(data.length === this.LIMIT);
     } catch (err) {
       if (!environment.production) console.error('[Search] fetchPage error:', err);
+      this.searchError.set(true);
     } finally {
       if (seq === this.fetchSeq) this.loading.set(false);
     }

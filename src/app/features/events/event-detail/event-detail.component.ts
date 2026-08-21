@@ -62,13 +62,17 @@ export class EventDetailComponent implements OnInit {
           '@type': 'Event',
           name: data.title,
           description: data.description || '',
-          startDate: data.date,
+          startDate: data.time ? `${data.date}T${data.time}` : data.date,
+          endDate: data.time ? `${data.date}T${data.time}` : data.date,
+          eventStatus: 'https://schema.org/EventScheduled',
+          eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
           url: `https://bandyou.es/events/${data.id}`,
           location: {
             '@type': 'Place',
-            name: data.venue_name || data.city || 'España',
+            name: data.venue_name || data.venue || data.city || 'España',
             address: { '@type': 'PostalAddress', addressLocality: data.city || '', addressCountry: 'ES' },
           },
+          ...(data.organizer ? { organizer: { '@type': 'Organization', name: data.organizer } } : {}),
         });
       }
       if (session) {

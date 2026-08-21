@@ -2,9 +2,15 @@ const AVATAR_COLORS = [
   '#a0442a', '#c4623e', '#7a3320', '#b85040', '#8b3a2a', '#d4785a',
 ];
 
-export function avatarColor(name: string): string {
+export function avatarColor(name: string | null): string {
   const code = name?.charCodeAt(0) ?? 65;
   return AVATAR_COLORS[code % AVATAR_COLORS.length];
+}
+
+export function avatarSrc(url: string | null | undefined, size = 200): string | null {
+  if (!url) return null;
+  if (!url.includes('supabase.co/storage')) return url;
+  return `${url}?width=${size}&height=${size}&resize=cover&quality=80&format=webp`;
 }
 
 export function timeAgo(dateStr: string): string {

@@ -142,7 +142,8 @@
 
   /* ── Sidebar nav item ───────────────────────── */
   .nav-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150;
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1;
   }
   .nav-item-active {
     @apply bg-primary-900 text-primary-600 font-semibold border-l-2 border-primary-500;

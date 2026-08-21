@@ -23,7 +23,7 @@ export class NotificationsService {
       .from('notifications').select('id, user_id, type, title, body, entity_type, entity_id, read, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }).limit(50);
-    if (error) return [];
+    if (error) throw new Error(error.message);
     return data || [];
   }
 
@@ -74,7 +74,8 @@ export class NotificationsService {
   async deleteAll(userId: string): Promise<void> {
     const { error } = await this.supabase.client
       .from('notifications').delete().eq('user_id', userId);
-    if (!error) this.unreadCount.set(0);
+    if (error) throw new Error(error.message);
+    this.unreadCount.set(0);
   }
 
   unsubscribe() {

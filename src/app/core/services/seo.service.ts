@@ -32,15 +32,21 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:url', content: url });
     this.meta.updateTag({ property: 'og:site_name', content: 'BandYou' });
     this.meta.updateTag({ property: 'og:locale', content: 'es_ES' });
+    this.meta.updateTag({ property: 'og:image:alt', content: options.title ? `${options.title} — BandYou` : 'BandYou — La red musical de España' });
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
     this.meta.updateTag({ name: 'twitter:title', content: fullTitle });
     this.meta.updateTag({ name: 'twitter:description', content: desc });
     this.meta.updateTag({ name: 'twitter:image', content: image });
 
     if (!this.canonical) {
-      this.canonical = this.document.createElement('link');
-      this.canonical.setAttribute('rel', 'canonical');
-      this.document.head.appendChild(this.canonical);
+      this.canonical =
+        (this.document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null)
+        ?? (() => {
+          const el = this.document.createElement('link');
+          el.setAttribute('rel', 'canonical');
+          this.document.head.appendChild(el);
+          return el;
+        })();
     }
     this.canonical.setAttribute('href', url);
   }
@@ -72,7 +78,7 @@ export class SeoService {
     const desc = description
       ? description.slice(0, 155)
       : `${label}${locationSuffix} — BandYou`;
-    this.set({ title: `${name} · ${label}${locationSuffix}`, description: desc, image, url, type: 'profile' });
+    this.set({ title: `${name} · ${label}${locationSuffix}`, description: desc, image, url, type: 'website' });
   }
 
   /**

@@ -101,10 +101,10 @@ export class NotificationsComponent implements OnInit {
   }
 
   async ngOnInit() {
-    const { data: { session } } = await this.supabase.auth.getSession();
-    if (!session) { this.loading.set(false); return; }
-    this.userId.set(session.user.id);
     try {
+      const { data: { session } } = await this.supabase.auth.getSession();
+      if (!session) { this.loading.set(false); return; }
+      this.userId.set(session.user.id);
       const notifs = await this.notifSvc.getAll(session.user.id);
       this.notifications.set(notifs);
       await this.notifSvc.markAllRead(session.user.id);

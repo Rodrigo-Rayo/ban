@@ -24,7 +24,7 @@ export class RegisterComponent implements OnInit {
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   // ── Password strength ─────────────────────────────────────────────
@@ -32,7 +32,7 @@ export class RegisterComponent implements OnInit {
     const pw: string = this.form.get('password')?.value ?? '';
     if (!pw) return 0;
     let s = 0;
-    if (pw.length >= 6) s++;
+    if (pw.length >= 8) s++;
     if (pw.length >= 10) s++;
     if (/[A-Z]/.test(pw)) s++;
     if (/[0-9]/.test(pw)) s++;

@@ -100,13 +100,14 @@ export class MessagesService {
     const user = await this.getCurrentUser();
     if (!user) return [];
 
-    const { data } = await this.supabase.client
+    const { data, error } = await this.supabase.client
       .from('conversations')
       .select('*')
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
       .order('last_message_at', { ascending: false })
       .limit(50);
 
+    if (error) throw new Error(error.message);
     const convs = (data || []) as Conversation[];
     this._cachedConvIds = convs.map(c => c.id);
     return convs;
@@ -117,13 +118,14 @@ export class MessagesService {
     limit = 50,
     offset = 0,
   ): Promise<{ messages: Message[]; hasMore: boolean }> {
-    const { data } = await this.supabase.client
+    const { data, error } = await this.supabase.client
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
+    if (error) throw new Error(error.message);
     // Reverse so oldest-first in UI while fetching newest-first from DB
     const messages = ((data || []) as Message[]).reverse();
     return { messages, hasMore: (data?.length ?? 0) === limit };

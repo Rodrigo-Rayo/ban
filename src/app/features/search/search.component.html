@@ -170,6 +170,13 @@
     </div>
 
     <!-- ── Loading skeleton — profile card shape ── -->
+    @if (searchError()) {
+      <div class="card text-center py-10">
+        <p class="text-ink font-semibold mb-1">Error al cargar los resultados</p>
+        <p class="text-sm text-ink-muted">Comprueba tu conexión y vuelve a intentarlo.</p>
+      </div>
+    }
+
     @if (loading()) {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (i of [1,2,3,4,5,6]; track i) {
@@ -488,7 +495,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           @for (event of events(); track event.id; let i = $index) {
             <a [routerLink]="['/events', event.id]"
-               class="group flex flex-col bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden hover:border-primary-400/60 hover:shadow-card-md transition-all duration-200 cursor-pointer"
+               class="group flex flex-col bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden hover:border-primary-400/60 hover:shadow-md transition-all duration-200 cursor-pointer"
                [class.event-card-featured]="i === 0">
               <div class="h-1 flex-shrink-0"
                    [style.background]="i === 0 ? '#a0442a' : '#d8ccb8'"></div>

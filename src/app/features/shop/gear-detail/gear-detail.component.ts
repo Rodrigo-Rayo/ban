@@ -54,7 +54,29 @@ export class GearDetailComponent implements OnInit {
       const { data, error } = listingResult;
       if (error) { this.toast.error('No se pudo cargar el anuncio. Recarga la página.'); return; }
       this.listing.set(data);
-      if (data) this.seo.setListing(data.title, data.price, data.city);
+      if (data) {
+        this.seo.setListing(data.title, data.price, data.city);
+        this.seo.injectJsonLd({
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: data.title,
+          description: data.description || '',
+          image: data.images?.[0] || '',
+          url: `https://bandyou.es/shop/${data.id}`,
+          offers: {
+            '@type': 'Offer',
+            price: data.price,
+            priceCurrency: 'EUR',
+            availability: data.status === 'active'
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/SoldOut',
+            itemCondition: data.condition === 'new'
+              ? 'https://schema.org/NewCondition'
+              : 'https://schema.org/UsedCondition',
+            seller: { '@type': 'Person', name: data.seller_name || '' },
+          },
+        });
+      }
     } catch {
       this.toast.error('No se pudo cargar el anuncio. Recarga la página.');
     } finally {

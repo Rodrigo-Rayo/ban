@@ -223,11 +223,11 @@ export class OnboardingComponent implements OnInit {
     }
 
     const [
-      { data: musicianData },
-      { data: bandData },
-      { data: venueData },
-      { data: teacherData },
-      { data: rehearsalData },
+      { data: musicianData, error: e1 },
+      { data: bandData,     error: e2 },
+      { data: venueData,    error: e3 },
+      { data: teacherData,  error: e4 },
+      { data: rehearsalData, error: e5 },
     ] = await Promise.all([
       this.supabase.client.from('musicians').select('*').eq('user_id', user.id).maybeSingle(),
       this.supabase.client.from('bands').select('*').eq('user_id', user.id).maybeSingle(),
@@ -235,6 +235,10 @@ export class OnboardingComponent implements OnInit {
       this.supabase.client.from('teachers').select('*').eq('user_id', user.id).maybeSingle(),
       this.supabase.client.from('rehearsal_spaces').select('*').eq('user_id', user.id).maybeSingle(),
     ]);
+    if (e1 || e2 || e3 || e4 || e5) {
+      this.error.set('Error al cargar tu perfil. Por favor recarga la página.');
+      return;
+    }
 
     const found = [
       { data: musicianData, role: 'musician' as Role },

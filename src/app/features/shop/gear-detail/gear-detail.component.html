@@ -28,10 +28,10 @@
         <!-- Images -->
         <div>
           <div class="relative aspect-square bg-dark-800 rounded-2xl overflow-hidden border border-dark-600">
-            @if (listing().images?.length > 0) {
-              <img [src]="listing().images[currentImageIdx()]" [alt]="listing().title"
+            @if ((listing()!.images?.length ?? 0) > 0) {
+              <img [src]="listing()!.images![currentImageIdx()]" [alt]="listing()!.title"
                    class="w-full h-full object-cover" fetchpriority="high">
-              @if (listing().images.length > 1) {
+              @if (listing()!.images!.length > 1) {
                 <button (click)="prevImage()"
                   aria-label="Imagen anterior"
                   class="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 bg-dark-900/70 hover:bg-dark-900 rounded-full flex items-center justify-center transition-colors">
@@ -48,7 +48,7 @@
                 </button>
                 <!-- Dots — wrapped in larger tap targets for thumb accuracy -->
                 <div class="absolute bottom-2 left-0 right-0 flex justify-center gap-0.5" role="tablist" aria-label="Miniaturas de imagen">
-                  @for (img of listing().images; track $index) {
+                  @for (img of listing()!.images!; track $index) {
                     <button (click)="currentImageIdx.set($index)"
                       role="tab"
                       [attr.aria-selected]="currentImageIdx() === $index"
@@ -69,7 +69,7 @@
             }
 
             <!-- Sold badge -->
-            @if (listing().status === 'sold') {
+            @if (listing()!.status === 'sold') {
               <div class="absolute inset-0 bg-dark-900/70 flex items-center justify-center">
                 <span class="text-2xl font-black text-white bg-dark-900 px-5 py-2 rounded-xl border border-dark-600 rotate-[-8deg]">VENDIDO</span>
               </div>
@@ -77,9 +77,9 @@
           </div>
 
           <!-- Thumbnail strip -->
-          @if (listing().images?.length > 1) {
+          @if ((listing()!.images?.length ?? 0) > 1) {
             <div class="flex gap-2 mt-3 overflow-x-auto pb-1">
-              @for (img of listing().images; track $index) {
+              @for (img of listing()!.images!; track $index) {
                 <button (click)="currentImageIdx.set($index)"
                   [attr.aria-label]="'Ver imagen ' + ($index + 1)"
                   [attr.aria-pressed]="currentImageIdx() === $index"
@@ -98,48 +98,48 @@
 
           <!-- Category + condition -->
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-xs text-ink-muted bg-dark-700 px-2.5 py-1 rounded-lg border border-dark-600">{{ listing().category }}</span>
-            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg border {{ conditionClasses[listing().condition] || 'text-ink-muted border-dark-600 bg-dark-700' }}">
-              {{ conditionLabels[listing().condition] || listing().condition }}
+            <span class="text-xs text-ink-muted bg-dark-700 px-2.5 py-1 rounded-lg border border-dark-600">{{ listing()!.category }}</span>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg border {{ conditionClasses[listing()!.condition ?? ''] || 'text-ink-muted border-dark-600 bg-dark-700' }}">
+              {{ conditionLabels[listing()!.condition ?? ''] || (listing()!.condition ?? '') }}
             </span>
-            @if (listing().city) {
+            @if (listing()!.city) {
               <span class="text-xs text-ink-muted flex items-center gap-1">
-                <app-icon name="map-pin" [size]="11"/>{{ listing().city }}
+                <app-icon name="map-pin" [size]="11"/>{{ listing()!.city }}
               </span>
             }
           </div>
 
           <!-- Title + price -->
           <div>
-            <h1 class="text-2xl font-bold text-ink leading-snug mb-2">{{ listing().title }}</h1>
-            <p class="text-3xl font-black text-primary-400">{{ listing().price | number:'1.0-0' }} €</p>
+            <h1 class="text-2xl font-bold text-ink leading-snug mb-2">{{ listing()!.title }}</h1>
+            <p class="text-3xl font-black text-primary-400">{{ listing()!.price | number:'1.0-0' }} €</p>
           </div>
 
           <!-- Description -->
-          @if (listing().description) {
-            <p class="text-sm text-ink-muted leading-relaxed whitespace-pre-line">{{ listing().description }}</p>
+          @if (listing()!.description) {
+            <p class="text-sm text-ink-muted leading-relaxed whitespace-pre-line">{{ listing()!.description }}</p>
           }
 
           <!-- Seller -->
           <div class="flex items-center gap-3 p-3.5 bg-dark-800 border border-dark-600 rounded-xl hover:border-primary-500/30 transition-colors">
             <div class="w-10 h-10 rounded-xl bg-primary-900 border border-primary-500/20 flex items-center justify-center text-sm font-bold text-primary-400 flex-shrink-0">
-              {{ (listing().seller_name || 'U').slice(0,1).toUpperCase() }}
+              {{ (listing()!.seller_name || 'U').slice(0,1).toUpperCase() }}
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-[10px] font-semibold text-ink-muted uppercase tracking-wider mb-0.5">Vendedor</p>
               @if (profileRoute(); as route) {
                 <a [routerLink]="route" class="text-sm font-semibold text-ink hover:text-primary-400 transition-colors flex items-center gap-1">
-                  {{ listing().seller_name }}
+                  {{ listing()!.seller_name }}
                   <app-icon name="arrow-right" [size]="12" class="text-ink-muted"/>
                 </a>
               } @else {
-                <p class="text-sm font-semibold text-ink">{{ listing().seller_name }}</p>
+                <p class="text-sm font-semibold text-ink">{{ listing()!.seller_name }}</p>
               }
             </div>
           </div>
 
           <!-- Actions — hidden on mobile (mobile CTA bar handles it) -->
-          @if (!isOwner && auth.isLoggedIn() && listing().status === 'active') {
+          @if (!isOwner && auth.isLoggedIn() && listing()!.status === 'active') {
             <button (click)="contactSeller()" [disabled]="contacting()"
               class="btn-primary text-sm min-h-[50px] w-full disabled:opacity-60 hidden sm:inline-flex items-center justify-center gap-2">
               @if (contacting()) {
@@ -149,7 +149,7 @@
             </button>
           }
 
-          @if (!auth.isLoggedIn() && listing().status === 'active') {
+          @if (!auth.isLoggedIn() && listing()!.status === 'active') {
             <a routerLink="/auth/login" class="btn-secondary text-sm py-3 text-center hidden sm:block">
               Inicia sesión para contactar
             </a>
@@ -158,11 +158,11 @@
           <!-- Owner actions -->
           @if (isOwner) {
             <div class="flex flex-col gap-2 pt-2 border-t border-dark-600">
-              <a [routerLink]="['/shop', listing().id, 'edit']"
+              <a [routerLink]="['/shop', listing()!.id, 'edit']"
                 class="w-full py-2.5 text-sm font-semibold text-center text-ink border border-dark-600 bg-dark-700 rounded-xl hover:bg-dark-600 transition-colors">
                 Editar anuncio
               </a>
-              @if (listing().status === 'active') {
+              @if (listing()!.status === 'active') {
                 <button (click)="markAsSold()"
                   class="w-full py-2.5 text-sm font-semibold text-signal-green border border-signal-green/30 bg-signal-gBg rounded-xl hover:bg-signal-green/10 transition-colors flex items-center justify-center gap-1.5">
                   <app-icon name="check" [size]="14"/>Marcar como vendido
@@ -178,7 +178,7 @@
       </div>
 
       <!-- Mobile fixed CTA bar — sm:hidden so desktop info column actions handle it -->
-      @if (listing().status === 'active') {
+      @if (listing()!.status === 'active') {
         <div class="fixed bottom-16 left-0 right-0 z-30 bg-dark-800/98 backdrop-blur-md border-t border-dark-600 px-4 py-3 flex gap-3 sm:hidden">
           @if (!isOwner && auth.isLoggedIn()) {
             <button (click)="contactSeller()" [disabled]="contacting()"
@@ -196,7 +196,7 @@
             </a>
           }
           @if (isOwner) {
-            <a [routerLink]="['/shop', listing().id, 'edit']"
+            <a [routerLink]="['/shop', listing()!.id, 'edit']"
                class="btn-secondary text-sm flex-1 flex items-center justify-center min-h-[44px]">
               Editar anuncio
             </a>
