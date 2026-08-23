@@ -45,7 +45,7 @@ export class IconComponent {
     const safeSize = Number.isFinite(+this.size) ? +this.size : 20;
     const safeStroke = Number.isFinite(+this.strokeWidth) ? +this.strokeWidth : 1.75;
     const path = ICONS[safeName] ?? ICONS['user'];
-    const html = `<svg width="${safeSize}" height="${safeSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${safeStroke}" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+    const html = `<svg aria-hidden="true" width="${safeSize}" height="${safeSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${safeStroke}" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 }

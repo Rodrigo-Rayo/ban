@@ -272,7 +272,7 @@
         <div class="flex flex-col gap-4 mb-6">
           <div>
             <label class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad *</label>
-            <select formControlName="city" class="input-field">
+            <select formControlName="city" aria-label="Ciudad" class="input-field">
               @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
             </select>
           </div>
@@ -280,18 +280,18 @@
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Capacidad <span class="opacity-50">(personas)</span></label>
-                <input formControlName="capacity" type="number" inputmode="numeric" placeholder="200" class="input-field"/>
+                <input formControlName="capacity" type="number" inputmode="numeric" placeholder="200" aria-label="Capacidad en personas" class="input-field"/>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
-                <input formControlName="hourly_rate" type="number" inputmode="decimal" placeholder="25" class="input-field"/>
+                <input formControlName="hourly_rate" type="number" inputmode="decimal" placeholder="25" aria-label="Precio por hora en euros" class="input-field"/>
               </div>
             </div>
           }
           <div>
             <label class="block text-xs font-semibold text-ink-muted mb-1.5">Descripción <span class="opacity-50">(opcional)</span></label>
             <div class="relative">
-              <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" class="input-field resize-none pb-6"></textarea>
+              <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" aria-label="Descripción" class="input-field resize-none pb-6"></textarea>
               <span class="absolute bottom-2 right-2.5 text-[10px] font-medium pointer-events-none select-none"
                     [class.text-ink-muted]="(zoneForm.get('description')?.value?.length || 0) <= 425"
                     [class.text-signal-amber]="(zoneForm.get('description')?.value?.length || 0) > 425 && (zoneForm.get('description')?.value?.length || 0) <= 475"
@@ -304,11 +304,11 @@
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Teléfono <span class="opacity-50">(opcional)</span></label>
-                <input formControlName="phone" type="tel" placeholder="+34 600 000 000" class="input-field"/>
+                <input formControlName="phone" type="tel" placeholder="+34 600 000 000" aria-label="Teléfono" class="input-field"/>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Dirección <span class="opacity-50">(opcional)</span></label>
-                <input formControlName="address" type="text" placeholder="Calle y número" class="input-field"/>
+                <input formControlName="address" type="text" placeholder="Calle y número" aria-label="Dirección" class="input-field"/>
               </div>
             </div>
           }
@@ -357,15 +357,15 @@
             <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></p>
             <div class="grid sm:grid-cols-2 gap-3">
               @if (role() === 'musician' || role() === 'band') {
-                <input formControlName="spotify_url" type="url" placeholder="Spotify URL" class="input-field text-sm py-2"/>
+                <input formControlName="spotify_url" type="url" placeholder="Spotify URL" aria-label="Spotify URL" class="input-field text-sm py-2"/>
               }
               @if (role() === 'musician' || role() === 'band') {
-                <input formControlName="soundcloud_url" type="url" placeholder="SoundCloud URL" class="input-field text-sm py-2"/>
+                <input formControlName="soundcloud_url" type="url" placeholder="SoundCloud URL" aria-label="SoundCloud URL" class="input-field text-sm py-2"/>
               }
-              <input formControlName="youtube_url" type="url" placeholder="YouTube URL" class="input-field text-sm py-2"/>
-              <input formControlName="instagram_url" type="url" placeholder="Instagram URL" class="input-field text-sm py-2"/>
+              <input formControlName="youtube_url" type="url" placeholder="YouTube URL" aria-label="YouTube URL" class="input-field text-sm py-2"/>
+              <input formControlName="instagram_url" type="url" placeholder="Instagram URL" aria-label="Instagram URL" class="input-field text-sm py-2"/>
               @if (role() === 'band' || role() === 'venue' || role() === 'rehearsal' || role() === 'teacher') {
-                <input formControlName="website_url" type="url" placeholder="Web URL" class="input-field text-sm py-2"/>
+                <input formControlName="website_url" type="url" placeholder="Web URL" aria-label="Web URL" class="input-field text-sm py-2"/>
               }
             </div>
           </div>
@@ -443,7 +443,7 @@
         <div class="flex flex-col gap-4 mb-6">
           <div>
             <label class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad *</label>
-            <select formControlName="city" class="input-field">
+            <select formControlName="city" aria-label="Ciudad" class="input-field">
               @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
             </select>
           </div>
@@ -451,18 +451,18 @@
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
-                <input formControlName="hourly_rate" type="number" inputmode="decimal" placeholder="25" class="input-field"/>
+                <input formControlName="hourly_rate" type="number" inputmode="decimal" placeholder="25" aria-label="Precio por hora en euros" class="input-field"/>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Años de experiencia <span class="opacity-50">(opcional)</span></label>
-                <input formControlName="experience" type="text" placeholder="5 años" class="input-field"/>
+                <input formControlName="experience" type="text" placeholder="5 años" aria-label="Años de experiencia" class="input-field"/>
               </div>
             </div>
           }
           <div>
             <label class="block text-xs font-semibold text-ink-muted mb-1.5">Sobre ti <span class="opacity-50">(opcional)</span></label>
             <div class="relative">
-              <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" class="input-field resize-none pb-6"></textarea>
+              <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" aria-label="Sobre ti" class="input-field resize-none pb-6"></textarea>
               <span class="absolute bottom-2 right-2.5 text-[10px] font-medium pointer-events-none select-none"
                     [class.text-ink-muted]="(zoneForm.get('description')?.value?.length || 0) <= 425"
                     [class.text-signal-amber]="(zoneForm.get('description')?.value?.length || 0) > 425 && (zoneForm.get('description')?.value?.length || 0) <= 475"
@@ -474,7 +474,7 @@
           @if (role() === 'musician') {
             <div>
               <label class="block text-xs font-semibold text-ink-muted mb-1.5">Influencias <span class="opacity-50">(opcional)</span></label>
-              <input formControlName="influences" type="text" placeholder="Ej: Pink Floyd, Miles Davis..." class="input-field"/>
+              <input formControlName="influences" type="text" placeholder="Ej: Pink Floyd, Miles Davis..." aria-label="Influencias musicales" class="input-field"/>
             </div>
             <div>
               <label class="block text-xs font-semibold text-ink-muted mb-1.5">Disponibilidad <span class="opacity-50">(opcional)</span></label>
@@ -514,7 +514,7 @@
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Modalidad</label>
-                <select formControlName="modality" class="input-field">
+                <select formControlName="modality" aria-label="Modalidad de clases" class="input-field">
                   <option value="presencial">Presencial</option>
                   <option value="online">Online</option>
                   <option value="ambos">Presencial y online</option>
@@ -522,7 +522,7 @@
               </div>
               <div>
                 <label class="block text-xs font-semibold text-ink-muted mb-1.5">Años de experiencia <span class="opacity-50">(opcional)</span></label>
-                <input formControlName="experience_years" type="number" inputmode="numeric" placeholder="5" class="input-field"/>
+                <input formControlName="experience_years" type="number" inputmode="numeric" placeholder="5" aria-label="Años de experiencia docente" class="input-field"/>
               </div>
             </div>
           }
@@ -532,13 +532,13 @@
             <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></p>
             <div class="grid sm:grid-cols-2 gap-3">
               @if (role() === 'musician') {
-                <input formControlName="spotify_url" type="url" placeholder="Spotify URL" class="input-field text-sm py-2"/>
-                <input formControlName="soundcloud_url" type="url" placeholder="SoundCloud URL" class="input-field text-sm py-2"/>
+                <input formControlName="spotify_url" type="url" placeholder="Spotify URL" aria-label="Spotify URL" class="input-field text-sm py-2"/>
+                <input formControlName="soundcloud_url" type="url" placeholder="SoundCloud URL" aria-label="SoundCloud URL" class="input-field text-sm py-2"/>
               }
-              <input formControlName="youtube_url" type="url" placeholder="YouTube URL" class="input-field text-sm py-2"/>
-              <input formControlName="instagram_url" type="url" placeholder="Instagram URL" class="input-field text-sm py-2"/>
+              <input formControlName="youtube_url" type="url" placeholder="YouTube URL" aria-label="YouTube URL" class="input-field text-sm py-2"/>
+              <input formControlName="instagram_url" type="url" placeholder="Instagram URL" aria-label="Instagram URL" class="input-field text-sm py-2"/>
               @if (role() === 'musician' || role() === 'teacher') {
-                <input formControlName="website_url" type="url" placeholder="Web URL" class="input-field text-sm py-2"/>
+                <input formControlName="website_url" type="url" placeholder="Web URL" aria-label="Web URL" class="input-field text-sm py-2"/>
               }
             </div>
           </div>
