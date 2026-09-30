@@ -74,6 +74,8 @@ export class EventDetailComponent implements OnInit {
           },
           ...(data.organizer ? { organizer: { '@type': 'Organization', name: data.organizer } } : {}),
         });
+      } else {
+        this.seo.setNotFound();
       }
       if (session) {
         this.currentUserId.set(session.user.id);

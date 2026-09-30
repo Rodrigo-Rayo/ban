@@ -1,24 +1,27 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
+/** Private, transactional and auth pages must never be indexed. */
+const NOINDEX = { noindex: true };
+
 export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./features/landing/landing.component').then(m => m.LandingComponent),
   },
   {
-    path: 'home',
+    path: 'home', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent),
   },
   {
     path: 'auth',
     children: [
-      { path: 'login', loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent) },
-      { path: 'register', loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent) },
-      { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
-      { path: 'reset-password', loadComponent: () => import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
-      { path: 'callback', loadComponent: () => import('./features/auth/callback/callback.component').then(m => m.CallbackComponent) },
+      { path: 'login', data: NOINDEX, loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent) },
+      { path: 'register', data: NOINDEX, loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent) },
+      { path: 'forgot-password', title: 'Recuperar contraseña · BandYou', data: NOINDEX, loadComponent: () => import('./features/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
+      { path: 'reset-password', title: 'Nueva contraseña · BandYou', data: NOINDEX, loadComponent: () => import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
+      { path: 'callback', title: 'Accediendo… · BandYou', data: NOINDEX, loadComponent: () => import('./features/auth/callback/callback.component').then(m => m.CallbackComponent) },
     ],
   },
   {
@@ -34,7 +37,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/bands/band-profile/band-profile.component').then(m => m.BandProfileComponent),
   },
   {
-    path: 'venues/new',
+    path: 'venues/new', title: 'Tu sala · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/venues/venue-form/venue-form.component').then(m => m.VenueFormComponent),
   },
@@ -43,7 +46,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/venues/venue-profile/venue-profile.component').then(m => m.VenueProfileComponent),
   },
   {
-    path: 'teachers/new',
+    path: 'teachers/new', title: 'Tu perfil de profesor · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/teachers/teacher-form/teacher-form.component').then(m => m.TeacherFormComponent),
   },
@@ -52,7 +55,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/teachers/teacher-profile/teacher-profile.component').then(m => m.TeacherProfileComponent),
   },
   {
-    path: 'rehearsal/new',
+    path: 'rehearsal/new', title: 'Tu local de ensayo · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/rehearsal-spaces/rehearsal-form/rehearsal-form.component').then(m => m.RehearsalFormComponent),
   },
@@ -61,7 +64,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/rehearsal-spaces/rehearsal-profile/rehearsal-profile.component').then(m => m.RehearsalProfileComponent),
   },
   {
-    path: 'events/create',
+    path: 'events/create', title: 'Crear evento · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/events/event-form/event-form.component').then(m => m.EventFormComponent),
   },
@@ -70,31 +73,31 @@ export const routes: Routes = [
     loadComponent: () => import('./features/events/event-detail/event-detail.component').then(m => m.EventDetailComponent),
   },
   {
-    path: 'inbox',
+    path: 'inbox', title: 'Mensajes · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/inbox/inbox.component').then(m => m.InboxComponent),
   },
   {
-    path: 'inbox/:id',
+    path: 'inbox/:id', title: 'Conversación · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatComponent),
   },
   {
-    path: 'onboarding',
+    path: 'onboarding', title: 'Tu perfil · BandYou', data: NOINDEX,
     loadComponent: () => import('./features/onboarding/onboarding.component').then(m => m.OnboardingComponent),
   },
   {
-    path: 'dashboard',
+    path: 'dashboard', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
   },
   {
-    path: 'favorites',
+    path: 'favorites', title: 'Favoritos · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/favorites/favorites.component').then(m => m.FavoritesComponent),
   },
   {
-    path: 'notifications',
+    path: 'notifications', title: 'Notificaciones · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent),
   },
@@ -112,12 +115,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/shop/gear-list/gear-list.component').then(m => m.GearListComponent),
   },
   {
-    path: 'shop/new',
+    path: 'shop/new', title: 'Vender artículo · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/shop/gear-form/gear-form.component').then(m => m.GearFormComponent),
   },
   {
-    path: 'shop/:id/edit',
+    path: 'shop/:id/edit', title: 'Editar anuncio · BandYou', data: NOINDEX,
     canActivate: [authGuard],
     loadComponent: () => import('./features/shop/gear-form/gear-form.component').then(m => m.GearFormComponent),
   },
@@ -143,7 +146,7 @@ export const routes: Routes = [
     ],
   },
   {
-    path: '**',
+    path: '**', data: NOINDEX,
     loadComponent: () => import('./features/not-found/not-found.component').then(m => m.NotFoundComponent),
   },
 ];

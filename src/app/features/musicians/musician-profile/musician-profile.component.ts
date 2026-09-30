@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal, OnInit } from '@angular/core';
+﻿import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -8,6 +8,7 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
+import { parseList } from '../../../core/utils/list';
 import { Musician } from '../../../core/models';
 
 @Component({
@@ -28,6 +29,8 @@ export class MusicianProfileComponent implements OnInit {
   private toast = inject(ToastService);
 
   musician = signal<Musician | null>(null);
+  availabilityDays = computed(() => parseList(this.musician()?.availability_days));
+  availabilitySlots = computed(() => parseList(this.musician()?.availability_slots));
   loading = signal(true);
   isFav = signal(false);
   avatarError = signal(false);
@@ -57,6 +60,8 @@ export class MusicianProfileComponent implements OnInit {
           url: `https://bandyou.es/musicians/${data.id}`,
           address: { '@type': 'PostalAddress', addressLocality: data.city || '', addressCountry: 'ES' },
         });
+      } else {
+        this.seo.setNotFound();
       }
       if (session) {
         this.currentUserId.set(session.user.id);

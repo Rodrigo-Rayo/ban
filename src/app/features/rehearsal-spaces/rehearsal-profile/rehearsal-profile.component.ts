@@ -85,6 +85,8 @@ export class RehearsalProfileComponent implements OnInit {
           url: `https://bandyou.es/rehearsal/${space.id}`,
           address: { '@type': 'PostalAddress', addressLocality: space.city || '', addressCountry: 'ES' },
         });
+      } else {
+        this.seo.setNotFound();
       }
       this.reviews.set((reviews || []) as Review[]);
       if (session) {

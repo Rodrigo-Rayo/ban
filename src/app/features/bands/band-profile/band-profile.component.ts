@@ -102,6 +102,8 @@ export class BandProfileComponent implements OnInit {
           genre: band.genre || '',
           address: { '@type': 'PostalAddress', addressLocality: band.city || '', addressCountry: 'ES' },
         });
+      } else {
+        this.seo.setNotFound();
       }
       this.vacancies.set(vac || []);
       this.members.set(membersData || []);

@@ -86,6 +86,8 @@ export class TeacherProfileComponent implements OnInit {
           },
           address: { '@type': 'PostalAddress', addressLocality: teacher.city || '', addressCountry: 'ES' },
         });
+      } else {
+        this.seo.setNotFound();
       }
       this.reviews.set((reviews || []) as Review[]);
       if (session) {

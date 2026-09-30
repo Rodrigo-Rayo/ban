@@ -60,6 +60,8 @@ export class PostDetailComponent implements OnInit {
         const label = typeInfo?.label ?? 'Anuncio';
         const desc = data.text?.slice(0, 155) ?? `${label} — BandYou`;
         this.seo.set({ title: `${label} · ${data.author_name}`, description: desc, type: 'article' });
+      } else {
+        this.seo.setNotFound();
       }
     } catch {
       this.toast.error('No se pudo cargar el anuncio. Recarga la página.');

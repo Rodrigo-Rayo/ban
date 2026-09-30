@@ -72,6 +72,8 @@ export class VenueProfileComponent implements OnInit {
           url: `https://bandyou.es/venues/${venue.id}`,
           address: { '@type': 'PostalAddress', addressLocality: venue.city || '', addressCountry: 'ES' },
         });
+      } else {
+        this.seo.setNotFound();
       }
       this.reviews.set((reviews || []) as Review[]);
       if (session) {

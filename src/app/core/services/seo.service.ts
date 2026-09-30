@@ -1,21 +1,49 @@
 import { Injectable, inject } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
+import { ActivatedRouteSnapshot, NavigationEnd, NavigationStart, Router } from '@angular/router';
+
+export const SITE_URL = 'https://bandyou.es';
+
+export interface SeoOptions {
+  title?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+  type?: string;
+  /** Marks the current page noindex (e.g. a profile id that does not exist). */
+  noindex?: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
   private title = inject(Title);
   private meta = inject(Meta);
   private document = inject(DOCUMENT);
+  private router = inject(Router);
   private canonical?: HTMLLinkElement;
+  private pageNoindex = false;
 
-  set(options: { title?: string; description?: string; image?: string; url?: string; type?: string }) {
+  constructor() {
+    // robots is derived per navigation from route `data.noindex` so a noindex
+    // page (login, inbox…) never leaks its tag onto the next page.
+    this.router.events.subscribe(e => {
+      // Reset the per-page flag only on real page changes, not query-param updates.
+      if (e instanceof NavigationStart && pathOf(e.url) !== pathOf(this.router.url)) this.pageNoindex = false;
+      if (e instanceof NavigationEnd) this.applyRobots();
+    });
+  }
+
+  set(options: SeoOptions) {
     const appName = 'BandYou';
     const fullTitle = options.title ? `${options.title} · ${appName}` : `${appName} — La red musical de España`;
     const desc = options.description ?? 'Directorio de músicos, bandas, salas y profesores. Mensajes directos, agenda de eventos.';
-    const image = options.image ?? 'https://bandyou.es/og-default.jpg';
-    const url = options.url ?? this.document.URL;
+    const image = options.image || `${SITE_URL}/og-default.jpg`;
+    const url = options.url ?? this.currentCanonicalUrl();
     const type = options.type ?? 'website';
+
+    if (options.noindex) this.pageNoindex = true;
+    this.applyRobots();
 
     // Clear stale JSON-LD injected by the previous page so navigating away
     // from a profile/event does not leave the old schema in <head>.
@@ -76,7 +104,7 @@ export class SeoService {
     const label = subtitle || (typeLabel[type] ?? type);
     const locationSuffix = city ? ` en ${city}` : '';
     const desc = description
-      ? description.slice(0, 155)
+      ? truncate(description)
       : `${label}${locationSuffix} — BandYou`;
     this.set({ title: `${name} · ${label}${locationSuffix}`, description: desc, image, url, type: 'website' });
   }
@@ -95,17 +123,23 @@ export class SeoService {
       }
     }
     const desc = description
-      ? description.slice(0, 155)
+      ? truncate(description)
       : `${title}${humanDate ? ' · ' + humanDate : ''}${city ? ' en ' + city : ''} — BandYou`;
     this.set({ title, description: desc, url, type: 'website' });
   }
 
-  setListing(title: string, price: number, city?: string, url?: string) {
+  setListing(title: string, price: number, city?: string, url?: string, image?: string) {
     this.set({
       title,
       description: `${title}${price ? ' · ' + price + '€' : ''}${city ? ' · ' + city : ''} — BandYou Tienda`,
       url,
+      image,
     });
+  }
+
+  /** Call when a detail page's record does not exist (soft 404). */
+  setNotFound() {
+    this.set({ title: 'No encontrado', noindex: true });
   }
 
   injectJsonLd(data: object): void {
@@ -124,7 +158,40 @@ export class SeoService {
     if (existing) existing.remove();
   }
 
+  /** Canonical URL from the router path: fixed host, no query string or fragment. */
+  private currentCanonicalUrl(): string {
+    const path = pathOf(this.router.url);
+    return `${SITE_URL}${path}`;
+  }
+
+  private applyRobots(): void {
+    let route: ActivatedRouteSnapshot | null = this.router.routerState.snapshot.root;
+    let routeNoindex = false;
+    while (route) {
+      if (route.data?.['noindex']) routeNoindex = true;
+      route = route.firstChild;
+    }
+    this.meta.updateTag({
+      name: 'robots',
+      content: routeNoindex || this.pageNoindex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large',
+    });
+  }
+
   reset() {
     this.set({});
   }
+}
+
+const DESCRIPTION_MAX = 155;
+
+function pathOf(url: string): string {
+  return url.split(/[?#]/)[0] || '/';
+}
+
+/** Trims to the meta-description budget on a word boundary. */
+function truncate(text: string): string {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  if (clean.length <= DESCRIPTION_MAX) return clean;
+  const cut = clean.slice(0, DESCRIPTION_MAX - 1);
+  return cut.slice(0, cut.lastIndexOf(' ') > 80 ? cut.lastIndexOf(' ') : cut.length) + '…';
 }

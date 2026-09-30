@@ -39,7 +39,7 @@ export class GearDetailComponent implements OnInit {
   readonly conditionClasses: Record<string, string> = {
     new:        'text-signal-green border-signal-green/30 bg-signal-gBg',
     like_new:   'text-signal-green border-signal-green/30 bg-signal-gBg',
-    good:       'text-primary-400 border-primary-500/30 bg-primary-900',
+    good:       'text-primary-500 border-primary-500/30 bg-primary-900',
     acceptable: 'text-ink-muted border-dark-600 bg-dark-700',
   };
 
@@ -55,7 +55,7 @@ export class GearDetailComponent implements OnInit {
       if (error) { this.toast.error('No se pudo cargar el anuncio. Recarga la página.'); return; }
       this.listing.set(data);
       if (data) {
-        this.seo.setListing(data.title, data.price, data.city);
+        this.seo.setListing(data.title, data.price, data.city, undefined, data.images?.[0]);
         this.seo.injectJsonLd({
           '@context': 'https://schema.org',
           '@type': 'Product',
@@ -76,6 +76,8 @@ export class GearDetailComponent implements OnInit {
             seller: { '@type': 'Person', name: data.seller_name || '' },
           },
         });
+      } else {
+        this.seo.setNotFound();
       }
     } catch {
       this.toast.error('No se pudo cargar el anuncio. Recarga la página.');
