@@ -46,3 +46,7 @@ supabase/.temp/
 
 # Production environment (injected at build time via CI/CD)
 src/environments/environment.prod.ts
+
+# Playwright
+/test-results
+/playwright-report

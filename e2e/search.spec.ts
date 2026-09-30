@@ -10,11 +10,11 @@ test.describe('Search page', () => {
   });
 
   test('shows results or empty state after load', async ({ page }) => {
-    // Wait for loading to complete
-    await page.waitForFunction(() => !document.querySelector('[class*="animate-pulse"]'), { timeout: 10000 });
-    const hasResults = await page.locator('article, [class*="card"]').count();
-    const hasEmptyState = await page.getByText(/sin resultados|no hay/i).count();
-    expect(hasResults + hasEmptyState).toBeGreaterThan(0);
+    // Poll: loading starts after navigation, so a one-shot check can race it.
+    await expect.poll(async () =>
+      (await page.locator('a[href^="/musicians/"]').count()) + (await page.getByText(/sin resultados|no hay/i).count()),
+      { timeout: 15000 },
+    ).toBeGreaterThan(0);
   });
 
   test('filter by city works', async ({ page }) => {

@@ -89,13 +89,11 @@ describe('NotificationsService', () => {
       expect(result).toEqual(fakeData as any[]);
     });
 
-    it('returns empty array when error is returned', async () => {
+    it('rejects when an error is returned so the caller can show it', async () => {
       const builder = mockBuilder({ data: [{ id: 'n-1' }], error: { message: 'fail' } });
       mockClient.from.and.returnValue(builder);
 
-      const result = await service.getAll('user-1');
-
-      expect(result).toEqual([]);
+      await expectAsync(service.getAll('user-1')).toBeRejectedWithError('fail');
     });
 
     it('returns empty array when data is null', async () => {
