@@ -50,7 +50,7 @@
                     {{ profile()!.name.slice(0,1).toUpperCase() }}
                   }
                 </div>
-                <div class="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100
+                <div class="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100
                              transition-opacity flex items-center justify-center">
                   @if (uploadingAvatar()) {
                     <svg aria-hidden="true" class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
@@ -65,7 +65,7 @@
                     </svg>
                   }
                 </div>
-                <input type="file" accept="image/*" class="hidden" (change)="uploadAvatar($event)"/>
+                <input type="file" accept="image/*" class="sr-only" (change)="uploadAvatar($event)"/>
               </label>
 
               <!-- Name + meta — pushed down to clear avatar overlap zone -->
@@ -73,7 +73,7 @@
                 <div class="flex items-center gap-2 flex-wrap mb-1">
                   <h2 class="text-lg font-black text-ink leading-tight tracking-tight">{{ profile()!.name }}</h2>
                   <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full
-                               bg-primary-900 border border-primary-500/30 text-primary-400">
+                               bg-primary-900 border border-primary-500/30 text-primary-500">
                     {{ profileLabel() }}
                   </span>
                 </div>
@@ -92,7 +92,7 @@
                   @if (profile()!.instrument) { <span class="text-ink-muted/40">·</span><span>{{ profile()!.instrument }}</span> }
                   @if (profile()!.hourly_rate) {
                     <span class="text-ink-muted/40">·</span>
-                    <span class="font-semibold text-primary-400">{{ profile()!.hourly_rate }}€/h</span>
+                    <span class="font-semibold text-primary-500">{{ profile()!.hourly_rate }}€/h</span>
                   }
                 </div>
               </div>
@@ -232,7 +232,7 @@
               <button (click)="activeTab.set(tab.id)"
                 class="px-4 py-3.5 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px"
                 [attr.aria-pressed]="activeTab() === tab.id"
-                [class.text-primary-400]="activeTab() === tab.id"
+                [class.text-primary-500]="activeTab() === tab.id"
                 [class.border-primary-500]="activeTab() === tab.id"
                 [class.text-ink-muted]="activeTab() !== tab.id"
                 [class.border-transparent]="activeTab() !== tab.id">
@@ -336,7 +336,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-sm font-semibold text-ink truncate
-                                 group-hover:text-primary-400 transition-colors">
+                                 group-hover:text-primary-600 transition-colors">
                         {{ event.title }}
                       </p>
                       <p class="text-xs text-ink-muted mt-0.5 truncate">
@@ -349,7 +349,7 @@
                     <div class="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100
                                  transition-all flex-shrink-0">
                       <button (click)="startEditEvent(event, $event)"
-                        class="p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-muted hover:text-primary-400 hover:bg-primary-500/10
+                        class="p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-muted hover:text-primary-600 hover:bg-primary-500/10
                                rounded-lg transition-colors"
                         aria-label="Editar evento">
                         <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,7 +393,7 @@
               @for (post of myPosts(); track post.id) {
                 <div class="flex items-start gap-3 px-5 py-3.5 group">
                   <div class="w-8 h-8 rounded-xl bg-primary-900 border border-primary-500/20
-                               flex items-center justify-center flex-shrink-0 text-primary-400">
+                               flex items-center justify-center flex-shrink-0 text-primary-500">
                     <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
@@ -401,7 +401,7 @@
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <span class="text-[10px] font-semibold text-primary-400">
+                      <span class="text-[10px] font-semibold text-primary-500">
                         {{ postInfo(post.type).label }}
                       </span>
                       @if (post.city) {
@@ -461,7 +461,7 @@
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-0.5 flex-wrap">
                       <p class="text-sm font-semibold text-ink truncate
-                                 group-hover:text-primary-400 transition-colors">
+                                 group-hover:text-primary-600 transition-colors">
                         {{ item.title }}
                       </p>
                       @if (item.status === 'sold') {
@@ -474,7 +474,7 @@
                     <p class="text-xs text-ink-muted">{{ item.category }} · {{ conditionLabel(item.condition ?? '') }}</p>
                   </div>
                   <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
-                    <span class="text-sm font-black text-primary-400">{{ item.price | number:'1.0-0' }} €</span>
+                    <span class="text-sm font-black text-primary-500">{{ item.price | number:'1.0-0' }} €</span>
                     <div class="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
                       @if (item.status === 'active') {
                         <button (click)="markListingSold(item.id, $event)"
@@ -698,7 +698,7 @@
       <div class="flex items-center justify-between mb-3">
         <p class="section-label">Próximos eventos</p>
         <a routerLink="/search" [queryParams]="{tab:'events'}"
-          class="text-[10px] font-semibold text-primary-400 hover:text-primary-500 transition-colors">
+          class="text-[10px] font-semibold text-primary-500 hover:text-primary-600 transition-colors">
           Ver todos
         </a>
       </div>
@@ -721,7 +721,7 @@
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-[11px] font-semibold text-ink truncate
-                           group-hover:text-primary-400 transition-colors">
+                           group-hover:text-primary-600 transition-colors">
                   {{ event.title }}
                 </p>
                 @if (event.venue) {
@@ -742,7 +742,7 @@
       <div class="flex items-center justify-between mb-3">
         <p class="section-label">Últimos anuncios</p>
         <a routerLink="/feed"
-          class="text-[10px] font-semibold text-primary-400 hover:text-primary-500 transition-colors">
+          class="text-[10px] font-semibold text-primary-500 hover:text-primary-600 transition-colors">
           Ver feed
         </a>
       </div>
@@ -755,14 +755,14 @@
                class="flex items-start gap-2.5 p-3 rounded-xl bg-dark-800 border border-dark-600
                       hover:border-primary-500/40 hover:bg-dark-750 transition-all group">
               <div class="w-7 h-7 rounded-lg bg-primary-900 border border-primary-500/20 flex items-center
-                           justify-center flex-shrink-0 text-primary-400 mt-0.5">
+                           justify-center flex-shrink-0 text-primary-500 mt-0.5">
                 <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
                 </svg>
               </div>
               <div class="min-w-0">
-                <p class="text-[10px] font-semibold text-primary-400 mb-0.5">
+                <p class="text-[10px] font-semibold text-primary-500 mb-0.5">
                   {{ postInfo(post.type).label }}
                 </p>
                 <p class="text-[11px] text-ink-3 line-clamp-2 leading-snug
@@ -785,7 +785,7 @@
         <div class="flex items-center justify-between mb-3">
           <p class="section-label">Mis productos</p>
           <a routerLink="/shop"
-            class="text-[10px] font-semibold text-primary-400 hover:text-primary-500 transition-colors">
+            class="text-[10px] font-semibold text-primary-500 hover:text-primary-600 transition-colors">
             Ver tienda
           </a>
         </div>
@@ -808,10 +808,10 @@
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-[11px] font-semibold text-ink truncate
-                           group-hover:text-primary-400 transition-colors">
+                           group-hover:text-primary-600 transition-colors">
                   {{ item.title }}
                 </p>
-                <p class="text-[11px] font-bold text-primary-400">{{ item.price | number:'1.0-0' }} €</p>
+                <p class="text-[11px] font-bold text-primary-500">{{ item.price | number:'1.0-0' }} €</p>
               </div>
               @if (item.status === 'sold') {
                 <span class="text-[9px] font-bold text-signal-red bg-signal-red/10

@@ -29,6 +29,15 @@
   }
   * { @apply box-border; }
 
+  /* Programmatic focus target after route changes — no ring around the whole page. */
+  #main-content:focus { outline: none; }
+
+  /* Keep focused elements clear of the fixed navbar / mobile bottom nav (WCAG 2.4.11). */
+  html { scroll-padding-top: 5rem; scroll-padding-bottom: 5rem; }
+
+  /* Visually hidden file inputs: show focus on the wrapping label. */
+  label:has(> input[type="file"]:focus-visible) { @apply ring-2 ring-primary-500 ring-offset-2; }
+
   select option {
     background-color: #fffef9;
     color: #111111;
@@ -253,4 +262,4 @@
 .prose-legal table { @apply w-full text-sm border-collapse mb-3; }
 .prose-legal th { @apply text-left text-xs font-bold text-ink-muted uppercase tracking-widest py-2 px-3 border-b border-dark-600; }
 .prose-legal td { @apply text-xs text-ink-muted py-2 px-3 border-b border-dark-700; }
-.prose-legal code { @apply text-[11px] bg-dark-700 text-primary-400 px-1.5 py-0.5 rounded font-mono; }
+.prose-legal code { @apply text-[11px] bg-dark-700 text-primary-600 px-1.5 py-0.5 rounded font-mono; }

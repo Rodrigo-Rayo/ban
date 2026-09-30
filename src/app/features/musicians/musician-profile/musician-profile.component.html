@@ -8,7 +8,7 @@
   <!-- Back nav -->
   <div class="px-6 lg:px-10 py-3 border-b border-dark-600 bg-dark-800/60">
     <a routerLink="/search" [queryParams]="{tab:'musicians'}"
-       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-400 transition-colors group">
+       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-600 transition-colors group">
       <app-icon name="arrow-left" [size]="13" class="group-hover:-translate-x-0.5 transition-transform"/>
       Músicos
     </a>
@@ -110,7 +110,7 @@
               <div class="flex flex-wrap items-center gap-2 mb-2">
                 @if (musician()!.instrument) {
                   <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dark-700 border border-dark-600">
-                    <svg aria-hidden="true" class="w-3.5 h-3.5 text-primary-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" class="w-3.5 h-3.5 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
                     </svg>
                     <span class="text-xs font-bold text-ink">{{ musician()!.instrument }}</span>
@@ -257,7 +257,7 @@
                 <div class="flex justify-between items-center px-4 py-3">
                   <span class="text-ink-muted text-xs font-medium">Ciudad</span>
                   <span class="font-bold text-ink text-xs flex items-center gap-1">
-                    <app-icon name="map-pin" [size]="10" class="text-primary-400"/>
+                    <app-icon name="map-pin" [size]="10" class="text-primary-500"/>
                     {{ musician()!.city }}
                   </span>
                 </div>
@@ -271,19 +271,19 @@
             </div>
           </div>
 
-          @if (musician()!.availability_days || musician()!.availability_slots) {
+          @if (availabilityDays().length || availabilitySlots().length) {
             <div class="card-flat p-4">
               <h2 class="section-label mb-3">Disponibilidad</h2>
-              @if (musician()!.availability_days) {
+              @if (availabilityDays().length) {
                 <div class="flex flex-wrap gap-1.5 mb-2">
-                  @for (d of musician()!.availability_days!.split(','); track d) {
+                  @for (d of availabilityDays(); track d) {
                     <span class="tag text-xs capitalize">{{ d }}</span>
                   }
                 </div>
               }
-              @if (musician()!.availability_slots) {
+              @if (availabilitySlots().length) {
                 <div class="flex flex-wrap gap-1.5">
-                  @for (s of musician()!.availability_slots!.split(','); track s) {
+                  @for (s of availabilitySlots(); track s) {
                     <span class="tag-accent text-xs capitalize">{{ s }}</span>
                   }
                 </div>

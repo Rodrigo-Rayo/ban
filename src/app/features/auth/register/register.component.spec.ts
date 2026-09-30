@@ -127,39 +127,39 @@ describe('RegisterComponent', () => {
       expect(component.pwStrength).toBe(0);
     });
 
-    it('returns 1 for a 6-character all-lowercase password', () => {
-      setPassword('abcdef');
-      // only length >= 6 passes
+    it('returns 1 for a 8-character all-lowercase password', () => {
+      setPassword('abcdefgh');
+      // only length >= 8 passes
       expect(component.pwStrength).toBe(1);
     });
 
     it('returns 2 for a password that is 10+ characters but only lowercase', () => {
       setPassword('abcdefghij');
-      // length >= 6 (1) + length >= 10 (1) = 2
+      // length >= 8 (1) + length >= 10 (1) = 2
       expect(component.pwStrength).toBe(2);
     });
 
-    it('returns 3 for a password with length >= 6, uppercase, and digit', () => {
-      setPassword('Abcde1');
-      // length >= 6 (1) + uppercase (1) + digit (1) = 3
+    it('returns 3 for a password with length >= 8, uppercase, and digit', () => {
+      setPassword('Abcdefg1');
+      // length >= 8 (1) + uppercase (1) + digit (1) = 3
       expect(component.pwStrength).toBe(3);
     });
 
     it('returns 5 when all criteria are satisfied', () => {
       setPassword('Abcdefgh1!');
-      // length >= 6 (1) + length >= 10 (1) + uppercase (1) + digit (1) + special (1) = 5
+      // length >= 8 (1) + length >= 10 (1) + uppercase (1) + digit (1) + special (1) = 5
       expect(component.pwStrength).toBe(5);
     });
 
     it('counts the digit criterion independently', () => {
-      setPassword('abcde1');
-      // length >= 6 (1) + digit (1) = 2
+      setPassword('abcdefg1');
+      // length >= 8 (1) + digit (1) = 2
       expect(component.pwStrength).toBe(2);
     });
 
     it('counts the special character criterion independently', () => {
-      setPassword('abcde!');
-      // length >= 6 (1) + special (1) = 2
+      setPassword('abcdefg!');
+      // length >= 8 (1) + special (1) = 2
       expect(component.pwStrength).toBe(2);
     });
   });
@@ -176,8 +176,8 @@ describe('RegisterComponent', () => {
       expect(component.pwStrengthLabel).toBe('');
     });
 
-    it('returns Débil for strength 1 (6-char lowercase)', () => {
-      setPassword('abcdef');
+    it('returns Débil for strength 1 (8-char lowercase)', () => {
+      setPassword('abcdefgh');
       expect(component.pwStrengthLabel).toBe('Débil');
     });
 
@@ -187,14 +187,14 @@ describe('RegisterComponent', () => {
     });
 
     it('returns Media for strength 3', () => {
-      setPassword('Abcde1');
+      setPassword('Abcdefg1');
       expect(component.pwStrengthLabel).toBe('Media');
     });
 
     it('returns Media for strength 4', () => {
       setPassword('Abcdefgh1');
-      // length >= 6 (1) + length >= 10 ... wait, 9 chars; try: Abcde1gh!
-      // Abcde1gh! → length>=6(1), no >=10, uppercase(1), digit(1), special(1) = 4
+      // length >= 8 (1) + length >= 10 ... wait, 9 chars; try: Abcde1gh!
+      // Abcde1gh! → length>=8(1), no >=10, uppercase(1), digit(1), special(1) = 4
       setPassword('Abcde1gh!');
       expect(component.pwStrengthLabel).toBe('Media');
     });
@@ -213,7 +213,7 @@ describe('RegisterComponent', () => {
     }
 
     it('returns 1 for strength <= 2 (weak)', () => {
-      setPassword('abcdef'); // strength = 1
+      setPassword('abcdefgh'); // strength = 1
       expect(component.pwStrengthSegments).toBe(1);
     });
 
@@ -223,7 +223,7 @@ describe('RegisterComponent', () => {
     });
 
     it('returns 2 for strength 3', () => {
-      setPassword('Abcde1'); // strength = 3
+      setPassword('Abcdefg1'); // strength = 3
       expect(component.pwStrengthSegments).toBe(2);
     });
 

@@ -45,10 +45,10 @@
 
           <div>
             <label for="reg-password" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">Contraseña</label>
-            <input id="reg-password" formControlName="password" type="password" placeholder="Mínimo 6 caracteres"
+            <input id="reg-password" formControlName="password" type="password" placeholder="Mínimo 8 caracteres"
               class="input-field" autocomplete="new-password"/>
             @if (form.get('password')?.invalid && form.get('password')?.touched) {
-              <p class="text-xs text-signal-red mt-1.5">Mínimo 6 caracteres.</p>
+              <p class="text-xs text-signal-red mt-1.5">Mínimo 8 caracteres.</p>
             }
             @if (form.get('password')?.value) {
               <div class="mt-2" aria-live="polite">

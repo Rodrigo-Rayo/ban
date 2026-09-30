@@ -11,7 +11,7 @@
             @if (hasUnread()) {
               <button
                 (click)="markAllRead()"
-                class="text-xs text-primary-400 hover:text-primary-300 font-medium transition-colors">
+                class="text-xs text-primary-500 hover:text-primary-600 font-medium transition-colors">
                 Marcar todo leído
               </button>
             }
@@ -83,7 +83,7 @@
                       <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center border"
                            [class.bg-primary-900]="!n.read"
                            [class.border-primary-500]="!n.read"
-                           [class.text-primary-400]="!n.read"
+                           [class.text-primary-500]="!n.read"
                            [class.bg-dark-700]="n.read"
                            [class.border-dark-600]="n.read"
                            [class.text-ink-3]="n.read">
@@ -114,7 +114,7 @@
                       <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center border"
                            [class.bg-primary-900]="!n.read"
                            [class.border-primary-500]="!n.read"
-                           [class.text-primary-400]="!n.read"
+                           [class.text-primary-500]="!n.read"
                            [class.bg-dark-700]="n.read"
                            [class.border-dark-600]="n.read"
                            [class.text-ink-3]="n.read">

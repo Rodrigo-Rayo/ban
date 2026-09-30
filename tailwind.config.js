@@ -33,13 +33,13 @@ module.exports = {
           DEFAULT: '#111111',   // negro editorial
           2:       '#3a3530',
           3:       '#6b6358',
-          muted:   '#6f665c',
+          muted:   '#6d645b',   // ≥4.5:1 on dark-700 (WCAG AA)
           line:    '#d8ccb8',
         },
         signal: {
-          green: '#1a7a3a',
+          green: '#197538',
           gBg:   '#edf7ee',
-          amber: '#b87800',
+          amber: '#8d5c00',   // ≥4.5:1 on dark-700 (WCAG AA)
           aBg:   '#fef8e6',
           red:   '#b91c1c',
           rBg:   '#fef2f2',

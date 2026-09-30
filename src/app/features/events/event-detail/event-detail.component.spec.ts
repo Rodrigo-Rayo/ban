@@ -109,7 +109,8 @@ describe('EventDetailComponent', () => {
   describe('shareLink()', () => {
     it('copies to clipboard and sets linkShared when native share unavailable', fakeAsync(async () => {
       component.event.set(EVENT);
-      (navigator as any).share = undefined;
+      // navigator.share is read-only in recent Chrome: shadow it on the instance.
+      Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
       spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
 
       await component.shareLink();

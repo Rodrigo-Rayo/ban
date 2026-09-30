@@ -31,7 +31,7 @@
           <svg aria-hidden="true" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
-          <input [ngModel]="searchQuery()" (ngModelChange)="onSearchQueryChange($event)"
+          <input name="q" [ngModel]="searchQuery()" (ngModelChange)="onSearchQueryChange($event)"
             type="search"
             placeholder="Buscar {{ tabLabel().toLowerCase() }}..."
             aria-label="Buscar en el directorio"
@@ -51,14 +51,14 @@
       <!-- Row 2: Compact filters + active removable chips -->
       <div class="px-4 lg:px-8 pb-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
         <!-- City select -->
-        <select [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event); filterChanged()"
+        <select name="city" [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event); filterChanged()"
           aria-label="Filtrar por ciudad"
           class="bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors flex-shrink-0 max-w-[130px]">
           @for (city of cities; track city) { <option [value]="city">{{ city }}</option> }
         </select>
         <!-- Instrument filter -->
         @if (activeTab() === 'musicians' || activeTab() === 'teachers' || activeTab() === 'vacancies') {
-          <select [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
+          <select name="instrument" [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
             aria-label="Filtrar por instrumento"
             class="bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors flex-shrink-0 max-w-[130px]">
             <option value="">Instrumento</option>
@@ -70,7 +70,7 @@
         <!-- Active filter chips: removable -->
         @if (selectedCity() !== 'Toda España') {
           <button type="button" (click)="selectedCity.set(userCity() || 'Toda España'); filterChanged()"
-            class="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-900 text-primary-400 border border-primary-500/30 rounded-full px-2.5 py-1 flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
+            class="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-900 text-primary-500 border border-primary-500/30 rounded-full px-2.5 py-1 flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
             aria-label="Quitar filtro de ciudad">
             <svg aria-hidden="true" class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
@@ -83,7 +83,7 @@
         }
         @if (selectedInstrument()) {
           <button type="button" (click)="selectedInstrument.set(''); filterChanged()"
-            class="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-900 text-primary-400 border border-primary-500/30 rounded-full px-2.5 py-1 flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
+            class="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-900 text-primary-500 border border-primary-500/30 rounded-full px-2.5 py-1 flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
             aria-label="Quitar filtro de instrumento">
             {{ selectedInstrument() }}
             <svg aria-hidden="true" class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +93,7 @@
         }
         @if (selectedGenre()) {
           <button type="button" (click)="selectedGenre.set(''); filterChanged()"
-            class="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-900 text-primary-400 border border-primary-500/30 rounded-full px-2.5 py-1 flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
+            class="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-900 text-primary-500 border border-primary-500/30 rounded-full px-2.5 py-1 flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
             aria-label="Quitar filtro de género">
             {{ selectedGenre() }}
             <svg aria-hidden="true" class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,7 +150,7 @@
         }
       }
       @if (selectedCity() !== 'Toda España') {
-        <span class="flex items-center gap-1 text-[10px] font-semibold text-primary-400 bg-primary-900/40 border border-primary-500/20 px-2 py-0.5 rounded-full">
+        <span class="flex items-center gap-1 text-[10px] font-semibold text-primary-500 bg-primary-900/40 border border-primary-500/20 px-2 py-0.5 rounded-full">
           <svg aria-hidden="true" class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
           {{ selectedCity() }}
         </span>
@@ -374,7 +374,7 @@
                         {{ v.bands.name.slice(0,2).toUpperCase() }}
                       }
                     </div>
-                    <span class="text-xs font-semibold text-ink-muted group-hover:text-primary-400 transition-colors truncate">{{ v.bands.name }}</span>
+                    <span class="text-xs font-semibold text-ink-muted group-hover:text-primary-600 transition-colors truncate">{{ v.bands.name }}</span>
                     @if (v.bands.city) {
                       <span class="flex items-center gap-0.5 text-[11px] text-ink-muted flex-shrink-0 ml-auto">
                         <app-icon name="map-pin" [size]="10"/>{{ v.bands.city }}
@@ -506,7 +506,7 @@
                        [class.date-box-featured]="i === 0"
                        [class.date-box-default]="i !== 0">
                     <div class="text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5"
-                         [class.text-primary-400]="i === 0"
+                         [class.text-primary-500]="i === 0"
                          [class.text-ink-muted]="i !== 0">
                       {{ event.date | date:'MMM' | uppercase }}
                     </div>
@@ -517,7 +517,7 @@
                     </div>
                     @if (event.time) {
                       <div class="text-[10px] font-medium mt-0.5"
-                           [class.text-primary-400]="i === 0"
+                           [class.text-primary-500]="i === 0"
                            [class.text-ink-muted]="i !== 0">
                         {{ event.time?.slice(0,5) }}
                       </div>
@@ -602,7 +602,7 @@
                   @if (t.hourly_rate) {
                     <div class="flex-shrink-0 bg-primary-900 border border-primary-500/20 rounded-xl px-3 py-2 text-center">
                       <p class="text-lg font-black text-primary-500 leading-none">{{ t.hourly_rate }}€</p>
-                      <p class="text-[9px] font-semibold text-primary-400 uppercase tracking-wide">/hora</p>
+                      <p class="text-[9px] font-semibold text-primary-500 uppercase tracking-wide">/hora</p>
                     </div>
                   }
                 </div>

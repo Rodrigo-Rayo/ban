@@ -6,7 +6,7 @@
 
   <div class="px-6 lg:px-10 py-3 border-b border-dark-600 bg-dark-800/60">
     <a routerLink="/search" [queryParams]="{tab:'venues'}"
-       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-400 transition-colors group">
+       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-600 transition-colors group">
       <app-icon name="arrow-left" [size]="13" class="group-hover:-translate-x-0.5 transition-transform"/>
       Salas
     </a>
@@ -98,10 +98,10 @@
           <!-- Prominent capacity badge -->
           @if (venue()!.capacity) {
             <div class="inline-flex items-center gap-2 mt-3 px-3 py-2 rounded-xl bg-primary-500/10 border border-primary-500/25">
-              <svg aria-hidden="true" class="w-4 h-4 text-primary-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" class="w-4 h-4 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
-              <span class="text-sm font-bold text-primary-400">Aforo: {{ venue()!.capacity }} personas</span>
+              <span class="text-sm font-bold text-primary-500">Aforo: {{ venue()!.capacity }} personas</span>
             </div>
           }
         </div>
@@ -172,7 +172,7 @@
         @if (venue()!.city || venue()!.address) {
           <div class="card-flat p-4 flex items-center gap-4">
             <div class="w-11 h-11 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
@@ -185,7 +185,7 @@
             @if (venue()!.city) {
               <a [href]="'https://maps.google.com/?q=' + (venue()!.address ? venue()!.address + ', ' + venue()!.city : venue()!.city)"
                  target="_blank" rel="noopener noreferrer"
-                 class="flex-shrink-0 text-xs font-semibold text-primary-400 hover:text-primary-300 transition-colors whitespace-nowrap">
+                 class="flex-shrink-0 text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors whitespace-nowrap">
                 Ver mapa →
               </a>
             }
@@ -200,7 +200,7 @@
               @if (avgRating()) { <span class="ml-2 text-primary-500 font-bold">★ {{ avgRating() }}</span> }
             </h2>
             @if (currentUserId() && !myReview()) {
-              <button (click)="showReviewForm.set(!showReviewForm())" class="text-xs font-semibold text-primary-500 hover:text-primary-400 transition-colors">
+              <button (click)="showReviewForm.set(!showReviewForm())" class="text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors">
                 + Dejar reseña
               </button>
             }
@@ -271,13 +271,13 @@
                 <a [href]="'tel:' + venue()!.phone"
                    class="flex items-center gap-3 px-4 py-3 hover:bg-dark-700/50 transition-colors group">
                   <div class="w-8 h-8 rounded-lg bg-dark-700 border border-dark-600 flex items-center justify-center flex-shrink-0 group-hover:border-primary-500/40 transition-colors">
-                    <svg aria-hidden="true" class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" class="w-3.5 h-3.5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                     </svg>
                   </div>
                   <div class="min-w-0">
                     <p class="section-label mb-0">Teléfono</p>
-                    <p class="text-sm font-medium text-primary-400 truncate">{{ venue()!.phone }}</p>
+                    <p class="text-sm font-medium text-primary-500 truncate">{{ venue()!.phone }}</p>
                   </div>
                 </a>
               }
@@ -285,13 +285,13 @@
                 <a [href]="'mailto:' + venue()!.contact_email"
                    class="flex items-center gap-3 px-4 py-3 hover:bg-dark-700/50 transition-colors group">
                   <div class="w-8 h-8 rounded-lg bg-dark-700 border border-dark-600 flex items-center justify-center flex-shrink-0 group-hover:border-primary-500/40 transition-colors">
-                    <svg aria-hidden="true" class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" class="w-3.5 h-3.5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                   </div>
                   <div class="min-w-0">
                     <p class="section-label mb-0">Email</p>
-                    <p class="text-sm font-medium text-primary-400 truncate">{{ venue()!.contact_email }}</p>
+                    <p class="text-sm font-medium text-primary-500 truncate">{{ venue()!.contact_email }}</p>
                   </div>
                 </a>
               }
@@ -314,7 +314,7 @@
             @if (venue()!.phone) {
               <div class="flex justify-between px-4 py-2.5 items-center">
                 <span class="text-ink-muted">Teléfono</span>
-                <a [href]="'tel:' + venue()!.phone" class="font-medium text-primary-400 hover:text-primary-300 transition-colors">{{ venue()!.phone }}</a>
+                <a [href]="'tel:' + venue()!.phone" class="font-medium text-primary-500 hover:text-primary-600 transition-colors">{{ venue()!.phone }}</a>
               </div>
             }
           </div>
