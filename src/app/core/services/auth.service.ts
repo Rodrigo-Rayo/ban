@@ -36,6 +36,7 @@ export class AuthService {
       // Redirect to login on unexpected sign-out (e.g. token refresh failure),
       // but not when our own signOut() method triggered it.
       if (event === 'SIGNED_OUT' && !this._signingOut) {
+        this.clearUserProfile();
         this.router.navigate(['/auth/login']);
       }
     });

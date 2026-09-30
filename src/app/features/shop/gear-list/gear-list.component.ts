@@ -115,7 +115,7 @@ export class GearListComponent implements OnInit {
     const map: Record<string, string> = {
       new:        'text-signal-green border-signal-green/30 bg-signal-gBg',
       like_new:   'text-signal-green border-signal-green/30 bg-signal-gBg',
-      good:       'text-primary-400 border-primary-500/30 bg-primary-900',
+      good:       'text-primary-500 border-primary-500/30 bg-primary-900',
       acceptable: 'text-ink-muted border-dark-600 bg-dark-700',
     };
     return map[c] ?? 'text-ink-muted border-dark-600 bg-dark-700';

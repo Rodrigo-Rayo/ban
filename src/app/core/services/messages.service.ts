@@ -67,9 +67,18 @@ export class MessagesService {
       .maybeSingle();
 
     if (error) {
+      // 23505 = unique violation: the other user (or a double click) created it first.
+      if (error.code === '23505') {
+        const { data: raced } = await this.supabase.client
+          .from('conversations').select('id')
+          .eq('user1_id', u1).eq('user2_id', u2).maybeSingle();
+        if (raced) return { id: raced.id };
+      }
       return { error: 'No se pudo crear la conversación. Inténtalo de nuevo.' };
     }
-    return created ? { id: created.id } : null;
+    return created
+      ? { id: created.id }
+      : { error: 'No se pudo crear la conversación. Inténtalo de nuevo.' };
   }
 
   async getConversationById(conversationId: string): Promise<Conversation | null> {

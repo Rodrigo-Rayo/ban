@@ -211,6 +211,13 @@ export class OnboardingComponent implements OnInit {
         return;
       }
 
+      // With email confirmation on, signing up an existing email returns no
+      // error but a user without identities — no email will ever arrive.
+      if (data.user && data.user.identities?.length === 0) {
+        this.error.set('Ya existe una cuenta con este email. Inicia sesión o recupera tu contraseña.');
+        return;
+      }
+
       if (!data.session) {
         // Supabase requires email confirmation — show the waiting screen
         this.pendingEmail.set(email);
@@ -314,6 +321,20 @@ export class OnboardingComponent implements OnInit {
     const z = this.zoneForm.value;
     const role = this.role();
 
+    const roleTableMap: Record<Role, string> = {
+      musician: 'musicians', band: 'bands', venue: 'venues',
+      teacher: 'teachers', rehearsal: 'rehearsal_spaces', listener: '',
+    };
+    // Ask before writing anything, so cancelling leaves the account untouched.
+    const prev = this.originalRole();
+    const isRoleChange = !!prev && prev !== role && !!roleTableMap[prev];
+    if (isRoleChange) {
+      const roleLabels: Record<string, string> = { musician: 'músico', band: 'banda', venue: 'sala', teacher: 'profesor', rehearsal: 'local de ensayo', listener: 'oyente' };
+      if (!confirm(`¿Cambiar tu perfil de ${roleLabels[prev] ?? prev} a ${roleLabels[role] ?? role}? Tu perfil anterior se eliminará permanentemente.`)) {
+        return;
+      }
+    }
+
     const profilePayload: Record<string, unknown> = { id: userId, role };
     if (role === 'listener') profilePayload['name'] = this.nameForm.value.name ?? null;
     const { error: profileError } = await this.supabase.client
@@ -322,25 +343,7 @@ export class OnboardingComponent implements OnInit {
       const { error: profileRetryError } = await this.supabase.client
         .from('profiles').upsert({ id: userId, role }, { onConflict: 'id' });
       if (profileRetryError) {
-        this.error.set(`Error al crear perfil: ${profileRetryError.message}`);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-    }
-
-    const roleTableMap: Record<Role, string> = {
-      musician: 'musicians', band: 'bands', venue: 'venues',
-      teacher: 'teachers', rehearsal: 'rehearsal_spaces', listener: '',
-    };
-    const prev = this.originalRole();
-    if (prev && prev !== role && roleTableMap[prev]) {
-      const roleLabels: Record<string, string> = { musician: 'músico', band: 'banda', venue: 'sala', teacher: 'profesor', rehearsal: 'local de ensayo', listener: 'oyente' };
-      if (!confirm(`¿Cambiar tu perfil de ${roleLabels[prev] ?? prev} a ${roleLabels[role] ?? role}? Tu perfil anterior se eliminará permanentemente.`)) {
-        return;
-      }
-      const { error: deleteRoleError } = await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', userId);
-      if (deleteRoleError) {
-        this.error.set('No se pudo eliminar el perfil anterior. Inténtalo de nuevo.');
+        this.error.set('No se pudo crear tu perfil. Inténtalo de nuevo.');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
@@ -415,6 +418,11 @@ export class OnboardingComponent implements OnInit {
     } else if (role === 'listener') {
       saveError = null;
     }
+
+      if (!saveError && isRoleChange && prev) {
+        const { error: deleteRoleError } = await this.supabase.client.from(roleTableMap[prev]).delete().eq('user_id', userId);
+        if (deleteRoleError) saveError = deleteRoleError;
+      }
 
       if (saveError) {
         this.error.set('No se pudo guardar el perfil. Por favor, inténtalo de nuevo.');

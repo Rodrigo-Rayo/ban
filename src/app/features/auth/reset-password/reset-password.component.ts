@@ -20,7 +20,7 @@ export class ResetPasswordComponent implements OnInit {
   sessionReady = signal(false);
 
   form = this.fb.group({
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
     confirm: ['', [Validators.required]],
   });
 

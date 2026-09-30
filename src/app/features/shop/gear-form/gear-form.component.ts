@@ -158,7 +158,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
 
     const newImageUrls = (await Promise.all(
       this.imageFiles.map(async (file) => {
-        const ext  = file.name.split('.').pop() ?? 'jpg';
+        const ext  = file.type.split('/')[1] ?? 'jpg';
         const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await this.supabase.client.storage
           .from('gear-images').upload(path, file, { upsert: false });

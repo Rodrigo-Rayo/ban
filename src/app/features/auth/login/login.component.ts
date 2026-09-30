@@ -36,6 +36,7 @@ export class LoginComponent implements OnInit {
         'access_denied':           'Acceso denegado. Inténtalo de nuevo.',
         'server_error':            'Error del servidor. Inténtalo más tarde.',
         'temporarily_unavailable': 'Servicio temporalmente no disponible.',
+        'otp_expired':             'El enlace ha caducado. Solicita uno nuevo.',
       };
       this.error.set(KNOWN[oauthError] ?? 'Error de autenticación. Inténtalo de nuevo.');
     }
@@ -48,8 +49,8 @@ export class LoginComponent implements OnInit {
     try {
       const { email, password } = this.form.value;
       await this.auth.signInWithEmail(email!, password!);
-    } catch {
-      this.error.set('Credenciales incorrectas. Verifica tu email y contraseña.');
+    } catch (e: unknown) {
+      this.error.set(loginErrorMessage(e));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       this.loading.set(false);
@@ -65,4 +66,20 @@ export class LoginComponent implements OnInit {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
+}
+
+/** Maps Supabase auth errors to actionable Spanish messages. */
+function loginErrorMessage(e: unknown): string {
+  const err = e as { code?: string; status?: number; name?: string } | null;
+  switch (err?.code) {
+    case 'email_not_confirmed':
+      return 'Aún no has confirmado tu email. Revisa tu bandeja de entrada (y spam).';
+    case 'over_request_rate_limit':
+    case 'over_email_send_rate_limit':
+      return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
+  }
+  if (err?.name === 'AuthRetryableFetchError' || err?.status === 0) {
+    return 'Sin conexión con el servidor. Comprueba tu red e inténtalo de nuevo.';
+  }
+  return 'Credenciales incorrectas. Verifica tu email y contraseña.';
 }

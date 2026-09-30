@@ -25,6 +25,8 @@ export class RehearsalFormComponent implements OnInit {
   isEditing = signal(false);
   profileId = signal<string | null>(null);
   error = signal('');
+  /** True when the existing profile could not be loaded — saving would overwrite it with blanks. */
+  loadFailed = signal(false);
 
   readonly cities = CITIES;
 
@@ -46,8 +48,13 @@ export class RehearsalFormComponent implements OnInit {
       const { data: { user } } = await this.supabase.auth.getUser();
       if (!user) { this.router.navigate(['/auth/login']); return; }
 
-      const { data } = await this.supabase.client
+      const { data, error: loadError } = await this.supabase.client
         .from('rehearsal_spaces').select('*').eq('user_id', user.id).maybeSingle();
+      if (loadError) {
+        this.loadFailed.set(true);
+        this.error.set('No se pudo cargar tu perfil. Recarga la página antes de guardar.');
+        return;
+      }
 
       if (data) {
         this.isEditing.set(true);
@@ -74,11 +81,12 @@ export class RehearsalFormComponent implements OnInit {
 
   async onSubmit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.loadFailed() || this.saving()) return;
     this.saving.set(true);
     this.error.set('');
-
+    try {
     const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) { this.saving.set(false); this.router.navigate(['/auth/login']); return; }
+    if (!user) { this.router.navigate(['/auth/login']); return; }
 
     const v = this.form.value;
     const { data, error } = await this.supabase.client.from('rehearsal_spaces').upsert({
@@ -95,12 +103,16 @@ export class RehearsalFormComponent implements OnInit {
       website_url:   v.website_url || null,
     }, { onConflict: 'user_id' }).select('id').single();
 
-    this.saving.set(false);
     if (error || !data) {
       this.error.set('No se pudo guardar el local. Inténtalo de nuevo.');
       return;
     }
     this.toast.success(this.isEditing() ? 'Local actualizado.' : 'Local publicado. ¡Ya aparece en el directorio!');
     this.router.navigate(['/rehearsal', data.id]);
+    } catch {
+      this.error.set('Error de conexión. Comprueba tu red e inténtalo de nuevo.');
+    } finally {
+      this.saving.set(false);
+    }
   }
 }
