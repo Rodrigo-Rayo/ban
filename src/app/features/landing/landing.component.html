@@ -77,7 +77,8 @@
       @for (step of steps; track step.n) {
         <div class="relative bg-dark-800 border border-dark-600 rounded-2xl p-5 overflow-hidden group hover:border-primary-500/30 hover:shadow-sm transition-all duration-200">
           <!-- Large backdrop step number -->
-          <span class="absolute -top-3 -right-1 text-[72px] font-black text-dark-600/60 leading-none select-none pointer-events-none display-serif" aria-hidden="true">{{ step.n }}</span>
+          <!-- Decorative numeral drawn via ::before so it is not treated as text content. -->
+          <span class="absolute -top-3 -right-1 text-[72px] font-black text-dark-600/60 leading-none select-none pointer-events-none display-serif before:content-[attr(data-n)]" aria-hidden="true" [attr.data-n]="step.n"></span>
           <!-- Step number pill -->
           <div class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary-900 border border-primary-500/30 text-xs font-black text-primary-500 mb-4 relative z-10">{{ step.n }}</div>
           <h3 class="text-sm font-bold text-ink mb-1.5 relative z-10">{{ step.title }}</h3>
