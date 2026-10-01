@@ -49,7 +49,7 @@ describe('ChatComponent', () => {
     msgSvc = jasmine.createSpyObj<MessagesService>('MessagesService', [
       'getMessages', 'getConversationById', 'getOtherUserProfile',
       'markAsRead', 'sendMessage', 'deleteConversation',
-      'subscribeToMessages', 'setActiveChat',
+      'subscribeToMessages', 'setActiveChat', 'sendTyping',
     ]);
     msgSvc.getMessages.and.returnValue(Promise.resolve({ messages: [], hasMore: false }));
     msgSvc.getConversationById.and.returnValue(Promise.resolve(null));
@@ -451,5 +451,57 @@ describe('ChatComponent', () => {
     component.messages.set([makeMessage({ id: 'm1', read: false })]);
     (component as any).onUpdated(makeMessage({ id: 'm1', read: true, conversation_id: 'other' }));
     expect(component.messages()[0].read).toBeFalse();
+  });
+
+  describe('typing and presence', () => {
+    beforeEach(() => {
+      (component as any).otherUserId = 'other';
+      (component as any).subscription = fakeChannel;
+      component.currentUserId.set('me');
+    });
+
+    it('shows "typing" when the other participant types and hides it after a pause', fakeAsync(() => {
+      (component as any).onOtherTyping('other');
+      expect(component.otherTyping()).toBeTrue();
+      tick(3600);
+      expect(component.otherTyping()).toBeFalse();
+    }));
+
+    it('ignores typing signals from anyone else', () => {
+      (component as any).onOtherTyping('stranger');
+      expect(component.otherTyping()).toBeFalse();
+    });
+
+    it('marks the other participant online from presence', () => {
+      (component as any).onlineIds = ['me', 'other'];
+      (component as any).refreshOnline();
+      expect(component.otherOnline()).toBeTrue();
+      (component as any).onlineIds = ['me'];
+      (component as any).refreshOnline();
+      expect(component.otherOnline()).toBeFalse();
+    });
+
+    it('throttles our typing broadcasts', () => {
+      msgSvc.sendTyping.calls.reset();
+      component.newMessage = 'h';
+      component.onDraftInput();
+      component.onDraftInput();
+      expect(msgSvc.sendTyping).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not broadcast typing for an empty draft', () => {
+      msgSvc.sendTyping.calls.reset();
+      component.newMessage = '   ';
+      component.onDraftInput();
+      expect(msgSvc.sendTyping).not.toHaveBeenCalled();
+    });
+  });
+
+  it('shows "Usuario" when the other participant has no profile name', async () => {
+    msgSvc.getConversationById.and.returnValue(Promise.resolve({ id: 'conv-123', user1_id: 'a', user2_id: 'b' } as any));
+    msgSvc.getOtherUserProfile.and.returnValue(Promise.resolve('Usuario'));
+    await component.ngOnInit();
+    await Promise.resolve();
+    expect(component.otherName()).toBe('Usuario');
   });
 });

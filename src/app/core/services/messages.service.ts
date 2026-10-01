@@ -1,10 +1,20 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Subject } from 'rxjs';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { Conversation, Message } from '../models';
 import { environment } from '../../../environments/environment';
 
 export interface InboxUpdate { senderName: string; preview: string; conversationId: string; }
+
+/** Callbacks for the chat's live signals (typing indicator, online presence). */
+export interface ChatLiveHandlers {
+  userId: string;
+  onTyping: (userId: string) => void;
+  onPresence: (onlineUserIds: string[]) => void;
+}
+
+const TYPING_EVENT = 'typing';
 
 /** Hard cap on message length — mirrored by the chat textarea's maxlength. */
 export const MAX_MESSAGE_LENGTH = 2000;
@@ -375,15 +385,32 @@ export class MessagesService {
     conversationId: string,
     callback: (msg: Message) => void,
     onUpdate?: (msg: Message) => void,
+    live?: ChatLiveHandlers,
   ) {
     const filter = `conversation_id=eq.${conversationId}`;
-    return this.supabase.client
-      .channel(`messages:${conversationId}`)
+    const channel = this.supabase.client
+      .channel(`messages:${conversationId}`, live ? { config: { presence: { key: live.userId } } } : undefined)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter },
         (payload) => callback(payload.new as unknown as Message))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter },
-        (payload) => onUpdate?.(payload.new as unknown as Message))
-      .subscribe();
+        (payload) => onUpdate?.(payload.new as unknown as Message));
+    if (!live) return channel.subscribe();
+
+    // Ephemeral "typing…" / "online" signals: Realtime broadcast + presence, nothing stored.
+    return channel
+      .on('broadcast', { event: TYPING_EVENT }, ({ payload }) => {
+        const from = (payload as { userId?: unknown })?.userId;
+        if (typeof from === 'string' && from !== live.userId) live.onTyping(from);
+      })
+      .on('presence', { event: 'sync' }, () => live.onPresence(Object.keys(channel.presenceState())))
+      .subscribe(status => {
+        if (status === 'SUBSCRIBED') channel.track({ online_at: new Date().toISOString() }).catch(() => {});
+      });
+  }
+
+  /** Tells the other participant we are typing (callers throttle). */
+  sendTyping(channel: RealtimeChannel, userId: string): void {
+    channel.send({ type: 'broadcast', event: TYPING_EVENT, payload: { userId } }).catch(() => {});
   }
 
   async getOtherUserProfile(conversation: Conversation): Promise<string> {

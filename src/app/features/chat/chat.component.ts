@@ -16,6 +16,12 @@ const NEAR_BOTTOM_PX = 120;
 const COUNTER_THRESHOLD = 200;
 
 const TEMP_PREFIX = 'tmp-';
+/** Shown when the other participant has no profile (deleted or unfinished signup). */
+const FALLBACK_NAME = 'Usuario';
+/** Min gap between our own "typing" broadcasts. */
+const TYPING_SEND_INTERVAL_MS = 2000;
+/** The other side's "typing…" label disappears after this long without a new signal. */
+const TYPING_DISPLAY_MS = 3500;
 
 function byCreatedAt(a: ChatMessage, b: ChatMessage): number {
   return (a.created_at ?? '').localeCompare(b.created_at ?? '');
@@ -50,6 +56,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   sendError = signal('');
   /** True when messages arrived while the user was scrolled up reading history. */
   hasNewBelow = signal(false);
+  /** The other participant is typing / has this conversation open right now. */
+  otherTyping = signal(false);
+  otherOnline = signal(false);
+  private otherUserId = '';
+  private onlineIds: string[] = [];
+  private lastTypingSentAt = 0;
+  private typingTimer: ReturnType<typeof setTimeout> | null = null;
   private subscription: RealtimeChannel | undefined;
   private conversationId = '';
   private destroyed = false;
@@ -76,6 +89,11 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.conversationId,
       (msg) => this.onIncoming(msg),
       (msg) => this.onUpdated(msg),
+      {
+        userId: this.currentUserId(),
+        onTyping: (from) => this.onOtherTyping(from),
+        onPresence: (ids) => { this.onlineIds = ids; this.refreshOnline(); },
+      },
     );
 
     try {
@@ -89,9 +107,14 @@ export class ChatComponent implements OnInit, OnDestroy {
 
       this.markRead();
       if (conv) {
+        this.otherUserId = conv.user1_id === this.currentUserId() ? conv.user2_id : conv.user1_id;
+        this.refreshOnline();
         this.messagesService.getOtherUserProfile(conv).then(resolved => {
-          if (resolved && resolved !== 'Usuario') this.otherName.set(resolved);
-        }).catch(() => {});
+          // Keep a name passed via navigation over the generic placeholder.
+          if (resolved && (resolved !== FALLBACK_NAME || !this.otherName())) this.otherName.set(resolved);
+        }).catch(() => { if (!this.otherName()) this.otherName.set(FALLBACK_NAME); });
+      } else if (!this.otherName()) {
+        this.otherName.set(FALLBACK_NAME);
       }
     } catch {
       this.sendError.set('No se pudieron cargar los mensajes. Inténtalo de nuevo.');
@@ -108,6 +131,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroyed = true;
     this.messagesService.setActiveChat(null);
+    if (this.typingTimer) clearTimeout(this.typingTimer);
     if (this.subscription) {
       this.supabase.client.removeChannel(this.subscription);
     }
@@ -127,6 +151,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
     this.sendError.set('');
     this.newMessage = '';
+    this.lastTypingSentAt = 0;
 
     const temp: ChatMessage = {
       id: `${TEMP_PREFIX}${Date.now()}-${++this.tempSeq}`,
@@ -208,7 +233,29 @@ export class ChatComponent implements OnInit, OnDestroy {
     } else {
       this.hasNewBelow.set(true);
     }
-    if (!isMine) this.markRead();
+    if (!isMine) {
+      this.otherTyping.set(false);
+      this.markRead();
+    }
+  }
+
+  /** Draft changed: let the other side know we're typing (throttled). */
+  onDraftInput() {
+    const now = Date.now();
+    if (!this.subscription || !this.newMessage.trim() || now - this.lastTypingSentAt < TYPING_SEND_INTERVAL_MS) return;
+    this.lastTypingSentAt = now;
+    this.messagesService.sendTyping(this.subscription, this.currentUserId());
+  }
+
+  private onOtherTyping(from: string) {
+    if (this.otherUserId && from !== this.otherUserId) return;
+    this.otherTyping.set(true);
+    if (this.typingTimer) clearTimeout(this.typingTimer);
+    this.typingTimer = setTimeout(() => this.otherTyping.set(false), TYPING_DISPLAY_MS);
+  }
+
+  private refreshOnline() {
+    this.otherOnline.set(!!this.otherUserId && this.onlineIds.includes(this.otherUserId));
   }
 
   /** The recipient read one of our messages: flip its tick to "read". */
