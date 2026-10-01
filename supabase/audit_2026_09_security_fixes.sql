@@ -1,97 +1,92 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Security audit 2026-09 — RLS / storage / RPC hardening
 --
--- Run in Supabase Dashboard → SQL Editor. Idempotent: safe to re-run.
--- Findings confirmed LIVE with the public anon key are marked [LIVE].
---
--- BEFORE running, inspect the live policies (the deployed DB has policies
--- that are not in this repo):
---   SELECT tablename, policyname, cmd, roles, qual, with_check
---   FROM pg_policies WHERE schemaname IN ('public','storage') ORDER BY 1, 2;
+-- Written against the LIVE policies (read via pg_policies on 2026-10-01), which
+-- differ from supabase/migrations.sql: the dashboard accumulated duplicate,
+-- permissive policies. Permissive policies are OR-ed, so one weak policy opens
+-- the whole table — this script drops the weak ones by name.
+-- Idempotent: safe to re-run.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 BEGIN;
 
--- Drops every SELECT (or ALL) policy on a table so stale dashboard-created
--- "Enable read access for all users" policies cannot survive the fix.
-CREATE OR REPLACE FUNCTION pg_temp.drop_select_policies(p_table TEXT) RETURNS void
-LANGUAGE plpgsql AS $$
-DECLARE r RECORD;
-BEGIN
-  FOR r IN
-    SELECT policyname FROM pg_policies
-    WHERE schemaname = 'public' AND tablename = p_table AND cmd IN ('SELECT', 'ALL')
-  LOOP
-    EXECUTE format('DROP POLICY %I ON public.%I', r.policyname, p_table);
-  END LOOP;
-END $$;
-
--- ── C1 [LIVE] profiles: anon could read every user's email ─────────────────
--- The app only ever reads the caller's own row (guard, callback, dashboard,
--- onboarding); names of other users go through get_profile_name (SECURITY DEFINER).
-SELECT pg_temp.drop_select_policies('profiles');
+-- ── C1 profiles: anon could read every user's email ────────────────────────
+-- App only reads the caller's own row; other users' names go through
+-- get_profile_name (SECURITY DEFINER).
+DROP POLICY IF EXISTS "Anyone can view profiles" ON profiles;
+DROP POLICY IF EXISTS "Lectura pública" ON profiles;
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 CREATE POLICY "Users can view own profile" ON profiles
   FOR SELECT USING (id = (SELECT auth.uid()));
--- profiles had FOR ALL policies dropped above too — restore owner writes.
-DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
-CREATE POLICY "Users can insert own profile" ON profiles
-  FOR INSERT WITH CHECK (id = (SELECT auth.uid()));
-CREATE POLICY "Users can update own profile" ON profiles
-  FOR UPDATE USING (id = (SELECT auth.uid())) WITH CHECK (id = (SELECT auth.uid()));
--- Email already lives in auth.users. With the owner-only policy above each user
--- can only see their own; consider `ALTER TABLE profiles DROP COLUMN email;`
--- once you confirm nothing (trigger / dashboard) writes it.
 
--- ── H2 [LIVE] vacancy_applications readable by anon ────────────────────────
-SELECT pg_temp.drop_select_policies('vacancy_applications');
-CREATE POLICY "Musicians can view their applications" ON vacancy_applications
-  FOR SELECT USING (user_id = (SELECT auth.uid()));
-CREATE POLICY "Band owner can view applications" ON vacancy_applications
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM band_vacancies bv JOIN bands b ON b.id = bv.band_id
-      WHERE bv.id = vacancy_applications.vacancy_id AND b.user_id = (SELECT auth.uid())
-    )
-  );
--- Applicants cannot self-accept. `status` exists live but not in migrations.sql,
--- so only reference it when present (otherwise CREATE POLICY would abort the script).
+-- ── H2 vacancy_applications: public read + forgeable insert ────────────────
+DROP POLICY IF EXISTS "Public read applications" ON vacancy_applications;
+-- WITH CHECK was only `auth.uid() IS NOT NULL` → apply on behalf of anyone.
+DROP POLICY IF EXISTS "Musicians can insert applications" ON vacancy_applications;
 DROP POLICY IF EXISTS "Authenticated users can apply" ON vacancy_applications;
-DO $ BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.columns
-             WHERE table_schema = 'public' AND table_name = 'vacancy_applications' AND column_name = 'status') THEN
-    CREATE POLICY "Authenticated users can apply" ON vacancy_applications
-      FOR INSERT WITH CHECK (user_id = (SELECT auth.uid()) AND status = 'pending');
-  ELSE
-    CREATE POLICY "Authenticated users can apply" ON vacancy_applications
-      FOR INSERT WITH CHECK (user_id = (SELECT auth.uid()));
-  END IF;
-END $;
+CREATE POLICY "Authenticated users can apply" ON vacancy_applications
+  FOR INSERT WITH CHECK (
+    user_id = (SELECT auth.uid())
+    AND coalesce(status, 'pending') = 'pending'
+    -- cannot apply with someone else's musician profile (UNIQUE(vacancy_id, musician_id) would block them)
+    AND (musician_id IS NULL OR EXISTS (SELECT 1 FROM musicians m WHERE m.id = musician_id AND m.user_id = (SELECT auth.uid())))
+  );
+-- "Musicians manage own applications" (ALL, USING auth.uid() = user_id) let an
+-- applicant UPDATE their own status to 'accepted'. Read/delete stay covered by
+-- "Musicians can view their applications" and "Applicants can delete their applications".
+DROP POLICY IF EXISTS "Musicians manage own applications" ON vacancy_applications;
 
--- ── H3 [LIVE] event_rsvps readable by anon ─────────────────────────────────
-SELECT pg_temp.drop_select_policies('event_rsvps');
-CREATE POLICY "Users can view their own RSVPs" ON event_rsvps
-  FOR SELECT USING (user_id = (SELECT auth.uid()));
--- The helper also dropped the FOR ALL policy — restore owner writes.
-DROP POLICY IF EXISTS "Users manage own RSVPs" ON event_rsvps;
-CREATE POLICY "Users manage own RSVPs" ON event_rsvps
-  FOR INSERT WITH CHECK (user_id = (SELECT auth.uid()));
-DROP POLICY IF EXISTS "Users delete own RSVPs" ON event_rsvps;
-CREATE POLICY "Users delete own RSVPs" ON event_rsvps
-  FOR DELETE USING (user_id = (SELECT auth.uid()));
+-- ── H3 event_rsvps: public read ────────────────────────────────────────────
+DROP POLICY IF EXISTS "Anyone can read RSVPs" ON event_rsvps;
 
--- ── H5 messages: recipients could rewrite text / sender_id ─────────────────
--- Column-level grant: whatever the policy says, only `read` is updatable.
+-- ── H5 messages: forged sender / edit + delete others' messages ────────────
+-- ALL policy without WITH CHECK: any participant could INSERT with another
+-- sender_id, and UPDATE/DELETE any message in the conversation.
+DROP POLICY IF EXISTS "Ver mensajes de mis conversaciones" ON messages;
+-- UPDATE without WITH CHECK: rewrite text of any message in the conversation.
+DROP POLICY IF EXISTS "Participants can update messages" ON messages;
+-- Re-create the policies messaging needs, so the result does not depend on live state.
+DROP POLICY IF EXISTS "Participants can send messages" ON messages;
+CREATE POLICY "Participants can send messages" ON messages FOR INSERT TO authenticated
+  WITH CHECK (sender_id = (SELECT auth.uid()) AND EXISTS (SELECT 1 FROM conversations c
+    WHERE c.id = messages.conversation_id AND (c.user1_id = (SELECT auth.uid()) OR c.user2_id = (SELECT auth.uid()))));
+DROP POLICY IF EXISTS "Conversation participants can view messages" ON messages;
+CREATE POLICY "Conversation participants can view messages" ON messages FOR SELECT TO authenticated
+  USING (EXISTS (SELECT 1 FROM conversations c WHERE c.id = messages.conversation_id
+    AND (c.user1_id = (SELECT auth.uid()) OR c.user2_id = (SELECT auth.uid()))));
+DROP POLICY IF EXISTS "Recipients can mark messages read" ON messages;
+CREATE POLICY "Recipients can mark messages read" ON messages FOR UPDATE TO authenticated
+  USING (sender_id <> (SELECT auth.uid()) AND EXISTS (SELECT 1 FROM conversations c
+    WHERE c.id = messages.conversation_id AND (c.user1_id = (SELECT auth.uid()) OR c.user2_id = (SELECT auth.uid()))))
+  WITH CHECK (read = true);
+DROP POLICY IF EXISTS "Senders can delete own messages" ON messages;
+CREATE POLICY "Senders can delete own messages" ON messages FOR DELETE TO authenticated
+  USING (sender_id = (SELECT auth.uid()));
+-- Belt and braces: only the `read` flag is ever updatable.
 REVOKE UPDATE ON messages FROM authenticated, anon;
 GRANT UPDATE (read) ON messages TO authenticated;
 
--- ── M4 rehearsal_bookings: users could insert status='confirmed' ───────────
-DROP POLICY IF EXISTS "Users can create bookings" ON rehearsal_bookings;
+-- ── conversations: UPDATE without WITH CHECK could swap the other participant
+-- ("Participants can update conversation" — singular — pins the ids and stays).
+DROP POLICY IF EXISTS "Actualizar propias conversaciones" ON conversations;
+DROP POLICY IF EXISTS "Participants can update conversations" ON conversations;
+
+-- ── rehearsal_bookings: book on behalf of anyone / self-confirm ─────────────
+DROP POLICY IF EXISTS "Authenticated can insert bookings" ON rehearsal_bookings;
 DROP POLICY IF EXISTS "Authenticated users can book" ON rehearsal_bookings;
 CREATE POLICY "Authenticated users can book" ON rehearsal_bookings
   FOR INSERT WITH CHECK (user_id = (SELECT auth.uid()) AND status = 'pending');
+-- Owner and booker UPDATE policies have no column limits; the app only changes status.
+REVOKE UPDATE ON rehearsal_bookings FROM authenticated, anon;
+GRANT UPDATE (status) ON rehearsal_bookings TO authenticated;
+DROP POLICY IF EXISTS "Users can cancel their own bookings" ON rehearsal_bookings;
+CREATE POLICY "Users can cancel their own bookings" ON rehearsal_bookings FOR UPDATE TO authenticated
+  USING (user_id = (SELECT auth.uid()))
+  WITH CHECK (user_id = (SELECT auth.uid()) AND status = 'cancelled');
 
 -- ── M2 create_notification: no spoofed 'system' notifications ──────────────
+-- sender_id lets the rate limit count per caller (one spammer cannot exhaust a victim's quota).
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS sender_id UUID;
 CREATE OR REPLACE FUNCTION create_notification(
   p_user_id     UUID,
   p_type        TEXT,
@@ -129,51 +124,57 @@ BEGIN
   IF p_body IS NOT NULL AND char_length(p_body) > 1000 THEN
     RAISE EXCEPTION 'Notification body too long';
   END IF;
-  -- Rate limit per recipient (anti-spam) …
+  -- Per caller: 20/hour across all recipients, 5/hour to the same recipient.
   SELECT COUNT(*) INTO recent_count FROM notifications
-  WHERE user_id = p_user_id AND created_at > now() - interval '1 hour';
-  IF recent_count >= 30 THEN
+  WHERE sender_id = caller AND created_at > now() - interval '1 hour';
+  IF recent_count >= 20 THEN
     RAISE EXCEPTION 'Notification rate limit exceeded';
   END IF;
-  INSERT INTO notifications (user_id, type, title, body, entity_type, entity_id)
-  VALUES (p_user_id, p_type, p_title, p_body, p_entity_type, p_entity_id);
+  SELECT COUNT(*) INTO recent_count FROM notifications
+  WHERE sender_id = caller AND user_id = p_user_id AND created_at > now() - interval '1 hour';
+  IF recent_count >= 5 THEN
+    RAISE EXCEPTION 'Notification rate limit exceeded';
+  END IF;
+  INSERT INTO notifications (user_id, sender_id, type, title, body, entity_type, entity_id)
+  VALUES (p_user_id, caller, p_type, p_title, p_body, p_entity_type, p_entity_id);
 END;
 $$;
 REVOKE EXECUTE ON FUNCTION create_notification(UUID, TEXT, TEXT, TEXT, TEXT, UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION create_notification(UUID, TEXT, TEXT, TEXT, TEXT, UUID) TO authenticated;
-DO $ BEGIN
-  IF to_regprocedure('public.delete_user_account()') IS NOT NULL THEN
-    REVOKE EXECUTE ON FUNCTION public.delete_user_account() FROM PUBLIC, anon;
-    GRANT EXECUTE ON FUNCTION public.delete_user_account() TO authenticated;
-  END IF;
-END $;
+REVOKE EXECUTE ON FUNCTION delete_user_account() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION delete_user_account() TO authenticated;
 
--- ── M3 storage: uploads only into the caller's own folder, images only ─────
+-- ── M3 storage: uploads only into the caller's own folder ──────────────────
+-- Both INSERT policies only checked the bucket → write into anyone's folder.
+DROP POLICY IF EXISTS "Auth upload avatars 1oj01fe_0" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated can upload gear images" ON storage.objects;
-DROP POLICY IF EXISTS "Users upload own gear images" ON storage.objects;
-CREATE POLICY "Users upload own gear images" ON storage.objects
-  FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'gear-images' AND (storage.foldername(name))[1] = (SELECT auth.uid())::text);
-
 DROP POLICY IF EXISTS "avatar insert own" ON storage.objects;
-DROP POLICY IF EXISTS "avatar update own" ON storage.objects;
-DROP POLICY IF EXISTS "avatar delete own" ON storage.objects;
+DROP POLICY IF EXISTS "Users upload own gear images" ON storage.objects;
 CREATE POLICY "avatar insert own" ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = (SELECT auth.uid())::text);
+CREATE POLICY "Users upload own gear images" ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'gear-images' AND (storage.foldername(name))[1] = (SELECT auth.uid())::text);
+-- Avatar re-upload (upsert) is an UPDATE: pin both the old and the new path to the caller's folder.
+DROP POLICY IF EXISTS "Users update own avatar 1oj01fe_0" ON storage.objects;
+DROP POLICY IF EXISTS "avatar update own" ON storage.objects;
 CREATE POLICY "avatar update own" ON storage.objects FOR UPDATE TO authenticated
-  USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = (SELECT auth.uid())::text);
-CREATE POLICY "avatar delete own" ON storage.objects FOR DELETE TO authenticated
-  USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = (SELECT auth.uid())::text);
+  USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = (SELECT auth.uid())::text)
+  WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = (SELECT auth.uid())::text);
 
 UPDATE storage.buckets
 SET file_size_limit = 8388608,
     allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif']
 WHERE id IN ('avatars', 'gear-images');
 
+-- Review: no INSERT/UPDATE/ALL policy should lack an ownership check.
+SELECT tablename, policyname, cmd, qual, with_check FROM pg_policies
+WHERE schemaname = 'public' AND tablename IN ('messages','conversations','rehearsal_bookings','vacancy_applications','profiles','event_rsvps')
+ORDER BY 1, 3;
+
 COMMIT;
 
--- ── Verify (run as anon, e.g. curl with the anon key) ──────────────────────
---   GET /rest/v1/profiles?select=id            → []
+-- ── Verify (as anon, with the public anon key) ─────────────────────────────
+--   GET /rest/v1/profiles?select=id             → []
 --   GET /rest/v1/vacancy_applications?select=id → []
 --   GET /rest/v1/event_rsvps?select=id          → []
 -- Upload paths verified: dashboard avatar = `${uid}/avatar`, gear = `${uid}/<uuid>.<ext>`.

@@ -12,6 +12,53 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:4200',
 ]);
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MAX_TITLE_LENGTH = 60;
+const MAX_BODY_LENGTH = 120;
+/** Only messages this fresh can trigger a push (stops replaying old message ids). */
+const MAX_MESSAGE_AGE_MS = 2 * 60 * 1000;
+/**
+ * Per-sender cooldown per conversation: at most one push per window, measured from
+ * the last push actually sent (messages.push_sent_at). A burst still yields a push
+ * every window instead of only the first message.
+ */
+const SENDER_COOLDOWN_MS = 20 * 1000;
+/** Best-effort in-isolate dedupe of message ids already pushed (isolates are ephemeral). */
+const pushedMessageIds = new Map<string, number>();
+
+// Only real browser push services: a user-registered endpoint must not make this
+// function send requests to arbitrary hosts (SSRF).
+const PUSH_HOSTS = [
+  /(^|\.)googleapis\.com$/,
+  /(^|\.)push\.services\.mozilla\.com$/,
+  /(^|\.)notify\.windows\.com$/,
+  /(^|\.)push\.apple\.com$/,
+];
+
+function isPushEndpoint(endpoint: string): boolean {
+  try {
+    const url = new URL(endpoint);
+    return url.protocol === 'https:' && PUSH_HOSTS.some(re => re.test(url.hostname));
+  } catch {
+    return false;
+  }
+}
+
+function truncate(text: string, max: number): string {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return clean.length > max ? clean.slice(0, max - 1) + '…' : clean;
+}
+
+function alreadyPushed(messageId: string): boolean {
+  const now = Date.now();
+  for (const [id, at] of pushedMessageIds) {
+    if (now - at > MAX_MESSAGE_AGE_MS) pushedMessageIds.delete(id);
+  }
+  if (pushedMessageIds.has(messageId)) return true;
+  pushedMessageIds.set(messageId, now);
+  return false;
+}
+
 function corsHeaders(origin: string | null) {
   const allowed = origin && ALLOWED_ORIGINS.has(origin) ? origin : 'https://bandyou.es';
   return {
@@ -50,20 +97,28 @@ serve(async (req) => {
     }
 
     // --- 2. Parse and validate request body ---
-    const body = await req.json();
-    const { conversationId, senderId, senderName, messageText } = body;
-
-    // Ensure the authenticated user is actually the claimed sender.
-    if (!senderId || user.id !== senderId) {
-      console.error('[send-push] senderId mismatch — claimed:', senderId, 'actual:', user.id);
-      return new Response('Forbidden', { status: 403, headers: corsHeaders(origin) });
+    // Only ids are accepted from the client. senderName / messageText sent by
+    // older clients are ignored: both are derived server-side from the stored row.
+    if (Number(req.headers.get('Content-Length') ?? 0) > 4096) {
+      return new Response('Payload too large', { status: 413, headers: corsHeaders(origin) });
     }
-
-    if (!conversationId || typeof messageText !== 'string') {
+    let body: Record<string, unknown> | null;
+    try {
+      body = await req.json();
+    } catch {
       return new Response('Bad request', { status: 400, headers: corsHeaders(origin) });
     }
+    const conversationId = typeof body?.conversationId === 'string' ? body.conversationId : '';
+    const messageId = typeof body?.messageId === 'string' ? body.messageId : null;
+    const claimedSender = body?.senderId;
 
-    console.log('[send-push] request:', { conversationId, senderId, senderName });
+    if (claimedSender !== undefined && claimedSender !== user.id) {
+      console.error('[send-push] senderId mismatch');
+      return new Response('Forbidden', { status: 403, headers: corsHeaders(origin) });
+    }
+    if (!UUID_RE.test(conversationId) || (messageId !== null && !UUID_RE.test(messageId))) {
+      return new Response('Bad request', { status: 400, headers: corsHeaders(origin) });
+    }
 
     // --- 3. Set up VAPID / push ---
     const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
@@ -89,7 +144,7 @@ serve(async (req) => {
       .from('conversations')
       .select('user1_id, user2_id')
       .eq('id', conversationId)
-      .single();
+      .maybeSingle();
 
     if (convErr || !conv) {
       console.error('[send-push] conversation not found:', convErr?.message);
@@ -102,14 +157,74 @@ serve(async (req) => {
       return new Response('Forbidden', { status: 403, headers: corsHeaders(origin) });
     }
 
-    const recipientId = conv.user1_id === senderId ? conv.user2_id : conv.user1_id;
-    console.log('[send-push] recipient:', recipientId);
+    const recipientId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id;
+
+    // --- 4b. Load the stored message (never trust client-supplied text) ---
+    // Legacy clients don't send messageId: fall back to the caller's latest message.
+    const msgQuery = supabase
+      .from('messages')
+      .select('id, sender_id, conversation_id, text, created_at')
+      .eq('conversation_id', conversationId)
+      .eq('sender_id', user.id);
+    const { data: message, error: msgErr } = messageId
+      ? await msgQuery.eq('id', messageId).maybeSingle()
+      : await msgQuery.order('created_at', { ascending: false }).limit(1).maybeSingle();
+
+    if (msgErr || !message) {
+      console.error('[send-push] message not found:', msgErr?.message);
+      return new Response('message not found', { status: 404, headers: corsHeaders(origin) });
+    }
+
+    const createdAt = new Date(message.created_at).getTime();
+    if (!Number.isFinite(createdAt) || Date.now() - createdAt > MAX_MESSAGE_AGE_MS) {
+      return new Response('message too old', { status: 200, headers: corsHeaders(origin) });
+    }
+    if (alreadyPushed(message.id)) {
+      return new Response('already sent', { status: 200, headers: corsHeaders(origin) });
+    }
+
+    // Per-sender cooldown: skip if this sender already triggered a push in this thread recently.
+    // Errors (e.g. push_sent_at not migrated yet) disable the cooldown rather than the push.
+    const { count: recentCount, error: recentErr } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('conversation_id', conversationId)
+      .eq('sender_id', user.id)
+      .neq('id', message.id)
+      .gte('push_sent_at', new Date(Date.now() - SENDER_COOLDOWN_MS).toISOString());
+    if (recentErr) console.error('[send-push] cooldown query error:', recentErr.message);
+    if ((recentCount ?? 0) > 0) {
+      return new Response('cooldown', { status: 200, headers: corsHeaders(origin) });
+    }
+
+    // Durable exactly-once claim (survives isolate restarts). If the push_sent_at
+    // column is not migrated yet, fall back to the in-isolate dedupe above.
+    const { data: claimed, error: claimErr } = await supabase
+      .from('messages')
+      .update({ push_sent_at: new Date().toISOString() })
+      .eq('id', message.id)
+      .is('push_sent_at', null)
+      .select('id');
+    if (claimErr) {
+      console.error('[send-push] push_sent_at claim skipped:', claimErr.message);
+    } else if (!claimed?.length) {
+      return new Response('already sent', { status: 200, headers: corsHeaders(origin) });
+    }
+
+    const { data: profileName, error: nameErr } = await supabase
+      .rpc('get_profile_name', { p_user_id: user.id });
+    if (nameErr) console.error('[send-push] name lookup error:', nameErr.message);
+    const senderName = typeof profileName === 'string' && profileName.trim()
+      ? truncate(profileName, MAX_TITLE_LENGTH)
+      : 'Bandyou';
+    const text = truncate(String(message.text ?? ''), MAX_BODY_LENGTH) || 'Nuevo mensaje';
 
     // --- 5. Fetch subscriptions and dispatch ---
-    const { data: subs, error: subsErr } = await supabase
+    const { data: allSubs, error: subsErr } = await supabase
       .from('push_subscriptions')
       .select('endpoint, p256dh, auth')
       .eq('user_id', recipientId);
+    const subs = (allSubs ?? []).filter((sub: { endpoint: string }) => isPushEndpoint(sub.endpoint));
 
     if (subsErr) console.error('[send-push] subs query error:', subsErr.message);
 
@@ -120,14 +235,15 @@ serve(async (req) => {
 
     console.log('[send-push] sending to', subs.length, 'subscription(s)');
 
-    const text = messageText.length > 100 ? messageText.slice(0, 97) + '...' : messageText;
-
     const payload = JSON.stringify({
       notification: {
-        title: senderName || 'Bandyou',
+        title: senderName,
         body: text,
         icon: '/favicon.svg',
         badge: '/favicon.svg',
+        // Collapse a burst of messages from one thread into a single notification.
+        tag: `conversation-${conversationId}`,
+        renotify: true,
         data: {
           url: `/inbox/${conversationId}`,
           onActionClick: {
@@ -145,6 +261,7 @@ serve(async (req) => {
         webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
           payload,
+          { TTL: 60 * 60, urgency: 'high' },
         )
       ),
     );
@@ -167,6 +284,7 @@ serve(async (req) => {
       const { error: deleteErr } = await supabase
         .from('push_subscriptions')
         .delete()
+        .eq('user_id', recipientId)
         .in('endpoint', expiredEndpoints);
       if (deleteErr) {
         console.error('[send-push] failed to delete expired subs:', deleteErr.message);
