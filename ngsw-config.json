@@ -20,6 +20,7 @@
       "updateMode": "prefetch",
       "resources": {
         "files": [
+          "/media/**",
           "/assets/**",
           "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
@@ -31,5 +32,18 @@
     "!/**/*.*",
     "!/**/*__*",
     "!/**/*__*/**"
+  ],
+  "dataGroups": [
+    {
+      "name": "supabase-storage-images",
+      "urls": [
+        "https://yxaurffzwtqsckfmnzdj.supabase.co/storage/v1/object/public/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 100,
+        "maxAge": "7d"
+      }
+    }
   ]
 }
