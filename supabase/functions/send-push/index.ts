@@ -9,6 +9,7 @@ const VAPID_PUBLIC_KEY =
 // Allow the production origin plus localhost for local dev/testing.
 const ALLOWED_ORIGINS = new Set([
   'https://bandyou.es',
+  'https://www.bandyou.es',
   'http://localhost:4200',
 ]);
 
