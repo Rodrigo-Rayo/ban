@@ -2,12 +2,12 @@
 
 Cosas que no se pueden hacer desde el código. Ordenadas por urgencia.
 
-## 1. Supabase — base de datos (URGENTE: fuga de emails activa)
+## 1. Supabase — base de datos (aplicado y verificado 2026-10-01)
 
-- [ ] SQL Editor → New query → pegar `supabase/audit_2026_09_security_fixes.sql` → Run.
+- [x] SQL Editor → New query → pegar `supabase/audit_2026_09_security_fixes.sql` → Run. (aplicado 2026-10-01)
       Escrito contra las políticas reales del 2026-10-01. Todo en una transacción.
-- [ ] Verificar (sin sesión): `GET /rest/v1/profiles?select=id` con la anon key devuelve `[]`.
-- [ ] Después, ejecutar `supabase/audit_2026_10_messaging.sql` (límite de 2000 caracteres por mensaje y
+- [x] Verificar (sin sesión): `GET /rest/v1/profiles?select=id` con la anon key devuelve `[]`.
+- [x] Después, ejecutar `supabase/audit_2026_10_messaging.sql` (límite de 2000 caracteres por mensaje y
       vista previa de conversación mantenida por la base de datos).
 - [ ] Desplegar la función push actualizada: `supabase functions deploy send-push`
       (no se fía del texto del cliente, anti-spam). El cliente es compatible con la versión antigua mientras tanto.
