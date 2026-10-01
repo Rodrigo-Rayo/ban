@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { FavoritesService } from '../../core/services/favorites.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -24,7 +24,7 @@ interface ResolvedEntity {
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-favorites',
-    imports: [RouterLink, CommonModule, IconComponent],
+    imports: [RouterLink, IconComponent],
     templateUrl: './favorites.component.html'
 })
 export class FavoritesComponent implements OnInit {

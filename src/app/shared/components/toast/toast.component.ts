@@ -1,10 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
     selector: 'app-toast',
-    imports: [CommonModule],
+    imports: [],
     template: `
     <div class="fixed bottom-24 lg:bottom-6 right-4 z-50 flex flex-col gap-2 pointer-events-none" style="max-width:340px"
          role="status" aria-live="polite" aria-atomic="false" aria-relevant="additions">

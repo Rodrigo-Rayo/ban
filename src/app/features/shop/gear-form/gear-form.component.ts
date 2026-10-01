@@ -2,7 +2,7 @@ import { Component, ElementRef, HostListener, signal, inject, OnInit, OnDestroy 
 import { Router, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import type { User } from '@supabase/supabase-js';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -13,7 +13,7 @@ interface GearFormUserProfile { id: string; name: string; type: 'musician' | 'ba
 
 @Component({
     selector: 'app-gear-form',
-    imports: [FormsModule, CommonModule],
+    imports: [FormsModule],
     templateUrl: './gear-form.component.html'
 })
 export class GearFormComponent implements OnInit, OnDestroy {

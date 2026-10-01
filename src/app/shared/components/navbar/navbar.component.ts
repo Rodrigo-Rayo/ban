@@ -5,7 +5,7 @@ import { MessagesService } from '../../../core/services/messages.service';
 import { NotificationsService } from '../../../core/services/notifications.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { CommonModule } from '@angular/common';
+
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IconComponent } from '../icon/icon.component';
@@ -16,7 +16,7 @@ const MESSAGE_TOAST_MS = 6000;
 
 @Component({
     selector: 'app-navbar',
-    imports: [RouterLink, RouterLinkActive, CommonModule, IconComponent],
+    imports: [RouterLink, RouterLinkActive, IconComponent],
     templateUrl: './navbar.component.html'
 })
 export class NavbarComponent implements OnInit, OnDestroy {

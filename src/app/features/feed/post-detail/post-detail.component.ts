@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
@@ -15,7 +15,7 @@ const POST_COLUMNS = 'id, user_id, type, text, city, instrument, genre, author_n
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-post-detail',
-    imports: [RouterLink, CommonModule, IconComponent],
+    imports: [RouterLink, IconComponent],
     templateUrl: './post-detail.component.html'
 })
 export class PostDetailComponent implements OnInit {

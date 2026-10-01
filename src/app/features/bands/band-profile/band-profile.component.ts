@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
@@ -30,7 +30,7 @@ const MAX_MEMBERS = 50;
 
 @Component({
     selector: 'app-band-profile',
-    imports: [RouterLink, CommonModule, FormsModule, IconComponent],
+    imports: [RouterLink, FormsModule, IconComponent],
     templateUrl: './band-profile.component.html'
 })
 export class BandProfileComponent implements OnInit {

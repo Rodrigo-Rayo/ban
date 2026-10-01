@@ -1,6 +1,6 @@
 import { Component, signal, inject, OnInit, computed, effect } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -9,7 +9,7 @@ import { localToday } from '../../core/utils/date';
 
 @Component({
     selector: 'app-landing',
-    imports: [RouterLink, CommonModule, IconComponent],
+    imports: [RouterLink, IconComponent],
     templateUrl: './landing.component.html'
 })
 export class LandingComponent implements OnInit {

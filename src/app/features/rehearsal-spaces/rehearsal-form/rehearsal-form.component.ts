@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Location, CommonModule } from '@angular/common';
+import { Location } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { CITIES } from '../../../core/constants/cities';
@@ -9,7 +9,7 @@ import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-va
 
 @Component({
     selector: 'app-rehearsal-form',
-    imports: [ReactiveFormsModule, CommonModule],
+    imports: [ReactiveFormsModule],
     templateUrl: './rehearsal-form.component.html'
 })
 export class RehearsalFormComponent implements OnInit {

@@ -1,6 +1,6 @@
 ﻿import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
@@ -16,7 +16,7 @@ const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar
 
 @Component({
     selector: 'app-rehearsal-profile',
-    imports: [RouterLink, CommonModule, FormsModule, IconComponent],
+    imports: [RouterLink, FormsModule, IconComponent],
     templateUrl: './rehearsal-profile.component.html'
 })
 export class RehearsalProfileComponent implements OnInit {

@@ -1,6 +1,6 @@
 import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, Location } from '@angular/common';
+import { Location } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { User } from '@supabase/supabase-js';
 import { SupabaseService } from '../../core/services/supabase.service';
@@ -15,7 +15,7 @@ import { avatarColor, timeAgo } from '../../core/utils/display.utils';
 
 @Component({
     selector: 'app-feed',
-    imports: [FormsModule, CommonModule, RouterLink, IconComponent],
+    imports: [FormsModule, RouterLink, IconComponent],
     templateUrl: './feed.component.html'
 })
 export class FeedComponent implements OnInit, OnDestroy {

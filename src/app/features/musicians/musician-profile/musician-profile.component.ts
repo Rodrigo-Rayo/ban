@@ -1,6 +1,6 @@
 ﻿import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
@@ -17,7 +17,7 @@ const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, descriptio
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-musician-profile',
-    imports: [RouterLink, CommonModule, IconComponent],
+    imports: [RouterLink, IconComponent],
     templateUrl: './musician-profile.component.html'
 })
 export class MusicianProfileComponent implements OnInit {
