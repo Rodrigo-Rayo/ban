@@ -12,6 +12,7 @@ import { CITIES } from '../../core/constants/cities';
 import { timeAgo } from '../../core/utils/display.utils';
 import { environment } from '../../../environments/environment';
 import { Event as AppEvent, EventGenre, Post, GearListing } from '../../core/models';
+import { localToday } from '../../core/utils/date';
 
 interface DashboardProfile {
   id?: string;
@@ -158,7 +159,7 @@ export class DashboardComponent implements OnInit {
         this.supabase.client.from('posts').select('id, type, text, city, created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(100),
         this.supabase.client.from('gear_listings').select('id, title, price, status, images, condition, category, created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(50),
         this.supabase.client.from('posts').select('id, type, text, city, author_name, created_at').order('created_at', { ascending: false }).limit(5),
-        this.supabase.client.from('events').select('id, title, venue, city, date, time, genre').gte('date', new Date().toISOString().split('T')[0]).order('date', { ascending: true }).limit(4),
+        this.supabase.client.from('events').select('id, title, venue, city, date, time, genre').gte('date', localToday()).order('date', { ascending: true }).limit(4),
         this.supabase.client.from('rehearsal_bookings').select('id, date, start_time, end_time, name, status, space_id, rehearsal_spaces(name, city)').eq('user_id', uid).order('date', { ascending: true }).limit(100),
         this.supabase.client.from('profiles').select('role, name').eq('id', uid).maybeSingle(),
       ]);
@@ -198,7 +199,7 @@ export class DashboardComponent implements OnInit {
   private async loadBookings() {
     const p = this.profile();
     if (!p) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = localToday();
     const { data, error } = await this.supabase.client
       .from('rehearsal_bookings').select('id,name,phone,date,start_time,end_time,message,status')
       .eq('space_id', p.id)
@@ -328,8 +329,9 @@ export class DashboardComponent implements OnInit {
         title: this.editEventData.title,
         venue: this.editEventData.venue,
         city: this.editEventData.city,
-        date: this.editEventData.date,
-        time: this.editEventData.time || null,
+        // date/time are NOT NULL: keep the stored values when the inputs are cleared.
+        ...(this.editEventData.date ? { date: this.editEventData.date } : {}),
+        ...(this.editEventData.time ? { time: this.editEventData.time } : {}),
         genre: this.editEventData.genre,
         price: this.editEventData.price != null && +this.editEventData.price > 0 ? String(this.editEventData.price) : null,
         description: this.editEventData.description || null,
@@ -344,8 +346,8 @@ export class DashboardComponent implements OnInit {
           title: this.editEventData.title,
           venue: this.editEventData.venue,
           city: this.editEventData.city,
-          date: this.editEventData.date,
-          time: this.editEventData.time || null,
+          date: this.editEventData.date || ev.date,
+          time: this.editEventData.time || ev.time,
           genre: this.editEventData.genre as EventGenre,
           price: this.editEventData.price,
           description: this.editEventData.description || null,

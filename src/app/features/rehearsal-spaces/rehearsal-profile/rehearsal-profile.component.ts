@@ -10,6 +10,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { RehearsalSpace, Review } from '../../../core/models';
+import { localToday } from '../../../core/utils/date';
 
 const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, hourly_rate, capacity, opening_hours, instagram_url, website_url, phone';
 
@@ -174,7 +175,7 @@ export class RehearsalProfileComponent implements OnInit {
     }
   }
 
-  readonly today = new Date().toISOString().split('T')[0];
+  readonly today = localToday();
 
   async submitBooking() {
     this.bookingError.set(null);

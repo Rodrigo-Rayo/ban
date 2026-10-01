@@ -5,6 +5,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
 import { AuthService } from '../../core/services/auth.service';
+import { localToday } from '../../core/utils/date';
 
 @Component({
   selector: 'app-landing',
@@ -95,7 +96,7 @@ export class LandingComponent implements OnInit {
         this.supabase.client.from('musicians').select('*', { count: 'exact', head: true }),
         this.supabase.client.from('bands').select('*', { count: 'exact', head: true }),
         this.supabase.client.from('events').select('*', { count: 'exact', head: true })
-          .gte('date', new Date().toISOString().split('T')[0]),
+          .gte('date', localToday()),
         this.supabase.client.from('venues').select('*', { count: 'exact', head: true }),
       ]);
       this.stats.set({

@@ -6,6 +6,7 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { localToday } from '../../../core/utils/date';
 
 const EVENT_COLUMNS = 'id, user_id, title, venue, city, date, time, genre, price, description, contact_email, ticket_url';
 
@@ -34,7 +35,7 @@ export class EventDetailComponent implements OnInit {
   readonly isPast = computed(() => {
     const e = this.event();
     if (!e?.date) return false;
-    return e.date < new Date().toISOString().split('T')[0];
+    return e.date < localToday();
   });
 
   async shareLink() {

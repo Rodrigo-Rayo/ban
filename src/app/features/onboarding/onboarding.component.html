@@ -219,9 +219,9 @@
           <span>03 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Estilos</span>
         </p>
         <h1 id="onb-step-heading" tabindex="-1" class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight focus:outline-none">
-          ¿Qué <span class="text-primary-500">estilos</span> programas?
+          ¿Qué <span class="text-primary-500">estilos</span> {{ genreCopy().verb }}?
         </h1>
-        <p class="text-sm text-ink-muted mb-8 leading-relaxed">Hasta 5 géneros que definen tu espacio.</p>
+        <p class="text-sm text-ink-muted mb-8 leading-relaxed">{{ genreCopy().hint }}</p>
 
         <div class="flex flex-wrap gap-2 mb-3" role="group" aria-labelledby="onb-step-heading"
           [attr.aria-describedby]="stepError() ? 'onb-step-error onb-genre-count' : 'onb-genre-count'">

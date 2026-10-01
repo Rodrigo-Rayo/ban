@@ -101,6 +101,15 @@ export class OnboardingComponent implements OnInit {
   /** Roles whose display name is a person's name (vs an organisation). */
   isPersonRole      = computed(() => ['musician', 'teacher', 'listener'].includes(this.role()));
   hasInstrumentStep = computed(() => this.role() === 'musician' || this.role() === 'teacher');
+  /** Copy for the genre step shown to non-instrument roles (band, venue, rehearsal, listener). */
+  genreCopy = computed(() => {
+    switch (this.role()) {
+      case 'band':      return { verb: 'tocáis', hint: 'Hasta 5 géneros que definen a la banda.' };
+      case 'rehearsal': return { verb: 'se ensayan en tu local', hint: 'Hasta 5 géneros que encajan con tu local.' };
+      case 'listener':  return { verb: 'te gustan', hint: 'Hasta 5 géneros para recomendarte artistas y eventos.' };
+      default:          return { verb: 'programas', hint: 'Hasta 5 géneros que definen tu espacio.' };
+    }
+  });
   hasLevelStep      = computed(() => this.role() === 'musician' || this.role() === 'teacher');
   totalSteps        = computed(() => {
     if (this.isListener()) return 2;

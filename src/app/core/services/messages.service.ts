@@ -248,19 +248,8 @@ export class MessagesService {
       if (!message) return null;
     }
 
-    // Only last_message / last_message_at are written — the RLS policy pins the
-    // participant columns. Non-blocking: the message itself is already stored.
-    this.supabase.client
-      .from('conversations')
-      .update({
-        last_message: truncate(text, PREVIEW_LENGTH),
-        last_message_at: message.created_at || new Date().toISOString(),
-      })
-      .eq('id', conversationId)
-      .then(({ error: convErr }) => {
-        if (convErr && !environment.production) console.error('[conversations] last_message update error:', convErr.message);
-      });
-
+    // conversations.last_message / last_message_at are maintained by the
+    // trg_bump_conversation trigger (supabase/audit_2026_10_messaging.sql).
     this.triggerPushNotification(conversationId, message.id, text);
 
     return message;

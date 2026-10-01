@@ -10,6 +10,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { Teacher, Review } from '../../../core/models';
+import { localToday } from '../../../core/utils/date';
 
 const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avatar_url, hourly_rate, experience_years, level, modality, website_url, youtube_url';
 
@@ -157,7 +158,7 @@ export class TeacherProfileComponent implements OnInit {
     }
   }
 
-  get minDate() { return new Date().toISOString().split('T')[0]; }
+  get minDate() { return localToday(); }
 
   async submitBooking() {
     if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }

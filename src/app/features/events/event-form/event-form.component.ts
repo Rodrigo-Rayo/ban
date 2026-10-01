@@ -6,11 +6,11 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { optionalUrl } from '../../../core/utils/form-validators';
 import { CITIES } from '../../../core/constants/cities';
+import { localToday } from '../../../core/utils/date';
 
-function futureDate(control: AbstractControl): ValidationErrors | null {
+export function futureDate(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
-  const today = new Date().toISOString().split('T')[0];
-  return control.value < today ? { pastDate: true } : null;
+  return control.value < localToday() ? { pastDate: true } : null;
 }
 
 @Component({
@@ -36,7 +36,7 @@ export class EventFormComponent {
   loading = signal(false);
   error = signal('');
   private _submitted = false;
-  readonly today = new Date().toISOString().split('T')[0];
+  readonly today = localToday();
 
   goBack() { this.location.back(); }
 
@@ -48,7 +48,8 @@ export class EventFormComponent {
     venue: ['', Validators.required],
     city: ['Madrid', Validators.required],
     date: ['', [Validators.required, futureDate]],
-    time: [''],
+    // events.time is NOT NULL in the database: an empty value made the insert fail with 400.
+    time: ['', Validators.required],
     genre: ['', Validators.required],
     price: [null as number | null],
     description: ['', [Validators.maxLength(500)]],

@@ -80,8 +80,13 @@
                 }
               </div>
               <div>
-                <label for="event-time" class="block text-xs font-semibold text-ink-muted mb-1.5">Hora</label>
-                <input id="event-time" formControlName="time" type="time" class="input-field"/>
+                <label for="event-time" class="block text-xs font-semibold text-ink-muted mb-1.5">Hora <span aria-hidden="true">*</span></label>
+                <input id="event-time" formControlName="time" type="time" class="input-field" required
+                  [attr.aria-invalid]="isInvalid('time')"
+                  [attr.aria-describedby]="isInvalid('time') ? 'event-time-error' : null"/>
+                @if (isInvalid('time')) {
+                  <p id="event-time-error" class="text-xs text-signal-red mt-1.5">La hora es obligatoria.</p>
+                }
               </div>
             </div>
 
