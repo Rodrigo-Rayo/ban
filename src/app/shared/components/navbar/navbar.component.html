@@ -10,13 +10,13 @@
 
     <!-- Desktop center: search shortcut -->
     @if (auth.isLoggedIn()) {
-      <a routerLink="/search"
+      <a routerLink="/search" aria-keyshortcuts="Control+K Meta+K"
          class="hidden md:flex items-center gap-2 flex-1 max-w-sm bg-dark-700 border border-dark-600 rounded-full px-4 py-2 text-xs text-ink-muted hover:border-primary-500/50 hover:text-ink transition-all duration-200 cursor-pointer">
         <svg aria-hidden="true" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         Buscar músicos, bandas, salas…
-        <kbd class="ml-auto text-[9px] font-mono text-ink-muted/60 bg-dark-600 px-1.5 py-0.5 rounded">⌘K</kbd>
+        <kbd aria-hidden="true" class="ml-auto text-micro font-mono text-ink-muted bg-dark-600 px-1.5 py-0.5 rounded">{{ shortcutLabel }}</kbd>
       </a>
     }
 

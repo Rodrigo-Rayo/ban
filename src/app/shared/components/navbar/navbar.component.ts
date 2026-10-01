@@ -104,6 +104,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
    * Badges can drift when another tab/device reads messages or notifications;
    * re-sync whenever this tab becomes visible again.
    */
+  /** Shown next to the search box; the shortcut works on both platforms. */
+  readonly shortcutLabel = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K';
+
+  @HostListener('document:keydown', ['$event'])
+  onShortcut(event: KeyboardEvent) {
+    if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey) return;
+    event.preventDefault();
+    this.router.navigate(['/search']).then(() =>
+      setTimeout(() => document.querySelector<HTMLInputElement>('main input[type="search"]')?.focus()));
+  }
+
   @HostListener('document:visibilitychange')
   onVisibilityChange() {
     const userId = this.currentUserId;
