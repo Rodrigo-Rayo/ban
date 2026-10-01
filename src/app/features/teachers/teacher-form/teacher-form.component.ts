@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Location, CommonModule } from '@angular/common';
@@ -20,6 +20,13 @@ export class TeacherFormComponent implements OnInit {
   private location = inject(Location);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  /** True when a control should expose its error (touched + invalid). */
+  isInvalid(name: string): boolean {
+    const c = this.form.get(name);
+    return !!c && c.invalid && c.touched;
+  }
 
   loading = signal(true);
   saving = signal(false);
@@ -106,7 +113,13 @@ export class TeacherFormComponent implements OnInit {
   goBack() { this.location.back(); }
 
   async onSubmit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.host.nativeElement
+        .querySelector<HTMLElement>('input.ng-invalid, select.ng-invalid, textarea.ng-invalid')
+        ?.focus();
+      return;
+    }
     if (this.loadFailed() || this.saving()) return;
     this.saving.set(true);
     this.error.set('');

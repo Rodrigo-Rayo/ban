@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal, computed, OnInit } from '@angular/core';
+﻿import { Component, ElementRef, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -119,6 +119,9 @@ export class DashboardComponent implements OnInit {
   uploadingAvatar = signal(false);
   activeTab  = signal('events');
   linkCopied = signal(false);
+  /** Inline event edit: title left empty on save attempt. */
+  editTitleError = signal(false);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
   deletingAccount = signal(false);
   showDeleteConfirm = signal(false);
   deleteConfirmText = signal('');
@@ -274,9 +277,21 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  /** Shortened text for unique, readable accessible names. */
+  shortLabel(text: string | null | undefined, max = 40): string {
+    const t = (text ?? '').trim();
+    return t.length > max ? t.slice(0, max).trimEnd() + '…' : t;
+  }
+
+  private focusSoon(selector: string) {
+    setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>(selector)?.focus());
+  }
+
   startEditEvent(event: AppEvent, e: Event) {
     e.preventDefault(); e.stopPropagation();
+    this.editTitleError.set(false);
     this.editingEventId.set(event.id);
+    this.focusSoon('#edit-event-title');
     this.editEventData = {
       title: event.title,
       venue: event.venue,
@@ -291,9 +306,20 @@ export class DashboardComponent implements OnInit {
     };
   }
 
-  cancelEditEvent() { this.editingEventId.set(null); }
+  cancelEditEvent() {
+    const id = this.editingEventId();
+    this.editingEventId.set(null);
+    // Return focus to the edit button of the row we came from.
+    if (id) this.focusSoon(`[data-edit-event="${id}"]`);
+  }
 
   async saveEditEvent(id: string) {
+    if (!this.editEventData.title?.trim()) {
+      this.editTitleError.set(true);
+      this.focusSoon('#edit-event-title');
+      return;
+    }
+    this.editTitleError.set(false);
     const uid = this.auth.user()?.id;
     if (!uid) return;
     this.editSaving.set(true);
@@ -328,6 +354,7 @@ export class DashboardComponent implements OnInit {
         };
       }));
       this.editingEventId.set(null);
+      this.focusSoon(`[data-edit-event="${id}"]`);
       this.toast.success('Evento actualizado.');
     } catch {
       this.toast.error('No se pudo guardar el evento.');

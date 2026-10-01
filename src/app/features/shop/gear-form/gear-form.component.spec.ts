@@ -254,6 +254,16 @@ describe('GearFormComponent', () => {
     expect(supabaseSpy.client.from).not.toHaveBeenCalled();
   });
 
+  it('14b. exposes title/price errors only after a submit attempt', async () => {
+    component.form.title = '';
+    component.form.price = null;
+    expect(component.titleInvalid).toBeFalse();
+    expect(component.priceInvalid).toBeFalse();
+    await component.submit();
+    expect(component.titleInvalid).toBeTrue();
+    expect(component.priceInvalid).toBeTrue();
+  });
+
   it('15. submit returns early when currentUser is null', async () => {
     component.currentUser.set(null);
     component.form.title = 'Guitar';

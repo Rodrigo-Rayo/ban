@@ -1,0 +1,101 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+  <div class="max-w-3xl mx-auto px-5 lg:px-8 py-10">
+
+    <a routerLink="/" class="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-ink mb-8 transition-colors">
+      <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Volver al inicio
+    </a>
+
+    <div class="mb-10">
+      <p class="text-xs font-bold text-primary-500 uppercase tracking-widest mb-2">Legal</p>
+      <h1 class="text-3xl font-black text-ink tracking-tight mb-3">Aviso Legal</h1>
+      <p class="text-sm text-ink-muted">Última actualización: {{ info.updated }}</p>
+    </div>
+
+    <div class="prose-legal">
+
+      <section>
+        <h2>1. Datos identificativos del titular</h2>
+        <p>
+          En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la
+          Información y de Comercio Electrónico (LSSI-CE), se informa de los datos del titular del sitio web
+          <strong>bandyou.es</strong> y de la aplicación BandYou (en adelante, "la Plataforma"):
+        </p>
+        <ul>
+          <li><strong>Titular:</strong> {{ info.ownerName }}</li>
+          <li><strong>NIF:</strong> {{ info.nif }}</li>
+          <li><strong>Domicilio:</strong> {{ info.address }}</li>
+          <li><strong>Correo electrónico:</strong> <a [href]="'mailto:' + info.legalEmail">{{ info.legalEmail }}</a></li>
+          <li><strong>Datos registrales:</strong> {{ info.registry }}</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2. Objeto</h2>
+        <p>
+          BandYou es una plataforma en línea que pone en contacto a músicos, bandas, salas, profesores y locales de
+          ensayo en España. Permite crear perfiles públicos, publicar anuncios, eventos y artículos de segunda mano,
+          y enviar mensajes privados entre usuarios. El uso de la Plataforma se rige por este Aviso Legal, los
+          <a routerLink="/legal/terminos">Términos de Uso</a>, la
+          <a routerLink="/legal/privacidad">Política de Privacidad</a> y la
+          <a routerLink="/legal/cookies">Política de Cookies</a>.
+        </p>
+      </section>
+
+      <section>
+        <h2>3. Punto de contacto (Reglamento de Servicios Digitales)</h2>
+        <p>
+          Conforme a los artículos 11 y 12 del Reglamento (UE) 2022/2065 de Servicios Digitales (DSA), el punto de
+          contacto único para autoridades de los Estados miembros, la Comisión Europea y los usuarios es
+          <a [href]="'mailto:' + info.legalEmail">{{ info.legalEmail }}</a>. Puedes comunicarte con nosotros en
+          español o inglés. Para notificar contenido ilegal consulta el apartado
+          <a routerLink="/legal/terminos" fragment="denuncias">"Notificación de contenido ilegal"</a> de los Términos de Uso.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Responsabilidad sobre los contenidos</h2>
+        <p>
+          Los perfiles, anuncios, mensajes, reseñas y demás contenidos publicados por los usuarios son
+          responsabilidad exclusiva de quien los publica. El titular actúa como prestador de servicios de
+          alojamiento de datos y, conforme al artículo 16 de la LSSI-CE y al artículo 6 del DSA, no es responsable
+          de dichos contenidos siempre que no tenga conocimiento efectivo de su ilicitud o, si lo tiene, actúe con
+          diligencia para retirarlos o bloquear el acceso a ellos.
+        </p>
+        <p>
+          La Plataforma puede contener enlaces a sitios de terceros (Spotify, YouTube, Instagram, webs de los
+          usuarios, etc.). El titular no controla ni se responsabiliza de los contenidos de dichos sitios.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Propiedad intelectual e industrial</h2>
+        <p>
+          El diseño, el código fuente, la marca "BandYou", los logotipos y demás elementos propios de la Plataforma
+          pertenecen a su titular o a sus licenciantes. Queda prohibida su reproducción, distribución, comunicación
+          pública o transformación sin autorización expresa, salvo en los casos permitidos por la ley.
+          Los contenidos aportados por los usuarios siguen perteneciendo a sus autores en los términos indicados en
+          los Términos de Uso.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Legislación aplicable</h2>
+        <p>
+          Este Aviso Legal se rige por la legislación española. Si eres consumidor, podrás acudir a los juzgados y
+          tribunales de tu domicilio conforme a la normativa de protección de consumidores y usuarios.
+        </p>
+      </section>
+
+    </div>
+
+    <div class="mt-12 pt-8 border-t border-dark-600 flex flex-wrap gap-4">
+      <a routerLink="/legal/terminos" class="text-sm text-primary-500 hover:underline font-medium">Términos de Uso</a>
+      <a routerLink="/legal/privacidad" class="text-sm text-primary-500 hover:underline font-medium">Política de Privacidad</a>
+      <a routerLink="/legal/cookies" class="text-sm text-primary-500 hover:underline font-medium">Política de Cookies</a>
+    </div>
+
+  </div>
+</div>

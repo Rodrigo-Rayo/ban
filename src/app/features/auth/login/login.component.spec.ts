@@ -86,6 +86,17 @@ describe('LoginComponent', () => {
       expect(authSpy.signInWithEmail).not.toHaveBeenCalled();
     });
 
+    it('marks all fields touched so errors are exposed when the form is invalid', async () => {
+      component.form.setValue({ email: '', password: '' });
+      await component.onSubmit();
+      expect(component.isInvalid('email')).toBeTrue();
+      expect(component.isInvalid('password')).toBeTrue();
+    });
+
+    it('does not report untouched fields as invalid', () => {
+      expect(component.isInvalid('email')).toBeFalse();
+    });
+
     it('sets loading to true while the request is in-flight', async () => {
       component.form.setValue({ email: 'user@example.com', password: 'password123' });
       let loadingDuringCall = false;
@@ -184,6 +195,16 @@ describe('LoginComponent', () => {
       });
       await component.loginWithGoogle();
       expect(component.error()).toBe('Error con Google');
+    });
+  });
+
+  // ── Password visibility toggle ─────────────────────────────────────────────
+
+  describe('showPassword', () => {
+    it('starts hidden and toggles', () => {
+      expect(component.showPassword()).toBeFalse();
+      component.showPassword.set(!component.showPassword());
+      expect(component.showPassword()).toBeTrue();
     });
   });
 

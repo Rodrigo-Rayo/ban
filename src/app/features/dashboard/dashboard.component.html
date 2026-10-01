@@ -108,7 +108,8 @@
                   Ver perfil
                 </a>
               }
-              <button (click)="copyProfileLink()"
+              <span class="sr-only" role="status">{{ linkCopied() ? 'Enlace del perfil copiado al portapapeles' : '' }}</span>
+              <button type="button" (click)="copyProfileLink()"
                 class="btn-secondary text-xs px-4 py-2 flex-shrink-0 transition-colors"
                 [class.text-signal-green]="linkCopied()"
                 [class.border-signal-green]="linkCopied()">
@@ -278,53 +279,72 @@
                 @if (editingEventId() === event.id) {
                   <!-- Inline edit form -->
                   <div class="px-5 py-4 bg-dark-750/50">
-                    <p class="section-label mb-3">Editar evento</p>
-                    <div class="flex flex-col gap-3">
-                      <input [(ngModel)]="editEventData.title" placeholder="Nombre del evento"
+                    <h2 id="edit-event-heading" class="section-label mb-3">Editar evento</h2>
+                    <div class="flex flex-col gap-3" role="group" aria-labelledby="edit-event-heading">
+                      <label for="edit-event-title" class="sr-only">Nombre del evento</label>
+                      <input id="edit-event-title" [(ngModel)]="editEventData.title" placeholder="Nombre del evento"
+                        required [attr.aria-invalid]="editTitleError()"
+                        [attr.aria-describedby]="editTitleError() ? 'edit-event-title-error' : null"
                         class="input-field text-sm"/>
+                      @if (editTitleError()) {
+                        <p id="edit-event-title-error" class="text-xs text-signal-red -mt-2">El nombre del evento es obligatorio.</p>
+                      }
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <input [(ngModel)]="editEventData.venue" placeholder="Local / Sala"
+                        <label for="edit-event-venue" class="sr-only">Local / Sala</label>
+                        <input id="edit-event-venue" [(ngModel)]="editEventData.venue" placeholder="Local / Sala"
                           class="input-field text-sm"/>
-                        <select [(ngModel)]="editEventData.city" class="input-field text-sm">
+                        <label for="edit-event-city" class="sr-only">Ciudad</label>
+                        <select id="edit-event-city" [(ngModel)]="editEventData.city" class="input-field text-sm">
                           @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
                         </select>
                       </div>
                       <div class="grid grid-cols-2 gap-2">
-                        <input [(ngModel)]="editEventData.date" type="date" class="input-field text-sm"/>
-                        <input [(ngModel)]="editEventData.time" type="time" class="input-field text-sm"/>
+                        <div>
+                          <label for="edit-event-date" class="block text-[10px] font-semibold text-ink-muted mb-1">Fecha</label>
+                          <input id="edit-event-date" [(ngModel)]="editEventData.date" type="date" class="input-field text-sm"/>
+                        </div>
+                        <div>
+                          <label for="edit-event-time" class="block text-[10px] font-semibold text-ink-muted mb-1">Hora</label>
+                          <input id="edit-event-time" [(ngModel)]="editEventData.time" type="time" class="input-field text-sm"/>
+                        </div>
                       </div>
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <select [(ngModel)]="editEventData.genre" class="input-field text-sm">
+                        <label for="edit-event-genre" class="sr-only">Género</label>
+                        <select id="edit-event-genre" [(ngModel)]="editEventData.genre" class="input-field text-sm">
                           @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
                         </select>
                         <div class="relative">
-                          <input [(ngModel)]="editEventData.price" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0"
+                          <label for="edit-event-price" class="sr-only">Precio en euros</label>
+                          <input id="edit-event-price" [(ngModel)]="editEventData.price" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0"
                             class="input-field text-sm pr-8"/>
                           <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted pointer-events-none">€</span>
                         </div>
                       </div>
-                      <textarea [(ngModel)]="editEventData.description" rows="2"
+                      <label for="edit-event-description" class="sr-only">Descripción (opcional)</label>
+                      <textarea id="edit-event-description" [(ngModel)]="editEventData.description" rows="2"
                         placeholder="Descripción (opcional)"
                         class="input-field text-sm resize-none"></textarea>
                       <div class="grid grid-cols-2 gap-2">
-                        <input [(ngModel)]="editEventData.ticket_url" type="url"
+                        <label for="edit-event-ticket" class="sr-only">Link de entradas</label>
+                        <input id="edit-event-ticket" [(ngModel)]="editEventData.ticket_url" type="url" inputmode="url"
                           placeholder="Link entradas" class="input-field text-sm col-span-2"/>
                       </div>
                       <div class="flex gap-2 pt-1">
-                        <button (click)="saveEditEvent(event.id)"
-                          [disabled]="editSaving() || !editEventData.title"
+                        <button type="button" (click)="saveEditEvent(event.id)"
+                          [disabled]="editSaving()"
                           class="btn-primary text-xs px-4 py-2 disabled:opacity-50">
                           {{ editSaving() ? 'Guardando…' : 'Guardar cambios' }}
                         </button>
-                        <button (click)="cancelEditEvent()" class="btn-secondary text-xs px-4 py-2">
+                        <button type="button" (click)="cancelEditEvent()" class="btn-secondary text-xs px-4 py-2">
                           Cancelar
                         </button>
                       </div>
                     </div>
                   </div>
                 } @else {
+                  <div class="flex items-center gap-4 px-5 py-3.5 hover:bg-dark-750/50 transition-colors group">
                   <a [routerLink]="['/events', event.id]"
-                     class="flex items-center gap-4 px-5 py-3.5 hover:bg-dark-750/50 transition-colors group">
+                     class="flex items-center gap-4 flex-1 min-w-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                     <div class="w-10 h-12 rounded-xl bg-primary-500 flex flex-col items-center
                                  justify-center flex-shrink-0">
                       <span class="text-[9px] font-bold text-white/70 uppercase leading-none">
@@ -346,27 +366,28 @@
                     @if (event.genre) {
                       <span class="tag flex-shrink-0 hidden sm:inline-flex">{{ event.genre }}</span>
                     }
-                    <div class="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100
+                  </a>
+                    <div class="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 sm:focus-within:opacity-100
                                  transition-all flex-shrink-0">
-                      <button (click)="startEditEvent(event, $event)"
+                      <button type="button" (click)="startEditEvent(event, $event)" [attr.data-edit-event]="event.id"
                         class="p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-muted hover:text-primary-600 hover:bg-primary-500/10
                                rounded-lg transition-colors"
-                        aria-label="Editar evento">
+                        [attr.aria-label]="'Editar evento: ' + event.title">
                         <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
                       </button>
-                      <button (click)="deleteEvent(event.id, $event)"
+                      <button type="button" (click)="deleteEvent(event.id, $event)"
                         class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-colors"
-                        aria-label="Eliminar evento">
+                        [attr.aria-label]="'Eliminar evento: ' + event.title">
                         <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
                       </button>
                     </div>
-                  </a>
+                  </div>
                 }
               }
             </div>
@@ -411,9 +432,9 @@
                     </div>
                     <p class="text-sm text-ink leading-snug line-clamp-2">{{ post.text }}</p>
                   </div>
-                  <button (click)="deletePost(post.id, $event)"
-                    class="sm:opacity-0 sm:group-hover:opacity-100 min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-all flex-shrink-0"
-                    aria-label="Eliminar anuncio">
+                  <button type="button" (click)="deletePost(post.id, $event)"
+                    class="sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 sm:focus-within:opacity-100 min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-all flex-shrink-0"
+                    [attr.aria-label]="'Eliminar anuncio: ' + shortLabel(post.text)">
                     <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -443,11 +464,12 @@
           } @else {
             <div class="divide-y divide-dark-600">
               @for (item of myListings(); track item.id) {
+                <div class="flex items-center gap-3 px-5 py-3.5 hover:bg-dark-750/50 transition-colors group">
                 <a [routerLink]="['/shop', item.id]"
-                   class="flex items-center gap-3 px-5 py-3.5 hover:bg-dark-750/50 transition-colors group">
+                   class="flex items-center gap-3 flex-1 min-w-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                   <div class="w-12 h-12 rounded-xl bg-dark-700 border border-dark-600 overflow-hidden flex-shrink-0">
                     @if ((item.images?.length ?? 0) > 0) {
-                      <img [src]="item.images![0]" [alt]="item.title"
+                      <img [src]="item.images![0]" alt=""
                            class="w-full h-full object-cover" loading="lazy"/>
                     } @else {
                       <div class="w-full h-full flex items-center justify-center text-ink-muted">
@@ -473,19 +495,21 @@
                     </div>
                     <p class="text-xs text-ink-muted">{{ item.category }} · {{ conditionLabel(item.condition ?? '') }}</p>
                   </div>
+                  <span class="text-sm font-black text-primary-500 flex-shrink-0">{{ item.price | number:'1.0-0' }} €</span>
+                </a>
                   <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
-                    <span class="text-sm font-black text-primary-500">{{ item.price | number:'1.0-0' }} €</span>
-                    <div class="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
+                    <div class="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 sm:focus-within:opacity-100 transition-all">
                       @if (item.status === 'active') {
-                        <button (click)="markListingSold(item.id, $event)"
+                        <button type="button" (click)="markListingSold(item.id, $event)"
+                          [attr.aria-label]="'Marcar como vendido: ' + item.title"
                           class="text-[10px] font-semibold text-signal-green border border-signal-green/30
                                  px-2.5 py-2 min-h-[36px] rounded-lg hover:bg-signal-green/10 transition-colors">
                           Vendido
                         </button>
                       }
-                      <button (click)="deleteListing(item.id, $event)"
+                      <button type="button" (click)="deleteListing(item.id, $event)"
                         class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-colors"
-                        aria-label="Eliminar producto">
+                        [attr.aria-label]="'Eliminar producto: ' + item.title">
                         <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -493,7 +517,7 @@
                       </button>
                     </div>
                   </div>
-                </a>
+                </div>
               }
             </div>
           }
@@ -549,7 +573,8 @@
                       <span class="text-[11px] font-semibold text-signal-amber bg-signal-amber/10 border border-signal-amber/30 px-2.5 py-1 rounded-lg">
                         Pendiente
                       </span>
-                      <button (click)="cancelMyBooking(b.id)"
+                      <button type="button" (click)="cancelMyBooking(b.id)"
+                        [attr.aria-label]="'Cancelar reserva en ' + (b.rehearsal_spaces?.name || 'local de ensayo') + ' del ' + (b.date | date:'dd/MM/yyyy')"
                         class="text-xs text-ink-muted hover:text-signal-red border border-dark-600 hover:border-signal-red/30 px-2.5 py-2 min-h-[36px] rounded-lg transition-colors">
                         Cancelar
                       </button>
@@ -607,12 +632,14 @@
                         Rechazada
                       </span>
                     } @else {
-                      <button (click)="updateBookingStatus(b.id, 'confirmed')"
+                      <button type="button" (click)="updateBookingStatus(b.id, 'confirmed')"
+                        [attr.aria-label]="'Confirmar reserva de ' + (b.name || 'Sin nombre') + ' del ' + (b.date | date:'dd/MM/yyyy')"
                         class="text-xs font-semibold text-signal-green border border-signal-green/30
                                hover:bg-signal-green/10 px-2.5 py-2 min-h-[36px] rounded-lg transition-colors">
                         Confirmar
                       </button>
-                      <button (click)="updateBookingStatus(b.id, 'rejected')"
+                      <button type="button" (click)="updateBookingStatus(b.id, 'rejected')"
+                        [attr.aria-label]="'Rechazar reserva de ' + (b.name || 'Sin nombre') + ' del ' + (b.date | date:'dd/MM/yyyy')"
                         class="text-xs text-ink-muted hover:text-signal-red border border-dark-600
                                hover:border-signal-red/30 px-2.5 py-2 min-h-[36px] rounded-lg transition-colors">
                         Rechazar
@@ -647,7 +674,7 @@
           </p>
 
           @if (!showDeleteConfirm()) {
-            <button (click)="openDeleteConfirm()" [disabled]="deletingAccount()"
+            <button type="button" (click)="openDeleteConfirm()" [disabled]="deletingAccount()"
               class="text-xs font-semibold text-signal-red border border-signal-red/40
                      hover:bg-signal-red hover:text-white px-4 py-2 rounded-xl transition-all
                      disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]">
@@ -663,19 +690,19 @@
             </button>
           } @else {
             <div class="flex flex-col gap-3">
-              <p class="text-xs font-semibold text-signal-red">Escribe <span class="font-black">BORRAR</span> para confirmar:</p>
-              <input type="text" [value]="deleteConfirmText()" (input)="deleteConfirmText.set($any($event.target).value)"
+              <label for="delete-confirm-input" class="text-xs font-semibold text-signal-red">Escribe <span class="font-black">BORRAR</span> para confirmar:</label>
+              <input id="delete-confirm-input" type="text" [value]="deleteConfirmText()" (input)="deleteConfirmText.set($any($event.target).value)"
                 placeholder="BORRAR"
                 class="input-field text-sm max-w-xs"
                 autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"/>
               <div class="flex items-center gap-2">
-                <button (click)="deleteAccount()"
+                <button type="button" (click)="deleteAccount()"
                   [disabled]="deleteConfirmText().trim().toUpperCase() !== 'BORRAR' || deletingAccount()"
                   class="text-xs font-semibold text-white bg-signal-red px-4 py-2 rounded-xl transition-all
                          disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]">
                   Confirmar eliminación
                 </button>
-                <button (click)="cancelDeleteConfirm()"
+                <button type="button" (click)="cancelDeleteConfirm()"
                   class="text-xs font-semibold text-ink-muted hover:text-ink px-4 py-2 rounded-xl border border-dark-600 hover:border-primary-500/30 transition-all min-h-[44px]">
                   Cancelar
                 </button>

@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import type { User } from '@supabase/supabase-js';
@@ -10,7 +10,10 @@ import { SeoService } from '../../../core/services/seo.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { GearListing } from '../../../core/models';
 
+const GEAR_COLUMNS = 'id, user_id, title, description, price, category, condition, city, images, status, seller_name, seller_profile_type, seller_profile_id';
+
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-gear-detail',
   standalone: true,
   imports: [RouterLink, CommonModule, IconComponent],
@@ -47,13 +50,13 @@ export class GearDetailComponent implements OnInit {
     try {
       const [{ data: { user } }, listingResult] = await Promise.all([
         this.supabase.auth.getUser(),
-        this.supabase.client.from('gear_listings').select('*')
+        this.supabase.client.from('gear_listings').select(GEAR_COLUMNS)
           .eq('id', this.route.snapshot.paramMap.get('id')!).maybeSingle(),
       ]);
       this.currentUser.set(user);
       const { data, error } = listingResult;
       if (error) { this.toast.error('No se pudo cargar el anuncio. Recarga la página.'); return; }
-      this.listing.set(data);
+      this.listing.set(data as GearListing | null);
       if (data) {
         this.seo.setListing(data.title, data.price, data.city, undefined, data.images?.[0]);
         this.seo.injectJsonLd({

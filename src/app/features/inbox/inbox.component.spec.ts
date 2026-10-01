@@ -47,6 +47,7 @@ describe('InboxComponent', () => {
       'MessagesService',
       [
         'getConversations',
+        'getConversationById',
         'getOtherUserProfile',
         'getUnreadConversationIds',
         'deleteConversation',
@@ -62,6 +63,9 @@ describe('InboxComponent', () => {
       Promise.resolve([defaultConversation])
     );
     messagesSpy.getOtherUserProfile.and.returnValue(Promise.resolve('Bob'));
+    messagesSpy.getConversationById.and.callFake((id: string) =>
+      Promise.resolve(makeConversation({ id }))
+    );
     messagesSpy.getUnreadConversationIds.and.returnValue(
       Promise.resolve(new Set<string>())
     );
@@ -180,8 +184,24 @@ describe('InboxComponent', () => {
         preview: 'hola',
         conversationId: 'conv-new',
       });
+      await fixture.whenStable();
+      await Promise.resolve();
 
+      expect(messagesSpy.getConversationById).toHaveBeenCalledWith('conv-new');
       expect(component.conversations()[0].id).toBe('conv-new');
+      expect(component.conversations()[0].last_message).toBe('hola');
+    });
+
+    it('does not add a conversation the user cannot read', async () => {
+      messagesSpy.getConversations.and.returnValue(Promise.resolve([]));
+      messagesSpy.getConversationById.and.returnValue(Promise.resolve(null));
+      await component.ngOnInit();
+
+      inboxUpdate$.next({ senderName: 'X', preview: 'spam', conversationId: 'conv-foreign' });
+      await fixture.whenStable();
+      await Promise.resolve();
+
+      expect(component.conversations().length).toBe(0);
     });
 
     it('moves an existing conversation to the top when an update arrives', async () => {

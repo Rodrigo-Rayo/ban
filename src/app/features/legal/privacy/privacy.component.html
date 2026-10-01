@@ -11,120 +11,180 @@
     <div class="mb-10">
       <p class="text-xs font-bold text-primary-500 uppercase tracking-widest mb-2">Legal</p>
       <h1 class="text-3xl font-black text-ink tracking-tight mb-3">Política de Privacidad</h1>
-      <p class="text-sm text-ink-muted">Última actualización: {{ updated }}</p>
+      <p class="text-sm text-ink-muted">Última actualización: {{ info.updated }}</p>
     </div>
 
     <div class="prose-legal">
 
       <section>
         <h2>1. Responsable del tratamiento</h2>
-        <p>
-          El responsable del tratamiento de los datos personales recabados a través de <strong>BandYou</strong>
-          (en adelante, "la Plataforma") es <strong>BandYou S.L.</strong>, con domicilio en Madrid, España
-          y dirección de contacto: <a href="mailto:privacidad@bandyou.es">privacidad&#64;bandyou.es</a>.
-        </p>
-      </section>
-
-      <section>
-        <h2>2. Datos que recabamos</h2>
-        <p>Recopilamos los siguientes datos:</p>
         <ul>
-          <li><strong>Datos de cuenta:</strong> dirección de correo electrónico y contraseña (almacenada con hash).</li>
-          <li><strong>Datos de perfil:</strong> nombre artístico, ciudad, instrumentos, géneros, descripción biográfica, foto de perfil y enlaces externos que el usuario introduce voluntariamente.</li>
-          <li><strong>Datos de uso:</strong> mensajes entre usuarios, publicaciones en el tablón, favoritos y eventos creados.</li>
-          <li><strong>Datos técnicos:</strong> dirección IP, tipo de dispositivo y navegador, con fines de seguridad y diagnóstico.</li>
-        </ul>
-        <p>No recabamos datos de categorías especiales (salud, ideología, origen étnico, etc.).</p>
-      </section>
-
-      <section>
-        <h2>3. Finalidad y base jurídica del tratamiento</h2>
-        <ul>
-          <li><strong>Prestación del servicio</strong> — creación de cuenta, perfil público, mensajes y funcionalidades de la Plataforma. Base: ejecución de contrato (art. 6.1.b RGPD).</li>
-          <li><strong>Seguridad</strong> — prevención de fraude, accesos no autorizados y abusos. Base: interés legítimo (art. 6.1.f RGPD).</li>
-          <li><strong>Mejora del producto</strong> — análisis de uso agregado y anónimo. Base: interés legítimo (art. 6.1.f RGPD).</li>
-          <li><strong>Comunicaciones del servicio</strong> — notificaciones transaccionales (mensajes nuevos, confirmaciones). Base: ejecución de contrato.</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>4. Destinatarios de los datos</h2>
-        <p>
-          Los datos son procesados por <strong>Supabase Inc.</strong> (infraestructura cloud, servidores en la UE)
-          como encargado del tratamiento bajo Acuerdo de Encargado de Tratamiento (DPA) conforme al RGPD.
-          No vendemos ni cedemos datos personales a terceros con fines comerciales.
-        </p>
-      </section>
-
-      <section>
-        <h2>5. Transferencias internacionales</h2>
-        <p>
-          Los servidores de base de datos están ubicados en la Unión Europea (región eu-west).
-          Cuando datos se transfieran fuera del EEE (por ejemplo, servicios de soporte técnico),
-          se aplicarán las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea.
-        </p>
-      </section>
-
-      <section>
-        <h2>6. Plazo de conservación</h2>
-        <p>
-          Los datos de cuenta y perfil se conservan mientras la cuenta esté activa.
-          Tras la eliminación de la cuenta, los datos se borran en un plazo máximo de <strong>30 días</strong>,
-          salvo que la ley exija conservarlos por más tiempo (p. ej., datos de facturación: 5 años).
-          Los mensajes borrados por el usuario se eliminan de forma permanente.
-        </p>
-      </section>
-
-      <section>
-        <h2>7. Derechos de los usuarios</h2>
-        <p>Puedes ejercer en cualquier momento los siguientes derechos enviando un email a <a href="mailto:privacidad@bandyou.es">privacidad&#64;bandyou.es</a>:</p>
-        <ul>
-          <li><strong>Acceso:</strong> obtener confirmación sobre si tratamos tus datos y recibir una copia.</li>
-          <li><strong>Rectificación:</strong> corregir datos inexactos o incompletos.</li>
-          <li><strong>Supresión ("derecho al olvido"):</strong> solicitar la eliminación de tus datos.</li>
-          <li><strong>Limitación:</strong> solicitar que suspendamos el tratamiento en determinadas circunstancias.</li>
-          <li><strong>Portabilidad:</strong> recibir tus datos en formato estructurado y legible por máquina.</li>
-          <li><strong>Oposición:</strong> oponerte al tratamiento basado en interés legítimo.</li>
+          <li><strong>Responsable:</strong> {{ info.ownerName }}</li>
+          <li><strong>NIF:</strong> {{ info.nif }}</li>
+          <li><strong>Domicilio:</strong> {{ info.address }}</li>
+          <li><strong>Contacto para protección de datos:</strong> <a [href]="'mailto:' + info.privacyEmail">{{ info.privacyEmail }}</a></li>
         </ul>
         <p>
-          Tienes también derecho a presentar una reclamación ante la
-          <strong>Agencia Española de Protección de Datos (AEPD)</strong> en <a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>.
+          Esta política explica cómo tratamos los datos personales de quienes usan <strong>BandYou</strong>
+          (en adelante, "la Plataforma"), conforme al Reglamento (UE) 2016/679 (RGPD) y a la Ley Orgánica 3/2018
+          de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).
         </p>
       </section>
 
       <section>
-        <h2>8. Seguridad</h2>
+        <h2>2. Qué datos tratamos</h2>
+        <ul>
+          <li><strong>Datos de cuenta:</strong> correo electrónico y contraseña (guardada cifrada mediante hash, nunca en claro). Si te registras con Google, recibimos de Google tu correo, tu nombre y tu foto de perfil.</li>
+          <li><strong>Datos de perfil:</strong> nombre o nombre artístico, tipo de perfil, ciudad, instrumentos, géneros, nivel, descripción, foto, enlaces externos y, si decides añadirlos, email de contacto, teléfono, dirección, aforo o tarifas.</li>
+          <li><strong>Contenido que publicas:</strong> publicaciones en el tablón, eventos, anuncios de equipamiento (con fotos), vacantes y candidaturas, reseñas, reservas de locales y favoritos.</li>
+          <li><strong>Mensajes privados:</strong> el contenido de las conversaciones con otros usuarios, con su fecha y estado de lectura.</li>
+          <li><strong>Notificaciones push:</strong> si las activas, el identificador de suscripción (endpoint y claves) que genera tu navegador.</li>
+          <li><strong>Datos técnicos:</strong> dirección IP, navegador y registros de acceso que generan automáticamente nuestros proveedores de alojamiento, con fines de seguridad y diagnóstico.</li>
+          <li><strong>Datos de consentimiento:</strong> fecha y versión de los textos legales aceptados al registrarte.</li>
+        </ul>
         <p>
-          Implementamos medidas técnicas y organizativas adecuadas: cifrado TLS en tránsito,
-          contraseñas almacenadas con bcrypt, Row Level Security en base de datos y acceso
-          restringido por roles. No obstante, ningún sistema es completamente infalible.
+          No pedimos datos de categorías especiales (salud, ideología, origen étnico, etc.). Te pedimos que no los
+          incluyas en tu perfil ni en tus publicaciones.
         </p>
       </section>
 
       <section>
-        <h2>9. Cookies</h2>
+        <h2>3. Para qué los usamos y con qué base jurídica</h2>
+        <ul>
+          <li><strong>Crear y gestionar tu cuenta, mostrar tu perfil y permitir mensajes, eventos, anuncios y demás funciones.</strong> Base: ejecución del contrato que aceptas con los Términos de Uso (art. 6.1.b RGPD).</li>
+          <li><strong>Enviarte emails transaccionales</strong> (confirmación de cuenta, recuperación de contraseña) <strong>y avisos dentro de la app</strong> (mensajes nuevos, respuestas). Base: ejecución del contrato (art. 6.1.b).</li>
+          <li><strong>Enviarte notificaciones push.</strong> Base: tu consentimiento, que das al aceptar el permiso del navegador y puedes retirar en cualquier momento desde su configuración (art. 6.1.a).</li>
+          <li><strong>Mantener la seguridad, prevenir fraudes y abusos y moderar contenidos denunciados.</strong> Base: interés legítimo en proteger la Plataforma y a sus usuarios (art. 6.1.f) y cumplimiento de obligaciones legales, como el Reglamento de Servicios Digitales (art. 6.1.c).</li>
+          <li><strong>Atender tus solicitudes y el ejercicio de tus derechos, y conservar la prueba de tu aceptación de los textos legales.</strong> Base: obligación legal (art. 6.1.c) e interés legítimo (art. 6.1.f).</li>
+        </ul>
         <p>
-          Usamos únicamente cookies técnicas necesarias para el funcionamiento de la sesión.
-          No usamos cookies de publicidad ni de seguimiento de terceros.
-          Consulta nuestra <a routerLink="/legal/cookies">Política de Cookies</a> para más información.
+          No hacemos perfiles con fines publicitarios, no tomamos decisiones automatizadas con efectos jurídicos y no
+          enviamos comunicaciones comerciales.
         </p>
       </section>
 
       <section>
-        <h2>10. Cambios en esta política</h2>
+        <h2>4. Qué información es pública</h2>
         <p>
-          Podemos actualizar esta política periódicamente. Notificaremos cambios significativos
-          por email o mediante un aviso en la Plataforma con al menos 15 días de antelación.
-          El uso continuado de la Plataforma tras la notificación implica la aceptación de los cambios.
+          BandYou es una red para encontrarse, así que <strong>tu perfil es público</strong>: lo puede ver cualquier
+          persona, aunque no tenga cuenta, y puede aparecer en buscadores como Google. Esto incluye tu nombre, foto,
+          ciudad, descripción, instrumentos y géneros, enlaces, eventos, publicaciones, anuncios de equipamiento y
+          reseñas que escribas.
+        </p>
+        <p>
+          El <strong>email de contacto, el teléfono y la dirección</strong> solo se muestran si tú los añades a tu
+          perfil o a un evento, y entonces son visibles para cualquiera. Añádelos únicamente si quieres que te
+          contacten por esa vía.
+        </p>
+        <p>
+          Los <strong>mensajes privados</strong> solo los ven quienes participan en la conversación. El personal de
+          la Plataforma no accede a ellos salvo cuando sea necesario para atender una denuncia concreta, por motivos
+          de seguridad o por requerimiento legal.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Destinatarios y encargados del tratamiento</h2>
+        <p>No vendemos ni cedemos tus datos a terceros con fines comerciales. Para prestar el servicio usamos estos proveedores, que actúan como encargados del tratamiento con contrato conforme al art. 28 RGPD:</p>
+        <ul>
+          <li><strong>Supabase Inc.</strong> (EE. UU.): base de datos, autenticación, almacenamiento de imágenes, emails de autenticación y tiempo real. Los datos se alojan en la región de la UE <strong>eu-west-1 (Irlanda)</strong>.</li>
+          <li><strong>Vercel Inc.</strong> (EE. UU.): alojamiento y distribución de la web. Procesa tu dirección IP y registros técnicos de acceso.</li>
+          <li><strong>Google</strong>: si eliges "Continuar con Google", Google Ireland Ltd. gestiona el inicio de sesión bajo su propia política de privacidad.</li>
+          <li><strong>Servicios push del navegador</strong> (Google, Mozilla, Apple o Microsoft, según el navegador que uses): si activas las notificaciones push, reciben el aviso cifrado para entregarlo en tu dispositivo.</li>
+        </ul>
+        <p>
+          También podremos comunicar datos a autoridades, juzgados y fuerzas de seguridad cuando una ley nos obligue.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Transferencias internacionales</h2>
+        <p>
+          Algunos de los proveedores anteriores son empresas estadounidenses o pueden acceder a los datos desde
+          fuera del Espacio Económico Europeo (por ejemplo, para soporte técnico o para distribuir la web en su red
+          global). En esos casos, la transferencia se ampara en la decisión de adecuación del Marco de Privacidad de
+          Datos UE-EE. UU. para las empresas adheridas y/o en las Cláusulas Contractuales Tipo aprobadas por la
+          Comisión Europea, incluidas en sus acuerdos de tratamiento de datos. Puedes pedirnos más información en
+          <a [href]="'mailto:' + info.privacyEmail">{{ info.privacyEmail }}</a>.
+        </p>
+      </section>
+
+      <section>
+        <h2>7. Cuánto tiempo conservamos los datos</h2>
+        <ul>
+          <li><strong>Mientras tengas cuenta</strong> conservamos tus datos de cuenta, perfil y contenido.</li>
+          <li><strong>Al eliminar tu cuenta</strong> desde tu panel ("Eliminar mi cuenta") se borran <strong>de forma inmediata e irreversible</strong> tu cuenta, tus perfiles, fotos, publicaciones, eventos, anuncios, reseñas, favoritos, reservas, candidaturas, notificaciones, suscripciones push y tus mensajes. Las conversaciones en las que participabas se eliminan también para la otra persona.</li>
+          <li><strong>Copias de seguridad:</strong> los datos borrados pueden permanecer en las copias de seguridad cifradas de nuestro proveedor hasta que se sobrescriban, en un plazo máximo de {{ info.backupRetention }}.</li>
+          <li><strong>Registros técnicos y de seguridad:</strong> se conservan el tiempo limitado que fijan nuestros proveedores para fines de seguridad.</li>
+          <li><strong>Bloqueo legal:</strong> cuando la ley lo exija, conservaremos bloqueados los datos imprescindibles (por ejemplo, la prueba de aceptación de los términos o la información sobre denuncias de contenido ilegal) durante los plazos de prescripción de las acciones legales aplicables, solo a disposición de jueces y autoridades.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>8. Tus derechos</h2>
+        <p>Puedes ejercer en cualquier momento, de forma gratuita, los siguientes derechos escribiendo a <a [href]="'mailto:' + info.privacyEmail">{{ info.privacyEmail }}</a> desde el email de tu cuenta:</p>
+        <ul>
+          <li><strong>Acceso:</strong> saber qué datos tratamos y obtener una copia.</li>
+          <li><strong>Rectificación:</strong> corregir datos inexactos (la mayoría puedes editarlos tú mismo desde tu perfil).</li>
+          <li><strong>Supresión:</strong> solicitar que borremos tus datos (puedes hacerlo tú mismo eliminando tu cuenta).</li>
+          <li><strong>Oposición:</strong> oponerte a los tratamientos basados en interés legítimo.</li>
+          <li><strong>Limitación:</strong> pedir que suspendamos el tratamiento en determinados casos.</li>
+          <li><strong>Portabilidad:</strong> recibir los datos que nos diste en un formato estructurado y de uso común.</li>
+          <li><strong>Retirar el consentimiento</strong> (por ejemplo, de las notificaciones push) sin que afecte a la licitud del tratamiento anterior.</li>
+        </ul>
+        <p>
+          Responderemos en el plazo de un mes. Si consideras que no hemos atendido correctamente tus derechos, puedes
+          presentar una reclamación ante la <strong>Agencia Española de Protección de Datos (AEPD)</strong>,
+          C/ Jorge Juan 6, 28001 Madrid, <a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>.
+        </p>
+      </section>
+
+      <section>
+        <h2>9. Menores de edad</h2>
+        <p>
+          Para registrarte en BandYou debes tener al menos <strong>{{ info.minAge }} años</strong>, edad a partir de la
+          cual puedes consentir por ti mismo el tratamiento de tus datos según el artículo 7 de la LOPDGDD. Al crear tu
+          cuenta te pedimos que confirmes que cumples esta edad. Si descubrimos que una cuenta pertenece a un menor de
+          {{ info.minAge }} años, la eliminaremos. Si eres padre, madre o tutor y crees que un menor nos ha facilitado
+          datos, escríbenos a <a [href]="'mailto:' + info.privacyEmail">{{ info.privacyEmail }}</a>.
+        </p>
+      </section>
+
+      <section>
+        <h2>10. Seguridad</h2>
+        <p>
+          Aplicamos medidas técnicas y organizativas adecuadas: cifrado TLS en tránsito, contraseñas con hash,
+          control de acceso a nivel de fila (Row Level Security) en la base de datos y acceso restringido al
+          personal autorizado. Aun así, ningún sistema es infalible; si detectamos una brecha de seguridad que
+          suponga un riesgo para ti, te lo comunicaremos y lo notificaremos a la AEPD conforme al RGPD.
+        </p>
+      </section>
+
+      <section>
+        <h2>11. Cookies y almacenamiento local</h2>
+        <p>
+          Solo usamos almacenamiento técnico necesario para la sesión y para recordar tus preferencias. No usamos
+          cookies publicitarias ni de analítica. Consulta los detalles en la
+          <a routerLink="/legal/cookies">Política de Cookies</a>.
+        </p>
+      </section>
+
+      <section>
+        <h2>12. Cambios en esta política</h2>
+        <p>
+          Si cambiamos esta política de forma relevante, te avisaremos por email o mediante un aviso en la Plataforma
+          antes de que el cambio sea efectivo. Cuando el cambio afecte a un tratamiento basado en tu consentimiento,
+          te lo volveremos a pedir.
         </p>
       </section>
 
     </div>
 
     <div class="mt-12 pt-8 border-t border-dark-600 flex flex-wrap gap-4">
+      <a routerLink="/legal/aviso-legal" class="text-sm text-primary-500 hover:underline font-medium">Aviso legal</a>
       <a routerLink="/legal/terminos" class="text-sm text-primary-500 hover:underline font-medium">Términos de uso</a>
       <a routerLink="/legal/cookies" class="text-sm text-primary-500 hover:underline font-medium">Política de cookies</a>
-      <a href="mailto:privacidad@bandyou.es" class="text-sm text-ink-muted hover:text-ink transition-colors">privacidad&#64;bandyou.es</a>
+      <a [href]="'mailto:' + info.privacyEmail" class="text-sm text-ink-muted hover:text-ink transition-colors">{{ info.privacyEmail }}</a>
     </div>
 
   </div>

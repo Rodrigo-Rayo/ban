@@ -5,9 +5,9 @@
   }
 
   <!-- Back nav -->
-  <div class="px-6 lg:px-10 py-3 border-b border-dark-600 bg-dark-800/60">
+  <div class="px-5 sm:px-6 lg:px-10 border-b border-dark-600 bg-dark-800/60">
     <a [routerLink]="['/search']" [queryParams]="{tab:'events'}"
-       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-600 transition-colors group">
+       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-600 transition-colors group min-h-[44px]">
       <svg aria-hidden="true" class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
@@ -17,7 +17,7 @@
 
   @if (loading()) {
     <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600 animate-pulse">
-      <div class="max-w-5xl mx-auto px-6 lg:px-10 py-8">
+      <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-8">
         <div class="flex gap-5 items-start">
           <div class="flex-shrink-0 w-20 h-28 rounded-2xl bg-dark-700"></div>
           <div class="flex-1 space-y-3 pt-1">
@@ -31,7 +31,7 @@
         </div>
       </div>
     </div>
-    <div class="max-w-5xl mx-auto px-6 lg:px-10 py-8 animate-pulse flex flex-col gap-5">
+    <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-8 animate-pulse flex flex-col gap-5">
       <div class="flex gap-3">
         <div class="h-11 bg-dark-700 rounded-xl w-40"></div>
         <div class="h-11 bg-dark-700 rounded-xl w-32"></div>
@@ -54,25 +54,25 @@
   <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600"
        [class.opacity-60]="isPast()">
     @if (isPast()) {
-      <div class="bg-dark-700/80 border-b border-dark-600 px-6 lg:px-10 py-2 flex items-center gap-2">
+      <div class="bg-dark-700/80 border-b border-dark-600 px-5 sm:px-6 lg:px-10 py-2 flex items-center gap-2">
         <svg aria-hidden="true" class="w-3.5 h-3.5 text-ink-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
         <p class="text-xs text-ink-muted font-medium">Este evento ya ha pasado</p>
       </div>
     }
-    <div class="max-w-5xl mx-auto px-6 lg:px-10 py-8">
-      <div class="flex gap-5 items-start">
+    <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-6 sm:py-8">
+      <div class="flex gap-4 sm:gap-5 items-start">
 
         <!-- Date block -->
-        <div class="flex-shrink-0 text-center rounded-2xl px-5 py-4 shadow-lg min-w-[80px]"
+        <div class="flex-shrink-0 text-center rounded-2xl px-4 sm:px-5 py-4 shadow-lg min-w-[72px] sm:min-w-[80px]"
              [class.bg-primary-600]="!isPast()"
              [class.bg-dark-600]="isPast()">
-          <p class="text-[10px] font-bold uppercase tracking-widest mb-0.5"
+          <p class="text-micro font-bold uppercase tracking-widest mb-0.5"
              [ngClass]="isPast() ? 'text-ink-muted' : 'text-white/70'">{{ event()!.date | date:'EEE' | uppercase }}</p>
           <p class="text-4xl font-black leading-none"
              [class.text-white]="!isPast()" [class.text-ink-muted]="isPast()">{{ event()!.date | date:'d' }}</p>
-          <p class="text-[10px] font-bold uppercase tracking-widest mt-0.5"
+          <p class="text-micro font-bold uppercase tracking-widest mt-0.5"
              [ngClass]="isPast() ? 'text-ink-muted' : 'text-white/70'">{{ event()!.date | date:'MMM' | uppercase }}</p>
           @if (event()!.time) {
             <p class="text-xs font-medium mt-2.5 pt-2.5 border-t"
@@ -87,7 +87,7 @@
             @if (event()!.genre) { <span class="tag">{{ event()!.genre }}</span> }
             @if (event()!.price) { <span class="tag-accent">{{ event()!.price }}</span> }
           </div>
-          <h1 class="text-2xl lg:text-3xl font-bold text-ink leading-tight mb-2">{{ event()!.title }}</h1>
+          <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-ink leading-tight mb-2 break-words">{{ event()!.title }}</h1>
           <p class="text-sm text-ink-muted flex items-center gap-1.5">
             <svg aria-hidden="true" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -101,12 +101,12 @@
   </div>
 
   <!-- CONTENT -->
-  <div class="max-w-5xl mx-auto px-6 lg:px-10 py-8 flex flex-col gap-5">
+  <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-8 flex flex-col gap-5">
 
     <!-- Actions -->
     <div class="flex gap-3 flex-wrap">
       @if (event()!.ticket_url) {
-        <a [href]="event()!.ticket_url" target="_blank" rel="noopener noreferrer" class="btn-primary px-6 py-2.5 text-sm">
+        <a [href]="event()!.ticket_url" target="_blank" rel="noopener noreferrer" class="btn-primary px-6 py-2.5 min-h-[44px] text-sm">
           Comprar entradas
         </a>
       }
@@ -129,7 +129,7 @@
           {{ isFav() ? 'Guardado' : 'Guardar' }}
         </button>
       } @else {
-        <a routerLink="/auth/login" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border border-dark-600 bg-dark-700 text-ink-muted hover:border-primary-500/50 hover:text-ink transition-colors flex items-center">
+        <a routerLink="/auth/login" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border border-dark-600 bg-dark-700 text-ink-3 hover:border-primary-500/50 hover:text-ink transition-colors flex items-center">
           Inicia sesión para guardar
         </a>
       }
@@ -158,36 +158,36 @@
     <div class="card-flat overflow-hidden">
       <div class="px-5 py-3 border-b border-dark-600"><h3 class="section-label">Detalles</h3></div>
       <div class="divide-y divide-dark-600 text-sm">
-        <div class="flex justify-between px-5 py-2.5">
+        <div class="flex justify-between gap-4 px-5 py-2.5">
           <span class="text-ink-muted">Fecha</span>
-          <span class="font-medium text-ink">{{ event()!.date | date:'EEEE, d MMMM yyyy' }}</span>
+          <span class="font-medium text-ink text-right break-words min-w-0">{{ event()!.date | date:'EEEE, d MMMM yyyy' }}</span>
         </div>
         @if (event()!.time) {
-          <div class="flex justify-between px-5 py-2.5">
+          <div class="flex justify-between gap-4 px-5 py-2.5">
             <span class="text-ink-muted">Hora</span>
-            <span class="font-medium text-ink">{{ event()!.time?.slice(0,5) }}h</span>
+            <span class="font-medium text-ink text-right break-words min-w-0">{{ event()!.time?.slice(0,5) }}h</span>
           </div>
         }
         @if (event()!.venue) {
-          <div class="flex justify-between px-5 py-2.5">
+          <div class="flex justify-between gap-4 px-5 py-2.5">
             <span class="text-ink-muted">Lugar</span>
-            <span class="font-medium text-ink">{{ event()!.venue }}</span>
+            <span class="font-medium text-ink text-right break-words min-w-0">{{ event()!.venue }}</span>
           </div>
         }
         @if (event()!.city) {
-          <div class="flex justify-between px-5 py-2.5">
+          <div class="flex justify-between gap-4 px-5 py-2.5">
             <span class="text-ink-muted">Ciudad</span>
-            <span class="font-medium text-ink">{{ event()!.city }}</span>
+            <span class="font-medium text-ink text-right break-words min-w-0">{{ event()!.city }}</span>
           </div>
         }
         @if (event()!.price) {
-          <div class="flex justify-between px-5 py-2.5">
+          <div class="flex justify-between gap-4 px-5 py-2.5">
             <span class="text-ink-muted">Precio</span>
-            <span class="font-medium text-ink">{{ +event()!.price > 0 ? (event()!.price | number:'1.0-2') + ' €' : event()!.price }}</span>
+            <span class="font-medium text-ink text-right break-words min-w-0">{{ +event()!.price > 0 ? (event()!.price | number:'1.0-2') + ' €' : event()!.price }}</span>
           </div>
         }
         @if (event()!.contact_email) {
-          <div class="flex justify-between px-5 py-2.5 items-center">
+          <div class="flex justify-between gap-4 px-5 py-2.5 items-center">
             <span class="text-ink-muted">Contacto</span>
             <a [href]="'mailto:' + event()!.contact_email"
                class="font-medium text-primary-500 hover:text-primary-600 transition-colors truncate max-w-[60%]">

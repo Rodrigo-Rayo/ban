@@ -24,6 +24,10 @@ interface VacancyApplication {
   musician: { id: string; name: string; city: string; genre: string | null; avatar_url: string | null } | null;
 }
 
+const BAND_COLUMNS = 'id, user_id, name, genre, city, description, avatar_url, looking_for, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
+const MAX_VACANCIES = 50;
+const MAX_MEMBERS = 50;
+
 @Component({
   selector: 'app-band-profile',
   standalone: true,
@@ -83,13 +87,13 @@ export class BandProfileComponent implements OnInit {
         { data: vac },
         { data: membersData },
       ] = await Promise.all([
-        this.supabase.client.from('bands').select('*').eq('id', id).maybeSingle(),
+        this.supabase.client.from('bands').select(BAND_COLUMNS).eq('id', id).maybeSingle(),
         this.supabase.auth.getSession(),
-        this.supabase.client.from('band_vacancies').select('*').eq('band_id', id).order('created_at'),
-        this.supabase.client.from('band_members').select('*').eq('band_id', id).order('created_at'),
+        this.supabase.client.from('band_vacancies').select('id, band_id, instrument, description, genre, open, created_at').eq('band_id', id).order('created_at').limit(MAX_VACANCIES),
+        this.supabase.client.from('band_members').select('id, band_id, name, instrument, created_at').eq('band_id', id).order('created_at').limit(MAX_MEMBERS),
       ]);
 
-      this.band.set(band);
+      this.band.set(band as Band | null);
       if (band) {
         this.seo.setProfile(band.name, 'band', band.city, band.description, band.avatar_url);
         this.seo.injectJsonLd({
@@ -223,8 +227,46 @@ export class BandProfileComponent implements OnInit {
       this.toast.error('Solo los músicos pueden postularse a vacantes. Crea un perfil de músico en tu panel.');
       return;
     }
+    // Remember the trigger so focus can return to it when the dialog closes (WCAG 2.4.3).
+    this.applyReturnFocus = document.activeElement as HTMLElement | null;
     this.applyingTo.set(vacancyId);
     this.applyMessage = '';
+    setTimeout(() => document.getElementById('apply-message')?.focus());
+  }
+
+  private applyReturnFocus: HTMLElement | null = null;
+
+  closeApply() {
+    this.applyingTo.set(null);
+    const trigger = this.applyReturnFocus;
+    this.applyReturnFocus = null;
+    if (trigger?.isConnected) setTimeout(() => trigger.focus());
+  }
+
+  /** Submit from the dialog, then hand focus back once it has closed. */
+  async submitApplyFromDialog() {
+    const trigger = this.applyReturnFocus;
+    await this.submitApply();
+    if (!this.applyingTo()) {
+      this.applyReturnFocus = null;
+      // The "Postularme" button is replaced by a status tag on success; only refocus if it still exists.
+      if (trigger?.isConnected) trigger.focus();
+    }
+  }
+
+  /** Escape closes; Tab / Shift+Tab cycle within the dialog (focus trap without @angular/cdk). */
+  onApplyKeydown(e: KeyboardEvent, dialog: HTMLElement) {
+    if (e.key === 'Escape') { e.preventDefault(); this.closeApply(); return; }
+    if (e.key !== 'Tab') return;
+    const focusables = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+    ));
+    if (focusables.length === 0) { e.preventDefault(); return; }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (e.shiftKey && (active === first || active === dialog)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
   }
 
   async submitApply() {

@@ -11,6 +11,8 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { Teacher, Review } from '../../../core/models';
 
+const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avatar_url, hourly_rate, experience_years, level, modality, website_url, youtube_url';
+
 @Component({
   selector: 'app-teacher-profile',
   standalone: true,
@@ -66,11 +68,11 @@ export class TeacherProfileComponent implements OnInit {
     try {
       const id = this.route.snapshot.paramMap.get('id');
       const [{ data: teacher }, { data: { session } }, { data: reviews }] = await Promise.all([
-        this.supabase.client.from('teachers').select('*').eq('id', id!).maybeSingle(),
+        this.supabase.client.from('teachers').select(TEACHER_COLUMNS).eq('id', id!).maybeSingle(),
         this.supabase.auth.getSession(),
-        this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'teacher').eq('entity_id', id!).order('created_at', { ascending: false }),
+        this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'teacher').eq('entity_id', id!).order('created_at', { ascending: false }).limit(200),
       ]);
-      this.teacher.set(teacher);
+      this.teacher.set(teacher as Teacher | null);
       if (teacher) {
         this.seo.setProfile(teacher.name, 'teacher', teacher.city, teacher.description, teacher.avatar_url, undefined, teacher.instrument);
         this.seo.injectJsonLd({
@@ -143,7 +145,7 @@ export class TeacherProfileComponent implements OnInit {
       if (error) {
         this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
       } else {
-        const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'teacher').eq('entity_id', this.teacher()!.id).order('created_at', { ascending: false });
+        const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'teacher').eq('entity_id', this.teacher()!.id).order('created_at', { ascending: false }).limit(200);
         this.reviews.set((data || []) as Review[]);
         this.myReview.set((data?.find((r: any) => r.user_id === this.currentUserId()) || null) as Review | null);
         this.showReviewForm.set(false);

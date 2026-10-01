@@ -1,10 +1,12 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
+import { AuthService } from '../services/auth.service';
 
 export const authGuard: CanActivateFn = async (route, state) => {
   const supabase = inject(SupabaseService);
   const router = inject(Router);
+  const auth = inject(AuthService);
 
   const { data } = await supabase.getSession();
   if (!data.session) {
@@ -16,6 +18,9 @@ export const authGuard: CanActivateFn = async (route, state) => {
   if (route.routeConfig?.path === 'onboarding') return true;
 
   const userId = data.session.user.id;
+  // Role already confirmed for this user in this session: skip the DB round-trip.
+  if (auth.isRoleVerified(userId)) return true;
+
   const { data: profile, error: profileError } = await supabase.client
     .from('profiles')
     .select('id, role')
@@ -30,5 +35,6 @@ export const authGuard: CanActivateFn = async (route, state) => {
 
   if (!profile?.role) return router.createUrlTree(['/onboarding']);
 
+  auth.markRoleVerified(userId);
   return true;
 };

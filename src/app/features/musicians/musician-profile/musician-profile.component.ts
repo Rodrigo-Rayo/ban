@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal, computed, OnInit } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -11,7 +11,11 @@ import { avatarColor } from '../../../core/utils/display.utils';
 import { parseList } from '../../../core/utils/list';
 import { Musician } from '../../../core/models';
 
+/** Columns rendered by the profile page (avoid select('*')). */
+const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
+
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-musician-profile',
   standalone: true,
   imports: [RouterLink, CommonModule, IconComponent],
@@ -45,17 +49,17 @@ export class MusicianProfileComponent implements OnInit {
     if (!id) { this.loading.set(false); return; }
     try {
       const [{ data }, { data: { session } }] = await Promise.all([
-        this.supabase.client.from('musicians').select('*').eq('id', id).maybeSingle(),
+        this.supabase.client.from('musicians').select(MUSICIAN_COLUMNS).eq('id', id).maybeSingle(),
         this.supabase.auth.getSession(),
       ]);
-      this.musician.set(data);
+      this.musician.set(data as Musician | null);
       if (data) {
         this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url, undefined, data.instrument);
         this.seo.injectJsonLd({
           '@context': 'https://schema.org',
           '@type': 'Person',
           name: data.name,
-          description: data.bio || data.description || '',
+          description: data.description || '',
           image: data.avatar_url || '',
           url: `https://bandyou.es/musicians/${data.id}`,
           address: { '@type': 'PostalAddress', addressLocality: data.city || '', addressCountry: 'ES' },

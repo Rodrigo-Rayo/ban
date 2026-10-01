@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { authGuard } from './auth.guard';
 import { SupabaseService } from '../services/supabase.service';
+import { AuthService } from '../services/auth.service';
 
 function makeClientMock(profileData: any = { id: 'p-1', role: 'musician' }) {
   const b: any = {
@@ -20,11 +21,17 @@ describe('authGuard', () => {
   let supabaseSpy: jasmine.SpyObj<SupabaseService> & { client: any };
   let routerSpy: jasmine.SpyObj<Router>;
   let fakeUrlTree: UrlTree;
+  let verified: string | null;
+  const authStub = {
+    isRoleVerified: (id: string) => verified === id,
+    markRoleVerified: (id: string) => { verified = id; },
+  };
 
   const fakeRoute = {} as ActivatedRouteSnapshot;
   const fakeState = { url: '/dashboard' } as RouterStateSnapshot;
 
   beforeEach(() => {
+    verified = null;
     fakeUrlTree = new UrlTree();
 
     supabaseSpy = jasmine.createSpyObj<SupabaseService>('SupabaseService', ['getSession']) as any;
@@ -37,6 +44,7 @@ describe('authGuard', () => {
       providers: [
         { provide: SupabaseService, useValue: supabaseSpy },
         { provide: Router, useValue: routerSpy },
+        { provide: AuthService, useValue: authStub },
       ],
     });
   });
@@ -91,5 +99,27 @@ describe('authGuard', () => {
     const result = await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
 
     expect(result).toBeTrue();
+  });
+
+  it('skips the profile query once the role was verified for the same user', async () => {
+    supabaseSpy.getSession.and.returnValue(
+      Promise.resolve({ data: { session: { user: { id: 'user-1' } } }, error: null } as never)
+    );
+
+    await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
+    await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
+
+    expect(supabaseSpy.client.from).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reuse a verification made for a different user', async () => {
+    verified = 'other-user';
+    supabaseSpy.getSession.and.returnValue(
+      Promise.resolve({ data: { session: { user: { id: 'user-1' } } }, error: null } as never)
+    );
+
+    await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
+
+    expect(supabaseSpy.client.from).toHaveBeenCalledTimes(1);
   });
 });

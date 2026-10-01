@@ -9,6 +9,10 @@ import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IconComponent } from '../icon/icon.component';
+import { environment } from '../../../../environments/environment';
+
+/** How long the new-message toast stays up (paused while hovered or focused). */
+const MESSAGE_TOAST_MS = 6000;
 
 @Component({
   selector: 'app-navbar',
@@ -37,6 +41,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private channel: RealtimeChannel | null = null;
   private notifChannel: RealtimeChannel | null = null;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private toastHeld = false;
 
   private currentUserId: string | null = null;
 
@@ -64,25 +69,48 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.currentUserId = userId;
     if (!userId) return;
 
+    // Each step is independent: one failing (e.g. the notifications count) must not
+    // leave the inbox channel or the other badge un-initialised.
+    await this.messagesService.refreshUnreadCount(); // keeps previous value on error
+    if (this.currentUserId !== userId) return; // user changed while awaiting
+    this.loadAvatar(userId).catch(() => {});
     try {
-      await this.messagesService.refreshUnreadCount();
-      if (this.currentUserId !== userId) return; // user changed while awaiting
-      this.loadAvatar(userId).catch(() => {});
       this.channel = this.messagesService.subscribeToInboxUpdates(
         userId,
         (senderName, preview, convId) => {
+          if (this.currentUserId !== userId) return;
           this.messagesService.inboxUpdate$.next({ senderName, preview, conversationId: convId });
           if (this.messagesService.activeChatConversationId() === convId) return;
           this.messagesService.unreadCount.update(n => n + 1);
           this.showToast(senderName, preview, convId);
         }
       );
-      await this.notifSvc.loadUnread(userId);
-      if (this.currentUserId !== userId) return;
-      this.notifChannel = this.notifSvc.subscribe(userId, () => {});
-    } catch {
-      // Navbar errors are non-fatal — app continues to render without realtime features
+    } catch (err) {
+      if (!environment.production) console.error('[navbar] inbox channel failed:', err);
     }
+    try {
+      await this.notifSvc.loadUnread(userId);
+    } catch (err) {
+      if (!environment.production) console.error('[navbar] notifications count failed:', err);
+    }
+    if (this.currentUserId !== userId) return;
+    try {
+      this.notifChannel = this.notifSvc.subscribe(userId, () => {});
+    } catch (err) {
+      if (!environment.production) console.error('[navbar] notifications channel failed:', err);
+    }
+  }
+
+  /**
+   * Badges can drift when another tab/device reads messages or notifications;
+   * re-sync whenever this tab becomes visible again.
+   */
+  @HostListener('document:visibilitychange')
+  onVisibilityChange() {
+    const userId = this.currentUserId;
+    if (!userId || document.visibilityState !== 'visible') return;
+    this.messagesService.refreshUnreadCount();
+    this.notifSvc.loadUnread(userId).catch(() => { /* keep previous count */ });
   }
 
   private teardownRealtime() {
@@ -91,6 +119,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.notifSvc.unsubscribe();
     this.notifChannel = null;
     this.avatarUrl.set(null);
+    this.dismissToast();
     this.messagesService.unreadCount.set(0);
     this.notifSvc.unreadCount.set(0);
   }
@@ -101,14 +130,38 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private showToast(name: string, preview: string, conversationId: string) {
-    if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toast.set({ name, preview, conversationId });
-    this.toastTimer = setTimeout(() => this.toast.set(null), 4000);
+    this.scheduleToastDismiss();
+  }
+
+  private scheduleToastDismiss() {
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = null;
+    if (this.toastHeld) return; // never auto-dismiss while hovered/focused (WCAG 2.2.1)
+    this.toastTimer = setTimeout(() => this.dismissToast(), MESSAGE_TOAST_MS);
+  }
+
+  /** Pause auto-dismiss while the pointer or keyboard focus is on the toast. */
+  holdToast(held: boolean) {
+    this.toastHeld = held;
+    if (held) {
+      if (this.toastTimer) clearTimeout(this.toastTimer);
+      this.toastTimer = null;
+    } else if (this.toast()) {
+      this.scheduleToastDismiss();
+    }
+  }
+
+  dismissToast() {
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = null;
+    this.toastHeld = false;
+    this.toast.set(null);
   }
 
   goToChat() {
     const t = this.toast();
-    this.toast.set(null);
+    this.dismissToast();
     if (t?.conversationId) {
       this.router.navigate(['/inbox', t.conversationId], { state: { name: t.name } });
       setTimeout(() => this.messagesService.refreshUnreadCount(), 600);

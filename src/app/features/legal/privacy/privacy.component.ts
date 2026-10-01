@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SeoService } from '../../../core/services/seo.service';
+import { LEGAL_INFO } from '../legal-info';
 
 @Component({
   selector: 'app-privacy',
@@ -11,7 +12,7 @@ import { SeoService } from '../../../core/services/seo.service';
 export class PrivacyComponent implements OnInit {
   private seo = inject(SeoService);
 
-  readonly updated = '13 de julio de 2026';
+  readonly info = LEGAL_INFO;
 
   ngOnInit() {
     this.seo.set({

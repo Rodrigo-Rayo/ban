@@ -135,6 +135,12 @@ describe('ResetPasswordComponent', () => {
       await component.onSubmit();
       expect(updateUserSpy).not.toHaveBeenCalled();
     });
+
+    it('flags the confirm field as mismatched (drives aria-invalid)', async () => {
+      component.form.setValue({ password: 'password123', confirm: 'different123' });
+      await component.onSubmit();
+      expect(component.mismatch()).toBeTrue();
+    });
   });
 
   // ── onSubmit() – success path ──────────────────────────────────────────────

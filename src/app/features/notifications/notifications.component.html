@@ -101,7 +101,7 @@
                         <p class="text-[10px] text-ink-muted mt-1.5">{{ n.created_at | date:'d MMM, HH:mm' }}</p>
                       </div>
                       @if (!n.read) {
-                        <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-2 ring-2 ring-primary-500/20" aria-label="Sin leer"></span>
+                        <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-2 ring-2 ring-primary-500/20" aria-hidden="true"></span><span class="sr-only">Sin leer</span>
                       }
                     </a>
                   } @else {
@@ -132,7 +132,7 @@
                         <p class="text-[10px] text-ink-muted mt-1.5">{{ n.created_at | date:'d MMM, HH:mm' }}</p>
                       </div>
                       @if (!n.read) {
-                        <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-2 ring-2 ring-primary-500/20" aria-label="Sin leer"></span>
+                        <span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-2 ring-2 ring-primary-500/20" aria-hidden="true"></span><span class="sr-only">Sin leer</span>
                       }
                     </div>
                   }

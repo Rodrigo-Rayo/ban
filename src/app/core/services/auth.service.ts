@@ -16,6 +16,7 @@ export class AuthService {
   private _session = signal<Session | null>(null);
   private _signingOut = false;
   private _loadedUserId: string | null = null;
+  private _roleVerifiedFor: string | null = null;
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   private push = inject(PushNotificationService);
@@ -113,7 +114,17 @@ export class AuthService {
     }
   }
 
+  /** True when the guard already confirmed this user has a profile role in the current session. */
+  isRoleVerified(userId: string): boolean {
+    return this._roleVerifiedFor === userId;
+  }
+
+  markRoleVerified(userId: string): void {
+    this._roleVerifiedFor = userId;
+  }
+
   clearUserProfile() {
+    this._roleVerifiedFor = null;
     this.userProfileType.set('');
     this.userProfileData.set(null);
     this._loadedUserId = null;

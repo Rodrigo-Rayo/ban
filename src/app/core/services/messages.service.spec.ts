@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { MessagesService } from './messages.service';
+import { MessagesService, MAX_MESSAGE_LENGTH } from './messages.service';
 import { SupabaseService } from './supabase.service';
 import { NotificationsService } from './notifications.service';
 import { Conversation, Message } from '../models';
@@ -11,7 +11,7 @@ class MockSupabaseService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private rpcResponse: any = { data: null, error: null };
 
-  private _channelMock: any = {
+  _channelMock: any = {
     on: jasmine.createSpy('on').and.callFake(function(this: any) { return this; }),
     subscribe: jasmine.createSpy('subscribe').and.callFake(function(this: any) { return this; }),
   };
@@ -177,6 +177,35 @@ describe('MessagesService', () => {
       mockSupabase.setUser(fakeUser);
       mockSupabase.setFromResponse('messages', { data: null, error: { message: 'insert failed' }, count: null });
       await expectAsync(service.sendMessage('conv-1', 'hello')).toBeRejectedWithError('insert failed');
+    });
+
+    it('rejects empty / whitespace-only content without touching the DB', async () => {
+      mockSupabase.setUser(fakeUser);
+      const fromSpy = spyOn(mockSupabase, '_makeBuilder').and.callThrough();
+      await expectAsync(service.sendMessage('conv-1', '   ')).toBeRejected();
+      expect(fromSpy).not.toHaveBeenCalled();
+    });
+
+    it('rejects content longer than MAX_MESSAGE_LENGTH', async () => {
+      mockSupabase.setUser(fakeUser);
+      await expectAsync(service.sendMessage('conv-1', 'x'.repeat(MAX_MESSAGE_LENGTH + 1))).toBeRejected();
+    });
+
+    it('sends only ids to the push function (no client-supplied name/text)', async () => {
+      mockSupabase.setUser(fakeUser);
+      const fakeMsg = { id: 'msg-9', conversation_id: 'conv-1', sender_id: 'user-aaa', text: 'hi', read: false, created_at: '2024-01-01T10:00:00Z' };
+      mockSupabase.setFromResponse('messages', { data: fakeMsg, error: null, count: null });
+      mockSupabase.setFromResponse('conversations', { data: null, error: null, count: null });
+      spyOnProperty(mockSupabase, 'auth', 'get').and.returnValue({
+        getUser: () => Promise.resolve({ data: { user: fakeUser }, error: null }),
+        getSession: () => Promise.resolve({ data: { session: { access_token: 'tok' } } }),
+      } as never);
+      const fetchSpy = spyOn(window, 'fetch').and.returnValue(Promise.resolve(new Response('ok')));
+      await service.sendMessage('conv-1', 'hi');
+      await new Promise(r => setTimeout(r, 0));
+      expect(fetchSpy).toHaveBeenCalled();
+      const body = JSON.parse((fetchSpy.calls.mostRecent().args[1] as RequestInit).body as string);
+      expect(body).toEqual(jasmine.objectContaining({ conversationId: 'conv-1', messageId: 'msg-9' }));
     });
 
     it('inserts with field text not content', async () => {
@@ -389,6 +418,21 @@ describe('MessagesService', () => {
       const result = await service.getUserName('user-unknown');
       expect(result).toBe('Usuario');
     });
+
+    it('does not cache the Usuario fallback (retries once the profile exists)', async () => {
+      mockSupabase.setRpcResponse({ data: null, error: { message: 'timeout' } });
+      expect(await service.getUserName('user-late')).toBe('Usuario');
+      mockSupabase.setRpcResponse({ data: 'Lucía', error: null });
+      expect(await service.getUserName('user-late')).toBe('Lucía');
+    });
+
+    it('caches real names', async () => {
+      mockSupabase.setRpcResponse({ data: 'Marta', error: null });
+      await service.getUserName('user-c');
+      mockSupabase._client.rpc.calls.reset();
+      expect(await service.getUserName('user-c')).toBe('Marta');
+      expect(mockSupabase._client.rpc).not.toHaveBeenCalled();
+    });
   });
 
   describe('getUnreadCount', () => {
@@ -449,10 +493,30 @@ describe('MessagesService', () => {
       await expectAsync(service.markAsRead('conv-1')).toBeResolved();
     });
 
-    it('calls update on messages table for the given conversation', async () => {
+    it('only ever updates the read column', async () => {
       mockSupabase.setUser(fakeUser);
-      mockSupabase.setFromResponse('messages', { data: null, error: null, count: null });
+      mockSupabase.setFromResponse('messages', { data: null, error: null, count: 0 });
+      let updatePayload: unknown = null;
+      const orig = mockSupabase._makeBuilder.bind(mockSupabase);
+      spyOn(mockSupabase, '_makeBuilder').and.callFake((table: string) => {
+        const b = orig(table);
+        if (table === 'messages') {
+          const u = b.update;
+          b.update = jasmine.createSpy('update').and.callFake((payload: unknown) => {
+            updatePayload = payload;
+            return u.call(b, payload);
+          });
+        }
+        return b;
+      });
       await service.markAsRead('conv-1');
+      expect(updatePayload).toEqual({ read: true });
+    });
+
+    it('rejects when the update fails', async () => {
+      mockSupabase.setUser(fakeUser);
+      mockSupabase.setFromResponse('messages', { data: null, error: { message: 'rls' }, count: null });
+      await expectAsync(service.markAsRead('conv-1')).toBeRejectedWithError('rls');
     });
   });
 
@@ -497,11 +561,72 @@ describe('MessagesService', () => {
   });
 
   describe('subscribeToInboxUpdates', () => {
+    function insertHandler(): (payload: unknown) => Promise<void> {
+      const call = mockSupabase._channelMock.on.calls.allArgs()
+        .find((args: any[]) => args[1]?.event === 'INSERT');
+      return call[2];
+    }
+
     it('calls channel() and returns a subscription', () => {
       mockSupabase._client.channel.calls.reset();
       const callback = jasmine.createSpy('callback');
       service.subscribeToInboxUpdates(fakeUser.id, callback);
       expect(mockSupabase._client.channel).toHaveBeenCalled();
+    });
+
+    it('ignores the current user own messages', async () => {
+      mockSupabase.setUser(fakeUser);
+      const callback = jasmine.createSpy('callback');
+      service.subscribeToInboxUpdates(fakeUser.id, callback);
+      await insertHandler()({ new: { id: 'm', conversation_id: 'conv-1', sender_id: fakeUser.id, text: 'x' } });
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('ignores messages from conversations the user is not part of', async () => {
+      mockSupabase.setUser(fakeUser);
+      mockSupabase.setFromResponse('conversations', {
+        data: { id: 'conv-x', user1_id: 'someone', user2_id: 'else' }, error: null, count: null,
+      });
+      const callback = jasmine.createSpy('callback');
+      service.subscribeToInboxUpdates(fakeUser.id, callback);
+      await insertHandler()({ new: { id: 'm', conversation_id: 'conv-x', sender_id: otherUser.id, text: 'x' } });
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('forwards messages from the user conversations with a truncated preview', async () => {
+      mockSupabase.setUser(fakeUser);
+      mockSupabase.setFromResponse('conversations', {
+        data: { id: 'conv-1', user1_id: fakeUser.id, user2_id: otherUser.id }, error: null, count: null,
+      });
+      mockSupabase.setRpcResponse({ data: 'Zoe', error: null });
+      const callback = jasmine.createSpy('callback');
+      service.subscribeToInboxUpdates(fakeUser.id, callback);
+      await insertHandler()({ new: { id: 'm', conversation_id: 'conv-1', sender_id: otherUser.id, text: 'y'.repeat(500) } });
+      expect(callback).toHaveBeenCalledTimes(1);
+      const [name, preview, convId] = callback.calls.mostRecent().args;
+      expect(name).toBe('Zoe');
+      expect(convId).toBe('conv-1');
+      expect(preview.length).toBeLessThanOrEqual(140);
+    });
+  });
+
+  describe('getConversations ordering', () => {
+    it('orders by last_message_at DESC with NULLs last', async () => {
+      mockSupabase.setUser(fakeUser);
+      mockSupabase.setFromResponse('conversations', { data: [], error: null, count: null });
+      let orderArgs: unknown[] | null = null;
+      const orig = mockSupabase._makeBuilder.bind(mockSupabase);
+      spyOn(mockSupabase, '_makeBuilder').and.callFake((table: string) => {
+        const b = orig(table);
+        const o = b.order;
+        b.order = jasmine.createSpy('order').and.callFake((...args: unknown[]) => {
+          if (!orderArgs) orderArgs = args;
+          return o.apply(b, args);
+        });
+        return b;
+      });
+      await service.getConversations();
+      expect(orderArgs!).toEqual(['last_message_at', { ascending: false, nullsFirst: false }]);
     });
   });
 });

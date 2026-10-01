@@ -40,7 +40,7 @@
         <!-- Atmospheric glow -->
         <div class="absolute -top-6 -right-6 w-36 h-36 rounded-full opacity-25 blur-2xl pointer-events-none" style="background: radial-gradient(circle, #c4623e 0%, transparent 70%)"></div>
         <div class="relative">
-          <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-500 mb-1.5">Directorio musical</p>
+          <p class="text-micro font-semibold uppercase tracking-wider text-primary-500 mb-1.5">Directorio musical</p>
           <h2 class="text-lg font-black text-white leading-tight mb-3">¿A quién buscas hoy?</h2>
           <!-- Fake search input — links to full search page -->
           <a routerLink="/search" aria-label="Ir al buscador"
@@ -50,20 +50,20 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
             <span class="group-hover:text-ink-muted transition-colors">Músicos, bandas, salas, profesores…</span>
-            <span class="ml-auto text-[10px] font-semibold text-primary-500 group-hover:text-primary-600 transition-colors flex-shrink-0">Buscar →</span>
+            <span class="ml-auto text-micro font-semibold text-primary-500 group-hover:text-primary-600 transition-colors flex-shrink-0">Buscar →</span>
           </a>
           <!-- Location + city chips -->
           <div class="flex items-center gap-2 flex-wrap">
             @if (userCity()) {
-              <span class="text-[10px] text-primary-500/60 font-medium flex-shrink-0">En tu zona:</span>
+              <span class="text-micro text-primary-500/60 font-medium flex-shrink-0">En tu zona:</span>
               <a [routerLink]="['/search']" [queryParams]="{city: userCity()}"
-                 class="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 transition-colors"
+                 class="text-micro font-bold px-2.5 py-1 rounded-full flex-shrink-0 transition-colors"
                  style="background: rgba(160,68,42,0.25); border: 1px solid rgba(160,68,42,0.4); color: #f4a47a">
                 <svg aria-hidden="true" class="w-2.5 h-2.5 inline mr-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
                 {{ userCity() }}
               </a>
             }
-            <a routerLink="/search" class="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 text-ink-muted border border-dark-600 hover:border-primary-500/40 hover:text-ink transition-colors" style="background: rgba(255,255,255,0.04)">
+            <a routerLink="/search" class="text-micro font-bold px-2.5 py-1 rounded-full flex-shrink-0 text-ink-muted border border-dark-600 hover:border-primary-500/40 hover:text-ink transition-colors" style="background: rgba(255,255,255,0.04)">
               Toda España
             </a>
           </div>
@@ -77,42 +77,42 @@
           <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
             <app-icon name="music" [size]="16"/>
           </span>
-          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Músicos</span>
+          <span class="text-micro font-bold text-ink-muted group-hover:text-ink transition-colors">Músicos</span>
         </a>
         <a routerLink="/search" [queryParams]="userCity() ? {tab:'bands', city: userCity()} : {tab:'bands'}"
            class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
           <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
             <app-icon name="mic" [size]="16"/>
           </span>
-          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Bandas</span>
+          <span class="text-micro font-bold text-ink-muted group-hover:text-ink transition-colors">Bandas</span>
         </a>
         <a routerLink="/search" [queryParams]="userCity() ? {tab:'venues', city: userCity()} : {tab:'venues'}"
            class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
           <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
             <app-icon name="building" [size]="16"/>
           </span>
-          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Salas</span>
+          <span class="text-micro font-bold text-ink-muted group-hover:text-ink transition-colors">Salas</span>
         </a>
         <a routerLink="/search" [queryParams]="userCity() ? {tab:'teachers', city: userCity()} : {tab:'teachers'}"
            class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
           <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
             <app-icon name="book-open" [size]="16"/>
           </span>
-          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Clases</span>
+          <span class="text-micro font-bold text-ink-muted group-hover:text-ink transition-colors">Clases</span>
         </a>
         <a routerLink="/search" [queryParams]="userCity() ? {tab:'rehearsal', city: userCity()} : {tab:'rehearsal'}"
            class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
           <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
             <app-icon name="headphones" [size]="16"/>
           </span>
-          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Ensayo</span>
+          <span class="text-micro font-bold text-ink-muted group-hover:text-ink transition-colors">Ensayo</span>
         </a>
         <a routerLink="/shop"
            class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-dark-800 border border-dark-700 hover:border-primary-500/40 hover:bg-dark-750 transition-all group active:scale-95">
           <span class="w-9 h-9 rounded-xl bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
             <app-icon name="shopping-cart" [size]="16"/>
           </span>
-          <span class="text-[10px] font-bold text-ink-muted group-hover:text-ink transition-colors">Equipo</span>
+          <span class="text-micro font-bold text-ink-muted group-hover:text-ink transition-colors">Equipo</span>
         </a>
       </nav>
 
@@ -148,7 +148,7 @@
                  class="flex-shrink-0 w-56 card overflow-hidden group">
                 <div class="h-28 bg-gradient-to-br from-primary-700 to-primary-900 relative flex items-end p-3">
                   <div class="absolute top-2.5 right-2.5 w-10 rounded-xl bg-black/50 flex flex-col items-center justify-center py-1.5 text-white text-center">
-                    <span class="text-[8px] font-bold uppercase leading-none opacity-70">{{ event.date | date:'MMM' }}</span>
+                    <span class="text-micro font-bold uppercase leading-none opacity-70">{{ event.date | date:'MMM' }}</span>
                     <span class="text-lg font-black leading-none">{{ event.date | date:'d' }}</span>
                   </div>
                 </div>
@@ -205,14 +205,14 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1 flex-wrap">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-primary-500">{{ postInfo(post.type).label }}</span>
-                    @if (post.city) { <span class="text-[10px] text-ink-muted">· {{ post.city }}</span> }
+                    <span class="text-micro font-black uppercase tracking-wider text-primary-500">{{ postInfo(post.type).label }}</span>
+                    @if (post.city) { <span class="text-micro text-ink-muted">· {{ post.city }}</span> }
                   </div>
                   <p class="text-sm text-ink leading-snug line-clamp-2 group-hover/row:text-primary-500 transition-colors">{{ post.text }}</p>
                   <div class="flex items-center gap-2 mt-1">
-                    <span class="text-[10px] text-ink-muted">{{ post.author_name }}</span>
-                    <span class="text-[10px] text-ink-muted/50">·</span>
-                    <span class="text-[10px] text-ink-muted">{{ timeAgo(post.created_at) }}</span>
+                    <span class="text-micro text-ink-muted">{{ post.author_name }}</span>
+                    <span class="text-micro text-ink-muted/50">·</span>
+                    <span class="text-micro text-ink-muted">{{ timeAgo(post.created_at) }}</span>
                   </div>
                 </div>
               </a>
@@ -275,7 +275,7 @@
                 </div>
                 <div class="p-2.5">
                   <p class="text-xs font-semibold text-ink truncate leading-tight">{{ item.title }}</p>
-                  <p class="text-[10px] text-ink-muted mt-0.5 truncate">{{ item.condition || item.category }}</p>
+                  <p class="text-micro text-ink-muted mt-0.5 truncate">{{ item.condition || item.category }}</p>
                 </div>
               </a>
             } @empty {
@@ -305,7 +305,7 @@
             </span>
             <h2 class="text-sm font-black text-ink tracking-tight">Músicos</h2>
             @if (userCity()) {
-              <span class="text-[10px] text-ink-muted bg-dark-700 border border-dark-600 px-1.5 py-0.5 rounded-md">{{ userCity() }}</span>
+              <span class="text-micro text-ink-muted bg-dark-700 border border-dark-600 px-1.5 py-0.5 rounded-md">{{ userCity() }}</span>
             }
           </div>
           <a routerLink="/search" [queryParams]="userCity() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}" class="text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors">Ver todos →</a>
@@ -337,9 +337,9 @@
                   </div>
                 </div>
                 <p class="text-xs font-bold text-ink truncate leading-tight">{{ m.name }}</p>
-                @if (m.instrument) { <p class="text-[10px] text-primary-500 truncate mt-1">{{ m.instrument }}</p> }
-                @if (m.city) { <p class="text-[10px] text-ink-muted truncate mt-0.5">{{ m.city }}</p> }
-                <span class="mt-2 text-[9px] font-bold text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity block">Ver perfil →</span>
+                @if (m.instrument) { <p class="text-micro text-primary-500 truncate mt-1">{{ m.instrument }}</p> }
+                @if (m.city) { <p class="text-micro text-ink-muted truncate mt-0.5">{{ m.city }}</p> }
+                <span class="mt-2 text-micro font-bold text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity block">Ver perfil →</span>
               </a>
             }
           </div>
@@ -364,7 +364,7 @@
             </span>
             <h2 class="text-sm font-black text-ink tracking-tight">Bandas</h2>
             @if (userCity()) {
-              <span class="text-[10px] text-ink-muted bg-dark-700 border border-dark-600 px-1.5 py-0.5 rounded-md">{{ userCity() }}</span>
+              <span class="text-micro text-ink-muted bg-dark-700 border border-dark-600 px-1.5 py-0.5 rounded-md">{{ userCity() }}</span>
             }
           </div>
           <a routerLink="/search" [queryParams]="userCity() ? {tab:'bands', city: userCity()} : {tab:'bands'}" class="text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors">Ver todas →</a>
@@ -397,12 +397,12 @@
                   }
                 </div>
                 <p class="text-xs font-bold text-ink truncate leading-tight">{{ band.name }}</p>
-                @if (band.genre) { <p class="text-[10px] text-primary-500 truncate mt-1">{{ band.genre }}</p> }
-                @if (band.city) { <p class="text-[10px] text-ink-muted truncate mt-0.5">{{ band.city }}</p> }
+                @if (band.genre) { <p class="text-micro text-primary-500 truncate mt-1">{{ band.genre }}</p> }
+                @if (band.city) { <p class="text-micro text-ink-muted truncate mt-0.5">{{ band.city }}</p> }
                 @if (band.looking_for) {
-                  <span class="mt-2 inline-block text-[9px] font-bold text-signal-green">Busca miembros</span>
+                  <span class="mt-2 inline-block text-micro font-bold text-signal-green">Busca miembros</span>
                 } @else {
-                  <span class="mt-2 text-[9px] font-bold text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity block">Ver banda →</span>
+                  <span class="mt-2 text-micro font-bold text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity block">Ver banda →</span>
                 }
               </a>
             }
@@ -428,7 +428,7 @@
             <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-[10px] font-black uppercase tracking-widest text-primary-500 mb-1">Bandyou Pro</p>
+            <p class="text-micro font-black uppercase tracking-widest text-primary-500 mb-1">Bandyou Pro</p>
             <h3 class="text-base font-black text-white mb-1 leading-tight">Destaca tu perfil o evento</h3>
             <p class="text-xs leading-relaxed mb-3" style="color:rgba(255,255,255,0.45)">Llega a más músicos. Aparece primero en búsquedas y en el inicio de todos los usuarios de tu ciudad.</p>
             <div class="flex gap-2 flex-wrap items-center">
@@ -455,7 +455,7 @@
             </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Ensayo</p>
           </div>
-          <a routerLink="/search" [queryParams]="userCity() ? {tab:'rehearsal', city: userCity()} : {tab:'rehearsal'}" class="text-[10px] font-semibold text-primary-500 hover:text-primary-600 transition-colors">Ver todos →</a>
+          <a routerLink="/search" [queryParams]="userCity() ? {tab:'rehearsal', city: userCity()} : {tab:'rehearsal'}" class="text-micro font-semibold text-primary-500 hover:text-primary-600 transition-colors">Ver todos →</a>
         </div>
         @if (loading()) {
           <div class="flex flex-col gap-2">
@@ -478,9 +478,9 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ r.name }}</p>
-                  <p class="text-[10px] text-ink-muted truncate">{{ r.city }}@if (r.capacity) { · {{ r.capacity }} pers. }</p>
+                  <p class="text-micro text-ink-muted truncate">{{ r.city }}@if (r.capacity) { · {{ r.capacity }} pers. }</p>
                 </div>
-                @if (r.hourly_rate) { <span class="tag flex-shrink-0 text-[10px]">{{ r.hourly_rate }}€/h</span> }
+                @if (r.hourly_rate) { <span class="tag flex-shrink-0 text-micro">{{ r.hourly_rate }}€/h</span> }
               </a>
             }
           </div>
@@ -498,7 +498,7 @@
             </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Clases</p>
           </div>
-          <a routerLink="/search" [queryParams]="userCity() ? {tab:'teachers', city: userCity()} : {tab:'teachers'}" class="text-[10px] font-semibold text-primary-500 hover:text-primary-600 transition-colors">Ver todos →</a>
+          <a routerLink="/search" [queryParams]="userCity() ? {tab:'teachers', city: userCity()} : {tab:'teachers'}" class="text-micro font-semibold text-primary-500 hover:text-primary-600 transition-colors">Ver todos →</a>
         </div>
         @if (loading()) {
           <div class="flex flex-col gap-2">
@@ -521,9 +521,9 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ t.name }}</p>
-                  <p class="text-[10px] text-ink-muted truncate">{{ t.instrument }}@if (t.city) { · {{ t.city }} }</p>
+                  <p class="text-micro text-ink-muted truncate">{{ t.instrument }}@if (t.city) { · {{ t.city }} }</p>
                 </div>
-                @if (t.hourly_rate) { <span class="tag-accent flex-shrink-0 text-[10px]">{{ t.hourly_rate }}€/h</span> }
+                @if (t.hourly_rate) { <span class="tag-accent flex-shrink-0 text-micro">{{ t.hourly_rate }}€/h</span> }
               </a>
             }
           </div>
@@ -541,7 +541,7 @@
             </span>
             <p class="text-xs font-bold text-ink uppercase tracking-wide">Salas</p>
           </div>
-          <a routerLink="/search" [queryParams]="userCity() ? {tab:'venues', city: userCity()} : {tab:'venues'}" class="text-[10px] font-semibold text-primary-500 hover:text-primary-600 transition-colors">Ver todas →</a>
+          <a routerLink="/search" [queryParams]="userCity() ? {tab:'venues', city: userCity()} : {tab:'venues'}" class="text-micro font-semibold text-primary-500 hover:text-primary-600 transition-colors">Ver todas →</a>
         </div>
         @if (loading()) {
           <div class="flex flex-col gap-2">
@@ -564,7 +564,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-[11px] font-semibold text-ink truncate group-hover:text-primary-500 transition-colors">{{ venue.name }}</p>
-                  <p class="text-[10px] text-ink-muted truncate">{{ venue.city }}@if (venue.capacity) { · {{ venue.capacity }} personas }</p>
+                  <p class="text-micro text-ink-muted truncate">{{ venue.city }}@if (venue.capacity) { · {{ venue.capacity }} personas }</p>
                 </div>
               </a>
             }

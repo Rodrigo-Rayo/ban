@@ -4,21 +4,21 @@ import { SeoService } from '../../../core/services/seo.service';
 import { LEGAL_INFO } from '../legal-info';
 
 @Component({
-  selector: 'app-terms',
+  selector: 'app-aviso-legal',
   standalone: true,
   imports: [RouterLink],
-  templateUrl: './terms.component.html',
+  templateUrl: './aviso-legal.component.html',
 })
-export class TermsComponent implements OnInit {
+export class AvisoLegalComponent implements OnInit {
   private seo = inject(SeoService);
 
   readonly info = LEGAL_INFO;
 
   ngOnInit() {
     this.seo.set({
-      title: 'Términos de Uso',
-      description: 'Términos y condiciones de uso de BandYou, la red musical de España.',
-      url: 'https://bandyou.es/legal/terminos',
+      title: 'Aviso Legal',
+      description: 'Aviso legal de BandYou: datos identificativos del titular conforme a la LSSI-CE.',
+      url: 'https://bandyou.es/legal/aviso-legal',
     });
   }
 }

@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -13,11 +13,15 @@ export class ResetPasswordComponent implements OnInit {
   private fb = inject(FormBuilder);
   private supabase = inject(SupabaseService);
   private router = inject(Router);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   loading = signal(false);
   error = signal('');
   success = signal(false);
   sessionReady = signal(false);
+  showPassword = signal(false);
+  /** Set when both fields are filled but do not match. */
+  mismatch = signal(false);
 
   form = this.fb.group({
     password: ['', [Validators.required, Validators.minLength(8)]],
@@ -33,16 +37,27 @@ export class ResetPasswordComponent implements OnInit {
     this.sessionReady.set(true);
   }
 
+  isInvalid(name: 'password' | 'confirm'): boolean {
+    const c = this.form.get(name);
+    return !!c && c.invalid && c.touched;
+  }
+
   async onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.host.nativeElement
+        .querySelector<HTMLElement>('input.ng-invalid, select.ng-invalid, textarea.ng-invalid')
+        ?.focus();
       return;
     }
     const { password, confirm } = this.form.value;
     if (password !== confirm) {
+      this.mismatch.set(true);
       this.error.set('Las contraseñas no coinciden');
+      this.host.nativeElement.querySelector<HTMLElement>('#rp-confirm')?.focus();
       return;
     }
+    this.mismatch.set(false);
     this.loading.set(true);
     this.error.set('');
     const { error } = await this.supabase.auth.updateUser({ password: password! });

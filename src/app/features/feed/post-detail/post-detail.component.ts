@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
@@ -10,7 +10,10 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Post, PostType } from '../../../core/models';
 import { avatarColor, timeAgo } from '../../../core/utils/display.utils';
 
+const POST_COLUMNS = 'id, user_id, type, text, city, instrument, genre, author_name, author_profile_type, author_profile_id, created_at';
+
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-post-detail',
   standalone: true,
   imports: [RouterLink, CommonModule, IconComponent],
@@ -50,7 +53,7 @@ export class PostDetailComponent implements OnInit {
       const id = this.route.snapshot.paramMap.get('id');
       const [{ data: { user } }, { data, error }] = await Promise.all([
         this.supabase.auth.getUser(),
-        this.supabase.client.from('posts').select('*').eq('id', id!).maybeSingle(),
+        this.supabase.client.from('posts').select(POST_COLUMNS).eq('id', id!).maybeSingle(),
       ]);
       this.currentUser.set(user);
       if (error) { this.toast.error('No se pudo cargar el anuncio.'); return; }

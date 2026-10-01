@@ -7,6 +7,15 @@ import { Notification as AppNotification } from '../../core/models';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Whitelist of entity types that link to a detail page (`<base>/<uuid>`). */
+const ENTITY_ROUTES: Readonly<Record<string, string>> = {
+  musician: '/musicians', band: '/bands', venue: '/venues',
+  event: '/events', teacher: '/teachers', rehearsal: '/rehearsal',
+  gear: '/shop', post: '/posts', conversation: '/inbox',
+};
+
 @Component({
   selector: 'app-notifications',
   standalone: true,
@@ -52,10 +61,12 @@ export class NotificationsComponent implements OnInit {
   async markAllRead() {
     const uid = this.userId();
     if (!uid) return;
+    const previous = this.notifications();
     this.notifications.update(ns => ns.map(n => ({ ...n, read: true })));
     try {
       await this.notifSvc.markAllRead(uid);
     } catch {
+      this.notifications.set(previous); // roll back the optimistic update
       this.toast.error('No se pudo marcar como leído.');
     }
   }
@@ -86,18 +97,17 @@ export class NotificationsComponent implements OnInit {
   }
 
   getRoute(n: AppNotification): string[] | null {
+    const hasValidId = !!n.entity_id && UUID_RE.test(n.entity_id);
     if (n.type === 'message') {
-      return n.entity_type === 'conversation' && n.entity_id
-        ? ['/inbox', n.entity_id]
+      return n.entity_type === 'conversation' && hasValidId
+        ? ['/inbox', n.entity_id!]
         : ['/inbox'];
     }
-    if (!n.entity_type || !n.entity_id) return null;
-    const map: Record<string, string> = {
-      musician: '/musicians', band: '/bands', venue: '/venues',
-      event: '/events', teacher: '/teachers', rehearsal: '/rehearsal',
-    };
-    if (!map[n.entity_type]) return null;
-    return [map[n.entity_type], n.entity_id];
+    if (!n.entity_type || !hasValidId) return null;
+    const base = Object.prototype.hasOwnProperty.call(ENTITY_ROUTES, n.entity_type)
+      ? ENTITY_ROUTES[n.entity_type]
+      : null;
+    return base ? [base, n.entity_id!] : null;
   }
 
   async ngOnInit() {
@@ -107,11 +117,14 @@ export class NotificationsComponent implements OnInit {
       this.userId.set(session.user.id);
       const notifs = await this.notifSvc.getAll(session.user.id);
       this.notifications.set(notifs);
-      await this.notifSvc.markAllRead(session.user.id);
     } catch {
       this.toast.error('No se pudieron cargar las notificaciones. Recarga la página.');
+      return;
     } finally {
       this.loading.set(false);
     }
+    // Opening the page counts as "seen": clear the navbar badge. Items keep their
+    // unread styling for this visit. Failure is non-fatal (badge stays accurate).
+    await this.notifSvc.markAllRead(this.userId()!).catch(() => { /* badge keeps the real count */ });
   }
 }

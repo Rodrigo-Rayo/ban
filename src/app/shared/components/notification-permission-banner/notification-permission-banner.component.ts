@@ -17,7 +17,11 @@ const DISMISSED_KEY = 'notif-permission-dismissed';
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-bold text-ink leading-tight">Activa las notificaciones</p>
-            <p class="text-xs text-ink-muted mt-0.5 leading-snug">Recibe tus mensajes aunque tengas la app cerrada</p>
+            @if (error()) {
+              <p class="text-xs text-signal-red mt-0.5 leading-snug" role="alert">No se pudieron activar. Inténtalo de nuevo.</p>
+            } @else {
+              <p class="text-xs text-ink-muted mt-0.5 leading-snug">Recibe tus mensajes aunque tengas la app cerrada</p>
+            }
           </div>
           <div class="flex flex-col gap-1.5 flex-shrink-0">
             <button (click)="activate()"
@@ -42,11 +46,12 @@ export class NotificationPermissionBannerComponent implements OnInit {
 
   show = signal(false);
   loading = signal(false);
+  error = signal(false);
 
   ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
     if (!('Notification' in window)) return;
-    if (localStorage.getItem(DISMISSED_KEY)) return;
+    try { if (localStorage.getItem(DISMISSED_KEY)) return; } catch { return; }
     if (Notification.permission !== 'default') return;
     if (!this.push.isSupported) return;
 
@@ -60,21 +65,28 @@ export class NotificationPermissionBannerComponent implements OnInit {
 
   async activate() {
     this.loading.set(true);
+    this.error.set(false);
     const userId = this.auth.user()?.id;
     if (!userId) { this.loading.set(false); return; }
 
-    const granted = await this.push.requestAndSubscribe(userId);
+    const result = await this.push.requestAndSubscribe(userId);
     this.loading.set(false);
-    this.show.set(false);
 
-    if (!granted) {
+    if (result === 'error') {
+      // Permission may be granted but saving the subscription failed — keep the
+      // banner so the user can retry (app.component also retries on next login).
+      this.error.set(true);
+      return;
+    }
+    this.show.set(false);
+    if (result === 'denied') {
       // Permission denied — don't ask again
-      localStorage.setItem(DISMISSED_KEY, '1');
+      try { localStorage.setItem(DISMISSED_KEY, '1'); } catch { /* storage unavailable */ }
     }
   }
 
   dismiss() {
     this.show.set(false);
-    localStorage.setItem(DISMISSED_KEY, Date.now().toString());
+    try { localStorage.setItem(DISMISSED_KEY, Date.now().toString()); } catch { /* storage unavailable */ }
   }
 }

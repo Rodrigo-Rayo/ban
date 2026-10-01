@@ -6,7 +6,7 @@ import { isPlatformBrowser } from '@angular/common';
   standalone: true,
   template: `
     @if (show()) {
-      <div class="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2 md:hidden animate-in slide-in-from-bottom-4 duration-300">
+      <div class="fixed bottom-above-nav left-0 right-0 z-40 px-4 pb-2 md:hidden animate-slide-in">
         <div class="bg-dark-800 border border-primary-500/20 rounded-2xl p-4 flex items-center gap-3 shadow-2xl shadow-black/30">
           <div class="w-11 h-11 rounded-xl bg-primary-900 border border-primary-500/30 flex items-center justify-center flex-shrink-0 text-xl">
             🎵
@@ -16,13 +16,13 @@ import { isPlatformBrowser } from '@angular/common';
             <p class="text-xs text-ink-muted mt-0.5">Recibe notificaciones de mensajes aunque tengas la app cerrada</p>
           </div>
           <button (click)="install()"
-            class="flex-shrink-0 px-3 py-2 bg-primary-500 hover:bg-primary-400 text-white text-xs font-bold rounded-xl transition-colors">
+            class="btn-primary flex-shrink-0 px-4 text-xs min-h-[44px]">
             Instalar
           </button>
           <button (click)="dismiss()"
-            aria-label="Cerrar banner de instalación"
+            type="button" aria-label="Cerrar banner de instalación"
             class="flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-ink transition-colors rounded-lg">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>

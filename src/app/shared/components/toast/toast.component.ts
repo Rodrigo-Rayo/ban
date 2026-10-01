@@ -8,15 +8,14 @@ import { ToastService } from '../../../core/services/toast.service';
   imports: [CommonModule],
   template: `
     <div class="fixed bottom-24 lg:bottom-6 right-4 z-50 flex flex-col gap-2 pointer-events-none" style="max-width:340px"
-         aria-live="polite" aria-atomic="false">
+         role="status" aria-live="polite" aria-atomic="false" aria-relevant="additions">
       @for (toast of toastSvc.toasts(); track toast.id) {
         <div
           class="flex items-start gap-3 px-4 py-3 rounded-xl shadow-xl border text-sm font-medium pointer-events-auto animate-slide-up"
-          [class]="toastClasses[toast.type]"
-          [attr.role]="toast.type === 'error' ? 'alert' : 'status'">
+          [class]="toastClasses[toast.type]">
           <span class="text-base flex-shrink-0 mt-0.5" aria-hidden="true">{{ toastIcon[toast.type] }}</span>
-          <span class="flex-1 leading-snug">{{ toast.message }}</span>
-          <button (click)="toastSvc.dismiss(toast.id)"
+          <span class="flex-1 leading-snug">@if (toast.type === 'error') {<span class="sr-only">Error: </span>}{{ toast.message }}</span>
+          <button type="button" (click)="toastSvc.dismiss(toast.id)"
             class="flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity text-xs font-bold ml-1"
             aria-label="Cerrar notificación">✕</button>
         </div>

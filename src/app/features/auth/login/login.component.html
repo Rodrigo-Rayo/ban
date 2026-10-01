@@ -18,7 +18,7 @@
       </div>
 
       <!-- Google OAuth -->
-      <button (click)="loginWithGoogle()"
+      <button type="button" (click)="loginWithGoogle()"
         class="w-full flex items-center justify-center gap-3 bg-dark-800 border border-dark-600 hover:border-primary-500/50 hover:bg-dark-700 text-ink font-medium py-3 px-4 rounded-xl transition-all duration-200 mb-5 min-h-[48px]">
         <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -44,9 +44,11 @@
             Email
           </label>
           <input id="login-email" formControlName="email" type="email" placeholder="tu@email.com"
-            class="input-field" autocomplete="email"/>
-          @if (form.get('email')?.invalid && form.get('email')?.touched) {
-            <p class="text-xs text-signal-red mt-1.5">Introduce un email válido.</p>
+            class="input-field" autocomplete="email" required
+            [attr.aria-invalid]="isInvalid('email')"
+            [attr.aria-describedby]="isInvalid('email') ? 'login-email-error' : null"/>
+          @if (isInvalid('email')) {
+            <p id="login-email-error" class="text-xs text-signal-red mt-1.5">Introduce un email válido.</p>
           }
         </div>
 
@@ -55,10 +57,23 @@
           <label for="login-password" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">
             Contraseña
           </label>
-          <input id="login-password" formControlName="password" type="password" placeholder="••••••••"
-            class="input-field" autocomplete="current-password"/>
-          @if (form.get('password')?.invalid && form.get('password')?.touched) {
-            <p class="text-xs text-signal-red mt-1.5">La contraseña es obligatoria.</p>
+          <div class="relative">
+            <input id="login-password" formControlName="password" [type]="showPassword() ? 'text' : 'password'"
+              placeholder="••••••••" class="input-field pr-12" autocomplete="current-password" required
+              [attr.aria-invalid]="isInvalid('password')"
+              [attr.aria-describedby]="isInvalid('password') ? 'login-password-error' : null"/>
+            <button type="button" (click)="showPassword.set(!showPassword())"
+              [attr.aria-pressed]="showPassword()" aria-label="Mostrar contraseña" aria-controls="login-password"
+              class="absolute inset-y-0 right-0 flex items-center justify-center w-11 text-ink-muted hover:text-ink rounded-r-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+              @if (showPassword()) {
+                <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.58 10.58a2 2 0 002.83 2.83M9.88 5.09A9.77 9.77 0 0112 5c5 0 9 4.5 10 7a13.2 13.2 0 01-2.2 3.4M6.6 6.6C4.3 8 2.7 10.2 2 12c1 2.5 5 7 10 7 1.6 0 3.1-.4 4.4-1.1"/></svg>
+              } @else {
+                <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              }
+            </button>
+          </div>
+          @if (isInvalid('password')) {
+            <p id="login-password-error" class="text-xs text-signal-red mt-1.5">La contraseña es obligatoria.</p>
           }
         </div>
 
@@ -79,7 +94,7 @@
           </div>
         }
 
-        <button type="submit" [disabled]="loading() || form.invalid"
+        <button type="submit" [disabled]="loading()"
           class="btn-primary py-3.5 w-full mt-1 text-sm disabled:opacity-40 disabled:cursor-not-allowed min-h-[50px]">
           @if (loading()) {
             <svg aria-hidden="true" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

@@ -11,138 +11,187 @@
     <div class="mb-10">
       <p class="text-xs font-bold text-primary-500 uppercase tracking-widest mb-2">Legal</p>
       <h1 class="text-3xl font-black text-ink tracking-tight mb-3">Términos de Uso</h1>
-      <p class="text-sm text-ink-muted">Última actualización: {{ updated }}</p>
+      <p class="text-sm text-ink-muted">Última actualización: {{ info.updated }}</p>
     </div>
 
     <div class="prose-legal">
 
       <section>
-        <h2>1. Aceptación de los términos</h2>
+        <h2>1. Quiénes somos y aceptación</h2>
         <p>
-          Al crear una cuenta o usar BandYou (la "Plataforma"), aceptas estos Términos de Uso.
-          Si no los aceptas, no podrás usar la Plataforma. Estos términos constituyen un contrato
-          vinculante entre tú y <strong>BandYou S.L.</strong>
+          BandYou (la "Plataforma") es un servicio de <strong>{{ info.ownerName }}</strong> (NIF {{ info.nif }}),
+          cuyos datos completos figuran en el <a routerLink="/legal/aviso-legal">Aviso Legal</a>.
+          Al crear una cuenta aceptas expresamente estos Términos de Uso y declaras haber leído la
+          <a routerLink="/legal/privacidad">Política de Privacidad</a>. Si no estás de acuerdo, no crees una cuenta.
         </p>
       </section>
 
       <section>
         <h2>2. Descripción del servicio</h2>
         <p>
-          BandYou es una red social orientada a la comunidad musical española que permite a músicos,
-          bandas, locales de ensayo, profesores y salas de concierto crear perfiles públicos,
-          publicar anuncios, enviar mensajes directos, publicar eventos y comprar/vender equipamiento musical.
+          BandYou es una red para la comunidad musical en España que permite a músicos, bandas, salas, profesores y
+          locales de ensayo crear perfiles públicos, publicar en el tablón, anunciar eventos, vacantes y equipamiento
+          de segunda mano, dejar reseñas y enviarse mensajes privados.
         </p>
-        <p>El servicio se ofrece de forma gratuita. Nos reservamos el derecho de introducir funcionalidades
-          premium de pago en el futuro, notificándolo con antelación.</p>
-      </section>
-
-      <section>
-        <h2>3. Elegibilidad</h2>
         <p>
-          Para registrarte debes tener al menos <strong>16 años</strong> (edad mínima de consentimiento
-          digital en España conforme a la LOPDGDD). Si eres menor de 18 años, necesitas la autorización
-          de tu tutor legal.
+          El servicio es gratuito. Si en el futuro se ofrecen funciones de pago, se informará de su precio y
+          condiciones antes de contratarlas y nunca se cobrará sin tu aceptación expresa.
         </p>
       </section>
 
       <section>
-        <h2>4. Cuenta de usuario</h2>
+        <h2>3. Requisitos para registrarte</h2>
         <ul>
-          <li>Eres responsable de mantener la confidencialidad de tu contraseña.</li>
-          <li>Debes notificarnos inmediatamente cualquier acceso no autorizado a tu cuenta.</li>
-          <li>No puedes crear cuentas falsas ni suplantar a otras personas o entidades.</li>
-          <li>Cada persona puede tener una sola cuenta.</li>
+          <li>Debes tener al menos <strong>{{ info.minAge }} años</strong> (art. 7 LOPDGDD). Al registrarte confirmas que cumples esta edad.</li>
+          <li>Si eres menor de 18 años, no puedes comprar ni vender artículos ni contratar servicios a través de la Plataforma sin la autorización de tus padres o tutores, que serán responsables de dichas operaciones.</li>
+          <li>Los datos que facilites deben ser veraces. No puedes crear cuentas falsas ni suplantar a otras personas, bandas o entidades.</li>
+          <li>Eres responsable de custodiar tu contraseña y de la actividad realizada desde tu cuenta. Avísanos si detectas un acceso no autorizado.</li>
         </ul>
       </section>
 
       <section>
-        <h2>5. Contenido del usuario</h2>
+        <h2>4. Tu contenido</h2>
         <p>
-          Al publicar contenido (textos, imágenes, anuncios, mensajes) en la Plataforma,
-          nos otorgas una licencia no exclusiva, mundial y libre de regalías para mostrar
-          y distribuir dicho contenido únicamente dentro de la Plataforma.
-          Conservas todos los derechos de propiedad intelectual sobre tu contenido.
+          Eres el único responsable de los textos, imágenes, enlaces, anuncios, reseñas y mensajes que publicas, y
+          garantizas que tienes los derechos necesarios sobre ellos. Conservas la propiedad intelectual de tu
+          contenido y nos concedes una licencia gratuita, no exclusiva y limitada a la duración de su publicación
+          para alojarlo, reproducirlo y mostrarlo en la Plataforma (incluidas las vistas previas en buscadores y
+          redes sociales) con el único fin de prestar el servicio. La licencia termina cuando borras el contenido
+          o tu cuenta.
         </p>
-        <p><strong>Está prohibido publicar:</strong></p>
+      </section>
+
+      <section>
+        <h2>5. Contenido y conductas prohibidos</h2>
+        <p>No está permitido publicar, enviar ni anunciar:</p>
         <ul>
-          <li>Contenido ilegal, difamatorio, obsceno o que incite al odio.</li>
-          <li>Spam, publicidad no autorizada o cadenas de mensajes.</li>
-          <li>Información personal de terceros sin su consentimiento.</li>
-          <li>Contenido que infrinja derechos de propiedad intelectual ajenos.</li>
-          <li>Malware, phishing o cualquier contenido malicioso.</li>
+          <li>Contenido ilegal, difamatorio, violento, pornográfico o que incite al odio o a la discriminación.</li>
+          <li>Acoso, amenazas o intimidación a otros usuarios.</li>
+          <li>Datos personales de terceros sin su consentimiento.</li>
+          <li>Contenido que infrinja derechos de autor, marcas u otros derechos (por ejemplo, música o fotos ajenas sin permiso).</li>
+          <li>Spam, publicidad no solicitada, esquemas piramidales o estafas.</li>
+          <li>Malware, phishing o enlaces maliciosos.</li>
+          <li>En la tienda: artículos robados, falsificados, peligrosos o cuya venta esté prohibida, armas, y cualquier artículo que no sea equipamiento musical o relacionado.</li>
         </ul>
+        <p>
+          Tampoco puedes intentar acceder a partes no autorizadas del sistema, extraer datos de forma masiva
+          (scraping), automatizar cuentas ni perjudicar el funcionamiento del servicio.
+        </p>
       </section>
 
       <section>
-        <h2>6. Conducta en la Plataforma</h2>
-        <p>Te comprometes a:</p>
+        <h2>6. Compraventa de equipamiento entre usuarios</h2>
         <ul>
-          <li>Usar la Plataforma de forma lícita y respetuosa.</li>
-          <li>No acosar, intimidar ni discriminar a otros usuarios.</li>
-          <li>No intentar acceder a partes no autorizadas del sistema.</li>
-          <li>No realizar scraping masivo ni atacar la disponibilidad del servicio.</li>
+          <li>La sección de tienda es un <strong>tablón de anuncios</strong>. BandYou <strong>no es parte</strong> en las compraventas, no es propietario de los artículos, no los inspecciona, no gestiona pagos ni envíos y no actúa como intermediario ni garante.</li>
+          <li>El contrato se celebra exclusivamente entre comprador y vendedor, que son los únicos responsables de su cumplimiento, del estado y la legalidad del artículo, del pago y de la entrega.</li>
+          <li>Las compraventas entre particulares se rigen por el Código Civil y <strong>no están cubiertas por la normativa de protección de consumidores</strong> (por ejemplo, no existe un derecho legal de desistimiento de 14 días ni la garantía legal de los vendedores profesionales).</li>
+          <li><strong>Vendedores profesionales:</strong> si vendes artículos u ofreces servicios (clases, salas, locales de ensayo) como empresa o autónomo, debes identificarte como profesional en tu anuncio o perfil y cumplir la normativa de consumo, comercio electrónico y fiscal que te resulte aplicable, incluida la información sobre desistimiento y garantías.</li>
+          <li>Te recomendamos ver el artículo en persona antes de pagar, desconfiar de precios anormalmente bajos o de peticiones de pago por adelantado a desconocidos, y no compartir datos bancarios por mensaje.</li>
         </ul>
+        <p>
+          Las reservas de locales de ensayo, las clases y la contratación de bandas o salas también se acuerdan
+          directamente entre los usuarios implicados, sin que BandYou sea parte de esos acuerdos.
+        </p>
       </section>
 
-      <section>
-        <h2>7. Compraventa de equipamiento</h2>
+      <section id="denuncias">
+        <h2>7. Notificación de contenido ilegal y moderación</h2>
         <p>
-          La sección de tienda actúa únicamente como tablón de anuncios entre usuarios.
-          BandYou <strong>no es parte</strong> en las transacciones económicas entre usuarios,
-          no garantiza la calidad de los artículos ni gestiona pagos. Cualquier disputa
-          entre comprador y vendedor debe resolverse entre las partes.
+          Si encuentras contenido que consideras ilegal o contrario a estos Términos, notifícalo escribiendo a
+          <a [href]="'mailto:' + info.legalEmail">{{ info.legalEmail }}</a>, punto de contacto conforme al Reglamento
+          (UE) 2022/2065 de Servicios Digitales. Para que podamos tramitar tu aviso, indica:
+        </p>
+        <ul>
+          <li>La dirección web (URL) exacta del contenido o, si es un mensaje, el perfil que lo envió.</li>
+          <li>Una explicación de por qué crees que es ilegal o incumple estos Términos.</li>
+          <li>Tu nombre y email (salvo en avisos sobre abuso sexual de menores, que pueden ser anónimos).</li>
+          <li>Una declaración de que la información de tu aviso es exacta y completa, según tu leal saber y entender.</li>
+        </ul>
+        <p>
+          Revisaremos cada aviso de forma diligente, objetiva y no arbitraria, confirmaremos su recepción e
+          informaremos de la decisión adoptada. Si retiramos o restringimos contenido, o suspendemos una cuenta,
+          comunicaremos al usuario afectado los motivos de la decisión y cómo recurrirla, salvo que la ley lo impida.
+          Puedes recurrir cualquier decisión de moderación escribiendo al mismo email en un plazo de 6 meses.
+          Si detectamos indicios de un delito que amenace la vida o la seguridad de las personas, lo comunicaremos
+          a las autoridades competentes.
+        </p>
+        <p>
+          No supervisamos de forma general los contenidos antes de su publicación ni empleamos sistemas
+          automatizados de moderación. Los contenidos se revisan manualmente tras un aviso o cuando detectamos un
+          posible incumplimiento.
         </p>
       </section>
 
       <section>
-        <h2>8. Propiedad intelectual de BandYou</h2>
+        <h2>8. Suspensión y baja</h2>
         <p>
-          El diseño, código, marca y logotipos de BandYou son propiedad exclusiva de BandYou S.L.
-          Queda prohibida su reproducción, distribución o uso comercial sin autorización expresa por escrito.
+          Podemos retirar contenidos, limitar funciones o suspender o cerrar cuentas que incumplan estos Términos o
+          la ley, de forma proporcionada a la gravedad del incumplimiento y, salvo en casos graves o urgentes,
+          avisando previamente. Podemos suspender temporalmente a quien publique de forma reiterada contenido
+          manifiestamente ilegal o envíe avisos manifiestamente infundados.
+        </p>
+        <p>
+          Puedes darte de baja cuando quieras desde tu panel, opción <strong>"Eliminar mi cuenta"</strong>. La
+          eliminación es inmediata e irreversible y borra tus datos en los términos descritos en la
+          <a routerLink="/legal/privacidad">Política de Privacidad</a>.
         </p>
       </section>
 
       <section>
-        <h2>9. Suspensión y eliminación de cuentas</h2>
+        <h2>9. Propiedad intelectual de BandYou</h2>
         <p>
-          Nos reservamos el derecho de suspender o eliminar cuentas que incumplan estos Términos,
-          sin previo aviso en casos graves. Puedes eliminar tu cuenta en cualquier momento
-          desde la configuración del perfil o contactando con nosotros.
+          El diseño, el código, la marca y los logotipos de BandYou pertenecen a su titular o a sus licenciantes.
+          No puedes reproducirlos, distribuirlos ni usarlos comercialmente sin autorización expresa por escrito.
         </p>
       </section>
 
       <section>
-        <h2>10. Limitación de responsabilidad</h2>
+        <h2>10. Responsabilidad</h2>
         <p>
-          BandYou se proporciona "tal cual". No garantizamos disponibilidad ininterrumpida ni
-          ausencia de errores. En la máxima medida permitida por la ley española, no seremos
-          responsables de daños indirectos, pérdida de beneficios o datos derivados del uso
-          o imposibilidad de uso de la Plataforma.
+          Nos esforzamos por mantener la Plataforma disponible y segura, pero no podemos garantizar que funcione
+          sin interrupciones ni errores. BandYou no responde de los contenidos publicados por los usuarios, de los
+          acuerdos o compraventas que celebren entre ellos ni de los daños derivados de ellos, salvo que, teniendo
+          conocimiento efectivo de su ilicitud, no hayamos actuado con diligencia para retirarlos.
+        </p>
+        <p>
+          Nada en estos Términos limita la responsabilidad que no pueda limitarse conforme a la ley, en particular
+          la derivada de dolo o culpa grave, ni los derechos que te reconoce la normativa de consumidores y usuarios.
         </p>
       </section>
 
       <section>
-        <h2>11. Legislación aplicable y jurisdicción</h2>
+        <h2>11. Cambios en los Términos</h2>
         <p>
-          Estos Términos se rigen por la legislación española. Para cualquier controversia,
-          las partes se someten a los Juzgados y Tribunales de Madrid, sin perjuicio de los
-          fueros imperativos de protección al consumidor aplicables.
+          Si modificamos estos Términos de forma relevante te avisaremos con al menos 15 días de antelación por
+          email o mediante un aviso en la Plataforma. Si no estás de acuerdo con los cambios, puedes eliminar tu
+          cuenta antes de que entren en vigor.
         </p>
       </section>
 
       <section>
-        <h2>12. Contacto</h2>
+        <h2>12. Legislación aplicable y jurisdicción</h2>
         <p>
-          Para cualquier consulta sobre estos Términos: <a href="mailto:legal@bandyou.es">legal&#64;bandyou.es</a>
+          Estos Términos se rigen por la legislación española. Si eres consumidor, serán competentes los juzgados y
+          tribunales de tu domicilio. En los demás casos, las partes se someten a los juzgados y tribunales del
+          domicilio del titular de la Plataforma. Antes de acudir a los tribunales puedes escribirnos para intentar
+          resolver la cuestión de forma amistosa.
+        </p>
+      </section>
+
+      <section>
+        <h2>13. Contacto</h2>
+        <p>
+          Para cualquier consulta sobre estos Términos: <a [href]="'mailto:' + info.legalEmail">{{ info.legalEmail }}</a>
         </p>
       </section>
 
     </div>
 
     <div class="mt-12 pt-8 border-t border-dark-600 flex flex-wrap gap-4">
+      <a routerLink="/legal/aviso-legal" class="text-sm text-primary-500 hover:underline font-medium">Aviso legal</a>
       <a routerLink="/legal/privacidad" class="text-sm text-primary-500 hover:underline font-medium">Política de Privacidad</a>
       <a routerLink="/legal/cookies" class="text-sm text-primary-500 hover:underline font-medium">Política de Cookies</a>
-      <a href="mailto:legal@bandyou.es" class="text-sm text-ink-muted hover:text-ink transition-colors">legal&#64;bandyou.es</a>
+      <a [href]="'mailto:' + info.legalEmail" class="text-sm text-ink-muted hover:text-ink transition-colors">{{ info.legalEmail }}</a>
     </div>
 
   </div>

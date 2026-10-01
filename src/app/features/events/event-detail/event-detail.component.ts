@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -7,7 +7,10 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 
+const EVENT_COLUMNS = 'id, user_id, title, venue, city, date, time, genre, price, description, contact_email, ticket_url';
+
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-event-detail',
   standalone: true,
   imports: [RouterLink, CommonModule, DatePipe, IconComponent],
@@ -51,7 +54,7 @@ export class EventDetailComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     try {
       const [{ data }, { data: { session } }] = await Promise.all([
-        this.supabase.client.from('events').select('*').eq('id', id!).maybeSingle(),
+        this.supabase.client.from('events').select(EVENT_COLUMNS).eq('id', id!).maybeSingle(),
         this.supabase.auth.getSession(),
       ]);
       this.event.set(data);
@@ -69,10 +72,9 @@ export class EventDetailComponent implements OnInit {
           url: `https://bandyou.es/events/${data.id}`,
           location: {
             '@type': 'Place',
-            name: data.venue_name || data.venue || data.city || 'España',
+            name: data.venue || data.city || 'España',
             address: { '@type': 'PostalAddress', addressLocality: data.city || '', addressCountry: 'ES' },
           },
-          ...(data.organizer ? { organizer: { '@type': 'Organization', name: data.organizer } } : {}),
         });
       } else {
         this.seo.setNotFound();

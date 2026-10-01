@@ -14,6 +14,12 @@ test.describe('Legal pages', () => {
     await expect(page.getByText(/elegibilidad|cuenta/i).first()).toBeVisible();
   });
 
+  test('aviso legal renders with LSSI identification block', async ({ page }) => {
+    await page.goto('/legal/aviso-legal');
+    await expect(page.getByRole('heading', { level: 1, name: /aviso legal/i })).toBeVisible();
+    await expect(page.getByText(/NIF/).first()).toBeVisible();
+  });
+
   test('cookies policy renders', async ({ page }) => {
     await page.goto('/legal/cookies');
     await expect(page.getByRole('heading', { level: 1, name: /cookies/i })).toBeVisible();
@@ -38,12 +44,12 @@ test.describe('Cookie banner', () => {
     await expect(page.getByText(/cookies esenciales/i)).toBeVisible({ timeout: 5000 });
   });
 
-  test('hides banner after accepting', async ({ page }) => {
+  test('hides banner after dismissing (informational notice, no accept/reject)', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => localStorage.removeItem('bandyou_cookie_consent'));
     await page.reload();
-    const acceptBtn = page.getByRole('button', { name: /aceptar/i });
-    await acceptBtn.click();
+    await expect(page.getByRole('button', { name: /rechazar/i })).toHaveCount(0);
+    await page.getByRole('button', { name: /entendido/i }).click();
     await expect(page.getByText(/cookies esenciales/i)).not.toBeVisible();
   });
 });

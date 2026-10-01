@@ -8,6 +8,7 @@ import { Notification as AppNotification } from '../../core/models';
 
 const NOW = new Date();
 const TODAY_ISO = NOW.toISOString();
+const UUID_A = '11111111-2222-4333-8444-555555555555';
 
 function makeNotif(overrides: Partial<AppNotification> = {}): AppNotification {
   return {
@@ -118,6 +119,14 @@ describe('NotificationsComponent', () => {
       expect(notifSvcSpy.markAllRead).toHaveBeenCalledWith('u1');
     });
 
+    it('restores unread state when markAllRead throws', async () => {
+      component.userId.set('u1');
+      component.notifications.set([makeNotif({ read: false })]);
+      notifSvcSpy.markAllRead.and.callFake(async () => { throw new Error('fail'); });
+      await component.markAllRead();
+      expect(component.notifications()[0].read).toBeFalse();
+    });
+
     it('shows error toast when markAllRead throws', async () => {
       component.userId.set('u1');
       component.notifications.set([makeNotif()]);
@@ -171,8 +180,8 @@ describe('NotificationsComponent', () => {
 
   describe('getRoute()', () => {
     it('returns inbox with entity_id for message+conversation', () => {
-      const n = makeNotif({ type: 'message', entity_type: 'conversation', entity_id: 'c1' });
-      expect(component.getRoute(n)).toEqual(['/inbox', 'c1']);
+      const n = makeNotif({ type: 'message', entity_type: 'conversation', entity_id: UUID_A });
+      expect(component.getRoute(n)).toEqual(['/inbox', UUID_A]);
     });
 
     it('returns /inbox when message has no entity', () => {
@@ -181,8 +190,23 @@ describe('NotificationsComponent', () => {
     });
 
     it('returns correct route for musician entity', () => {
-      const n = makeNotif({ type: 'review', entity_type: 'musician', entity_id: 'm1' });
-      expect(component.getRoute(n)).toEqual(['/musicians', 'm1']);
+      const n = makeNotif({ type: 'review', entity_type: 'musician', entity_id: UUID_A });
+      expect(component.getRoute(n)).toEqual(['/musicians', UUID_A]);
+    });
+
+    it('returns null when entity_id is not a UUID', () => {
+      const n = makeNotif({ type: 'review', entity_type: 'musician', entity_id: '../admin' });
+      expect(component.getRoute(n)).toBeNull();
+    });
+
+    it('falls back to /inbox for a message with a malformed conversation id', () => {
+      const n = makeNotif({ type: 'message', entity_type: 'conversation', entity_id: 'x/y' });
+      expect(component.getRoute(n)).toEqual(['/inbox']);
+    });
+
+    it('does not resolve inherited object keys as entity types', () => {
+      const n = makeNotif({ type: 'system', entity_type: 'constructor', entity_id: UUID_A });
+      expect(component.getRoute(n)).toBeNull();
     });
 
     it('returns null when entity_type is unknown', () => {
@@ -225,6 +249,14 @@ describe('NotificationsComponent', () => {
       notifSvcSpy.getAll.and.returnValue(Promise.resolve([makeNotif()]));
       await component.ngOnInit();
       expect(notifSvcSpy.markAllRead).toHaveBeenCalledWith('u1');
+    });
+
+    it('does not show a load error when only markAllRead fails', async () => {
+      notifSvcSpy.getAll.and.returnValue(Promise.resolve([makeNotif()]));
+      notifSvcSpy.markAllRead.and.callFake(async () => { throw new Error('fail'); });
+      await component.ngOnInit();
+      expect(toastSpy.error).not.toHaveBeenCalled();
+      expect(component.notifications().length).toBe(1);
     });
   });
 });

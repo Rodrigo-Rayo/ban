@@ -42,8 +42,8 @@ export class SupabaseService {
     return this.supabase.auth.signInWithPassword({ email, password });
   }
 
-  signUpWithEmail(email: string, password: string) {
-    return this.supabase.auth.signUp({ email, password });
+  signUpWithEmail(email: string, password: string, metadata?: Record<string, unknown>) {
+    return this.supabase.auth.signUp({ email, password, options: metadata ? { data: metadata } : undefined });
   }
 
   signInWithGoogle() {

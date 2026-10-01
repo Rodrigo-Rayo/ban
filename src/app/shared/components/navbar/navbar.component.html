@@ -208,6 +208,12 @@
         <a routerLink="/auth/login" (click)="menuOpen=false" class="btn-secondary text-sm text-center py-3">Entrar</a>
         <a routerLink="/auth/register" (click)="menuOpen=false" class="btn-accent text-sm text-center py-3">Únete gratis</a>
       }
+      <div class="flex flex-wrap gap-x-4 gap-y-1 px-3 pt-3 mt-1 border-t border-dark-600 text-micro text-ink-muted">
+        <a routerLink="/legal/aviso-legal" (click)="menuOpen=false" class="hover:text-ink py-1">Aviso legal</a>
+        <a routerLink="/legal/privacidad" (click)="menuOpen=false" class="hover:text-ink py-1">Privacidad</a>
+        <a routerLink="/legal/terminos" (click)="menuOpen=false" class="hover:text-ink py-1">Términos</a>
+        <a routerLink="/legal/cookies" (click)="menuOpen=false" class="hover:text-ink py-1">Cookies</a>
+      </div>
     </div>
   }
 </nav>
@@ -264,18 +270,32 @@
   </nav>
 }
 
-<!-- Toast mensaje nuevo -->
-@if (toast()) {
-  <button (click)="goToChat()"
-       type="button"
-       [attr.aria-label]="'Nuevo mensaje de ' + toast()!.name + ': ' + toast()!.preview"
-       class="fixed bottom-20 md:bottom-6 right-4 z-50 flex items-center gap-3 bg-dark-800 border border-primary-500/30 shadow-2xl px-4 py-3 rounded-2xl cursor-pointer hover:bg-dark-700 transition-colors animate-slide-in max-w-xs text-left">
-    <div class="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-      {{ toast()!.name.slice(0,2).toUpperCase() }}
+<!-- Toast mensaje nuevo — the live region is always in the DOM so screen readers
+     announce content inserted into it; auto-dismiss pauses on hover/focus. -->
+<div class="fixed bottom-20 md:bottom-6 right-4 z-50 max-w-xs"
+     role="status" aria-live="polite" aria-atomic="true">
+  @if (toast(); as t) {
+    <div class="flex items-center gap-1 bg-dark-800 border border-primary-500/30 shadow-2xl rounded-2xl animate-slide-in"
+         (mouseenter)="holdToast(true)" (mouseleave)="holdToast(false)"
+         (focusin)="holdToast(true)" (focusout)="holdToast(false)"
+         (keydown.escape)="dismissToast()">
+      <button (click)="goToChat()"
+              type="button"
+              class="flex items-center gap-3 pl-4 pr-2 py-3 min-w-0 flex-1 rounded-2xl text-left cursor-pointer hover:bg-dark-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
+        <span class="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0" aria-hidden="true">
+          {{ t.name.slice(0,2).toUpperCase() }}
+        </span>
+        <span class="min-w-0 flex flex-col">
+          <span class="text-sm font-semibold text-ink truncate"><span class="sr-only">Nuevo mensaje de </span>{{ t.name }}</span>
+          <span class="text-xs text-ink-muted truncate">{{ t.preview }}</span>
+        </span>
+      </button>
+      <button (click)="dismissToast()"
+              type="button"
+              class="mr-2 p-2 min-w-[32px] min-h-[32px] flex items-center justify-center text-ink-muted hover:text-ink rounded-xl hover:bg-dark-700 transition-colors flex-shrink-0"
+              aria-label="Cerrar aviso de mensaje">
+        <span aria-hidden="true">✕</span>
+      </button>
     </div>
-    <div class="min-w-0">
-      <p class="text-sm font-semibold text-ink">{{ toast()!.name }}</p>
-      <p class="text-xs text-ink-muted truncate">{{ toast()!.preview }}</p>
-    </div>
-  </button>
-}
+  }
+</div>

@@ -2,7 +2,7 @@
 
   <!-- Header bar -->
   <div class="px-6 lg:px-10 py-4 border-b border-dark-600 bg-dark-800/80 backdrop-blur-sm flex items-center gap-4 sticky top-16 z-10">
-    <button (click)="goBack()" aria-label="Volver"
+    <button type="button" (click)="goBack()" aria-label="Volver"
       class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-ink hover:bg-dark-700 rounded-xl transition-colors">
       <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -40,18 +40,20 @@
           <div class="p-6 flex flex-col gap-5">
 
             <div>
-              <label for="venue-name" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Nombre de la sala *</label>
+              <label for="venue-name" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Nombre de la sala <span aria-hidden="true">*</span></label>
               <input id="venue-name" formControlName="name" type="text" placeholder="Ej: Sala Apolo"
-                autocomplete="organization" class="input-field"/>
+                autocomplete="organization" class="input-field" required
+                  [attr.aria-invalid]="isInvalid('name')"
+                  [attr.aria-describedby]="isInvalid('name') ? 'venue-name-error' : null"/>
               @if (form.get('name')?.invalid && form.get('name')?.touched) {
-                <p class="text-xs text-signal-red mt-1.5">Mínimo 2 caracteres.</p>
+                <p id="venue-name-error" class="text-xs text-signal-red mt-1.5">Mínimo 2 caracteres.</p>
               }
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="venue-city" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad *</label>
-                <select id="venue-city" formControlName="city" class="input-field">
+                <label for="venue-city" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Ciudad <span aria-hidden="true">*</span></label>
+                <select id="venue-city" formControlName="city" class="input-field" required>
                   @for (city of cities; track city) {
                     <option [value]="city">{{ city }}</option>
                   }
@@ -59,9 +61,11 @@
               </div>
               <div>
                 <label for="venue-capacity" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Aforo (personas)</label>
-                <input id="venue-capacity" formControlName="capacity" type="number" min="0" placeholder="200" class="input-field"/>
-                @if (form.get('capacity')?.errors?.['positiveNumber']) {
-                  <p class="text-xs text-signal-red mt-1.5">Aforo no válido.</p>
+                <input id="venue-capacity" formControlName="capacity" type="number" min="0" placeholder="200" class="input-field"
+                  [attr.aria-invalid]="isInvalid('capacity')"
+                  [attr.aria-describedby]="isInvalid('capacity') ? 'venue-capacity-error' : null"/>
+                @if (form.get('capacity')?.errors?.['positiveNumber'] && form.get('capacity')?.touched) {
+                  <p id="venue-capacity-error" class="text-xs text-signal-red mt-1.5">Aforo no válido.</p>
                 }
               </div>
             </div>
@@ -70,9 +74,11 @@
               <div>
                 <label for="venue-phone" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Teléfono</label>
                 <input id="venue-phone" formControlName="phone" type="tel" placeholder="+34 600 000 000"
-                  autocomplete="tel" class="input-field"/>
+                  autocomplete="tel" class="input-field"
+                  [attr.aria-invalid]="isInvalid('phone')"
+                  [attr.aria-describedby]="isInvalid('phone') ? 'venue-phone-error' : null"/>
                 @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
-                  <p class="text-xs text-signal-red mt-1.5">Teléfono no válido.</p>
+                  <p id="venue-phone-error" class="text-xs text-signal-red mt-1.5">Teléfono no válido.</p>
                 }
               </div>
               <div>
@@ -133,27 +139,31 @@
             <div>
               <label for="venue-instagram" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Instagram</label>
               <input id="venue-instagram" formControlName="instagram_url" type="url" placeholder="https://instagram.com/tusala"
-                autocomplete="url" class="input-field"/>
-              @if (form.get('instagram_url')?.errors?.['url']) {
-                <p class="text-xs text-signal-red mt-1.5">URL no válida.</p>
+                autocomplete="url" class="input-field"
+                  [attr.aria-invalid]="isInvalid('instagram_url')"
+                  [attr.aria-describedby]="isInvalid('instagram_url') ? 'venue-instagram-error' : null"/>
+              @if (form.get('instagram_url')?.errors?.['url'] && form.get('instagram_url')?.touched) {
+                <p id="venue-instagram-error" class="text-xs text-signal-red mt-1.5">URL no válida.</p>
               }
             </div>
             <div>
               <label for="venue-web" class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Web</label>
               <input id="venue-web" formControlName="website_url" type="url" placeholder="https://tuweb.com"
-                autocomplete="url" class="input-field"/>
-              @if (form.get('website_url')?.errors?.['url']) {
-                <p class="text-xs text-signal-red mt-1.5">URL no válida.</p>
+                autocomplete="url" class="input-field"
+                  [attr.aria-invalid]="isInvalid('website_url')"
+                  [attr.aria-describedby]="isInvalid('website_url') ? 'venue-web-error' : null"/>
+              @if (form.get('website_url')?.errors?.['url'] && form.get('website_url')?.touched) {
+                <p id="venue-web-error" class="text-xs text-signal-red mt-1.5">URL no válida.</p>
               }
             </div>
           </div>
         </div>
 
         @if (error()) {
-          <p role="alert" aria-live="assertive" class="text-sm text-signal-red text-center">{{ error() }}</p>
+          <p role="alert" class="text-sm text-signal-red text-center">{{ error() }}</p>
         }
 
-        <button type="submit" [disabled]="saving() || form.invalid || loadFailed()"
+        <button type="submit" [disabled]="saving() || loadFailed()"
           class="btn-primary min-h-[50px] w-full text-sm disabled:opacity-40 disabled:cursor-not-allowed">
           @if (saving()) {
             <svg aria-hidden="true" class="animate-spin w-4 h-4 inline mr-2" fill="none" viewBox="0 0 24 24">

@@ -102,7 +102,7 @@
     <!-- Filtros — solo cuando estamos en /search -->
     @if (isSearch) {
       <div class="border-t border-dark-600 mt-3 pt-3 flex flex-col gap-2">
-        <p class="text-[10px] font-semibold uppercase tracking-widest text-ink-muted px-1">Filtros</p>
+        <p class="text-micro font-semibold uppercase tracking-widest text-ink-muted px-1">Filtros</p>
 
         <!-- Búsqueda -->
         <div class="relative">
@@ -128,7 +128,7 @@
         <div class="flex flex-wrap gap-1 mt-0.5">
           @for (g of genres; track g) {
             <button (click)="filterGenre.set(filterGenre() === g ? '' : g); applyFilter()"
-              class="text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors"
+              class="text-micro font-medium px-2 py-0.5 rounded-full border transition-colors"
               [class.genre-pill-active]="filterGenre() === g"
               [class.genre-pill-inactive]="filterGenre() !== g"
               [attr.aria-pressed]="filterGenre() === g">
@@ -140,7 +140,7 @@
         <!-- Limpiar -->
         @if (hasFilter) {
           <button (click)="clearFilter()"
-            class="text-[10px] text-ink-muted hover:text-ink transition-colors flex items-center gap-1 px-1 mt-0.5">
+            class="text-micro text-ink-muted hover:text-ink transition-colors flex items-center gap-1 px-1 mt-0.5">
             <svg aria-hidden="true" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -232,7 +232,7 @@
           </div>
           <div>
             <div class="text-xs font-medium text-ink">Anuncio</div>
-            <div class="text-[10px] text-ink-muted">Busca banda, colabora…</div>
+            <div class="text-micro text-ink-muted">Busca banda, colabora…</div>
           </div>
         </a>
         <div class="border-t border-dark-600"></div>
@@ -242,7 +242,7 @@
           </div>
           <div>
             <div class="text-xs font-medium text-ink">Evento</div>
-            <div class="text-[10px] text-ink-muted">Concierto, jam session…</div>
+            <div class="text-micro text-ink-muted">Concierto, jam session…</div>
           </div>
         </a>
         <div class="border-t border-dark-600"></div>
@@ -252,11 +252,19 @@
           </div>
           <div>
             <div class="text-xs font-medium text-ink">Vender equipo</div>
-            <div class="text-[10px] text-ink-muted">Instrumentos, efectos…</div>
+            <div class="text-micro text-ink-muted">Instrumentos, efectos…</div>
           </div>
         </a>
       </div>
     }
   </div>
+
+  <!-- Legal links: LSSI requires the owner details to be reachable from every page. -->
+  <nav aria-label="Información legal" class="px-5 pb-4 pt-2 flex flex-wrap gap-x-3 gap-y-1 text-micro text-ink-muted">
+    <a routerLink="/legal/aviso-legal" class="hover:text-ink transition-colors">Aviso legal</a>
+    <a routerLink="/legal/privacidad" class="hover:text-ink transition-colors">Privacidad</a>
+    <a routerLink="/legal/terminos" class="hover:text-ink transition-colors">Términos</a>
+    <a routerLink="/legal/cookies" class="hover:text-ink transition-colors">Cookies</a>
+  </nav>
 
 </aside>

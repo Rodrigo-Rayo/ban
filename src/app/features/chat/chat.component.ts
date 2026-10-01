@@ -1,11 +1,25 @@
-import { Component, inject, signal, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MessagesService } from '../../core/services/messages.service';
+import { MessagesService, MAX_MESSAGE_LENGTH } from '../../core/services/messages.service';
 import { Message } from '../../core/models';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../core/services/supabase.service';
+
+/** A message as rendered: server rows plus optimistic, not-yet-confirmed sends. */
+export type ChatMessage = Message & { status?: 'sending' | 'failed' };
+
+/** Distance (px) from the bottom within which new messages auto-scroll the list. */
+const NEAR_BOTTOM_PX = 120;
+/** Show the remaining-characters counter once the draft gets this close to the cap. */
+const COUNTER_THRESHOLD = 200;
+
+const TEMP_PREFIX = 'tmp-';
+
+function byCreatedAt(a: ChatMessage, b: ChatMessage): number {
+  return (a.created_at ?? '').localeCompare(b.created_at ?? '');
+}
 
 @Component({
   selector: 'app-chat',
@@ -14,7 +28,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
   templateUrl: './chat.component.html',
 })
 export class ChatComponent implements OnInit, OnDestroy {
-  @ViewChild('messagesList') private messagesList!: ElementRef;
+  @ViewChild('messagesList') private messagesList!: ElementRef<HTMLElement>;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -22,9 +36,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
 
   private readonly MESSAGES_LIMIT = 50;
-  private messageOffset = 0;
+  readonly maxLength = MAX_MESSAGE_LENGTH;
+  readonly counterThreshold = COUNTER_THRESHOLD;
 
-  messages = signal<Message[]>([]);
+  messages = signal<ChatMessage[]>([]);
   otherName = signal('');
   newMessage = '';
   currentUserId = signal('');
@@ -34,9 +49,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   loadingMore = signal(false);
   hasMore = signal(false);
   sendError = signal('');
+  /** True when messages arrived while the user was scrolled up reading history. */
+  hasNewBelow = signal(false);
   private subscription: RealtimeChannel | undefined;
   private conversationId = '';
   private destroyed = false;
+  /** Incoming messages arrived while the tab was hidden — mark read once visible. */
+  private pendingRead = false;
+  private tempSeq = 0;
 
   async ngOnInit() {
     const routeId = this.route.snapshot.paramMap.get('id');
@@ -49,18 +69,25 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.currentUserId.set(user?.id ?? '');
+    if (this.destroyed) return;
+
+    // Subscribe before the initial fetch so messages sent in between are not lost;
+    // the fetch result is merged (deduplicated by id) with anything already received.
+    this.subscription = this.messagesService.subscribeToMessages(
+      this.conversationId,
+      (msg) => this.onIncoming(msg),
+    );
 
     try {
       const [{ messages: msgs, hasMore }, conv] = await Promise.all([
-        this.messagesService.getMessages(this.conversationId, this.MESSAGES_LIMIT, 0),
+        this.messagesService.getMessages(this.conversationId, this.MESSAGES_LIMIT),
         this.messagesService.getConversationById(this.conversationId),
       ]);
-      this.messages.set(msgs);
+      this.messages.update(current => this.merge(msgs, current));
       this.hasMore.set(hasMore);
-      this.messageOffset = msgs.length;
       setTimeout(() => this.scrollToBottom(), 0);
 
-      this.messagesService.markAsRead(this.conversationId).catch(() => {});
+      this.markRead();
       if (conv) {
         this.messagesService.getOtherUserProfile(conv).then(resolved => {
           if (resolved && resolved !== 'Usuario') this.otherName.set(resolved);
@@ -72,20 +99,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.loading.set(false);
     }
 
-    this.subscription = this.messagesService.subscribeToMessages(
-      this.conversationId,
-      (msg) => {
-        this.messages.update(list =>
-          list.some(m => m.id === msg.id) ? list : [...list, msg]
-        );
-        setTimeout(() => this.scrollToBottom(), 0);
-        // Mark new message as read and refresh the navbar badge
-        this.messagesService.markAsRead(this.conversationId).catch(() => {});
-      }
-    );
-    // Guard against early navigation: if destroyed before the Promise.all resolved,
-    // ngOnDestroy already ran and won't run again — clean up the channel here.
-    if (this.destroyed) {
+    // Guard against early navigation: ngOnDestroy may already have run while awaiting.
+    if (this.destroyed && this.subscription) {
       this.supabase.client.removeChannel(this.subscription);
     }
   }
@@ -98,34 +113,128 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
+  @HostListener('document:visibilitychange')
+  onVisibilityChange() {
+    if (this.pendingRead && document.visibilityState === 'visible') this.markRead();
+  }
+
   async send() {
     const content = this.newMessage.trim();
     if (!content || this.sending()) return;
-    this.sending.set(true);
+    if (content.length > this.maxLength) {
+      this.sendError.set(`El mensaje no puede superar los ${this.maxLength} caracteres.`);
+      return;
+    }
     this.sendError.set('');
+    this.newMessage = '';
+
+    const temp: ChatMessage = {
+      id: `${TEMP_PREFIX}${Date.now()}-${++this.tempSeq}`,
+      conversation_id: this.conversationId,
+      sender_id: this.currentUserId(),
+      text: content,
+      read: false,
+      created_at: new Date().toISOString(),
+      status: 'sending',
+    };
+    this.messages.update(list => [...list, temp]);
+    setTimeout(() => this.scrollToBottom(), 0);
+    await this.deliver(temp);
+  }
+
+  /** Re-sends a message whose previous attempt failed. */
+  async retry(msg: ChatMessage) {
+    if (msg.status !== 'failed' || this.sending()) return;
+    this.sendError.set('');
+    this.setStatus(msg.id, 'sending');
+    await this.deliver(msg);
+  }
+
+  /** Drops a failed optimistic message from the thread. */
+  discard(msg: ChatMessage) {
+    if (msg.status !== 'failed') return;
+    this.messages.update(list => list.filter(m => m.id !== msg.id));
+    if (!this.messages().some(m => m.status === 'failed')) this.sendError.set('');
+  }
+
+  private async deliver(temp: ChatMessage) {
+    this.sending.set(true);
     try {
-      const msg = await this.messagesService.sendMessage(this.conversationId, content);
+      const msg = await this.messagesService.sendMessage(this.conversationId, temp.text);
       if (msg) {
-        this.newMessage = '';
-        this.messages.update(list =>
-          list.some(m => m.id === msg.id) ? list : [...list, msg]
-        );
-        setTimeout(() => this.scrollToBottom(), 0);
+        this.confirm(temp.id, msg);
       } else {
+        this.setStatus(temp.id, 'failed');
         this.sendError.set('Error desconocido al enviar.');
       }
     } catch {
+      this.setStatus(temp.id, 'failed');
       this.sendError.set('No se pudo enviar. Inténtalo de nuevo.');
     } finally {
       this.sending.set(false);
     }
   }
 
-  onKeydown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.send();
+  /** Swaps an optimistic message for the stored row (or drops it if Realtime already delivered it). */
+  private confirm(tempId: string, msg: Message) {
+    this.messages.update(list =>
+      list.some(m => m.id === msg.id)
+        ? list.filter(m => m.id !== tempId)
+        : list.map(m => (m.id === tempId ? msg : m))
+    );
+  }
+
+  private setStatus(id: string, status: 'sending' | 'failed') {
+    this.messages.update(list => list.map(m => (m.id === id ? { ...m, status } : m)));
+  }
+
+  private onIncoming(msg: Message) {
+    if (!msg?.id || msg.conversation_id !== this.conversationId) return;
+    const isMine = msg.sender_id === this.currentUserId();
+    const wasNearBottom = this.isNearBottom();
+
+    this.messages.update(list => {
+      if (list.some(m => m.id === msg.id)) return list;
+      if (isMine) {
+        // Realtime echo of our own in-flight send: replace the optimistic bubble.
+        const pending = list.find(m => m.status === 'sending' && m.text === msg.text);
+        if (pending) return list.map(m => (m === pending ? msg : m));
+      }
+      return [...list, msg];
+    });
+
+    if (isMine || wasNearBottom) {
+      setTimeout(() => this.scrollToBottom(), 0);
+    } else {
+      this.hasNewBelow.set(true);
     }
+    if (!isMine) this.markRead();
+  }
+
+  /** Marks the thread read (refreshing the navbar badge) — deferred while the tab is hidden. */
+  private markRead() {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      this.pendingRead = true;
+      return;
+    }
+    this.pendingRead = false;
+    this.messagesService.markAsRead(this.conversationId).catch(() => { /* badge refreshes on next event */ });
+  }
+
+  onKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      if (!event.repeat) this.send();
+    }
+  }
+
+  onScroll() {
+    if (this.hasNewBelow() && this.isNearBottom()) this.hasNewBelow.set(false);
+  }
+
+  jumpToLatest() {
+    this.hasNewBelow.set(false);
+    this.scrollToBottom();
   }
 
   async deleteConversation() {
@@ -145,18 +254,28 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async loadMore() {
     if (this.loadingMore() || !this.hasMore()) return;
+    // Cursor = oldest stored message. Offsets drift as realtime/optimistic messages
+    // are appended, which duplicated or skipped history.
+    const oldest = this.messages().find(m => !m.id.startsWith(TEMP_PREFIX));
     this.loadingMore.set(true);
+    const el = this.messagesList?.nativeElement;
+    const prevHeight = el?.scrollHeight ?? 0;
+    const prevTop = el?.scrollTop ?? 0;
     try {
       const { messages: older, hasMore } = await this.messagesService.getMessages(
         this.conversationId,
         this.MESSAGES_LIMIT,
-        this.messageOffset,
+        oldest?.created_at,
       );
-      this.messages.update(list => [...older, ...list]);
+      this.messages.update(list => {
+        const ids = new Set(list.map(m => m.id));
+        return [...older.filter(m => !ids.has(m.id)), ...list];
+      });
       this.hasMore.set(hasMore);
-      this.messageOffset += older.length;
+      // Keep the viewport anchored on the message the user was reading.
+      if (el) setTimeout(() => { el.scrollTop = el.scrollHeight - prevHeight + prevTop; }, 0);
     } catch {
-      // non-critical — user can retry
+      this.sendError.set('No se pudieron cargar mensajes anteriores. Inténtalo de nuevo.');
     } finally {
       this.loadingMore.set(false);
     }
@@ -184,8 +303,21 @@ export class ChatComponent implements OnInit, OnDestroy {
     return `${dd}/${mm} ${hhmm}`;
   }
 
+  /** Merges fetched rows with ones already shown (realtime / optimistic), deduped by id. */
+  private merge(fetched: Message[], current: ChatMessage[]): ChatMessage[] {
+    const ids = new Set(fetched.map(m => m.id));
+    return [...fetched, ...current.filter(m => !ids.has(m.id))].sort(byCreatedAt);
+  }
+
+  private isNearBottom(): boolean {
+    const el = this.messagesList?.nativeElement;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_PX;
+  }
+
   private scrollToBottom() {
     const el = this.messagesList?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
+    this.hasNewBelow.set(false);
   }
 }

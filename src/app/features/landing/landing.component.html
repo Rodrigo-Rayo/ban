@@ -65,7 +65,7 @@
   <div class="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
 
     <div class="lg:w-64 flex-shrink-0">
-      <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-500 mb-3">Cómo funciona</p>
+      <p class="text-micro font-semibold uppercase tracking-wider text-primary-500 mb-3">Cómo funciona</p>
       <h2 class="text-3xl lg:text-4xl font-black text-ink leading-tight tracking-tight">Simple.<br>Directo.</h2>
       <div class="mt-6 h-px bg-gradient-to-r from-primary-500/40 to-transparent w-24"></div>
       <p class="mt-4 text-sm text-ink-muted leading-relaxed">
@@ -94,7 +94,7 @@
 
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
       <div>
-        <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-500 mb-2">Directorio completo</p>
+        <p class="text-micro font-semibold uppercase tracking-wider text-primary-500 mb-2">Directorio completo</p>
         <h2 class="text-3xl lg:text-4xl font-black text-ink tracking-tight">¿Qué buscas?</h2>
       </div>
       <a routerLink="/search" class="text-sm font-bold text-primary-500 hover:text-primary-600 transition-colors flex-shrink-0 flex items-center gap-1.5 group">
@@ -146,7 +146,7 @@
 
 <!-- CTA FINAL ───────────────────────────────────────── -->
 <section class="px-5 sm:px-8 lg:px-14 py-20 max-w-7xl mx-auto text-center">
-  <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-500 mb-4">Únete a la comunidad</p>
+  <p class="text-micro font-semibold uppercase tracking-wider text-primary-500 mb-4">Únete a la comunidad</p>
   <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight leading-tight mb-4">
     Tu próxima banda<br>
     <span class="display-serif text-primary-500">te está esperando.</span>
@@ -163,7 +163,7 @@
         </span>
         <div class="text-left">
           <div class="text-xs font-bold text-ink">{{ role.label }}</div>
-          <div class="text-[10px] text-ink-muted">{{ role.desc }}</div>
+          <div class="text-micro text-ink-muted">{{ role.desc }}</div>
         </div>
       </a>
     }
@@ -181,6 +181,8 @@
     <div class="flex gap-6 text-xs text-ink-muted">
       <a routerLink="/legal/privacidad" class="hover:text-ink transition-colors">Privacidad</a>
       <a routerLink="/legal/terminos" class="hover:text-ink transition-colors">Términos</a>
+      <a routerLink="/legal/cookies" class="hover:text-ink transition-colors">Cookies</a>
+      <a routerLink="/legal/aviso-legal" class="hover:text-ink transition-colors">Aviso legal</a>
       <a href="mailto:hola@bandyou.es" class="hover:text-ink transition-colors">Contacto</a>
     </div>
   </div>

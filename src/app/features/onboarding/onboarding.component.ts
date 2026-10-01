@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -8,6 +8,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES } from '../../core/constants/cities';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { optionalUrl, optionalPositiveNumber } from '../../core/utils/form-validators';
+import { LEGAL_INFO } from '../legal/legal-info';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
 
@@ -22,6 +23,7 @@ export class OnboardingComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   private registrationState = inject(RegistrationStateService);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   step = signal(0);
   role = signal<Role>('musician');
@@ -29,8 +31,14 @@ export class OnboardingComponent implements OnInit {
   loading = signal(false);
   error = signal('');
   isEditing = signal(false);
+  /** Google sign-ups from /auth/login never saw the register consent checkbox. */
+  needsConsent = signal(false);
+  consentAccepted = signal(false);
+  consentError = signal(false);
   pendingConfirmation = signal(false);
   pendingEmail = signal('');
+  /** Validation message for chip-based steps (instruments / genres). */
+  stepError = signal('');
 
   selectedInstruments = signal<string[]>([]);
   selectedGenres = signal<string[]>([]);
@@ -42,6 +50,7 @@ export class OnboardingComponent implements OnInit {
 
   readonly DAYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
   readonly DAYS_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  readonly DAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   readonly SLOTS = ['mañanas', 'tardes', 'noches'];
 
   roles: { id: Role; label: string; icon: string; desc: string; separator?: boolean }[] = [
@@ -53,6 +62,7 @@ export class OnboardingComponent implements OnInit {
     { id: 'listener',  label: 'Soy del público', icon: 'radio',      desc: 'Descubro artistas y eventos', separator: true },
   ];
 
+  readonly roleIds: readonly Role[] = this.roles.map(r => r.id);
   readonly instruments = INSTRUMENTS;
   readonly genres = GENRES;
   levels = [
@@ -62,6 +72,7 @@ export class OnboardingComponent implements OnInit {
     { id: 'pro',          label: 'Profesional',  desc: 'Vivo de la música' },
     { id: 'experto',      label: 'Experto',      desc: 'Sesionista / maestro' },
   ];
+  readonly levelIds: readonly string[] = this.levels.map(l => l.id);
   cities = CITIES;
 
   nameForm = this.fb.group({
@@ -87,6 +98,8 @@ export class OnboardingComponent implements OnInit {
   });
 
   isListener        = computed(() => this.role() === 'listener');
+  /** Roles whose display name is a person's name (vs an organisation). */
+  isPersonRole      = computed(() => ['musician', 'teacher', 'listener'].includes(this.role()));
   hasInstrumentStep = computed(() => this.role() === 'musician' || this.role() === 'teacher');
   hasLevelStep      = computed(() => this.role() === 'musician' || this.role() === 'teacher');
   totalSteps        = computed(() => {
@@ -159,7 +172,14 @@ export class OnboardingComponent implements OnInit {
     const cur = this.selectedSlots();
     this.selectedSlots.set(cur.includes(s) ? cur.filter(x => x !== s) : [...cur, s]);
   }
-  addMember() { this.bandMembers = [...this.bandMembers, { name: '', instrument: '' }]; }
+  addMember() {
+    this.bandMembers = [...this.bandMembers, { name: '', instrument: '' }];
+    // Move focus into the newly added row so keyboard users can type straight away.
+    setTimeout(() => {
+      const inputs = this.host.nativeElement.querySelectorAll<HTMLElement>('[data-member-name]');
+      inputs[inputs.length - 1]?.focus();
+    });
+  }
   removeMember(i: number) { this.bandMembers = this.bandMembers.filter((_, idx) => idx !== i); }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -170,8 +190,80 @@ export class OnboardingComponent implements OnInit {
     }
   }
 
-  next() { this.step.update(s => s + 1); }
-  back() { this.step.update(s => Math.max(0, s - 1)); }
+  next() {
+    this.stepError.set('');
+    this.step.update(s => s + 1);
+    this.focusStepHeading();
+  }
+  back() {
+    this.stepError.set('');
+    this.step.update(s => Math.max(0, s - 1));
+    this.focusStepHeading();
+  }
+
+  /** After a step change, move focus to the new step's heading (WCAG 2.4.3). */
+  private focusStepHeading() {
+    setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('#onb-step-heading')?.focus());
+  }
+
+  /** Advance from a chip step, or explain why we can't. */
+  tryNext(canProceed: boolean, message: string) {
+    if (!canProceed) {
+      this.stepError.set(message);
+      return;
+    }
+    this.next();
+  }
+
+  nameInvalid(): boolean {
+    const c = this.nameForm.get('name');
+    return !!c && c.invalid && c.touched;
+  }
+
+  zInvalid(name: string): boolean {
+    const c = this.zoneForm.get(name);
+    return !!c && c.invalid && c.touched;
+  }
+
+  nextFromName() {
+    if (this.nameForm.invalid) {
+      this.nameForm.markAllAsTouched();
+      this.host.nativeElement.querySelector<HTMLElement>('#onb-name')?.focus();
+      return;
+    }
+    if (this.isListener()) { this.onSubmit(); return; }
+    this.next();
+  }
+
+  /** Final step: surface validation errors instead of a dead disabled button. */
+  submitZone() {
+    if (this.zoneForm.invalid) {
+      this.zoneForm.markAllAsTouched();
+      const firstInvalid = this.host.nativeElement
+        .querySelector<HTMLElement>('input.ng-invalid, select.ng-invalid, textarea.ng-invalid');
+      if (firstInvalid) { firstInvalid.focus(); return; }
+      // Invalid control not rendered for this role: it is irrelevant here, so carry on.
+    }
+    this.onSubmit();
+  }
+
+  selectRole = (id: string) => this.role.set(id as Role);
+  selectLevel = (id: string) => this.selectedLevel.set(id);
+
+  /** Roving-tabindex arrow-key handling for custom radiogroups (APG radio pattern). */
+  onRadioKeydown(event: KeyboardEvent, ids: readonly string[], current: string, select: (id: string) => void) {
+    const delta: Record<string, number> = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 };
+    const cur = Math.max(0, ids.indexOf(current));
+    let idx: number;
+    if (event.key in delta) idx = (cur + delta[event.key] + ids.length) % ids.length;
+    else if (event.key === 'Home') idx = 0;
+    else if (event.key === 'End') idx = ids.length - 1;
+    else return;
+    event.preventDefault();
+    select(ids[idx]);
+    const radios = (event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('[role="radio"]');
+    radios[idx]?.focus();
+  }
 
   canProceedStep1() {
     return this.nameForm.valid;
@@ -203,7 +295,13 @@ export class OnboardingComponent implements OnInit {
 
       // Sign up immediately so email confirmation can be sent before the user fills the form
       const email = this.registrationState.email;
-      const { data, error } = await this.supabase.signUpWithEmail(email, this.registrationState.password);
+      // The register page only hands over credentials after the legal checkbox was ticked;
+      // store that consent on the auth user as evidence (GDPR art. 7.1).
+      const { data, error } = await this.supabase.signUpWithEmail(email, this.registrationState.password, {
+        terms_version: LEGAL_INFO.version,
+        terms_accepted_at: new Date().toISOString(),
+        age_confirmed: true,
+      });
       this.registrationState.clear();
 
       if (error) {
@@ -228,6 +326,12 @@ export class OnboardingComponent implements OnInit {
       // No confirmation required — user is now logged in, show the empty onboarding form
       return;
     }
+
+    this.needsConsent.set(!user.user_metadata?.['terms_accepted_at']);
+    // Consent ticked on /auth/register before "Continuar con Google" counts — don't ask twice.
+    try {
+      if (sessionStorage.getItem('bandyou_consent_pending') === LEGAL_INFO.version) this.consentAccepted.set(true);
+    } catch { /* storage blocked */ }
 
     const [
       { data: musicianData, error: e1 },
@@ -310,6 +414,11 @@ export class OnboardingComponent implements OnInit {
   }
 
   async onSubmit() {
+    if (!this.isEditing() && this.needsConsent() && !this.consentAccepted()) {
+      this.consentError.set(true);
+      this.host.nativeElement.querySelector<HTMLElement>('#onb-consent')?.focus();
+      return;
+    }
     this.loading.set(true);
     this.error.set('');
     try {
@@ -428,6 +537,15 @@ export class OnboardingComponent implements OnInit {
         this.error.set('No se pudo guardar el perfil. Por favor, inténtalo de nuevo.');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
+        if (this.needsConsent()) {
+          // Best effort: the profile is saved; a failed metadata write must not block entry.
+          await this.supabase.auth.updateUser({ data: {
+            terms_version: LEGAL_INFO.version,
+            terms_accepted_at: new Date().toISOString(),
+            age_confirmed: true,
+          } }).catch(() => undefined);
+          try { sessionStorage.removeItem('bandyou_consent_pending'); } catch { /* storage blocked */ }
+        }
         localStorage.removeItem('bandyou_role');
         this.router.navigate(['/home']);
       }

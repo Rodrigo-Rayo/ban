@@ -26,9 +26,9 @@ export interface GearListing {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-gear-list',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, CommonModule, FormsModule, IconComponent],
   templateUrl: './gear-list.component.html',
 })

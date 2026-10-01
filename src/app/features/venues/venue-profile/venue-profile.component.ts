@@ -10,11 +10,14 @@ import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { Venue, Review } from '../../../core/models';
+import { ListPipe } from '../../../shared/pipes/list.pipe';
+
+const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, capacity, genres, contact_email, instagram_url, website_url, phone';
 
 @Component({
   selector: 'app-venue-profile',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, IconComponent],
+  imports: [RouterLink, CommonModule, FormsModule, IconComponent, ListPipe],
   templateUrl: './venue-profile.component.html',
 })
 export class VenueProfileComponent implements OnInit {
@@ -56,11 +59,11 @@ export class VenueProfileComponent implements OnInit {
     try {
       const id = this.route.snapshot.paramMap.get('id');
       const [{ data: venue }, { data: { session } }, { data: reviews }] = await Promise.all([
-        this.supabase.client.from('venues').select('*').eq('id', id!).maybeSingle(),
+        this.supabase.client.from('venues').select(VENUE_COLUMNS).eq('id', id!).maybeSingle(),
         this.supabase.auth.getSession(),
-        this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', id!).order('created_at', { ascending: false }),
+        this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', id!).order('created_at', { ascending: false }).limit(200),
       ]);
-      this.venue.set(venue);
+      this.venue.set(venue as Venue | null);
       if (venue) {
         this.seo.setProfile(venue.name, 'venue', venue.city, venue.description, venue.avatar_url);
         this.seo.injectJsonLd({
@@ -130,7 +133,7 @@ export class VenueProfileComponent implements OnInit {
       if (error) {
         this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
       } else {
-        const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', this.venue()!.id).order('created_at', { ascending: false });
+        const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'venue').eq('entity_id', this.venue()!.id).order('created_at', { ascending: false }).limit(200);
         this.reviews.set((data || []) as Review[]);
         this.myReview.set((data?.find((r: any) => r.user_id === this.currentUserId()) || null) as Review | null);
         this.showReviewForm.set(false);

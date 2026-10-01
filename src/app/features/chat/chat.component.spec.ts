@@ -202,6 +202,43 @@ describe('ChatComponent', () => {
     expect(component.sendError()).toBe('No se pudo enviar. Inténtalo de nuevo.');
   });
 
+  it('14b. failed send keeps a failed bubble that can be retried', async () => {
+    msgSvc.sendMessage.and.returnValue(Promise.reject(new Error('network')));
+    (component as any).conversationId = 'conv-123';
+    component.newMessage = 'retry me';
+    await component.send();
+    const failed = component.messages().find(m => m.status === 'failed');
+    expect(failed?.text).toBe('retry me');
+
+    const stored = { ...fakeMsg, id: 'msg-ok', text: 'retry me' } as Message;
+    msgSvc.sendMessage.and.returnValue(Promise.resolve(stored));
+    await component.retry(failed!);
+    expect(component.messages().length).toBe(1);
+    expect(component.messages()[0]).toEqual(stored);
+  });
+
+  it('14c. send() rejects drafts over the max length without calling the service', async () => {
+    (component as any).conversationId = 'conv-123';
+    component.newMessage = 'x'.repeat(component.maxLength + 1);
+    await component.send();
+    expect(msgSvc.sendMessage).not.toHaveBeenCalled();
+    expect(component.sendError()).toContain(String(component.maxLength));
+  });
+
+  it('14d. realtime echo of own message replaces the optimistic bubble', () => {
+    (component as any).conversationId = 'conv-123';
+    component.currentUserId.set('u1');
+    component.messages.set([{ ...fakeMsg, id: 'tmp-1', text: 'hi', status: 'sending' } as any]);
+    (component as any).onIncoming({ ...fakeMsg, id: 'real-1', text: 'hi', sender_id: 'u1' });
+    expect(component.messages().map(m => m.id)).toEqual(['real-1']);
+  });
+
+  it('14e. realtime messages from other conversations are ignored', () => {
+    (component as any).conversationId = 'conv-123';
+    (component as any).onIncoming({ ...fakeMsg, id: 'x', conversation_id: 'other' });
+    expect(component.messages().length).toBe(0);
+  });
+
   it('15. send() resets sending to false in finally', async () => {
     msgSvc.sendMessage.and.returnValue(Promise.resolve(null));
     (component as any).conversationId = 'conv-123';
@@ -302,16 +339,34 @@ describe('ChatComponent', () => {
     expect(msgSvc.getMessages).not.toHaveBeenCalled();
   });
 
-  it('27. loadMore prepends older messages and increments messageOffset', async () => {
-    const oldMsg: Message = { id: 'old-1', conversation_id: 'conv-123', sender_id: 'u2', content: 'older', created_at: new Date().toISOString() } as any;
+  it('27. loadMore prepends older messages using the oldest loaded message as cursor', async () => {
+    const oldMsg: Message = { id: 'old-1', conversation_id: 'conv-123', sender_id: 'u2', content: 'older', created_at: '2024-01-01T00:00:00Z' } as any;
     msgSvc.getMessages.and.returnValue(Promise.resolve({ messages: [oldMsg], hasMore: false }));
     component.hasMore.set(true);
     (component as any).conversationId = 'conv-123';
-    (component as any).messageOffset = 5;
     component.messages.set([fakeMsg]);
     await component.loadMore();
     expect(component.messages()).toEqual([oldMsg, fakeMsg]);
-    expect((component as any).messageOffset).toBe(6);
+    expect(msgSvc.getMessages).toHaveBeenCalledWith('conv-123', 50, fakeMsg.created_at);
+  });
+
+  it('27b. loadMore cursor is unaffected by realtime messages appended after load', async () => {
+    msgSvc.getMessages.and.returnValue(Promise.resolve({ messages: [], hasMore: false }));
+    component.hasMore.set(true);
+    (component as any).conversationId = 'conv-123';
+    const live = { ...fakeMsg, id: 'live-1', created_at: new Date(Date.now() + 1000).toISOString() } as Message;
+    component.messages.set([fakeMsg, live]);
+    await component.loadMore();
+    expect(msgSvc.getMessages).toHaveBeenCalledWith('conv-123', 50, fakeMsg.created_at);
+  });
+
+  it('27c. loadMore skips messages already present', async () => {
+    msgSvc.getMessages.and.returnValue(Promise.resolve({ messages: [fakeMsg], hasMore: false }));
+    component.hasMore.set(true);
+    (component as any).conversationId = 'conv-123';
+    component.messages.set([fakeMsg]);
+    await component.loadMore();
+    expect(component.messages().length).toBe(1);
   });
 
   it('28. loadMore updates hasMore from result', async () => {

@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
 const ICONS: Record<string, string> = {
@@ -25,27 +25,34 @@ const ICONS: Record<string, string> = {
   megaphone:  `<path d="M3 11l19-9-9 19-2-8-8-2z"/>`,
   newspaper:  `<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2zm0 0H2v-9a1 1 0 0 1 1-1h1"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6z"/>`,
   x:          `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`,
+  'arrow-right': `<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>`,
+  'arrow-left':  `<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>`,
+  users:      `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+  'message-circle': `<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>`,
   edit:       `<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>`,
 };
 
 @Component({
   selector: 'app-icon',
   standalone: true,
-  template: `<span [innerHTML]="svg" class="inline-flex leading-none"></span>`,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<span [innerHTML]="svg()" class="inline-flex leading-none"></span>`,
 })
 export class IconComponent {
   private sanitizer = inject(DomSanitizer);
 
-  @Input() name = 'user';
-  @Input() size: number = 20;
-  @Input() strokeWidth: number = 1.75;
+  readonly name = input<string>('user');
+  readonly size = input<number>(20);
+  readonly strokeWidth = input<number>(1.75);
 
-  get svg() {
-    const safeName = typeof this.name === 'string' && /^[\w-]+$/.test(this.name) ? this.name : 'user';
-    const safeSize = Number.isFinite(+this.size) ? +this.size : 20;
-    const safeStroke = Number.isFinite(+this.strokeWidth) ? +this.strokeWidth : 1.75;
+  /** Recomputed only when an input changes (previously a getter that rebuilt SafeHtml every CD pass). */
+  readonly svg = computed(() => {
+    const name = this.name();
+    const safeName = typeof name === 'string' && /^[\w-]+$/.test(name) ? name : 'user';
+    const safeSize = Number.isFinite(+this.size()) ? +this.size() : 20;
+    const safeStroke = Number.isFinite(+this.strokeWidth()) ? +this.strokeWidth() : 1.75;
     const path = ICONS[safeName] ?? ICONS['user'];
     const html = `<svg aria-hidden="true" width="${safeSize}" height="${safeSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${safeStroke}" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
     return this.sanitizer.bypassSecurityTrustHtml(html);
-  }
+  });
 }

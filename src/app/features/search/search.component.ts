@@ -10,6 +10,7 @@ import { CITIES_WITH_ALL } from '../../core/constants/cities';
 import { INSTRUMENTS } from '../../core/constants/music.constants';
 import { avatarColor } from '../../core/utils/display.utils';
 import { environment } from '../../../environments/environment';
+import { ListPipe } from '../../shared/pipes/list.pipe';
 
 type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal' | 'vacancies';
 
@@ -22,10 +23,10 @@ interface RehearsalResult { id: string; name: string; city: string; avatar_url: 
 interface VacancyResult { id: string; instrument: string; description: string | null; genre: string | null; created_at: string; bands: { id: string; name: string; city: string; avatar_url: string | null } | null; }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-search',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, CommonModule, DatePipe, IconComponent],
+  imports: [FormsModule, RouterLink, CommonModule, DatePipe, IconComponent, ListPipe],
   templateUrl: './search.component.html',
 })
 export class SearchComponent implements OnInit, OnDestroy {
@@ -242,7 +243,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     venues:     'id,name,city,avatar_url,capacity,genres,created_at,user_id',
     events:     'id,title,venue,city,date,time,genre,description,price,created_at,user_id',
     teachers:   'id,name,city,avatar_url,instrument,hourly_rate,modality,created_at,user_id',
-    rehearsal:  'id,name,city,avatar_url,capacity,hourly_rate,rooms_count,created_at,user_id',
+    rehearsal:  'id,name,city,avatar_url,capacity,hourly_rate,created_at,user_id',
   } as const;
 
   private async fetchPage(offset: number): Promise<unknown[]> {

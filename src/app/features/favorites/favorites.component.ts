@@ -22,9 +22,9 @@ interface ResolvedEntity {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-favorites',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, CommonModule, IconComponent],
   templateUrl: './favorites.component.html',
 })

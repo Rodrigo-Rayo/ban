@@ -40,6 +40,8 @@ describe('RegisterComponent', () => {
 
     fixture = TestBed.createComponent(RegisterComponent);
     component = fixture.componentInstance;
+    // Most specs exercise the happy path; consent gating has its own describe block.
+    component.legalConsent.setValue(true);
   });
 
   it('should create the component', () => {
@@ -78,6 +80,37 @@ describe('RegisterComponent', () => {
       component.form.setValue({ email: 'user@example.com', password: 'abc' });
       component.onSubmit();
       expect(routerSpy.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── legal consent gate ─────────────────────────────────────────────────────
+
+  describe('legal consent', () => {
+    beforeEach(() => component.legalConsent.setValue(false));
+
+    it('is not pre-checked by default', () => {
+      const fresh = TestBed.createComponent(RegisterComponent).componentInstance;
+      expect(fresh.legalConsent.value).toBeFalse();
+      expect(fresh.legalConsent.valid).toBeFalse();
+    });
+
+    it('blocks email sign-up until terms and age are accepted', () => {
+      component.form.setValue({ email: 'user@example.com', password: 'securepass' });
+      component.onSubmit();
+      expect(registrationStateSpy.set).not.toHaveBeenCalled();
+      expect(routerSpy.navigate).not.toHaveBeenCalled();
+      expect(component.legalConsent.touched).toBeTrue();
+    });
+
+    it('blocks Google sign-up until terms and age are accepted', async () => {
+      authSpy.signInWithGoogle.and.returnValue(Promise.resolve());
+      await component.loginWithGoogle();
+      expect(authSpy.signInWithGoogle).not.toHaveBeenCalled();
+      expect(component.legalConsent.touched).toBeTrue();
+    });
+
+    it('exposes the LOPDGDD minimum age of 14', () => {
+      expect(component.minAge).toBe(14);
     });
   });
 

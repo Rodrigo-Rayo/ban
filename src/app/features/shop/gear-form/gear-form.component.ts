@@ -1,4 +1,4 @@
-import { Component, HostListener, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, HostListener, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +24,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
   private location = inject(Location);
   private toast = inject(ToastService);
   auth = inject(AuthService);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   editId = signal<string | null>(null);
   existingImages = signal<string[]>([]);
@@ -146,9 +147,22 @@ export class GearFormComponent implements OnInit, OnDestroy {
     return this.form.title.trim() && this.form.price != null && this.form.price > 0;
   }
 
+  get titleInvalid(): boolean {
+    return this.formTouched() && !this.form.title.trim();
+  }
+
+  get priceInvalid(): boolean {
+    return this.formTouched() && (!this.form.price || this.form.price <= 0);
+  }
+
   async submit() {
     this.formTouched.set(true);
-    if (!this.canSubmit) return;
+    if (!this.canSubmit) {
+      // Move focus to the first field that needs fixing (WCAG 3.3.1).
+      const firstId = !this.form.title.trim() ? 'gear-title' : 'gear-price';
+      this.host.nativeElement.querySelector<HTMLElement>('#' + firstId)?.focus();
+      return;
+    }
     const user = this.currentUser();
     if (!user) return;
 

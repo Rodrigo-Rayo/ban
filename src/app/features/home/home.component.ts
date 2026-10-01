@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnInit, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
@@ -19,6 +19,7 @@ interface HomeListing { id: string; title: string; price: number | null; conditi
 interface HomeProfile { id?: string; name: string; city?: string | null; avatar_url?: string | null; }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-home',
   standalone: true,
   imports: [RouterLink, CommonModule, DatePipe, IconComponent],

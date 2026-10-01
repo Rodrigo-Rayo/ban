@@ -9,13 +9,13 @@
         <div class="flex items-center gap-3 min-w-0">
           <h1 class="text-base font-black text-ink tracking-tight">Tienda</h1>
           @if (!loading()) {
-            <span class="text-[11px] text-ink-muted font-medium hidden sm:block">
+            <span class="text-xs text-ink-muted font-medium hidden sm:block">
               {{ listings().length }} artículo{{ listings().length !== 1 ? 's' : '' }}
             </span>
           }
         </div>
         @if (auth.isLoggedIn()) {
-          <a routerLink="/shop/new" class="btn-primary text-xs px-3.5 py-2 flex-shrink-0">
+          <a routerLink="/shop/new" class="btn-primary text-xs px-4 py-2 min-h-[44px] flex-shrink-0">
             <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
             </svg>
@@ -27,17 +27,17 @@
 
     <!-- Filter strip: horizontal scrollable chips -->
     <div class="bg-dark-900/98 backdrop-blur-md border-b border-dark-600">
-      <div class="max-w-5xl mx-auto px-5 lg:px-8 py-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <div class="max-w-5xl mx-auto pl-5 [--fade-pad:1.25rem] lg:px-8 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar fade-edge-r">
 
         <!-- City -->
         <select aria-label="Filtrar por ciudad" [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadListings()"
-          class="flex-shrink-0 bg-dark-800 border border-dark-600 hover:border-primary-500/50 rounded-full px-3 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors cursor-pointer">
+          class="flex-shrink-0 bg-dark-800 border border-dark-600 hover:border-primary-500/50 rounded-full px-3 py-2 min-h-[40px] text-xs text-ink outline-none focus:border-primary-500 transition-colors cursor-pointer">
           @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
         </select>
 
         <!-- Category -->
         <select aria-label="Filtrar por categoría" [ngModel]="filterCategory()" (ngModelChange)="filterCategory.set($event); loadListings()"
-          class="flex-shrink-0 bg-dark-800 border border-dark-600 hover:border-primary-500/50 rounded-full px-3 py-1.5 text-xs text-ink outline-none focus:border-primary-500 transition-colors cursor-pointer">
+          class="flex-shrink-0 bg-dark-800 border border-dark-600 hover:border-primary-500/50 rounded-full px-3 py-2 min-h-[40px] text-xs text-ink outline-none focus:border-primary-500 transition-colors cursor-pointer">
           <option value="">Categoría</option>
           @for (cat of categories; track cat) { <option [value]="cat">{{ cat }}</option> }
         </select>
@@ -49,12 +49,9 @@
         @for (cond of conditions; track cond.id) {
           <button (click)="filterCondition.set(filterCondition() === cond.id ? '' : cond.id); loadListings()"
             [attr.aria-pressed]="filterCondition() === cond.id"
-            class="flex-shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-all duration-150"
-            [class.bg-primary-500]="filterCondition() === cond.id"
-            [class.border-primary-500]="filterCondition() === cond.id"
-            [class.text-white]="filterCondition() === cond.id"
-            [class.border-dark-600]="filterCondition() !== cond.id"
-            [class.text-ink-muted]="filterCondition() !== cond.id">
+            class="flex-shrink-0 text-xs font-semibold px-3.5 py-2 min-h-[40px] rounded-full border transition-colors duration-150"
+            [class.genre-pill-active]="filterCondition() === cond.id"
+            [class.genre-pill-inactive]="filterCondition() !== cond.id">
             {{ cond.label }}
           </button>
         }
@@ -62,7 +59,7 @@
         <!-- Clear all -->
         @if (hasFilters()) {
           <button (click)="clearFilters()"
-            class="flex-shrink-0 flex items-center gap-1 text-[11px] font-medium text-ink-muted hover:text-signal-red border border-dark-600 hover:border-signal-red/30 px-2.5 py-1.5 rounded-full transition-colors">
+            class="flex-shrink-0 flex items-center gap-1 text-xs font-medium text-ink-muted hover:text-signal-red border border-dark-600 hover:border-signal-red/30 px-3 py-2 min-h-[40px] rounded-full transition-colors">
             <svg aria-hidden="true" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -133,22 +130,25 @@
                 <img [src]="item.images[0]" [alt]="item.title" loading="lazy"
                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
               } @else {
-                <div class="w-full h-full flex items-center justify-center">
-                  <svg aria-hidden="true" class="w-10 h-10 text-dark-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-full h-full flex flex-col items-center justify-center gap-1 pb-7 text-ink-muted/70">
+                  <svg aria-hidden="true" class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                          d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                   </svg>
+                  <span class="text-micro font-semibold">Sin foto</span>
                 </div>
               }
-              <!-- Dark gradient for price readability -->
-              <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent"></div>
+              <!-- Dark gradient for price readability (photos only) -->
+              @if (item.images.length > 0) {
+                <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent"></div>
+              }
               <!-- Condition badge top-left -->
-              <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full border backdrop-blur-sm {{ conditionClass(item.condition) }}">
+              <span class="absolute top-2 left-2 text-micro font-bold px-2 py-0.5 rounded-full border backdrop-blur-sm {{ conditionClass(item.condition) }}">
                 {{ conditionLabel(item.condition) }}
               </span>
               <!-- Multi-image indicator top-right -->
               @if (item.images.length > 1) {
-                <span class="absolute top-2 right-2 text-[10px] font-medium bg-black/60 text-white/80 rounded-full px-2 py-0.5 backdrop-blur-sm">
+                <span class="absolute top-2 right-2 text-micro font-medium bg-black/60 text-white/80 rounded-full px-2 py-0.5 backdrop-blur-sm">
                   1/{{ item.images.length }}
                 </span>
               }
@@ -162,14 +162,18 @@
 
             <!-- Card info -->
             <div class="p-3 flex flex-col gap-0.5 flex-1">
-              <p class="text-[10px] text-ink-muted font-medium uppercase tracking-wide truncate">
-                {{ item.category }}@if (item.city) { · {{ item.city }} }
-              </p>
+              <p class="text-micro text-ink-muted font-semibold uppercase tracking-wide truncate">{{ item.category }}</p>
               <p class="text-sm font-semibold text-ink line-clamp-2 leading-snug
                          group-hover:text-primary-600 transition-colors">
                 {{ item.title }}
               </p>
-              <p class="text-[11px] text-ink-muted mt-auto pt-1.5 truncate border-t border-dark-700/80">
+              @if (item.city) {
+                <p class="text-xs text-ink-muted flex items-center gap-1 min-w-0 mt-0.5">
+                  <app-icon name="map-pin" [size]="11" class="flex-shrink-0"/>
+                  <span class="truncate">{{ item.city }}</span>
+                </p>
+              }
+              <p class="text-micro text-ink-muted mt-auto pt-1.5 truncate border-t border-dark-700/80">
                 {{ item.seller_name }}
               </p>
             </div>
@@ -181,7 +185,7 @@
       @if (hasMore() && !loading()) {
         <div class="flex justify-center py-10">
           <button (click)="loadMore()" [disabled]="loadingMore()"
-            class="btn-secondary text-sm px-8 disabled:opacity-50 flex items-center gap-2">
+            class="btn-secondary text-sm px-8 min-h-[44px] disabled:opacity-50 flex items-center gap-2">
             @if (loadingMore()) {
               <svg aria-hidden="true" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

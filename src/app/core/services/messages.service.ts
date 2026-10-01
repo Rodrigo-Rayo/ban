@@ -6,6 +6,17 @@ import { environment } from '../../../environments/environment';
 
 export interface InboxUpdate { senderName: string; preview: string; conversationId: string; }
 
+/** Hard cap on message length — mirrored by the chat textarea's maxlength. */
+export const MAX_MESSAGE_LENGTH = 2000;
+/** Max characters kept for conversation previews / toasts. */
+const PREVIEW_LENGTH = 140;
+/** Debounce for unread-count refreshes triggered by bursts of realtime events. */
+const UNREAD_REFRESH_DEBOUNCE_MS = 400;
+
+function truncate(text: string, max: number): string {
+  return text.length > max ? text.slice(0, max - 1) + '…' : text;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
   private supabase = inject(SupabaseService);
@@ -20,15 +31,60 @@ export class MessagesService {
   readonly inboxUpdate$ = new Subject<InboxUpdate>();
 
   private readonly _nameCache = new Map<string, string>();
-  private _cachedConvIds: string[] | null = null;
+  /** Conversation ids verified (via RLS-scoped select) to belong to the current user. */
+  private readonly _myConvIds = new Set<string>();
+  /** Ids a realtime event referenced that are NOT the current user's — never re-queried. */
+  private readonly _foreignConvIds = new Set<string>();
+  private _myConvIdsOwner: string | null = null;
+  private _unreadRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 
   setActiveChat(id: string | null) {
     this.activeChatConversationId.set(id);
   }
 
+  /** Re-reads the unread count from the DB. On error the previous value is kept. */
   async refreshUnreadCount() {
-    const count = await this.getUnreadCount();
-    this.unreadCount.set(count);
+    try {
+      this.unreadCount.set(await this.getUnreadCount());
+    } catch (err) {
+      if (!environment.production) console.error('[messages] unread count error:', err);
+    }
+  }
+
+  private scheduleUnreadRefresh() {
+    if (this._unreadRefreshTimer) clearTimeout(this._unreadRefreshTimer);
+    this._unreadRefreshTimer = setTimeout(() => {
+      this._unreadRefreshTimer = null;
+      this.refreshUnreadCount();
+    }, UNREAD_REFRESH_DEBOUNCE_MS);
+  }
+
+  private rememberConversations(userId: string, ids: string[]) {
+    if (this._myConvIdsOwner !== userId) {
+      this._myConvIds.clear();
+      this._foreignConvIds.clear();
+      this._myConvIdsOwner = userId;
+    }
+    ids.forEach(id => this._myConvIds.add(id));
+  }
+
+  /**
+   * Defense in depth for the inbox Realtime channel: Realtime already applies the
+   * messages SELECT RLS policy, but we additionally confirm the conversation is one
+   * the user participates in before surfacing it (badge / toast / inbox list).
+   */
+  private async isMyConversation(userId: string, conversationId: string): Promise<boolean> {
+    if (!conversationId) return false;
+    if (this._myConvIdsOwner === userId && this._myConvIds.has(conversationId)) return true;
+    if (this._myConvIdsOwner === userId && this._foreignConvIds.has(conversationId)) return false;
+    const conv = await this.getConversationById(conversationId);
+    const mine = !!conv && (conv.user1_id === userId || conv.user2_id === userId);
+    if (mine) {
+      this.rememberConversations(userId, [conversationId]);
+    } else if (this._myConvIdsOwner === userId) {
+      this._foreignConvIds.add(conversationId);
+    }
+    return mine;
   }
 
   private async getCurrentUser() {
@@ -54,7 +110,10 @@ export class MessagesService {
       .maybeSingle();
 
     if (selectErr && !environment.production) console.error('[conversations] select error:', selectErr.message);
-    if (existing) return { id: existing.id };
+    if (existing) {
+      this.rememberConversations(myId, [existing.id]);
+      return { id: existing.id };
+    }
 
     const myName = await this.getUserName(myId);
     const u1_name = u1 === myId ? (myName !== 'Usuario' ? myName : null) : (otherName ?? null);
@@ -72,21 +131,25 @@ export class MessagesService {
         const { data: raced } = await this.supabase.client
           .from('conversations').select('id')
           .eq('user1_id', u1).eq('user2_id', u2).maybeSingle();
-        if (raced) return { id: raced.id };
+        if (raced) {
+          this.rememberConversations(myId, [raced.id]);
+          return { id: raced.id };
+        }
       }
       return { error: 'No se pudo crear la conversación. Inténtalo de nuevo.' };
     }
-    return created
-      ? { id: created.id }
-      : { error: 'No se pudo crear la conversación. Inténtalo de nuevo.' };
+    if (!created) return { error: 'No se pudo crear la conversación. Inténtalo de nuevo.' };
+    this.rememberConversations(myId, [created.id]);
+    return { id: created.id };
   }
 
   async getConversationById(conversationId: string): Promise<Conversation | null> {
-    const { data } = await this.supabase.client
+    const { data, error } = await this.supabase.client
       .from('conversations')
       .select('*')
       .eq('id', conversationId)
       .maybeSingle();
+    if (error && !environment.production) console.error('[conversations] get error:', error.message);
     return (data as Conversation) ?? null;
   }
 
@@ -101,7 +164,9 @@ export class MessagesService {
 
     if (convCount === 0) return 'No tienes permisos para borrar esta conversación.';
 
-    this._cachedConvIds = this._cachedConvIds?.filter(id => id !== conversationId) ?? null;
+    this._myConvIds.delete(conversationId);
+    // The deleted thread may have had unread messages.
+    this.scheduleUnreadRefresh();
     return null;
   }
 
@@ -113,26 +178,35 @@ export class MessagesService {
       .from('conversations')
       .select('*')
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-      .order('last_message_at', { ascending: false })
+      // Postgres sorts NULLs first on DESC — keep never-messaged threads at the bottom.
+      .order('last_message_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
       .limit(50);
 
     if (error) throw new Error(error.message);
     const convs = (data || []) as Conversation[];
-    this._cachedConvIds = convs.map(c => c.id);
+    this.rememberConversations(user.id, convs.map(c => c.id));
     return convs;
   }
 
+  /**
+   * Fetches the newest `limit` messages, or — when `before` (an ISO created_at) is
+   * given — the `limit` messages immediately older than it. Cursor-based so that
+   * messages arriving via Realtime/optimistic sends never shift the page window.
+   */
   async getMessages(
     conversationId: string,
     limit = 50,
-    offset = 0,
+    before?: string,
   ): Promise<{ messages: Message[]; hasMore: boolean }> {
-    const { data, error } = await this.supabase.client
+    let query = this.supabase.client
       .from('messages')
       .select('*')
-      .eq('conversation_id', conversationId)
+      .eq('conversation_id', conversationId);
+    if (before) query = query.lt('created_at', before);
+    const { data, error } = await query
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .limit(limit);
 
     if (error) throw new Error(error.message);
     // Reverse so oldest-first in UI while fetching newest-first from DB
@@ -141,12 +215,18 @@ export class MessagesService {
   }
 
   async sendMessage(conversationId: string, content: string): Promise<Message | null> {
+    const text = content.trim();
+    if (!text) throw new Error('El mensaje está vacío.');
+    if (text.length > MAX_MESSAGE_LENGTH) {
+      throw new Error(`El mensaje supera los ${MAX_MESSAGE_LENGTH} caracteres.`);
+    }
+
     const user = await this.getCurrentUser();
     if (!user) return null;
 
     const { data, error } = await this.supabase.client
       .from('messages')
-      .insert({ conversation_id: conversationId, sender_id: user.id, text: content })
+      .insert({ conversation_id: conversationId, sender_id: user.id, text })
       .select()
       .single();
 
@@ -154,7 +234,8 @@ export class MessagesService {
       throw new Error(error.message);
     }
 
-    if (!data) {
+    let message = data as Message | null;
+    if (!message) {
       const { data: fallback } = await this.supabase.client
         .from('messages')
         .select('*')
@@ -162,31 +243,41 @@ export class MessagesService {
         .eq('sender_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
-      if (!fallback) return null;
-      return fallback as Message;
+        .maybeSingle();
+      message = (fallback as Message | null) ?? null;
+      if (!message) return null;
     }
 
+    // Only last_message / last_message_at are written — the RLS policy pins the
+    // participant columns. Non-blocking: the message itself is already stored.
     this.supabase.client
       .from('conversations')
-      .update({ last_message: content, last_message_at: new Date().toISOString() })
+      .update({
+        last_message: truncate(text, PREVIEW_LENGTH),
+        last_message_at: message.created_at || new Date().toISOString(),
+      })
       .eq('id', conversationId)
-      .then(() => {});
+      .then(({ error: convErr }) => {
+        if (convErr && !environment.production) console.error('[conversations] last_message update error:', convErr.message);
+      });
 
-    this.triggerPushNotification(conversationId, user.id, content);
+    this.triggerPushNotification(conversationId, message.id, text);
 
-    return data as Message;
+    return message;
   }
 
   async markAsRead(conversationId: string, skipCountRefresh = false) {
     const user = await this.getCurrentUser();
     if (!user) return;
 
-    await this.supabase.client
+    // Only the `read` column is ever written (the DB restricts UPDATE to it).
+    const { error } = await this.supabase.client
       .from('messages')
       .update({ read: true })
       .eq('conversation_id', conversationId)
-      .neq('sender_id', user.id);
+      .neq('sender_id', user.id)
+      .eq('read', false);
+    if (error) throw new Error(error.message);
     if (!skipCountRefresh) await this.refreshUnreadCount();
   }
 
@@ -194,14 +285,14 @@ export class MessagesService {
     const user = await this.getCurrentUser();
     if (!user) return 0;
 
-    // Query directly without relying on stale _cachedConvIds — RLS ensures
-    // we only see messages from conversations we participate in.
-    const { count } = await this.supabase.client
+    // RLS ensures we only see messages from conversations we participate in.
+    const { count, error } = await this.supabase.client
       .from('messages')
       .select('id', { count: 'exact', head: true })
       .eq('read', false)
       .neq('sender_id', user.id);
 
+    if (error) throw new Error(error.message);
     return count || 0;
   }
 
@@ -211,8 +302,12 @@ export class MessagesService {
     if (cached) return cached;
 
     // Single RPC call instead of 5 parallel queries
-    const { data } = await this.supabase.client.rpc('get_profile_name', { p_user_id: userId });
-    const name = (data as string | null) ?? 'Usuario';
+    const { data, error } = await this.supabase.client.rpc('get_profile_name', { p_user_id: userId });
+    if (error && !environment.production) console.error('[messages] get_profile_name error:', error.message);
+    const name = typeof data === 'string' && data.trim() ? data : null;
+    // Only cache real names: a transient error or a not-yet-created profile must
+    // not pin the 'Usuario' placeholder for the rest of the session.
+    if (!name) return 'Usuario';
     this._nameCache.set(userId, name);
     return name;
   }
@@ -220,44 +315,65 @@ export class MessagesService {
   async getUnreadConversationIds(): Promise<Set<string>> {
     const user = await this.getCurrentUser();
     if (!user) return new Set();
-    const { data } = await this.supabase.client
+    const { data, error } = await this.supabase.client
       .from('messages')
       .select('conversation_id')
       .eq('read', false)
       .neq('sender_id', user.id)
       .limit(500);
+    if (error) throw new Error(error.message);
     return new Set((data || []).map((m: { conversation_id: string }) => m.conversation_id));
   }
 
-  private triggerPushNotification(conversationId: string, senderId: string, messageText: string): void {
-    Promise.all([
-      this.getUserName(senderId),
-      this.supabase.auth.getSession(),
-    ]).then(([senderName, { data: { session } }]) => {
+  /**
+   * Fire-and-forget Web Push. Only ids are sent: the edge function derives the
+   * sender name and message text from the stored row instead of trusting the client.
+   */
+  private triggerPushNotification(conversationId: string, messageId: string, text: string): void {
+    this.supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session?.access_token) return;
-      fetch(`${environment.supabaseUrl}/functions/v1/send-push`, {
+      return fetch(`${environment.supabaseUrl}/functions/v1/send-push`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ conversationId, senderId, senderName, messageText }),
-      }).catch(() => {});
-    }).catch(() => {});
+        // senderId/messageText keep the previously deployed function working until
+        // send-push is redeployed; the new function ignores the text and validates senderId.
+        body: JSON.stringify({ conversationId, messageId, senderId: session.user?.id, messageText: truncate(text, PREVIEW_LENGTH) }),
+      });
+    }).catch(err => {
+      if (!environment.production) console.error('[messages] push trigger failed:', err);
+    });
   }
 
+  /**
+   * Single inbox channel (owned by the navbar). Realtime enforces the messages
+   * SELECT RLS policy, and every event is re-checked client-side: own messages and
+   * conversations the user is not part of are ignored. UPDATE events (read flag
+   * flipped in another tab/device) refresh the unread badge.
+   */
   subscribeToInboxUpdates(currentUserId: string, onNewMessage: (senderName: string, preview: string, conversationId: string) => void, channelSuffix = '') {
     const name = channelSuffix
       ? `inbox-updates-${currentUserId}-${channelSuffix}`
       : `inbox-updates-${currentUserId}`;
+    if (this._myConvIdsOwner !== currentUserId) this.rememberConversations(currentUserId, []);
     return this.supabase.client
       .channel(name)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
         const msg = payload.new as Message;
-        if (msg.sender_id !== currentUserId) {
+        if (!msg?.conversation_id || !msg.sender_id || msg.sender_id === currentUserId) return;
+        try {
+          if (!(await this.isMyConversation(currentUserId, msg.conversation_id))) return;
           const resolvedName = await this.getUserName(msg.sender_id);
-          onNewMessage(resolvedName, msg.text, msg.conversation_id);
+          onNewMessage(resolvedName, truncate(msg.text ?? '', PREVIEW_LENGTH), msg.conversation_id);
+        } catch (err) {
+          if (!environment.production) console.error('[messages] inbox event error:', err);
         }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
+        const msg = payload.new as Partial<Message>;
+        if (msg?.read === true && msg.sender_id !== currentUserId) this.scheduleUnreadRefresh();
       })
       .subscribe();
   }

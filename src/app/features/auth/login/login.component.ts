@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { Meta } from '@angular/platform-browser';
@@ -16,10 +16,12 @@ export class LoginComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private seo = inject(SeoService);
   private meta = inject(Meta);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
   auth = inject(AuthService);
 
   loading = signal(false);
   error = signal('');
+  showPassword = signal(false);
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -42,8 +44,20 @@ export class LoginComponent implements OnInit {
     }
   }
 
+  /** True when a control should expose its error (touched + invalid). */
+  isInvalid(name: 'email' | 'password'): boolean {
+    const c = this.form.get(name);
+    return !!c && c.invalid && c.touched;
+  }
+
   async onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.host.nativeElement
+        .querySelector<HTMLElement>('input.ng-invalid, select.ng-invalid, textarea.ng-invalid')
+        ?.focus();
+      return;
+    }
     this.loading.set(true);
     this.error.set('');
     try {

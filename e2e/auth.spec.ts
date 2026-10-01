@@ -8,7 +8,7 @@ test.describe('Login page', () => {
   test('renders login form', async ({ page }) => {
     await expect(page.getByRole('heading', { name: /bienvenido/i })).toBeVisible();
     await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByLabel(/contraseña/i)).toBeVisible();
+    await expect(page.getByLabel('Contraseña', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /entrar/i })).toBeVisible();
   });
 
@@ -42,8 +42,8 @@ test.describe('Register page', () => {
   });
 
   test('terms and privacy links point to legal pages', async ({ page }) => {
-    const termsLink = page.getByRole('link', { name: /términos/i });
-    const privacyLink = page.getByRole('link', { name: /privacidad/i });
+    const termsLink = page.getByRole('link', { name: /términos/i }).first();
+    const privacyLink = page.getByRole('link', { name: /privacidad/i }).first();
     await expect(termsLink).toHaveAttribute('href', '/legal/terminos');
     await expect(privacyLink).toHaveAttribute('href', '/legal/privacidad');
   });

@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
@@ -25,6 +25,13 @@ export class EventFormComponent {
   private location = inject(Location);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  /** True when a control should expose its error (touched + invalid). */
+  isInvalid(name: string): boolean {
+    const c = this.form.get(name);
+    return !!c && c.invalid && c.touched;
+  }
 
   loading = signal(false);
   error = signal('');
@@ -60,6 +67,9 @@ export class EventFormComponent {
   async onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.host.nativeElement
+        .querySelector<HTMLElement>('input.ng-invalid, select.ng-invalid, textarea.ng-invalid')
+        ?.focus();
       return;
     }
     this.loading.set(true);

@@ -19,7 +19,7 @@ import { SeoService } from './core/services/seo.service';
   template: `
     <app-navbar />
     <app-sidebar />
-    <main id="main-content" tabindex="-1" class="lg:pl-56 pb-16 md:pb-0">
+    <main id="main-content" tabindex="-1" class="lg:pl-56 md:pb-0" [class.pb-16]="auth.isLoggedIn()">
       <router-outlet />
     </main>
     <app-toast />
@@ -31,7 +31,7 @@ import { SeoService } from './core/services/seo.service';
 export class AppComponent {
   private router = inject(Router);
   private scroller = inject(ViewportScroller);
-  private auth = inject(AuthService);
+  auth = inject(AuthService);
   private push = inject(PushNotificationService);
   // Eager: its router listener must exist before the first NavigationEnd so
   // route-level noindex applies even on pages that never call seo.set().
@@ -54,6 +54,9 @@ export class AppComponent {
         const main = document.getElementById('main-content');
         if (main) main.focus({ preventScroll: true });
       });
+
+    // The mobile bottom nav only exists for logged-in users; fixed bars offset from it via CSS.
+    effect(() => document.body.classList.toggle('has-bottom-nav', this.auth.isLoggedIn()));
 
     effect(() => {
       const user = this.auth.user();

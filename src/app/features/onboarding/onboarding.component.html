@@ -49,27 +49,34 @@
         <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>01 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Tu rol</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
+        <h1 id="onb-step-heading" tabindex="-1" class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight focus:outline-none">
           ¿Cuál es tu<br><span class="text-primary-500">relación con la música?</span>
         </h1>
-        <p class="text-sm text-ink-muted mb-8 leading-relaxed">Elige el perfil que mejor te define. Podrás cambiarlo después.</p>
+        <p id="onb-role-desc" class="text-sm text-ink-muted mb-8 leading-relaxed">Elige el perfil que mejor te define. Podrás cambiarlo después.</p>
 
-        <div class="flex flex-col gap-2.5 mb-8">
+        @if (error()) {
+          <div role="alert" class="text-xs text-signal-red mb-4">{{ error() }}</div>
+        }
+
+        <div role="radiogroup" aria-labelledby="onb-step-heading" aria-describedby="onb-role-desc"
+          class="flex flex-col gap-2.5 mb-8"
+          (keydown)="onRadioKeydown($event, roleIds, role(), selectRole)">
           @for (r of roles; track r.id) {
             @if (r.separator) {
-              <div class="flex items-center gap-3 my-1">
+              <div class="flex items-center gap-3 my-1" aria-hidden="true">
                 <div class="flex-1 h-px bg-dark-700"></div>
                 <span class="text-[10px] font-mono uppercase tracking-widest text-ink-muted">o simplemente</span>
                 <div class="flex-1 h-px bg-dark-700"></div>
               </div>
             }
-            <button type="button" (click)="role.set(r.id)"
+            <button type="button" (click)="role.set(r.id)" role="radio"
               class="w-full text-left px-5 py-4 rounded-2xl border transition-all duration-150 flex items-center gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
-              [attr.aria-pressed]="role() === r.id"
+              [attr.aria-checked]="role() === r.id"
+              [attr.tabindex]="role() === r.id ? 0 : -1"
               [ngClass]="role() === r.id
                 ? 'border-primary-500 bg-primary-500/10'
                 : 'border-dark-600 bg-dark-800 hover:border-primary-500/30'">
-              <span class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              <span aria-hidden="true" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                 [ngClass]="role() === r.id
                   ? 'bg-primary-500/20 text-primary-500'
                   : 'bg-dark-700 text-ink-muted'">
@@ -98,43 +105,65 @@
         <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>02 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Identidad</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
+        <h1 id="onb-step-heading" tabindex="-1" class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight focus:outline-none">
           @if (role() === 'band') { ¿Cómo se llama <span class="text-primary-500">la banda?</span> }
           @else if (role() === 'venue') { ¿Cómo se llama <span class="text-primary-500">la sala?</span> }
           @else if (role() === 'rehearsal') { ¿Cómo se llama <span class="text-primary-500">el local?</span> }
           @else { ¿Cómo te <span class="text-primary-500">llamas?</span> }
         </h1>
-        <p class="text-sm text-ink-muted mb-8 leading-relaxed">{{ nameSubtitle }}</p>
+        <p id="onb-name-desc" class="text-sm text-ink-muted mb-8 leading-relaxed">{{ nameSubtitle }}</p>
 
-        <input formControlName="name" type="text"
+        <label for="onb-name" class="sr-only">Nombre</label>
+        <input id="onb-name" formControlName="name" type="text" required
           [placeholder]="namePlaceholder"
-          aria-label="Nombre"
-          aria-required="true"
+          [attr.autocomplete]="isPersonRole() ? 'name' : 'organization'"
+          [attr.aria-invalid]="nameInvalid()"
+          [attr.aria-describedby]="nameInvalid() ? 'onb-name-error onb-name-desc' : 'onb-name-desc'"
+          (keydown.enter)="nextFromName()"
           class="input-field text-lg py-4 mb-1"/>
-        @if (nameForm.get('name')?.invalid && nameForm.get('name')?.touched) {
-          <p class="text-xs text-signal-red mb-5">El nombre es obligatorio.</p>
+        @if (nameInvalid()) {
+          <p id="onb-name-error" class="text-xs text-signal-red mb-5">El nombre es obligatorio (mínimo 2 caracteres).</p>
         } @else {
           <div class="mb-6"></div>
         }
 
         @if (error()) {
-          <div role="alert" aria-live="assertive" class="text-xs text-signal-red mb-4">{{ error() }}</div>
+          <div role="alert" class="text-xs text-signal-red mb-4">{{ error() }}</div>
         }
 
         <div class="flex gap-3">
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
           @if (isListener()) {
-            <button type="button" (click)="onSubmit()" [disabled]="!canProceedStep1() || loading()"
+            <button type="button" (click)="nextFromName()" [disabled]="loading()"
               class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
               @if (loading()) { Entrando... } @else { Entrar }
             </button>
           } @else {
-            <button type="button" (click)="next()" [disabled]="!canProceedStep1()"
+            <button type="button" (click)="nextFromName()"
               class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
               Continuar
             </button>
           }
         </div>
+        @if (!isEditing() && isListener()) {
+          <!-- Explicit consent for accounts that skipped /auth/register (Google sign-in from /auth/login) -->
+          @if (needsConsent()) {
+            <div class="mt-4 text-left">
+              <label class="flex items-start gap-2.5 text-xs text-ink-2 leading-snug cursor-pointer">
+                <input id="onb-consent" type="checkbox" class="mt-0.5 w-4 h-4 accent-primary-500 flex-shrink-0"
+                       [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
+                       [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
+                <span>Confirmo que tengo 14 años o más, acepto los
+                  <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
+                  y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
+                  Tu perfil será público.</span>
+              </label>
+              @if (consentError()) {
+                <p id="onb-consent-error" role="alert" class="text-xs text-signal-red mt-1.5">Debes aceptar para crear tu cuenta.</p>
+              }
+            </div>
+          }
+        }
       </div>
     }
 
@@ -144,12 +173,13 @@
         <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>03 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Instrumento</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
+        <h1 id="onb-step-heading" tabindex="-1" class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight focus:outline-none">
           ¿Qué <span class="text-primary-500">instrumentos</span> tocas?
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Puedes seleccionar varios.</p>
 
-        <div class="flex flex-wrap gap-2 mb-8">
+        <div class="flex flex-wrap gap-2 mb-3" role="group" aria-labelledby="onb-step-heading"
+          [attr.aria-describedby]="stepError() ? 'onb-step-error' : null">
           @for (inst of instruments; track inst) {
             <button type="button" (click)="toggleInstrument(inst)"
               class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
@@ -166,9 +196,15 @@
           }
         </div>
 
+        <div aria-live="polite" class="mb-5">
+          @if (stepError()) {
+            <p id="onb-step-error" class="text-xs text-signal-red">{{ stepError() }}</p>
+          }
+        </div>
+
         <div class="flex gap-3">
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
-          <button type="button" (click)="next()" [disabled]="!canProceedStep2()"
+          <button type="button" (click)="tryNext(canProceedStep2(), 'Selecciona al menos un instrumento.')"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
             Continuar
           </button>
@@ -182,12 +218,13 @@
         <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>03 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Estilos</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
+        <h1 id="onb-step-heading" tabindex="-1" class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight focus:outline-none">
           ¿Qué <span class="text-primary-500">estilos</span> programas?
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Hasta 5 géneros que definen tu espacio.</p>
 
-        <div class="flex flex-wrap gap-2 mb-3">
+        <div class="flex flex-wrap gap-2 mb-3" role="group" aria-labelledby="onb-step-heading"
+          [attr.aria-describedby]="stepError() ? 'onb-step-error onb-genre-count' : 'onb-genre-count'">
           @for (g of genres; track g) {
             <button type="button" (click)="toggleGenre(g)"
               [disabled]="!selectedGenres().includes(g) && selectedGenres().length >= 5"
@@ -203,13 +240,18 @@
             </button>
           }
         </div>
-        <p class="text-xs font-medium text-ink-muted mb-8">
+        <p id="onb-genre-count" class="text-xs font-medium text-ink-muted mb-3" aria-live="polite">
           {{ selectedGenres().length }} / 5 seleccionados
         </p>
+        <div aria-live="polite" class="mb-5">
+          @if (stepError()) {
+            <p id="onb-step-error" class="text-xs text-signal-red">{{ stepError() }}</p>
+          }
+        </div>
 
         <div class="flex gap-3">
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
-          <button type="button" (click)="next()" [disabled]="!canProceedStep3()"
+          <button type="button" (click)="tryNext(canProceedStep3(), 'Selecciona al menos un estilo.')"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
             Continuar
           </button>
@@ -223,12 +265,13 @@
         <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>04 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Estilos</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
+        <h1 id="onb-step-heading" tabindex="-1" class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight focus:outline-none">
           ¿Qué <span class="text-primary-500">estilos</span> te definen?
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Elige hasta 5 géneros. Cuanto más preciso, mejor el match.</p>
 
-        <div class="flex flex-wrap gap-2 mb-3">
+        <div class="flex flex-wrap gap-2 mb-3" role="group" aria-labelledby="onb-step-heading"
+          [attr.aria-describedby]="stepError() ? 'onb-step-error onb-genre-count' : 'onb-genre-count'">
           @for (g of genres; track g) {
             <button type="button" (click)="toggleGenre(g)"
               [disabled]="!selectedGenres().includes(g) && selectedGenres().length >= 5"
@@ -244,13 +287,18 @@
             </button>
           }
         </div>
-        <p class="text-xs font-medium text-ink-muted mb-8">
+        <p id="onb-genre-count" class="text-xs font-medium text-ink-muted mb-3" aria-live="polite">
           {{ selectedGenres().length }} / 5 seleccionados
         </p>
+        <div aria-live="polite" class="mb-5">
+          @if (stepError()) {
+            <p id="onb-step-error" class="text-xs text-signal-red">{{ stepError() }}</p>
+          }
+        </div>
 
         <div class="flex gap-3">
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
-          <button type="button" (click)="next()" [disabled]="!canProceedStep3()"
+          <button type="button" (click)="tryNext(canProceedStep3(), 'Selecciona al menos un estilo.')"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
             Continuar
           </button>
@@ -264,35 +312,45 @@
         <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>04 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Zona</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
+        <h1 id="onb-step-heading" tabindex="-1" class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight focus:outline-none">
           ¿Dónde <span class="text-primary-500">estás?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">La ciudad y datos de contacto.</p>
 
         <div class="flex flex-col gap-4 mb-6">
           <div>
-            <label class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad *</label>
-            <select formControlName="city" aria-label="Ciudad" class="input-field">
+            <label for="onb-city" class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad <span aria-hidden="true">*</span></label>
+            <select id="onb-city" formControlName="city" class="input-field" required autocomplete="address-level2">
               @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
             </select>
           </div>
           @if (role() === 'venue' || role() === 'rehearsal') {
             <div class="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Capacidad <span class="opacity-50">(personas)</span></label>
-                <input formControlName="capacity" type="number" inputmode="numeric" placeholder="200" aria-label="Capacidad en personas" class="input-field"/>
+<div>
+                <label for="onb-capacity" class="block text-xs font-semibold text-ink-muted mb-1.5">Capacidad <span class="opacity-50">(personas)</span></label>
+                <input id="onb-capacity" formControlName="capacity" type="number" min="0" inputmode="numeric" placeholder="200" class="input-field"
+                  [attr.aria-invalid]="zInvalid('capacity')"
+                  [attr.aria-describedby]="zInvalid('capacity') ? 'onb-capacity-error' : null"/>
+                @if (zInvalid('capacity')) {
+                  <p id="onb-capacity-error" class="text-xs text-signal-red mt-1">Introduce un número positivo.</p>
+                }
               </div>
               <div>
-                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
-                <input formControlName="hourly_rate" type="number" inputmode="decimal" placeholder="25" aria-label="Precio por hora en euros" class="input-field"/>
+                <label for="onb-hourly_rate" class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
+                <input id="onb-hourly_rate" formControlName="hourly_rate" type="number" min="0" inputmode="decimal" placeholder="25" class="input-field"
+                  [attr.aria-invalid]="zInvalid('hourly_rate')"
+                  [attr.aria-describedby]="zInvalid('hourly_rate') ? 'onb-hourly_rate-error' : null"/>
+                @if (zInvalid('hourly_rate')) {
+                  <p id="onb-hourly_rate-error" class="text-xs text-signal-red mt-1">Introduce un número positivo.</p>
+                }
               </div>
             </div>
           }
           <div>
-            <label class="block text-xs font-semibold text-ink-muted mb-1.5">Descripción <span class="opacity-50">(opcional)</span></label>
+            <label for="onb-description" class="block text-xs font-semibold text-ink-muted mb-1.5">Descripción <span class="opacity-50">(opcional)</span></label>
             <div class="relative">
-              <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" aria-label="Descripción" class="input-field resize-none pb-6"></textarea>
-              <span class="absolute bottom-2 right-2.5 text-[10px] font-medium pointer-events-none select-none"
+              <textarea id="onb-description" formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" aria-describedby="onb-description-count" class="input-field resize-none pb-6"></textarea>
+              <span id="onb-description-count" class="absolute bottom-2 right-2.5 text-[10px] font-medium pointer-events-none select-none"
                     [class.text-ink-muted]="(zoneForm.get('description')?.value?.length || 0) <= 425"
                     [class.text-signal-amber]="(zoneForm.get('description')?.value?.length || 0) > 425 && (zoneForm.get('description')?.value?.length || 0) <= 475"
                     [class.text-signal-red]="(zoneForm.get('description')?.value?.length || 0) > 475">
@@ -302,13 +360,18 @@
           </div>
           @if (role() === 'venue' || role() === 'rehearsal') {
             <div class="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Teléfono <span class="opacity-50">(opcional)</span></label>
-                <input formControlName="phone" type="tel" placeholder="+34 600 000 000" aria-label="Teléfono" class="input-field"/>
+<div>
+                <label for="onb-phone" class="block text-xs font-semibold text-ink-muted mb-1.5">Teléfono <span class="opacity-50">(opcional)</span></label>
+                <input id="onb-phone" formControlName="phone" type="tel" autocomplete="tel" placeholder="+34 600 000 000" class="input-field"
+                  [attr.aria-invalid]="zInvalid('phone')"
+                  [attr.aria-describedby]="zInvalid('phone') ? 'onb-phone-error' : null"/>
+                @if (zInvalid('phone')) {
+                  <p id="onb-phone-error" class="text-xs text-signal-red mt-1">Introduce un teléfono válido (solo dígitos, espacios y + - ( )).</p>
+                }
               </div>
               <div>
-                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Dirección <span class="opacity-50">(opcional)</span></label>
-                <input formControlName="address" type="text" placeholder="Calle y número" aria-label="Dirección" class="input-field"/>
+                <label for="onb-address" class="block text-xs font-semibold text-ink-muted mb-1.5">Dirección <span class="opacity-50">(opcional)</span></label>
+                <input id="onb-address" formControlName="address" type="text" autocomplete="street-address" placeholder="Calle y número" class="input-field"/>
               </div>
             </div>
           }
@@ -317,21 +380,21 @@
           @if (role() === 'band') {
             <div class="border-t border-dark-700 pt-5">
               <div class="flex items-center justify-between mb-3">
-                <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Formación <span class="opacity-50">(opcional)</span></p>
+                <h2 class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Formación <span class="opacity-50">(opcional)</span></h2>
                 <button type="button" (click)="addMember()"
-                  class="text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors">
-                  + Añadir miembro
+                  class="text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors min-h-[44px] px-2">
+                  <span aria-hidden="true">+</span> Añadir miembro
                 </button>
               </div>
               @for (m of bandMembers; track $index) {
                 <div class="mb-2 bg-dark-800 border border-dark-600 rounded-xl p-3 flex flex-col gap-2">
                   <div class="flex items-center gap-2">
                     <input [value]="m.name" (input)="m.name = $any($event.target).value"
-                      type="text" placeholder="Nombre del miembro"
-                      aria-label="Nombre del miembro"
+                      type="text" placeholder="Nombre del miembro" data-member-name
+                      [attr.aria-label]="'Nombre del miembro ' + ($index + 1)"
                       class="input-field text-sm py-2 flex-1"/>
                     <button type="button" (click)="removeMember($index)"
-                      aria-label="Eliminar miembro"
+                      [attr.aria-label]="'Eliminar miembro ' + ($index + 1) + (m.name ? ' (' + m.name + ')' : '')"
                       class="text-ink-muted hover:text-signal-red transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-dark-700">
                       <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -339,7 +402,7 @@
                     </button>
                   </div>
                   <select [value]="m.instrument" (change)="m.instrument = $any($event.target).value"
-                    aria-label="Instrumento del miembro"
+                    [attr.aria-label]="'Instrumento del miembro ' + ($index + 1)"
                     class="input-field text-sm py-2">
                     <option value="">Instrumento</option>
                     @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
@@ -354,34 +417,96 @@
 
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></p>
+            <h2 class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></h2>
             <div class="grid sm:grid-cols-2 gap-3">
               @if (role() === 'musician' || role() === 'band') {
-                <input formControlName="spotify_url" type="url" placeholder="Spotify URL" aria-label="Spotify URL" class="input-field text-sm py-2"/>
+                <div>
+                  <label for="onb-spotify_url" class="block text-xs font-semibold text-ink-muted mb-1">Spotify</label>
+                  <input id="onb-spotify_url" formControlName="spotify_url" type="url" inputmode="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('spotify_url')"
+                    [attr.aria-describedby]="zInvalid('spotify_url') ? 'onb-spotify_url-error' : null"/>
+                  @if (zInvalid('spotify_url')) {
+                    <p id="onb-spotify_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
+                <div>
+                  <label for="onb-soundcloud_url" class="block text-xs font-semibold text-ink-muted mb-1">SoundCloud</label>
+                  <input id="onb-soundcloud_url" formControlName="soundcloud_url" type="url" inputmode="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('soundcloud_url')"
+                    [attr.aria-describedby]="zInvalid('soundcloud_url') ? 'onb-soundcloud_url-error' : null"/>
+                  @if (zInvalid('soundcloud_url')) {
+                    <p id="onb-soundcloud_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
               }
-              @if (role() === 'musician' || role() === 'band') {
-                <input formControlName="soundcloud_url" type="url" placeholder="SoundCloud URL" aria-label="SoundCloud URL" class="input-field text-sm py-2"/>
-              }
-              <input formControlName="youtube_url" type="url" placeholder="YouTube URL" aria-label="YouTube URL" class="input-field text-sm py-2"/>
-              <input formControlName="instagram_url" type="url" placeholder="Instagram URL" aria-label="Instagram URL" class="input-field text-sm py-2"/>
+              <div>
+                  <label for="onb-youtube_url" class="block text-xs font-semibold text-ink-muted mb-1">YouTube</label>
+                  <input id="onb-youtube_url" formControlName="youtube_url" type="url" inputmode="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('youtube_url')"
+                    [attr.aria-describedby]="zInvalid('youtube_url') ? 'onb-youtube_url-error' : null"/>
+                  @if (zInvalid('youtube_url')) {
+                    <p id="onb-youtube_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
+              <div>
+                  <label for="onb-instagram_url" class="block text-xs font-semibold text-ink-muted mb-1">Instagram</label>
+                  <input id="onb-instagram_url" formControlName="instagram_url" type="url" inputmode="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('instagram_url')"
+                    [attr.aria-describedby]="zInvalid('instagram_url') ? 'onb-instagram_url-error' : null"/>
+                  @if (zInvalid('instagram_url')) {
+                    <p id="onb-instagram_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
               @if (role() === 'band' || role() === 'venue' || role() === 'rehearsal' || role() === 'teacher') {
-                <input formControlName="website_url" type="url" placeholder="Web URL" aria-label="Web URL" class="input-field text-sm py-2"/>
+                <div>
+                  <label for="onb-website_url" class="block text-xs font-semibold text-ink-muted mb-1">Web</label>
+                  <input id="onb-website_url" formControlName="website_url" type="url" inputmode="url" autocomplete="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('website_url')"
+                    [attr.aria-describedby]="zInvalid('website_url') ? 'onb-website_url-error' : null"/>
+                  @if (zInvalid('website_url')) {
+                    <p id="onb-website_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
               }
             </div>
           </div>
         </div>
 
         @if (error()) {
-          <div role="alert" aria-live="assertive" class="text-xs text-signal-red mb-4">{{ error() }}</div>
+          <div role="alert" class="text-xs text-signal-red mb-4">{{ error() }}</div>
         }
 
         <div class="flex gap-3">
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
-          <button type="button" (click)="onSubmit()" [disabled]="loading() || zoneForm.invalid"
+          <button type="button" (click)="submitZone()" [disabled]="loading()"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
             @if (loading()) { Creando cuenta... } @else { Crear cuenta }
           </button>
         </div>
+        @if (!isEditing()) {
+          <!-- Explicit consent for accounts that skipped /auth/register (Google sign-in from /auth/login) -->
+          @if (needsConsent()) {
+            <div class="mt-4 text-left">
+              <label class="flex items-start gap-2.5 text-xs text-ink-2 leading-snug cursor-pointer">
+                <input id="onb-consent" type="checkbox" class="mt-0.5 w-4 h-4 accent-primary-500 flex-shrink-0"
+                       [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
+                       [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
+                <span>Confirmo que tengo 14 años o más, acepto los
+                  <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
+                  y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
+                  Tu perfil será público.</span>
+              </label>
+              @if (consentError()) {
+                <p id="onb-consent-error" role="alert" class="text-xs text-signal-red mt-1.5">Debes aceptar para crear tu cuenta.</p>
+              }
+            </div>
+          }
+        }
       </div>
     }
 
@@ -391,20 +516,22 @@
         <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>05 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Nivel</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
+        <h1 id="onb-step-heading" tabindex="-1" class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight focus:outline-none">
           ¿Cuál es tu <span class="text-primary-500">nivel?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Sé honesto — los matches son mejores así.</p>
 
-        <div class="flex flex-col gap-2.5 mb-8">
+        <div role="radiogroup" aria-labelledby="onb-step-heading" class="flex flex-col gap-2.5 mb-8"
+          (keydown)="onRadioKeydown($event, levelIds, selectedLevel(), selectLevel)">
           @for (lv of levels; track lv.id; let i = $index) {
-            <button type="button" (click)="selectedLevel.set(lv.id)"
+            <button type="button" (click)="selectedLevel.set(lv.id)" role="radio"
               class="w-full text-left px-5 py-4 rounded-2xl border transition-all duration-150 flex items-center gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
-              [attr.aria-pressed]="selectedLevel() === lv.id"
+              [attr.aria-checked]="selectedLevel() === lv.id"
+              [attr.tabindex]="selectedLevel() === lv.id || (!selectedLevel() && i === 0) ? 0 : -1"
               [ngClass]="selectedLevel() === lv.id
                 ? 'border-primary-500 bg-primary-500/10'
                 : 'border-dark-600 bg-dark-800'">
-              <span class="text-xl font-bold w-8 text-center flex-shrink-0"
+              <span aria-hidden="true" class="text-xl font-bold w-8 text-center flex-shrink-0"
                 [class.text-primary-500]="selectedLevel() === lv.id"
                 [class.text-ink-muted]="selectedLevel() !== lv.id">
                 {{ i + 1 }}
@@ -435,35 +562,40 @@
         <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-6 flex items-center gap-2">
           <span>06 / {{ totalSteps() }}</span><span class="opacity-30">—</span><span>Zona</span>
         </p>
-        <h1 class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight">
+        <h1 id="onb-step-heading" tabindex="-1" class="text-3xl sm:text-4xl font-black text-ink mb-2 leading-tight focus:outline-none">
           ¿Dónde <span class="text-primary-500">tocas?</span>
         </h1>
         <p class="text-sm text-ink-muted mb-8 leading-relaxed">Tu ciudad y datos de contacto para completar el perfil.</p>
 
         <div class="flex flex-col gap-4 mb-6">
           <div>
-            <label class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad *</label>
-            <select formControlName="city" aria-label="Ciudad" class="input-field">
+            <label for="onb-city" class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad <span aria-hidden="true">*</span></label>
+            <select id="onb-city" formControlName="city" class="input-field" required autocomplete="address-level2">
               @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
             </select>
           </div>
           @if (role() === 'teacher') {
             <div class="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
-                <input formControlName="hourly_rate" type="number" inputmode="decimal" placeholder="25" aria-label="Precio por hora en euros" class="input-field"/>
+<div>
+                <label for="onb-hourly_rate" class="block text-xs font-semibold text-ink-muted mb-1.5">Precio / hora <span class="opacity-50">(€)</span></label>
+                <input id="onb-hourly_rate" formControlName="hourly_rate" type="number" min="0" inputmode="decimal" placeholder="25" class="input-field"
+                  [attr.aria-invalid]="zInvalid('hourly_rate')"
+                  [attr.aria-describedby]="zInvalid('hourly_rate') ? 'onb-hourly_rate-error' : null"/>
+                @if (zInvalid('hourly_rate')) {
+                  <p id="onb-hourly_rate-error" class="text-xs text-signal-red mt-1">Introduce un número positivo.</p>
+                }
               </div>
               <div>
-                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Años de experiencia <span class="opacity-50">(opcional)</span></label>
-                <input formControlName="experience" type="text" placeholder="5 años" aria-label="Años de experiencia" class="input-field"/>
+                <label for="onb-experience" class="block text-xs font-semibold text-ink-muted mb-1.5">Experiencia <span class="opacity-50">(opcional)</span></label>
+                <input id="onb-experience" formControlName="experience" type="text" placeholder="Conservatorio, bandas, giras…" class="input-field"/>
               </div>
             </div>
           }
           <div>
-            <label class="block text-xs font-semibold text-ink-muted mb-1.5">Sobre ti <span class="opacity-50">(opcional)</span></label>
+            <label for="onb-description" class="block text-xs font-semibold text-ink-muted mb-1.5">Sobre ti <span class="opacity-50">(opcional)</span></label>
             <div class="relative">
-              <textarea formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" aria-label="Sobre ti" class="input-field resize-none pb-6"></textarea>
-              <span class="absolute bottom-2 right-2.5 text-[10px] font-medium pointer-events-none select-none"
+              <textarea id="onb-description" formControlName="description" rows="3" [placeholder]="descriptionPlaceholder" maxlength="500" aria-describedby="onb-description-count" class="input-field resize-none pb-6"></textarea>
+              <span id="onb-description-count" class="absolute bottom-2 right-2.5 text-[10px] font-medium pointer-events-none select-none"
                     [class.text-ink-muted]="(zoneForm.get('description')?.value?.length || 0) <= 425"
                     [class.text-signal-amber]="(zoneForm.get('description')?.value?.length || 0) > 425 && (zoneForm.get('description')?.value?.length || 0) <= 475"
                     [class.text-signal-red]="(zoneForm.get('description')?.value?.length || 0) > 475">
@@ -473,16 +605,17 @@
           </div>
           @if (role() === 'musician') {
             <div>
-              <label class="block text-xs font-semibold text-ink-muted mb-1.5">Influencias <span class="opacity-50">(opcional)</span></label>
-              <input formControlName="influences" type="text" placeholder="Ej: Pink Floyd, Miles Davis..." aria-label="Influencias musicales" class="input-field"/>
+              <label for="onb-influences" class="block text-xs font-semibold text-ink-muted mb-1.5">Influencias <span class="opacity-50">(opcional)</span></label>
+              <input id="onb-influences" formControlName="influences" type="text" placeholder="Ej: Pink Floyd, Miles Davis..." class="input-field"/>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-ink-muted mb-1.5">Disponibilidad <span class="opacity-50">(opcional)</span></label>
-              <div class="grid grid-cols-7 gap-1 mb-2">
+              <p id="onb-availability-label" class="block text-xs font-semibold text-ink-muted mb-1.5">Disponibilidad <span class="opacity-50">(opcional)</span></p>
+              <div class="grid grid-cols-7 gap-1 mb-2" role="group" aria-label="Días disponibles">
                 @for (d of DAYS; track d; let i = $index) {
                   <button type="button" (click)="toggleDay(d)"
                     class="min-h-[44px] text-xs font-bold rounded-xl border transition-all duration-150 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
                     [attr.aria-pressed]="selectedDays().includes(d)"
+                    [attr.aria-label]="DAY_NAMES[i]"
                     [class.border-ink]="selectedDays().includes(d)"
                     [class.bg-ink]="selectedDays().includes(d)"
                     [class.text-dark-900]="selectedDays().includes(d)"
@@ -493,7 +626,7 @@
                   </button>
                 }
               </div>
-              <div class="flex gap-2">
+              <div class="flex gap-2" role="group" aria-label="Franjas horarias disponibles">
                 @for (s of SLOTS; track s) {
                   <button type="button" (click)="toggleSlot(s)"
                     class="text-xs font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
@@ -513,48 +646,117 @@
           @if (role() === 'teacher') {
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Modalidad</label>
-                <select formControlName="modality" aria-label="Modalidad de clases" class="input-field">
+                <label for="onb-modality" class="block text-xs font-semibold text-ink-muted mb-1.5">Modalidad</label>
+                <select id="onb-modality" formControlName="modality" class="input-field">
                   <option value="presencial">Presencial</option>
                   <option value="online">Online</option>
                   <option value="ambos">Presencial y online</option>
                 </select>
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-ink-muted mb-1.5">Años de experiencia <span class="opacity-50">(opcional)</span></label>
-                <input formControlName="experience_years" type="number" inputmode="numeric" placeholder="5" aria-label="Años de experiencia docente" class="input-field"/>
+<div>
+                <label for="onb-experience_years" class="block text-xs font-semibold text-ink-muted mb-1.5">Años de experiencia <span class="opacity-50">(opcional)</span></label>
+                <input id="onb-experience_years" formControlName="experience_years" type="number" min="0" inputmode="numeric" placeholder="5" class="input-field"
+                  [attr.aria-invalid]="zInvalid('experience_years')"
+                  [attr.aria-describedby]="zInvalid('experience_years') ? 'onb-experience_years-error' : null"/>
+                @if (zInvalid('experience_years')) {
+                  <p id="onb-experience_years-error" class="text-xs text-signal-red mt-1">Introduce un número positivo.</p>
+                }
               </div>
             </div>
           }
 
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></p>
+            <h2 class="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-3">Redes & portfolio <span class="opacity-50">(opcional)</span></h2>
             <div class="grid sm:grid-cols-2 gap-3">
               @if (role() === 'musician') {
-                <input formControlName="spotify_url" type="url" placeholder="Spotify URL" aria-label="Spotify URL" class="input-field text-sm py-2"/>
-                <input formControlName="soundcloud_url" type="url" placeholder="SoundCloud URL" aria-label="SoundCloud URL" class="input-field text-sm py-2"/>
+                <div>
+                  <label for="onb-spotify_url" class="block text-xs font-semibold text-ink-muted mb-1">Spotify</label>
+                  <input id="onb-spotify_url" formControlName="spotify_url" type="url" inputmode="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('spotify_url')"
+                    [attr.aria-describedby]="zInvalid('spotify_url') ? 'onb-spotify_url-error' : null"/>
+                  @if (zInvalid('spotify_url')) {
+                    <p id="onb-spotify_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
+                <div>
+                  <label for="onb-soundcloud_url" class="block text-xs font-semibold text-ink-muted mb-1">SoundCloud</label>
+                  <input id="onb-soundcloud_url" formControlName="soundcloud_url" type="url" inputmode="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('soundcloud_url')"
+                    [attr.aria-describedby]="zInvalid('soundcloud_url') ? 'onb-soundcloud_url-error' : null"/>
+                  @if (zInvalid('soundcloud_url')) {
+                    <p id="onb-soundcloud_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
               }
-              <input formControlName="youtube_url" type="url" placeholder="YouTube URL" aria-label="YouTube URL" class="input-field text-sm py-2"/>
-              <input formControlName="instagram_url" type="url" placeholder="Instagram URL" aria-label="Instagram URL" class="input-field text-sm py-2"/>
+              <div>
+                  <label for="onb-youtube_url" class="block text-xs font-semibold text-ink-muted mb-1">YouTube</label>
+                  <input id="onb-youtube_url" formControlName="youtube_url" type="url" inputmode="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('youtube_url')"
+                    [attr.aria-describedby]="zInvalid('youtube_url') ? 'onb-youtube_url-error' : null"/>
+                  @if (zInvalid('youtube_url')) {
+                    <p id="onb-youtube_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
+              <div>
+                  <label for="onb-instagram_url" class="block text-xs font-semibold text-ink-muted mb-1">Instagram</label>
+                  <input id="onb-instagram_url" formControlName="instagram_url" type="url" inputmode="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('instagram_url')"
+                    [attr.aria-describedby]="zInvalid('instagram_url') ? 'onb-instagram_url-error' : null"/>
+                  @if (zInvalid('instagram_url')) {
+                    <p id="onb-instagram_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
               @if (role() === 'musician' || role() === 'teacher') {
-                <input formControlName="website_url" type="url" placeholder="Web URL" aria-label="Web URL" class="input-field text-sm py-2"/>
+                <div>
+                  <label for="onb-website_url" class="block text-xs font-semibold text-ink-muted mb-1">Web</label>
+                  <input id="onb-website_url" formControlName="website_url" type="url" inputmode="url" autocomplete="url" placeholder="https://"
+                    class="input-field text-sm py-2"
+                    [attr.aria-invalid]="zInvalid('website_url')"
+                    [attr.aria-describedby]="zInvalid('website_url') ? 'onb-website_url-error' : null"/>
+                  @if (zInvalid('website_url')) {
+                    <p id="onb-website_url-error" class="text-xs text-signal-red mt-1">Introduce una URL válida (https://…).</p>
+                  }
+                </div>
               }
             </div>
           </div>
         </div>
 
         @if (error()) {
-          <div role="alert" aria-live="assertive" class="text-xs text-signal-red mb-4">{{ error() }}</div>
+          <div role="alert" class="text-xs text-signal-red mb-4">{{ error() }}</div>
         }
 
         <div class="flex gap-3">
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
-          <button type="button" (click)="onSubmit()" [disabled]="loading() || zoneForm.invalid"
+          <button type="button" (click)="submitZone()" [disabled]="loading()"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
             @if (loading()) { Creando cuenta... } @else { Crear cuenta }
           </button>
         </div>
+        @if (!isEditing()) {
+          <!-- Explicit consent for accounts that skipped /auth/register (Google sign-in from /auth/login) -->
+          @if (needsConsent()) {
+            <div class="mt-4 text-left">
+              <label class="flex items-start gap-2.5 text-xs text-ink-2 leading-snug cursor-pointer">
+                <input id="onb-consent" type="checkbox" class="mt-0.5 w-4 h-4 accent-primary-500 flex-shrink-0"
+                       [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
+                       [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
+                <span>Confirmo que tengo 14 años o más, acepto los
+                  <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
+                  y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
+                  Tu perfil será público.</span>
+              </label>
+              @if (consentError()) {
+                <p id="onb-consent-error" role="alert" class="text-xs text-signal-red mt-1.5">Debes aceptar para crear tu cuenta.</p>
+              }
+            </div>
+          }
+        }
       </div>
     }
 

@@ -67,12 +67,12 @@ describe('NotificationsService', () => {
       expect(service.unreadCount()).toBe(0);
     });
 
-    it('does not update unreadCount when error is returned', async () => {
+    it('rejects and keeps unreadCount when error is returned', async () => {
       service.unreadCount.set(7);
       const builder = mockBuilder({ count: 5, error: { message: 'fail' } });
       mockClient.from.and.returnValue(builder);
 
-      await service.loadUnread('user-1');
+      await expectAsync(service.loadUnread('user-1')).toBeRejectedWithError('fail');
 
       expect(service.unreadCount()).toBe(7);
     });
@@ -117,12 +117,12 @@ describe('NotificationsService', () => {
       expect(service.unreadCount()).toBe(0);
     });
 
-    it('does not set unreadCount to 0 when error occurs', async () => {
+    it('rejects and does not set unreadCount to 0 when error occurs', async () => {
       service.unreadCount.set(5);
       const builder = mockBuilder({ data: null, error: { message: 'fail' } });
       mockClient.from.and.returnValue(builder);
 
-      await service.markAllRead('user-1');
+      await expectAsync(service.markAllRead('user-1')).toBeRejectedWithError('fail');
 
       expect(service.unreadCount()).toBe(5);
     });

@@ -11,6 +11,8 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { RehearsalSpace, Review } from '../../../core/models';
 
+const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, hourly_rate, capacity, opening_hours, instagram_url, website_url, phone';
+
 @Component({
   selector: 'app-rehearsal-profile',
   standalone: true,
@@ -69,11 +71,11 @@ export class RehearsalProfileComponent implements OnInit {
     try {
       const id = this.route.snapshot.paramMap.get('id');
       const [{ data: space }, { data: { session } }, { data: reviews }] = await Promise.all([
-        this.supabase.client.from('rehearsal_spaces').select('*').eq('id', id!).maybeSingle(),
+        this.supabase.client.from('rehearsal_spaces').select(REHEARSAL_COLUMNS).eq('id', id!).maybeSingle(),
         this.supabase.auth.getSession(),
-        this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'rehearsal').eq('entity_id', id!).order('created_at', { ascending: false }),
+        this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'rehearsal').eq('entity_id', id!).order('created_at', { ascending: false }).limit(200),
       ]);
-      this.space.set(space);
+      this.space.set(space as RehearsalSpace | null);
       if (space) {
         this.seo.setProfile(space.name, 'rehearsal', space.city, space.description, space.avatar_url);
         this.seo.injectJsonLd({
@@ -142,7 +144,7 @@ export class RehearsalProfileComponent implements OnInit {
       if (error) {
         this.reviewError.set('No se pudo guardar la reseña. Inténtalo de nuevo.');
       } else {
-        const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'rehearsal').eq('entity_id', this.space()!.id).order('created_at', { ascending: false });
+        const { data } = await this.supabase.client.from('reviews').select('id,user_id,rating,comment,author_name,created_at').eq('entity_type', 'rehearsal').eq('entity_id', this.space()!.id).order('created_at', { ascending: false }).limit(200);
         this.reviews.set((data || []) as Review[]);
         this.myReview.set((data?.find((r: any) => r.user_id === this.currentUserId()) || null) as Review | null);
         this.showReviewForm.set(false);

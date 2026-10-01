@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { environment } from '../../../environments/environment';
 
@@ -37,19 +38,25 @@ export class PushNotificationService {
     if (this.permission !== 'granted') return;
     try {
       await this.doSubscribe(userId);
-    } catch {
-      // FCM / push service can reject the registration (network, quota, etc.) — not fatal
+    } catch (err) {
+      // FCM / push service / DB can reject the registration (network, quota, etc.) — not fatal
+      if (!environment.production) console.error('[push] subscribe failed:', err);
     }
   }
 
-  /** Request permission via a user gesture, then subscribe. Returns true if granted. */
-  async requestAndSubscribe(userId: string): Promise<boolean> {
-    if (!this.swPush.isEnabled) return false;
+  /**
+   * Request permission via a user gesture, then subscribe.
+   * 'denied' = the user refused; 'error' = permission granted (or undecided) but the
+   * browser push service or the DB rejected the subscription — safe to retry later.
+   */
+  async requestAndSubscribe(userId: string): Promise<'granted' | 'denied' | 'error'> {
+    if (!this.swPush.isEnabled) return 'error';
     try {
       await this.doSubscribe(userId);
-      return this.permission === 'granted';
-    } catch {
-      return false;
+      return this.permission === 'granted' ? 'granted' : 'denied';
+    } catch (err) {
+      if (!environment.production) console.error('[push] subscribe failed:', err);
+      return this.permission === 'denied' ? 'denied' : 'error';
     }
   }
 
@@ -59,29 +66,40 @@ export class PushNotificationService {
     });
     const subJson = sub.toJSON();
     const keys = subJson.keys as { p256dh: string; auth: string } | undefined;
-    if (!keys?.p256dh || !keys?.auth) return;
-    this.currentEndpoint = subJson.endpoint ?? null;
-    await this.supabase.client.from('push_subscriptions').upsert({
+    if (!subJson.endpoint || !keys?.p256dh || !keys?.auth) {
+      throw new Error('Push subscription is missing endpoint or keys');
+    }
+    const { error } = await this.supabase.client.from('push_subscriptions').upsert({
       user_id: userId,
       endpoint: subJson.endpoint,
       p256dh: keys.p256dh,
       auth: keys.auth,
     }, { onConflict: 'user_id,endpoint' });
+    if (error) throw new Error(error.message);
+    this.currentEndpoint = subJson.endpoint;
   }
 
   /** Unsubscribes only this device. Other devices keep their push subscriptions. */
   async unsubscribeDevice(userId: string): Promise<void> {
     if (!this.swPush.isEnabled) return;
     try {
-      if (this.currentEndpoint) {
-        await this.supabase.client
+      // After a reload currentEndpoint is unset — fall back to the live SW subscription
+      // so logout still removes this device's row (otherwise pushes keep arriving).
+      const endpoint = this.currentEndpoint
+        ?? (await firstValueFrom(this.swPush.subscription))?.endpoint
+        ?? null;
+      if (endpoint) {
+        const { error } = await this.supabase.client
           .from('push_subscriptions')
           .delete()
           .eq('user_id', userId)
-          .eq('endpoint', this.currentEndpoint);
+          .eq('endpoint', endpoint);
+        if (error && !environment.production) console.error('[push] delete subscription failed:', error.message);
         this.currentEndpoint = null;
       }
       await this.swPush.unsubscribe();
-    } catch { /* ignore */ }
+    } catch (err) {
+      if (!environment.production) console.error('[push] unsubscribe failed:', err);
+    }
   }
 }

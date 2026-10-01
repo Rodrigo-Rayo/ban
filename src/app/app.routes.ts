@@ -143,6 +143,10 @@ export const routes: Routes = [
         path: 'cookies',
         loadComponent: () => import('./features/legal/cookies/cookies.component').then(m => m.CookiesComponent),
       },
+      {
+        path: 'aviso-legal',
+        loadComponent: () => import('./features/legal/aviso-legal/aviso-legal.component').then(m => m.AvisoLegalComponent),
+      },
     ],
   },
   {

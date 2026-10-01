@@ -263,3 +263,50 @@
 .prose-legal th { @apply text-left text-xs font-bold text-ink-muted uppercase tracking-widest py-2 px-3 border-b border-dark-600; }
 .prose-legal td { @apply text-xs text-ink-muted py-2 px-3 border-b border-dark-700; }
 .prose-legal code { @apply text-[11px] bg-dark-700 text-primary-600 px-1.5 py-0.5 rounded font-mono; }
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE POLISH (ui-ux, 2026-10) — append-only section
+   ═══════════════════════════════════════════════════════════ */
+
+/* Profile cover: avatar colour (via --cover) tinted into the cream palette.
+   Replaces hardcoded dark gradients that clashed with the light theme. */
+.profile-cover {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--cover, theme('colors.primary.500')) 42%, theme('colors.primary.900')) 0%,
+    theme('colors.primary.900') 100%
+  );
+}
+
+/* Horizontal chip/tab rows: right-edge fade hints that the row scrolls.
+   Trailing padding lets the last chip scroll clear of the fade. */
+.fade-edge-r {
+  scroll-snap-type: x proximity;
+  scroll-padding-inline-start: var(--fade-pad, 0px); /* set to the row's left padding so snap doesn't eat it */
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
+}
+.fade-edge-r > * { scroll-snap-align: start; }
+.fade-edge-r::after { content: ''; flex: 0 0 20px; }
+@media (min-width: 1024px) {
+  .fade-edge-r { -webkit-mask-image: none; mask-image: none; }
+  .fade-edge-r::after { display: none; }
+}
+
+/* Fixed mobile bars sit above the iOS home indicator, and above the 64px bottom
+   nav only when it exists (logged-in, < md) — AppComponent toggles body.has-bottom-nav. */
+.bottom-above-nav { bottom: env(safe-area-inset-bottom, 0px); }
+body.has-bottom-nav .bottom-above-nav { bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 768px) {
+  body.has-bottom-nav .bottom-above-nav, .bottom-above-nav { bottom: 0; }
+}
+.pb-cta-safe { padding-bottom: calc(9rem + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 640px) {
+  .pb-cta-safe { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
+}
+@media (min-width: 768px) {
+  .pb-cta-safe { padding-bottom: 2rem; }
+}
+
+/* Tiny-but-legible label (never below 11px) */
+.text-micro { font-size: 0.6875rem; line-height: 1rem; }

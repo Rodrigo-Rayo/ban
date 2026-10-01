@@ -1,10 +1,11 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Meta } from '@angular/platform-browser';
 import { AuthService } from '../../../core/services/auth.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { RegistrationStateService } from '../../../core/services/registration-state.service';
+import { LEGAL_INFO } from '../../legal/legal-info';
 
 @Component({
   selector: 'app-register',
@@ -18,14 +19,26 @@ export class RegisterComponent implements OnInit {
   private seo = inject(SeoService);
   private meta = inject(Meta);
   private registrationState = inject(RegistrationStateService);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
   auth = inject(AuthService);
 
   error = signal('');
+  showPassword = signal(false);
+
+  /** True when a control should expose its error (touched + invalid). */
+  isInvalid(name: string): boolean {
+    const c = this.form.get(name);
+    return !!c && c.invalid && c.touched;
+  }
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
+
+  /** Legal consent + age confirmation; kept outside `form` because it also gates Google sign-up. */
+  readonly legalConsent = new FormControl(false, { nonNullable: true, validators: [Validators.requiredTrue] });
+  readonly minAge = LEGAL_INFO.minAge;
 
   // ── Password strength ─────────────────────────────────────────────
   get pwStrength(): number {
@@ -61,7 +74,15 @@ export class RegisterComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      // Scope to the <form>: the legal-consent checkbox lives outside it and has its own gate.
+      this.host.nativeElement
+        .querySelector<HTMLElement>('form input.ng-invalid, form select.ng-invalid, form textarea.ng-invalid')
+        ?.focus();
+      return;
+    }
+    if (!this.ensureLegalConsent()) return;
     const { email, password } = this.form.value;
     this.registrationState.set(email!, password!);
     this.router.navigate(['/onboarding']);
@@ -69,10 +90,24 @@ export class RegisterComponent implements OnInit {
 
   async loginWithGoogle() {
     this.error.set('');
+    if (!this.ensureLegalConsent()) return;
+    // Google returns via /auth/callback → onboarding; carry the consent across the redirect.
+    try { sessionStorage.setItem('bandyou_consent_pending', LEGAL_INFO.version); } catch { /* storage blocked */ }
     try {
       await this.auth.signInWithGoogle();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error con Google');
     }
+  }
+
+  /**
+   * Explicit, non-pre-checked acceptance of the Terms + age confirmation
+   * (LOPDGDD art. 7). Required before either sign-up method creates an account.
+   */
+  private ensureLegalConsent(): boolean {
+    if (this.legalConsent.valid) return true;
+    this.legalConsent.markAsTouched();
+    this.host.nativeElement.querySelector<HTMLElement>('#reg-legal')?.focus();
+    return false;
   }
 }

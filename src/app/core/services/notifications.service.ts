@@ -15,7 +15,8 @@ export class NotificationsService {
     const { count, error } = await this.supabase.client
       .from('notifications').select('id', { count: 'exact', head: true })
       .eq('user_id', userId).eq('read', false);
-    if (!error) this.unreadCount.set(count || 0);
+    if (error) throw new Error(error.message);
+    this.unreadCount.set(count || 0);
   }
 
   async getAll(userId: string): Promise<AppNotification[]> {
@@ -30,7 +31,8 @@ export class NotificationsService {
   async markAllRead(userId: string) {
     const { error } = await this.supabase.client.from('notifications')
       .update({ read: true }).eq('user_id', userId).eq('read', false);
-    if (!error) this.unreadCount.set(0);
+    if (error) throw new Error(error.message);
+    this.unreadCount.set(0);
   }
 
   /**
