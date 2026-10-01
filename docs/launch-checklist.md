@@ -2,6 +2,9 @@
 
 Cosas que no se pueden hacer desde el código. Ordenadas por urgencia.
 
+Estado 2026-10-01: desplegado en producción (master). Lighthouse en vivo: rendimiento 82–92,
+accesibilidad, buenas prácticas y SEO 100. E2E en vivo 48/48. Cuentas de prueba borradas.
+
 ## 1. Supabase — base de datos (aplicado y verificado 2026-10-01)
 
 - [x] SQL Editor → New query → pegar `supabase/audit_2026_09_security_fixes.sql` → Run. (aplicado 2026-10-01)
@@ -9,30 +12,30 @@ Cosas que no se pueden hacer desde el código. Ordenadas por urgencia.
 - [x] Verificar (sin sesión): `GET /rest/v1/profiles?select=id` con la anon key devuelve `[]`.
 - [x] Después, ejecutar `supabase/audit_2026_10_messaging.sql` (límite de 2000 caracteres por mensaje y
       vista previa de conversación mantenida por la base de datos).
-- [ ] Ejecutar `supabase/audit_2026_10_bookings_overlap.sql` (impide reservas solapadas entre usuarios distintos).
+- [x] Ejecutar `supabase/audit_2026_10_bookings_overlap.sql` (impide reservas solapadas entre usuarios distintos). (aplicado 2026-10-01)
 - [x] `supabase/audit_2026_10_conversations_fix.sql` aplicado (recursión en la política de conversaciones).
-- [ ] Desplegar la función push actualizada: `supabase functions deploy send-push`
+- [x] Desplegar la función push actualizada: `supabase functions deploy send-push` (desplegada 2026-10-01, CORS www incluido)
       (no se fía del texto del cliente, anti-spam). El cliente es compatible con la versión antigua mientras tanto.
 
 ## 2. Supabase — Authentication
 
-- [ ] Authentication → Policies/Settings → **Minimum password length: 8** (hoy 6; el frontend ya exige 8).
+- [x] Authentication → Policies/Settings → **Minimum password length: 8** (hoy 6; el frontend ya exige 8). (aplicado)
 - [ ] Authentication → Attack Protection → activar **CAPTCHA** (Turnstile o hCaptcha) para registro y recuperación.
       Requiere añadir el widget en el frontend (pendiente si se activa).
-- [ ] Authentication → Email Templates → pegar las plantillas de `supabase/email-templates/`:
+- [x] Authentication → Email Templates → pegar las plantillas de `supabase/email-templates/`: (aplicado vía API)
       - Change Email Address → `change-email.html` — asunto: `Confirma tu nuevo email en BandYou`
       - Magic Link → `magic-link.html` — asunto: `Tu enlace de acceso a BandYou`
       - Invite user → `invite.html` — asunto: `Te han invitado a BandYou`
       - Reauthentication → `reauthentication.html` — asunto: `Tu código de verificación de BandYou`
       (Confirm signup y Reset password ya están al día.)
-- [ ] URL Configuration → **Site URL**: `https://bandyou.es` (hoy apunta a `/auth/callback`).
+- [x] URL Configuration → **Site URL**: `https://bandyou.es` (hoy apunta a `/auth/callback`). (aplicado; allow list incluye www y localhost)
       Redirect URLs: mantener `https://bandyou.es/auth/callback`; quitar `http://localhost:4200/auth/callback`
       si no se desarrolla contra producción.
 
 ## 3. Vercel
 
 - [ ] Domains → marcar **bandyou.es** como dominio principal (hoy redirige a www; canonical y sitemap usan apex).
-- [ ] Tras desplegar, comprobar: `curl -I https://bandyou.es/` → 200 con cabecera `content-security-policy`,
+- [x] Tras desplegar, comprobar: `curl -I https://bandyou.es/` → 200 con cabecera `content-security-policy`,
       y `https://bandyou.es/sitemap.xml` → XML con perfiles.
 
 ## 4. Correo (DNS en DonDominio)
