@@ -9,6 +9,8 @@ Cosas que no se pueden hacer desde el código. Ordenadas por urgencia.
 - [x] Verificar (sin sesión): `GET /rest/v1/profiles?select=id` con la anon key devuelve `[]`.
 - [x] Después, ejecutar `supabase/audit_2026_10_messaging.sql` (límite de 2000 caracteres por mensaje y
       vista previa de conversación mantenida por la base de datos).
+- [ ] Ejecutar `supabase/audit_2026_10_bookings_overlap.sql` (impide reservas solapadas entre usuarios distintos).
+- [x] `supabase/audit_2026_10_conversations_fix.sql` aplicado (recursión en la política de conversaciones).
 - [ ] Desplegar la función push actualizada: `supabase functions deploy send-push`
       (no se fía del texto del cliente, anti-spam). El cliente es compatible con la versión antigua mientras tanto.
 

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, Event } from '@angular/router';
+import { Subject } from 'rxjs';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
 import { PushNotificationService } from './push-notification.service';
@@ -22,7 +23,7 @@ describe('AuthService', () => {
       'signOut',
       'authChanges',
     ]);
-    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl']);
+    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl'], { events: new Subject<Event>(), url: '/' });
     pushSpy = jasmine.createSpyObj<PushNotificationService>('PushNotificationService', ['unsubscribeDevice']);
     pushSpy.unsubscribeDevice.and.returnValue(Promise.resolve());
 

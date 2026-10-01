@@ -119,13 +119,9 @@ export class TeacherProfileComponent implements OnInit {
   private async getAuthorName(): Promise<string> {
     const uid = this.currentUserId();
     if (!uid) return 'Usuario';
-    const results = await Promise.all(
-      (['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'] as const).map(t =>
-        this.supabase.client.from(t).select('name').eq('user_id', uid).maybeSingle()
-      )
-    );
-    for (const { data } of results) { if (data?.name) return data.name; }
-    return 'Usuario';
+    // get_profile_name covers every role, including listeners (profiles.name).
+    const { data } = await this.supabase.client.rpc('get_profile_name', { p_user_id: uid });
+    return (data as string | null) || 'Usuario';
   }
 
   async submitReview() {

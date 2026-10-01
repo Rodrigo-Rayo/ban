@@ -69,6 +69,7 @@ describe('FeedComponent', () => {
       },
       client: {
         from: jasmine.createSpy('from').and.returnValue(fromBuilder),
+        rpc: jasmine.createSpy('rpc').and.returnValue(Promise.resolve({ data: 'Usuario Test', error: null })),
       },
     };
 

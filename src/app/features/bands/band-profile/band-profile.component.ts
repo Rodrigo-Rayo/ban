@@ -290,12 +290,14 @@ export class BandProfileComponent implements OnInit {
       setTimeout(() => this.applySuccess.set(null), 3000);
       if (this.band()?.user_id) {
         const vacancy = this.vacancies().find(v => v.id === vacancyId);
-        await this.notifSvc.create(
+        // Best effort: the application is already saved — a notification failure
+        // (e.g. rate limit) must not report the whole action as failed.
+        this.notifSvc.create(
           this.band()!.user_id, 'application',
           'Nueva solicitud para tu banda',
           `Alguien se ha postulado para la vacante de ${vacancy?.instrument || 'músico'}.`,
           'band', this.band()!.id
-        );
+        ).catch(() => undefined);
       }
     } catch {
       this.toast.error('No se pudo enviar la solicitud. Inténtalo de nuevo.');

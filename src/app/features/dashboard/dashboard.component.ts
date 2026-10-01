@@ -200,7 +200,7 @@ export class DashboardComponent implements OnInit {
     if (!p) return;
     const today = localToday();
     const { data, error } = await this.supabase.client
-      .from('rehearsal_bookings').select('id,name,phone,date,start_time,end_time,message,status')
+      .from('rehearsal_bookings').select('id,user_id,space_id,name,phone,date,start_time,end_time,message,status')
       .eq('space_id', p.id)
       .gte('date', today)
       .order('date', { ascending: true })
@@ -220,6 +220,11 @@ export class DashboardComponent implements OnInit {
       if (error) { this.toast.error('No se pudo actualizar el estado de la reserva.'); return; }
       this.bookings.update(bs => bs.map(b => b.id === id ? { ...b, status } : b));
       this.toast.success('Estado de la reserva actualizado.');
+      const booking = this.bookings().find(b => b.id === id) as { user_id?: string; space_id?: string; date?: string } | undefined;
+      if (booking?.user_id && (status === 'confirmed' || status === 'rejected')) {
+        const title = status === 'confirmed' ? 'Reserva confirmada' : 'Reserva rechazada';
+        this.notifSvc.create(booking.user_id, 'booking', title, booking.date ? `Reserva del ${booking.date}` : undefined, 'rehearsal', booking.space_id).catch(() => undefined);
+      }
     } catch {
       this.toast.error('No se pudo actualizar el estado de la reserva.');
     }
@@ -505,9 +510,12 @@ export class DashboardComponent implements OnInit {
   }
 
   readonly tabNewRoute = computed(() => {
-    const map: Record<string, string> = { events: '/events/create', posts: '/feed?new=1', gear: '/shop/new', bookings: '', reservas: '' };
+    // routerLink does not parse query strings: '/feed?new=1' became /feed%3Fnew=1 (404).
+    const map: Record<string, string> = { events: '/events/create', posts: '/feed', gear: '/shop/new', bookings: '', reservas: '' };
     return map[this.activeTab()] ?? '';
   });
+
+  readonly tabNewQuery = computed(() => (this.activeTab() === 'posts' ? { new: '1' } : null));
 
   readonly tabNewLabel = computed(() => {
     const map: Record<string, string> = { events: '+ Evento', posts: '+ Anuncio', gear: '+ Vender', bookings: '', reservas: '' };

@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationStart, Router } from '@angular/router';
 import { Session } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { PushNotificationService } from './push-notification.service';
@@ -28,12 +28,36 @@ export class AuthService {
   readonly userProfileData = signal<UserProfileData | null>(null);
 
   constructor() {
+    // Remember where a visitor was when any action sends them to /auth/login
+    // (favorite, message, apply…), so login returns them there instead of /home.
+    // authGuard stores the attempted protected URL first; that one wins.
+    this.router.events.subscribe(e => {
+      if (!(e instanceof NavigationStart)) return;
+      // Leaving the login page without signing in: forget the stale return URL.
+      if (this.router.url.startsWith('/auth/login') && !e.url.startsWith('/auth')) {
+        try { sessionStorage.removeItem('bandyou_return_url'); } catch { /* storage blocked */ }
+        return;
+      }
+      if (!e.url.startsWith('/auth/login')) return;
+      const from = this.router.url;
+      if (from === '/' || from.startsWith('/auth') || from.startsWith('/onboarding')) return;
+      try {
+        if (!sessionStorage.getItem('bandyou_return_url')) sessionStorage.setItem('bandyou_return_url', from);
+      } catch { /* storage blocked */ }
+    });
+
     this.supabase.getSession()
       .then(({ data }) => { this._session.set(data.session); })
       .catch(() => {});
 
     this.supabase.authChanges((event, session) => {
       this._session.set(session);
+      // Recovery links: supabase-js may consume the URL hash before /auth/callback
+      // reads it, so rely on its event to always land on the new-password form.
+      if (event === 'PASSWORD_RECOVERY') {
+        this.router.navigate(['/auth/reset-password']);
+        return;
+      }
       // Redirect to login on unexpected sign-out (e.g. token refresh failure),
       // but not when our own signOut() method triggered it.
       if (event === 'SIGNED_OUT' && !this._signingOut) {
@@ -150,16 +174,15 @@ export class AuthService {
     this._signingOut = true;
     try {
       const { error } = await this.supabase.client.rpc('delete_user_account');
-      if (error) {
-        this._signingOut = false;
-        throw new Error(error.message);
-      }
-      // auth.users is gone — supabase.signOut() would fail; just clear local state.
+      if (error) throw new Error(error.message);
+      // auth.users is gone, so a server sign-out would fail — but the session must
+      // still be dropped locally, or the app keeps acting as logged in.
+      await this.supabase.client.auth.signOut({ scope: 'local' }).catch(() => undefined);
+      this._session.set(null);
       this.clearUserProfile();
       this.router.navigate(['/']);
-    } catch (err) {
+    } finally {
       this._signingOut = false;
-      throw err;
     }
   }
 }

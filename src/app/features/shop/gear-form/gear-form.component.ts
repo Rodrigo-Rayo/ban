@@ -179,6 +179,11 @@ export class GearFormComponent implements OnInit, OnDestroy {
         return this.supabase.client.storage.from('gear-images').getPublicUrl(path).data.publicUrl;
       })
     )).filter((url): url is string => url !== null);
+    if (newImageUrls.length < this.imageFiles.length) {
+      // Don't publish with silently missing photos.
+      this.toast.error('No se pudieron subir algunas fotos. Revisa tu conexión e inténtalo de nuevo.');
+      return;
+    }
     this.uploadProgress.set(100);
 
     const allImages = [...this.existingImages(), ...newImageUrls];
@@ -211,8 +216,8 @@ export class GearFormComponent implements OnInit, OnDestroy {
       condition:           this.form.condition,
       city:                this.form.city,
       images:              allImages,
-      seller_name:         profile?.name ?? user.email?.split('@')[0] ?? 'Usuario',
-      seller_profile_type: profile?.type ?? '',
+      seller_name:         profile?.name ?? ((await this.supabase.client.rpc('get_profile_name', { p_user_id: user.id })).data as string | null) ?? 'Usuario',
+      seller_profile_type: profile?.type ?? null,
       seller_profile_id:   profile?.id ?? null,
     }).select().single();
 

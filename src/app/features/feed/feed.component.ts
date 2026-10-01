@@ -1,4 +1,5 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -27,6 +28,7 @@ export class FeedComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private seo = inject(SeoService);
   private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private location = inject(Location);
 
@@ -82,11 +84,16 @@ export class FeedComponent implements OnInit, OnDestroy {
       const { data: { user } } = await this.supabase.auth.getUser();
       this.currentUser.set(user);
 
-      if (this.route.snapshot.queryParamMap.get('new') === '1') {
-        if (!user) { this.router.navigate(['/auth/login']); return; }
+      // React to ?new=1 on every navigation, not only on first load: the "Publicar"
+      // links target /feed?new=1 and are often clicked while already on /feed.
+      this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+        if (params.get('new') !== '1') return;
+        if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
         this.showForm.set(true);
         this.formOnly.set(true);
-      }
+        // Drop the flag so a refresh after posting does not reopen the form.
+        this.router.navigate([], { queryParams: { new: null }, queryParamsHandling: 'merge', replaceUrl: true });
+      });
 
       if (user) {
         await this.auth.loadUserProfile(user.id);
@@ -165,9 +172,10 @@ export class FeedComponent implements OnInit, OnDestroy {
         city: this.newPost.city,
         instrument: this.newPost.instrument,
         genre: this.newPost.genre,
-        author_name: profile?.name ?? user.email?.split('@')[0] ?? 'Usuario',
-        author_profile_type: profile?.type ?? '',
-        author_profile_id: profile?.id ?? '',
+        // Never fall back to the email: listeners have their name in profiles (via RPC).
+        author_name: profile?.name ?? ((await this.supabase.client.rpc('get_profile_name', { p_user_id: user.id })).data as string | null) ?? 'Usuario',
+        author_profile_type: profile?.type ?? null,
+        author_profile_id: profile?.id ?? null,
       });
 
       if (error) {

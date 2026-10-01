@@ -79,12 +79,25 @@ export class CallbackComponent implements OnInit {
   }
 
   private async redirect(userId: string) {
-    const { data: profile } = await this.supabase.client
+    const { data: profile, error } = await this.supabase.client
       .from('profiles')
       .select('id, role')
       .eq('id', userId)
       .maybeSingle();
 
-    this.router.navigate([profile?.role ? '/home' : '/onboarding']);
+    // A failed lookup must not send an existing user back through onboarding;
+    // authGuard re-checks the role on the next protected route anyway.
+    if (!error && !profile?.role) {
+      this.router.navigate(['/onboarding']);
+      return;
+    }
+    let returnUrl: string | null = null;
+    try {
+      returnUrl = sessionStorage.getItem('bandyou_return_url');
+      sessionStorage.removeItem('bandyou_return_url');
+    } catch { /* storage blocked */ }
+    // Same rule as AuthService.signInWithEmail: only in-app relative paths.
+    if (returnUrl && /^\/[^/]/.test(returnUrl)) this.router.navigateByUrl(returnUrl);
+    else this.router.navigate(['/home']);
   }
 }

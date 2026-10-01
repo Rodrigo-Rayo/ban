@@ -113,9 +113,12 @@ export class SearchComponent implements OnInit, OnDestroy {
       } else {
         this.selectedCity.set('Toda España');
       }
-      if (params['genre'] !== undefined)   this.selectedGenre.set(params['genre'] || '');
-      if (params['q'] !== undefined)       this.searchQuery.set(params['q'] || '');
-      if (params['instrument'] !== undefined) this.selectedInstrument.set(params['instrument'] || '');
+      // The URL is the source of truth: absent params mean "no filter" (previously a
+      // filter from an earlier URL kept applying invisibly).
+      this.selectedGenre.set(params['genre'] || '');
+      this.selectedInstrument.set(params['instrument'] || '');
+      // Don't overwrite text the user is still typing (debounced navigation pending).
+      if (this.searchDebounceTimer === undefined) this.searchQuery.set(params['q'] || '');
 
       this.loadData();
     });
@@ -163,6 +166,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       clearTimeout(this.searchDebounceTimer);
     }
     this.searchDebounceTimer = setTimeout(() => {
+      this.searchDebounceTimer = undefined;
       this.filterChanged();
     }, 400);
   }
@@ -202,9 +206,12 @@ export class SearchComponent implements OnInit, OnDestroy {
   async loadMore() {
     if (this.loadingMore() || !this.hasMore()) return;
     this.loadingMore.set(true);
+    const seq = this.fetchSeq;
     try {
       this.offset += this.LIMIT;
       const data = await this.fetchPage(this.offset);
+      // A filter change while loading started a new list: drop this stale page.
+      if (seq !== this.fetchSeq) return;
       this.appendResults(data);
       this.hasMore.set(data.length === this.LIMIT);
     } catch {
@@ -258,7 +265,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
       if (query) { q = q.ilike('name', `%${query}%`); }
-      const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      if (error) throw error;
       return data || [];
     }
 
@@ -269,7 +277,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.eq('genre', genre);
       if (query) q = q.ilike('title', `%${query}%`);
-      const { data } = await q.order('date', { ascending: true }).range(offset, offset + this.LIMIT - 1);
+      const { data, error } = await q.order('date', { ascending: true }).range(offset, offset + this.LIMIT - 1);
+      if (error) throw error;
       return data || [];
     }
 
@@ -278,7 +287,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
       if (query) q = q.ilike('name', `%${query}%`);
-      const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      if (error) throw error;
       return data || [];
     }
 
@@ -287,7 +297,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.ilike('genres', `%${genre}%`);
       if (query) q = q.ilike('name', `%${query}%`);
-      const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      if (error) throw error;
       return data || [];
     }
 
@@ -297,7 +308,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       if (city !== 'Toda España') q = q.eq('city', city);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
       if (query) { q = q.ilike('name', `%${query}%`); }
-      const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      if (error) throw error;
       return data || [];
     }
 
@@ -305,7 +317,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       let q = this.supabase.client.from('rehearsal_spaces').select(SearchComponent.SEARCH_COLS.rehearsal);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (query) q = q.ilike('name', `%${query}%`);
-      const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      if (error) throw error;
       return data || [];
     }
 
@@ -320,7 +333,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
       if (query) q = q.ilike('instrument', `%${query}%`);
-      const { data } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
+      if (error) throw error;
       return data || [];
     }
 

@@ -7,6 +7,7 @@ import { MessagesService } from '../../../core/services/messages.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { NotificationsService } from '../../../core/services/notifications.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { RehearsalSpace, Review } from '../../../core/models';
@@ -29,6 +30,7 @@ export class RehearsalProfileComponent implements OnInit {
   private favSvc = inject(FavoritesService);
   private seo = inject(SeoService);
   private toast = inject(ToastService);
+  private notifSvc = inject(NotificationsService);
 
   space = signal<RehearsalSpace | null>(null);
   avatarError = signal(false);
@@ -118,13 +120,9 @@ export class RehearsalProfileComponent implements OnInit {
   private async getAuthorName(): Promise<string> {
     const uid = this.currentUserId();
     if (!uid) return 'Usuario';
-    const results = await Promise.all(
-      (['musicians', 'bands', 'venues', 'teachers', 'rehearsal_spaces'] as const).map(t =>
-        this.supabase.client.from(t).select('name').eq('user_id', uid).maybeSingle()
-      )
-    );
-    for (const { data } of results) { if (data?.name) return data.name; }
-    return 'Usuario';
+    // get_profile_name covers every role, including listeners (profiles.name).
+    const { data } = await this.supabase.client.rpc('get_profile_name', { p_user_id: uid });
+    return (data as string | null) || 'Usuario';
   }
 
   async submitReview() {
@@ -201,7 +199,9 @@ export class RehearsalProfileComponent implements OnInit {
         .select('start_time, end_time')
         .eq('space_id', this.space()!.id)
         .eq('date', this.bookingDate)
-        .neq('status', 'cancelled');
+        // Cancelled and rejected bookings free the slot. RLS only shows the caller's own
+        // rows; the DB trigger in supabase/audit_2026_10_bookings_overlap.sql enforces it for everyone.
+        .not('status', 'in', '(cancelled,rejected)');
 
       if (conflictError) {
         this.bookingError.set('No se pudo verificar la disponibilidad. Inténtalo de nuevo.');
@@ -209,7 +209,8 @@ export class RehearsalProfileComponent implements OnInit {
       }
 
       const hasOverlap = (conflicts || []).some((c: { start_time: string; end_time: string }) =>
-        c.start_time < this.bookingEndTime && c.end_time > this.bookingStartTime
+        // DB times are HH:MM:SS, inputs HH:MM — compare at minute precision.
+        c.start_time.slice(0, 5) < this.bookingEndTime && c.end_time.slice(0, 5) > this.bookingStartTime
       );
 
       if (hasOverlap) {
@@ -234,7 +235,10 @@ export class RehearsalProfileComponent implements OnInit {
         });
 
       if (error) {
-        this.bookingError.set('No se pudo solicitar la reserva. Inténtalo de nuevo.');
+        // 23P01 = raised by trg_prevent_booking_overlap when someone else holds the slot.
+        this.bookingError.set(error.code === '23P01'
+          ? 'Ese horario ya está reservado. Elige otra hora.'
+          : 'No se pudo solicitar la reserva. Inténtalo de nuevo.');
       } else {
         this.bookingDone.set(true);
         this.showBookingForm.set(false);
@@ -245,6 +249,11 @@ export class RehearsalProfileComponent implements OnInit {
         this.bookingPhone = '';
         this.bookingNotes = '';
         this.toast.success('¡Solicitud enviada! El local confirmará tu reserva.');
+        // Best effort: the booking is stored even if the notification fails (rate limit…).
+        const space = this.space()!;
+        if (space.user_id) {
+          this.notifSvc.create(space.user_id, 'booking', 'Nueva solicitud de reserva', `${name} quiere reservar ${space.name}`, 'rehearsal', space.id).catch(() => undefined);
+        }
       }
     } catch {
       this.bookingError.set('No se pudo solicitar la reserva. Inténtalo de nuevo.');

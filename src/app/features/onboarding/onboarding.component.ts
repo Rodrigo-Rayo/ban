@@ -12,6 +12,13 @@ import { LEGAL_INFO } from '../legal/legal-info';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
 
+/** Optional numeric inputs hold '' until touched; numeric columns reject ''. */
+function toNumberOrNull(value: unknown): number | null {
+  if (value === '' || value === null || value === undefined) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 @Component({
     selector: 'app-onboarding',
     imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink],
@@ -506,7 +513,7 @@ export class OnboardingComponent implements OnInit {
     } else if (role === 'venue') {
       const { error } = await this.supabase.client.from('venues').upsert({
         user_id: userId, name: this.nameForm.value.name,
-        city: z.city, genres: genre, capacity: z.capacity,
+        city: z.city, genres: genre, capacity: toNumberOrNull(z.capacity),
         description: z.description, contact_email: z.contactEmail,
         instagram_url: z.instagram_url, website_url: z.website_url,
         phone: z.phone, address: z.address,
@@ -516,17 +523,17 @@ export class OnboardingComponent implements OnInit {
       const { error } = await this.supabase.client.from('teachers').upsert({
         user_id: userId, name: this.nameForm.value.name,
         city: z.city, instrument, level: this.selectedLevel(),
-        hourly_rate: z.hourly_rate, experience: z.experience,
+        hourly_rate: toNumberOrNull(z.hourly_rate), experience: z.experience,
         description: z.description, contact_email: z.contactEmail,
         instagram_url: z.instagram_url, youtube_url: z.youtube_url,
         website_url: z.website_url, modality: z.modality,
-        experience_years: z.experience_years,
+        experience_years: toNumberOrNull(z.experience_years),
       }, { onConflict: 'user_id' });
       saveError = error;
     } else if (role === 'rehearsal') {
       const { error } = await this.supabase.client.from('rehearsal_spaces').upsert({
         user_id: userId, name: this.nameForm.value.name,
-        city: z.city, hourly_rate: z.hourly_rate, capacity: z.capacity,
+        city: z.city, hourly_rate: toNumberOrNull(z.hourly_rate), capacity: toNumberOrNull(z.capacity),
         description: z.description, contact_email: z.contactEmail,
         phone: z.phone, address: z.address, website_url: z.website_url,
         instagram_url: z.instagram_url,

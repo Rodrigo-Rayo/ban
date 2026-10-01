@@ -252,7 +252,7 @@
             }
           </div>
           @if (tabNewRoute()) {
-            <a [routerLink]="tabNewRoute()" class="btn-primary text-xs px-3 py-1.5 mr-2 flex-shrink-0">
+            <a [routerLink]="tabNewRoute()" [queryParams]="tabNewQuery()" class="btn-primary text-xs px-3 py-1.5 mr-2 flex-shrink-0">
               {{ tabNewLabel() }}
             </a>
           }
@@ -547,7 +547,7 @@
                     }
                     <p class="text-xs text-ink-muted">
                       {{ b.date | date:'dd/MM/yyyy' }}
-                      @if (b.start_time && b.end_time) { · {{ b.start_time }} – {{ b.end_time }} }
+                      @if (b.start_time && b.end_time) { · {{ b.start_time.slice(0, 5) }} – {{ b.end_time.slice(0, 5) }} }
                     </p>
                     @if (b.message) {
                       <p class="text-xs text-ink-3 mt-1 leading-relaxed line-clamp-2">{{ b.message }}</p>
@@ -611,7 +611,7 @@
                     </div>
                     <p class="text-xs text-ink-muted">
                       {{ b.date | date:'dd/MM/yyyy' }}
-                      @if (b.start_time && b.end_time) { · {{ b.start_time }} – {{ b.end_time }} }
+                      @if (b.start_time && b.end_time) { · {{ b.start_time.slice(0, 5) }} – {{ b.end_time.slice(0, 5) }} }
                     </p>
                     @if (b.message) {
                       <p class="text-xs text-ink-3 mt-1 leading-relaxed line-clamp-2">{{ b.message }}</p>
@@ -630,6 +630,11 @@
                       <span class="text-[11px] font-semibold text-signal-red bg-signal-red/10
                                    border border-signal-red/20 px-2.5 py-1 rounded-lg">
                         Rechazada
+                      </span>
+                    } @else if (b.status === 'cancelled') {
+                      <span class="text-[11px] font-semibold text-ink-muted bg-dark-700
+                                   border border-dark-600 px-2.5 py-1 rounded-lg">
+                        Cancelada por el usuario
                       </span>
                     } @else {
                       <button type="button" (click)="updateBookingStatus(b.id, 'confirmed')"
