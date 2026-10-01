@@ -14,10 +14,9 @@ import { RouterLink } from '@angular/router';
 export const COOKIE_NOTICE_KEY = 'bandyou_cookie_consent';
 
 @Component({
-  selector: 'app-cookie-banner',
-  standalone: true,
-  imports: [RouterLink],
-  templateUrl: './cookie-banner.component.html',
+    selector: 'app-cookie-banner',
+    imports: [RouterLink],
+    templateUrl: './cookie-banner.component.html'
 })
 export class CookieBannerComponent implements OnInit {
   visible = signal(false);

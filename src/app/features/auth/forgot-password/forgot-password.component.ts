@@ -4,10 +4,9 @@ import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
 @Component({
-  selector: 'app-forgot-password',
-  standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './forgot-password.component.html',
+    selector: 'app-forgot-password',
+    imports: [ReactiveFormsModule, RouterLink],
+    templateUrl: './forgot-password.component.html'
 })
 export class ForgotPasswordComponent {
   private fb = inject(FormBuilder);

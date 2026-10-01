@@ -17,10 +17,9 @@ const ENTITY_ROUTES: Readonly<Record<string, string>> = {
 };
 
 @Component({
-  selector: 'app-notifications',
-  standalone: true,
-  imports: [RouterLink, CommonModule, DatePipe, IconComponent],
-  templateUrl: './notifications.component.html',
+    selector: 'app-notifications',
+    imports: [RouterLink, CommonModule, DatePipe, IconComponent],
+    templateUrl: './notifications.component.html'
 })
 export class NotificationsComponent implements OnInit {
   private notifSvc = inject(NotificationsService);

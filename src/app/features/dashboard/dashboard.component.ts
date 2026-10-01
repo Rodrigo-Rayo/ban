@@ -92,10 +92,9 @@ interface SidebarEvent {
 }
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [RouterLink, CommonModule, DatePipe, FormsModule],
-  templateUrl: './dashboard.component.html',
+    selector: 'app-dashboard',
+    imports: [RouterLink, CommonModule, DatePipe, FormsModule],
+    templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
   readonly timeAgo = timeAgo;

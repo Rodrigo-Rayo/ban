@@ -9,10 +9,9 @@ import { GENRES } from '../../../core/constants/music.constants';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
-  selector: 'app-venue-form',
-  standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
-  templateUrl: './venue-form.component.html',
+    selector: 'app-venue-form',
+    imports: [ReactiveFormsModule, CommonModule],
+    templateUrl: './venue-form.component.html'
 })
 export class VenueFormComponent implements OnInit {
   private fb = inject(FormBuilder);

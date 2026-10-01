@@ -15,10 +15,9 @@ import { environment } from '../../../../environments/environment';
 const MESSAGE_TOAST_MS = 6000;
 
 @Component({
-  selector: 'app-navbar',
-  standalone: true,
-  imports: [RouterLink, RouterLinkActive, CommonModule, IconComponent],
-  templateUrl: './navbar.component.html',
+    selector: 'app-navbar',
+    imports: [RouterLink, RouterLinkActive, CommonModule, IconComponent],
+    templateUrl: './navbar.component.html'
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);

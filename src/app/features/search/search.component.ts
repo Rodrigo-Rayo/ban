@@ -23,11 +23,10 @@ interface RehearsalResult { id: string; name: string; city: string; avatar_url: 
 interface VacancyResult { id: string; instrument: string; description: string | null; genre: string | null; created_at: string; bands: { id: string; name: string; city: string; avatar_url: string | null } | null; }
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'app-search',
-  standalone: true,
-  imports: [FormsModule, RouterLink, CommonModule, DatePipe, IconComponent, ListPipe],
-  templateUrl: './search.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-search',
+    imports: [FormsModule, RouterLink, CommonModule, DatePipe, IconComponent, ListPipe],
+    templateUrl: './search.component.html'
 })
 export class SearchComponent implements OnInit, OnDestroy {
   readonly avatarColor = avatarColor;

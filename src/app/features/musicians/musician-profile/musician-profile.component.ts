@@ -15,11 +15,10 @@ import { Musician } from '../../../core/models';
 const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'app-musician-profile',
-  standalone: true,
-  imports: [RouterLink, CommonModule, IconComponent],
-  templateUrl: './musician-profile.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-musician-profile',
+    imports: [RouterLink, CommonModule, IconComponent],
+    templateUrl: './musician-profile.component.html'
 })
 export class MusicianProfileComponent implements OnInit {
   readonly avatarColor = avatarColor;

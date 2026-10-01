@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
-  selector: 'app-toast',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-toast',
+    imports: [CommonModule],
+    template: `
     <div class="fixed bottom-24 lg:bottom-6 right-4 z-50 flex flex-col gap-2 pointer-events-none" style="max-width:340px"
          role="status" aria-live="polite" aria-atomic="false" aria-relevant="additions">
       @for (toast of toastSvc.toasts(); track toast.id) {
@@ -22,13 +21,13 @@ import { ToastService } from '../../../core/services/toast.service';
       }
     </div>
   `,
-  styles: [`
+    styles: [`
     @keyframes slide-up {
       from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .animate-slide-up { animation: slide-up 0.22s ease-out both; }
-  `],
+  `]
 })
 export class ToastComponent {
   toastSvc = inject(ToastService);

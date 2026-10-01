@@ -13,11 +13,10 @@ import { avatarColor, timeAgo } from '../../../core/utils/display.utils';
 const POST_COLUMNS = 'id, user_id, type, text, city, instrument, genre, author_name, author_profile_type, author_profile_id, created_at';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'app-post-detail',
-  standalone: true,
-  imports: [RouterLink, CommonModule, IconComponent],
-  templateUrl: './post-detail.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-post-detail',
+    imports: [RouterLink, CommonModule, IconComponent],
+    templateUrl: './post-detail.component.html'
 })
 export class PostDetailComponent implements OnInit {
   readonly avatarColor = avatarColor;

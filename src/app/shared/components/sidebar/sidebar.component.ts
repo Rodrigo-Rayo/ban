@@ -8,10 +8,9 @@ import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
-  selector: 'app-sidebar',
-  standalone: true,
-  imports: [FormsModule, RouterLink, IconComponent],
-  templateUrl: './sidebar.component.html',
+    selector: 'app-sidebar',
+    imports: [FormsModule, RouterLink, IconComponent],
+    templateUrl: './sidebar.component.html'
 })
 export class SidebarComponent implements OnInit {
   auth   = inject(AuthService);

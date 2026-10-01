@@ -22,10 +22,9 @@ function byCreatedAt(a: ChatMessage, b: ChatMessage): number {
 }
 
 @Component({
-  selector: 'app-chat',
-  standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
-  templateUrl: './chat.component.html',
+    selector: 'app-chat',
+    imports: [RouterLink, CommonModule, FormsModule],
+    templateUrl: './chat.component.html'
 })
 export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('messagesList') private messagesList!: ElementRef<HTMLElement>;

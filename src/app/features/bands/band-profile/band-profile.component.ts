@@ -29,10 +29,9 @@ const MAX_VACANCIES = 50;
 const MAX_MEMBERS = 50;
 
 @Component({
-  selector: 'app-band-profile',
-  standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, IconComponent],
-  templateUrl: './band-profile.component.html',
+    selector: 'app-band-profile',
+    imports: [RouterLink, CommonModule, FormsModule, IconComponent],
+    templateUrl: './band-profile.component.html'
 })
 export class BandProfileComponent implements OnInit {
   readonly avatarColor = avatarColor;

@@ -13,10 +13,9 @@ import { PushNotificationService } from './core/services/push-notification.servi
 import { SeoService } from './core/services/seo.service';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, NavbarComponent, SidebarComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent, NotificationPermissionBannerComponent],
-  template: `
+    selector: 'app-root',
+    imports: [RouterOutlet, NavbarComponent, SidebarComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent, NotificationPermissionBannerComponent],
+    template: `
     <app-navbar />
     <app-sidebar />
     <main id="main-content" tabindex="-1" class="lg:pl-56 md:pb-0" [class.pb-16]="auth.isLoggedIn()">
@@ -26,7 +25,7 @@ import { SeoService } from './core/services/seo.service';
     <app-install-banner />
     <app-notification-permission-banner />
     <app-cookie-banner />
-  `,
+  `
 })
 export class AppComponent {
   private router = inject(Router);

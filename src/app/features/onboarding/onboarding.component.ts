@@ -13,10 +13,9 @@ import { LEGAL_INFO } from '../legal/legal-info';
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
 
 @Component({
-  selector: 'app-onboarding',
-  standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink],
-  templateUrl: './onboarding.component.html',
+    selector: 'app-onboarding',
+    imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink],
+    templateUrl: './onboarding.component.html'
 })
 export class OnboardingComponent implements OnInit {
   private fb = inject(FormBuilder);

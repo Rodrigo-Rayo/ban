@@ -8,10 +8,9 @@ import { AuthService } from '../../core/services/auth.service';
 import { localToday } from '../../core/utils/date';
 
 @Component({
-  selector: 'app-landing',
-  standalone: true,
-  imports: [RouterLink, CommonModule, IconComponent],
-  templateUrl: './landing.component.html',
+    selector: 'app-landing',
+    imports: [RouterLink, CommonModule, IconComponent],
+    templateUrl: './landing.component.html'
 })
 export class LandingComponent implements OnInit {
   private supabase = inject(SupabaseService);

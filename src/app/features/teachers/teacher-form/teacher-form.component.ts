@@ -9,10 +9,9 @@ import { INSTRUMENTS } from '../../../core/constants/music.constants';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
-  selector: 'app-teacher-form',
-  standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
-  templateUrl: './teacher-form.component.html',
+    selector: 'app-teacher-form',
+    imports: [ReactiveFormsModule, CommonModule],
+    templateUrl: './teacher-form.component.html'
 })
 export class TeacherFormComponent implements OnInit {
   private fb = inject(FormBuilder);

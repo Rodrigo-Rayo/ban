@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, signal, inject, OnInit, OnDestroy } from '@angular/core';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -12,10 +12,9 @@ import { CITIES } from '../../../core/constants/cities';
 interface GearFormUserProfile { id: string; name: string; type: 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal'; }
 
 @Component({
-  selector: 'app-gear-form',
-  standalone: true,
-  imports: [FormsModule, CommonModule, RouterLink],
-  templateUrl: './gear-form.component.html',
+    selector: 'app-gear-form',
+    imports: [FormsModule, CommonModule],
+    templateUrl: './gear-form.component.html'
 })
 export class GearFormComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);

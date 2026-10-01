@@ -15,10 +15,9 @@ import { ListPipe } from '../../../shared/pipes/list.pipe';
 const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, capacity, genres, contact_email, instagram_url, website_url, phone';
 
 @Component({
-  selector: 'app-venue-profile',
-  standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, IconComponent, ListPipe],
-  templateUrl: './venue-profile.component.html',
+    selector: 'app-venue-profile',
+    imports: [RouterLink, CommonModule, FormsModule, IconComponent, ListPipe],
+    templateUrl: './venue-profile.component.html'
 })
 export class VenueProfileComponent implements OnInit {
   readonly avatarColor = avatarColor;

@@ -15,10 +15,9 @@ import { localToday } from '../../../core/utils/date';
 const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avatar_url, hourly_rate, experience_years, level, modality, website_url, youtube_url';
 
 @Component({
-  selector: 'app-teacher-profile',
-  standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, IconComponent],
-  templateUrl: './teacher-profile.component.html',
+    selector: 'app-teacher-profile',
+    imports: [RouterLink, CommonModule, FormsModule, IconComponent],
+    templateUrl: './teacher-profile.component.html'
 })
 export class TeacherProfileComponent implements OnInit {
   readonly avatarColor = avatarColor;

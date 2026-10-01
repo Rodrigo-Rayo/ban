@@ -4,10 +4,9 @@ import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
 @Component({
-  selector: 'app-reset-password',
-  standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './reset-password.component.html',
+    selector: 'app-reset-password',
+    imports: [ReactiveFormsModule, RouterLink],
+    templateUrl: './reset-password.component.html'
 })
 export class ResetPasswordComponent implements OnInit {
   private fb = inject(FormBuilder);

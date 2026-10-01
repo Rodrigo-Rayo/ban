@@ -15,10 +15,9 @@ import { localToday } from '../../../core/utils/date';
 const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, hourly_rate, capacity, opening_hours, instagram_url, website_url, phone';
 
 @Component({
-  selector: 'app-rehearsal-profile',
-  standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, IconComponent],
-  templateUrl: './rehearsal-profile.component.html',
+    selector: 'app-rehearsal-profile',
+    imports: [RouterLink, CommonModule, FormsModule, IconComponent],
+    templateUrl: './rehearsal-profile.component.html'
 })
 export class RehearsalProfileComponent implements OnInit {
   readonly avatarColor = avatarColor;

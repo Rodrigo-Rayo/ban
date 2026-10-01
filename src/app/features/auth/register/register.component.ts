@@ -8,10 +8,9 @@ import { RegistrationStateService } from '../../../core/services/registration-st
 import { LEGAL_INFO } from '../../legal/legal-info';
 
 @Component({
-  selector: 'app-register',
-  standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './register.component.html',
+    selector: 'app-register',
+    imports: [ReactiveFormsModule, RouterLink],
+    templateUrl: './register.component.html'
 })
 export class RegisterComponent implements OnInit {
   private fb = inject(FormBuilder);

@@ -23,10 +23,9 @@ const STORAGE_ITEMS: readonly StorageItem[] = [
 ];
 
 @Component({
-  selector: 'app-cookies',
-  standalone: true,
-  imports: [RouterLink],
-  template: `
+    selector: 'app-cookies',
+    imports: [RouterLink],
+    template: `
     <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
       <div class="max-w-3xl mx-auto px-5 lg:px-8 py-10">
 
@@ -150,7 +149,7 @@ const STORAGE_ITEMS: readonly StorageItem[] = [
 
       </div>
     </div>
-  `,
+  `
 })
 export class CookiesComponent implements OnInit {
   private seo = inject(SeoService);

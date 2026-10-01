@@ -9,10 +9,9 @@ import { Conversation } from '../../core/models';
 import { avatarColor } from '../../core/utils/display.utils';
 
 @Component({
-  selector: 'app-inbox',
-  standalone: true,
-  imports: [RouterLink, CommonModule, DatePipe],
-  templateUrl: './inbox.component.html',
+    selector: 'app-inbox',
+    imports: [RouterLink, CommonModule, DatePipe],
+    templateUrl: './inbox.component.html'
 })
 export class InboxComponent implements OnInit {
   readonly avatarColor = avatarColor;

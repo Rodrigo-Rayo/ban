@@ -11,11 +11,10 @@ import { localToday } from '../../../core/utils/date';
 const EVENT_COLUMNS = 'id, user_id, title, venue, city, date, time, genre, price, description, contact_email, ticket_url';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'app-event-detail',
-  standalone: true,
-  imports: [RouterLink, CommonModule, DatePipe, IconComponent],
-  templateUrl: './event-detail.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-event-detail',
+    imports: [RouterLink, CommonModule, DatePipe, IconComponent],
+    templateUrl: './event-detail.component.html'
 })
 export class EventDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);

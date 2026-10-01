@@ -4,10 +4,9 @@ import { SeoService } from '../../../core/services/seo.service';
 import { LEGAL_INFO } from '../legal-info';
 
 @Component({
-  selector: 'app-terms',
-  standalone: true,
-  imports: [RouterLink],
-  templateUrl: './terms.component.html',
+    selector: 'app-terms',
+    imports: [RouterLink],
+    templateUrl: './terms.component.html'
 })
 export class TermsComponent implements OnInit {
   private seo = inject(SeoService);

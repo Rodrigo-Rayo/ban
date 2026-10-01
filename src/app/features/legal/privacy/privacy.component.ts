@@ -4,10 +4,9 @@ import { SeoService } from '../../../core/services/seo.service';
 import { LEGAL_INFO } from '../legal-info';
 
 @Component({
-  selector: 'app-privacy',
-  standalone: true,
-  imports: [RouterLink],
-  templateUrl: './privacy.component.html',
+    selector: 'app-privacy',
+    imports: [RouterLink],
+    templateUrl: './privacy.component.html'
 })
 export class PrivacyComponent implements OnInit {
   private seo = inject(SeoService);

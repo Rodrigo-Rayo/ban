@@ -26,11 +26,10 @@ export interface GearListing {
 }
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'app-gear-list',
-  standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, IconComponent],
-  templateUrl: './gear-list.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-gear-list',
+    imports: [RouterLink, CommonModule, FormsModule, IconComponent],
+    templateUrl: './gear-list.component.html'
 })
 export class GearListComponent implements OnInit {
   private supabase = inject(SupabaseService);

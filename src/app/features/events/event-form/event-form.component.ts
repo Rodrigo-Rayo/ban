@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -14,10 +14,9 @@ export function futureDate(control: AbstractControl): ValidationErrors | null {
 }
 
 @Component({
-  selector: 'app-event-form',
-  standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './event-form.component.html',
+    selector: 'app-event-form',
+    imports: [ReactiveFormsModule],
+    templateUrl: './event-form.component.html'
 })
 export class EventFormComponent {
   private fb = inject(FormBuilder);

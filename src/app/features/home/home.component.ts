@@ -19,11 +19,10 @@ interface HomeListing { id: string; title: string; price: number | null; conditi
 interface HomeProfile { id?: string; name: string; city?: string | null; avatar_url?: string | null; }
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'app-home',
-  standalone: true,
-  imports: [RouterLink, CommonModule, DatePipe, IconComponent],
-  templateUrl: './home.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-home',
+    imports: [RouterLink, CommonModule, DatePipe, IconComponent],
+    templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit {
   readonly avatarColor = avatarColor;

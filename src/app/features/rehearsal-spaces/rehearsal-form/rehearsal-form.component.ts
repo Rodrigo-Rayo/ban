@@ -8,10 +8,9 @@ import { CITIES } from '../../../core/constants/cities';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
-  selector: 'app-rehearsal-form',
-  standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
-  templateUrl: './rehearsal-form.component.html',
+    selector: 'app-rehearsal-form',
+    imports: [ReactiveFormsModule, CommonModule],
+    templateUrl: './rehearsal-form.component.html'
 })
 export class RehearsalFormComponent implements OnInit {
   private fb = inject(FormBuilder);

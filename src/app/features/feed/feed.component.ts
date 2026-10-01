@@ -14,10 +14,9 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { avatarColor, timeAgo } from '../../core/utils/display.utils';
 
 @Component({
-  selector: 'app-feed',
-  standalone: true,
-  imports: [FormsModule, CommonModule, RouterLink, IconComponent],
-  templateUrl: './feed.component.html',
+    selector: 'app-feed',
+    imports: [FormsModule, CommonModule, RouterLink, IconComponent],
+    templateUrl: './feed.component.html'
 })
 export class FeedComponent implements OnInit, OnDestroy {
   readonly avatarColor = avatarColor;

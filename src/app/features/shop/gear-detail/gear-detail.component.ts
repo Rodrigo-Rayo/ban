@@ -13,11 +13,10 @@ import { GearListing } from '../../../core/models';
 const GEAR_COLUMNS = 'id, user_id, title, description, price, category, condition, city, images, status, seller_name, seller_profile_type, seller_profile_id';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'app-gear-detail',
-  standalone: true,
-  imports: [RouterLink, CommonModule, IconComponent],
-  templateUrl: './gear-detail.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-gear-detail',
+    imports: [RouterLink, CommonModule, IconComponent],
+    templateUrl: './gear-detail.component.html'
 })
 export class GearDetailComponent implements OnInit {
   private supabase = inject(SupabaseService);

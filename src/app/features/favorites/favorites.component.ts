@@ -22,11 +22,10 @@ interface ResolvedEntity {
 }
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'app-favorites',
-  standalone: true,
-  imports: [RouterLink, CommonModule, IconComponent],
-  templateUrl: './favorites.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-favorites',
+    imports: [RouterLink, CommonModule, IconComponent],
+    templateUrl: './favorites.component.html'
 })
 export class FavoritesComponent implements OnInit {
   readonly avatarColor = avatarColor;

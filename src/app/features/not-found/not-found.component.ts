@@ -5,10 +5,9 @@ import { SeoService } from '../../core/services/seo.service';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
-  selector: 'app-not-found',
-  standalone: true,
-  imports: [RouterLink],
-  template: `
+    selector: 'app-not-found',
+    imports: [RouterLink],
+    template: `
     <div class="min-h-screen bg-dark-900 flex items-center justify-center px-6" style="padding-top:64px; padding-bottom:64px">
       <div class="text-center max-w-sm">
         <div class="text-8xl sm:text-9xl font-black text-primary-500/15 leading-none mb-4 select-none">404</div>
@@ -22,7 +21,7 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
       </div>
     </div>
-  `,
+  `
 })
 export class NotFoundComponent implements OnInit {
   protected auth = inject(AuthService);
