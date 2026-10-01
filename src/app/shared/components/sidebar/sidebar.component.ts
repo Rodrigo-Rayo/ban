@@ -1,6 +1,5 @@
 import { Component, inject, signal, OnInit, DestroyRef, HostListener } from '@angular/core';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { IconComponent } from '../icon/icon.component';
 import { GENRES, INSTRUMENTS } from '../../../core/constants/music.constants';
@@ -9,7 +8,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-sidebar',
-    imports: [FormsModule, RouterLink, IconComponent],
+    imports: [RouterLink, IconComponent],
     templateUrl: './sidebar.component.html'
 })
 export class SidebarComponent implements OnInit {
@@ -37,9 +36,24 @@ export class SidebarComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.syncFiltersFromUrl(this.router.url);
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
-      .subscribe((e: NavigationEnd) => { this.currentUrl.set(e.urlAfterRedirects); this.publishOpen = false; });
+      .subscribe((e: NavigationEnd) => {
+        this.currentUrl.set(e.urlAfterRedirects);
+        this.publishOpen = false;
+        this.syncFiltersFromUrl(e.urlAfterRedirects);
+      });
+  }
+
+  /** The URL is the source of truth for search filters (reloads, shared links, page-level filters). */
+  private syncFiltersFromUrl(url: string) {
+    if (!url.startsWith('/search')) return;
+    const q = this.router.parseUrl(url).queryParams;
+    this.filterQuery.set(q['q'] ?? '');
+    this.filterCity.set(q['city'] ?? 'Toda España');
+    this.filterGenre.set(q['genre'] ?? '');
+    this.filterInstrument.set(q['instrument'] ?? '');
   }
 
   get isSearch()    { return this.currentUrl().startsWith('/search'); }

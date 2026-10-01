@@ -65,6 +65,20 @@ test.describe('Search', () => {
   });
 });
 
+test.describe('Sidebar filters', () => {
+  test('restore from the URL and keep existing filters when adding one', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 900 });
+    await page.goto('/search?tab=musicians&city=Madrid&q=gui');
+    const side = page.locator('aside');
+    await expect(side.getByLabel('Filtrar por ciudad')).toHaveValue('Madrid');
+    await expect(side.getByLabel('Buscar en el directorio')).toHaveValue('gui');
+    await side.getByLabel('Filtrar por instrumento').selectOption({ index: 2 });
+    await expect(page).toHaveURL(/city=Madrid/);
+    await expect(page).toHaveURL(/q=gui/);
+    await expect(page).toHaveURL(/instrument=/);
+  });
+});
+
 test.describe('Profiles', () => {
   test('availability tags never show raw array braces', async ({ page }) => {
     await page.goto('/search');
