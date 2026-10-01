@@ -160,7 +160,11 @@ export class AuthService {
     this._signingOut = true;
     const userId = this.user()?.id;
     if (userId) {
-      try { await this.push.unsubscribeDevice(userId); } catch { /* ignore */ }
+      // Never let push cleanup block logging out (it depends on the service worker).
+      await Promise.race([
+        this.push.unsubscribeDevice(userId).catch(() => undefined),
+        new Promise(resolve => setTimeout(resolve, 2500)),
+      ]);
     }
     this.clearUserProfile();
     try { await this.supabase.signOut(); } catch { /* ignore */ }

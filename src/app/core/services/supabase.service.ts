@@ -57,7 +57,9 @@ export class SupabaseService {
   }
 
   signOut() {
-    return this.supabase.auth.signOut();
+    // Log out this device only; the default ('global') also kills the user's
+    // sessions on every other phone/computer.
+    return this.supabase.auth.signOut({ scope: 'local' });
   }
 
   getSession() {

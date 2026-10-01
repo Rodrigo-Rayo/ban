@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { environment } from '../../../environments/environment';
 
@@ -86,7 +86,8 @@ export class PushNotificationService {
       // After a reload currentEndpoint is unset — fall back to the live SW subscription
       // so logout still removes this device's row (otherwise pushes keep arriving).
       const endpoint = this.currentEndpoint
-        ?? (await firstValueFrom(this.swPush.subscription))?.endpoint
+        // swPush.subscription never emits until the service worker is ready: cap the wait.
+        ?? (await firstValueFrom(this.swPush.subscription.pipe(timeout(1500))).catch(() => null))?.endpoint
         ?? null;
       if (endpoint) {
         const { error } = await this.supabase.client

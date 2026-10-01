@@ -124,7 +124,7 @@ test.describe('Authenticated: content flows', () => {
   test('A adds the band to favorites and removes it again', async ({ pageA, band }) => {
     const saveButton = pageA.locator('button:visible', { hasText: /^\s*Guardar\s*$/ }).first();
     const savedButton = pageA.locator('button:visible', { hasText: /^\s*Guardado\s*$/ }).first();
-    await pageA.goto(band.path);
+    await pageA.goto(band.path, { waitUntil: "networkidle" });
     // A previous aborted run may have left it saved.
     if (await savedButton.isVisible().catch(() => false)) {
       await savedButton.click();
@@ -136,7 +136,7 @@ test.describe('Authenticated: content flows', () => {
       await pageA.goto('/favorites');
       await expect(pageA.getByText(band.name).first()).toBeVisible();
     } finally {
-      await pageA.goto(band.path);
+      await pageA.goto(band.path, { waitUntil: "networkidle" });
       if (await savedButton.isVisible().catch(() => false)) {
         await savedButton.click();
         await expect(saveButton).toBeVisible();
@@ -147,7 +147,7 @@ test.describe('Authenticated: content flows', () => {
   test('B (mobile) uploads an avatar', async ({ pageB }) => {
     await pageB.goto('/dashboard');
     await pageB.locator('input[type=file]').first().setInputFiles(IMAGE);
-    await expectImageLoaded(pageB, 'img[src*="avatars"]');
+    await expectImageLoaded(pageB, 'img[src*="avatars"]:visible');
   });
 });
 
