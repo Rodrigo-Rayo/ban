@@ -50,3 +50,6 @@ src/environments/environment.prod.ts
 # Playwright
 /test-results
 /playwright-report
+
+# Playwright authenticated sessions (contain real tokens)
+/e2e/.auth/
