@@ -23,6 +23,8 @@ export class SeoService {
   private router = inject(Router);
   private canonical?: HTMLLinkElement;
   private pageNoindex = false;
+  private baseTitle = '';
+  private unread = 0;
 
   constructor() {
     // robots is derived per navigation from route `data.noindex` so a noindex
@@ -32,6 +34,18 @@ export class SeoService {
       if (e instanceof NavigationStart && pathOf(e.url) !== pathOf(this.router.url)) this.pageNoindex = false;
       if (e instanceof NavigationEnd) this.applyRobots();
     });
+  }
+
+  /** WhatsApp-style "(3) BandYou" tab title while there are unread messages. */
+  setUnreadCount(count: number) {
+    this.unread = Math.max(0, count);
+    this.applyTitle();
+  }
+
+  private applyTitle() {
+    const base = this.baseTitle || this.title.getTitle().replace(/^\(\d+\+?\) /, '');
+    const prefix = this.unread > 0 ? `(${this.unread > 99 ? '99+' : this.unread}) ` : '';
+    this.title.setTitle(prefix + base);
   }
 
   set(options: SeoOptions) {
@@ -49,7 +63,8 @@ export class SeoService {
     // from a profile/event does not leave the old schema in <head>.
     this.clearJsonLd();
 
-    this.title.setTitle(fullTitle);
+    this.baseTitle = fullTitle;
+    this.applyTitle();
     this.meta.updateTag({ name: 'description', content: desc });
     this.meta.updateTag({ property: 'og:title', content: fullTitle });
     this.meta.updateTag({ property: 'og:description', content: desc });

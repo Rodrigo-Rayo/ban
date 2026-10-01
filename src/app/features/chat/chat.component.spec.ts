@@ -39,6 +39,10 @@ describe('ChatComponent', () => {
     created_at: new Date().toISOString(),
   } as any;
 
+  const makeMessage = (over: Partial<Message>): Message => ({
+    ...fakeMsg, text: 'hi', read: false, sender_id: 'me', ...over,
+  } as Message);
+
   const fakeChannel: any = { unsubscribe: jasmine.createSpy('unsubscribe') };
 
   beforeEach(async () => {
@@ -432,5 +436,20 @@ describe('ChatComponent', () => {
     const oldDate = new Date(2020, 0, 15, 10, 5); // 15 Jan 2020 10:05
     const result = component.formatMessageTime(oldDate.toISOString());
     expect(result).toBe('15/01 10:05');
+  });
+
+  it('marks our message as read when the realtime UPDATE arrives', () => {
+    (component as any).conversationId = 'conv-123';
+    component.messages.set([makeMessage({ id: 'm1', read: false }), makeMessage({ id: 'm2', read: false })]);
+    (component as any).onUpdated(makeMessage({ id: 'm1', read: true }));
+    expect(component.messages().find(m => m.id === 'm1')!.read).toBeTrue();
+    expect(component.messages().find(m => m.id === 'm2')!.read).toBeFalse();
+  });
+
+  it('ignores UPDATE events from another conversation', () => {
+    (component as any).conversationId = 'conv-123';
+    component.messages.set([makeMessage({ id: 'm1', read: false })]);
+    (component as any).onUpdated(makeMessage({ id: 'm1', read: true, conversation_id: 'other' }));
+    expect(component.messages()[0].read).toBeFalse();
   });
 });

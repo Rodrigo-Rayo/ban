@@ -4,6 +4,8 @@ import { InboxComponent } from './inbox.component';
 import { MessagesService, InboxUpdate } from '../../core/services/messages.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
+import { PushNotificationService } from '../../core/services/push-notification.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Conversation } from '../../core/models';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -37,11 +39,17 @@ describe('InboxComponent', () => {
   let messagesSpy: jasmine.SpyObj<MessagesService>;
   let toastSpy: jasmine.SpyObj<ToastService>;
   let inboxUpdate$: Subject<InboxUpdate>;
+  let pushMock: { permission: NotificationPermission | 'unsupported'; isSupported: boolean; requestAndSubscribe: jasmine.Spy };
 
   const defaultConversation = makeConversation();
 
   beforeEach(async () => {
     inboxUpdate$ = new Subject<InboxUpdate>();
+    pushMock = {
+      permission: 'granted',
+      isSupported: true,
+      requestAndSubscribe: jasmine.createSpy('requestAndSubscribe').and.resolveTo('granted'),
+    };
 
     messagesSpy = jasmine.createSpyObj<MessagesService>(
       'MessagesService',
@@ -87,6 +95,8 @@ describe('InboxComponent', () => {
         { provide: MessagesService, useValue: messagesSpy },
         { provide: SupabaseService, useValue: supabaseMock },
         { provide: ToastService, useValue: toastSpy },
+        { provide: PushNotificationService, useValue: pushMock },
+        { provide: AuthService, useValue: { user: () => ({ id: 'user-1' }) } },
       ],
     })
       .overrideComponent(InboxComponent, {
@@ -352,6 +362,35 @@ describe('InboxComponent', () => {
 
       expect(component.conversations().length).toBe(1);
       expect(component.conversations()[0].id).toBe('conv-2');
+    });
+  });
+
+  describe('push notification prompt', () => {
+    it('shows nothing when notifications are already granted', () => {
+      expect(component.pushPrompt()).toBe('none');
+    });
+
+    it('enablePush() hides the prompt and confirms when the user grants permission', async () => {
+      component.pushPrompt.set('ask');
+      await component.enablePush();
+      expect(pushMock.requestAndSubscribe).toHaveBeenCalledWith('user-1');
+      expect(component.pushPrompt()).toBe('none');
+      expect(toastSpy.success).toHaveBeenCalled();
+    });
+
+    it('enablePush() switches to the "blocked" hint when the user denies permission', async () => {
+      component.pushPrompt.set('ask');
+      pushMock.requestAndSubscribe.and.resolveTo('denied');
+      await component.enablePush();
+      expect(component.pushPrompt()).toBe('denied');
+    });
+
+    it('enablePush() keeps the prompt and shows an error when subscribing fails', async () => {
+      component.pushPrompt.set('ask');
+      pushMock.requestAndSubscribe.and.resolveTo('error');
+      await component.enablePush();
+      expect(component.pushPrompt()).toBe('ask');
+      expect(toastSpy.error).toHaveBeenCalled();
     });
   });
 });

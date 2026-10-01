@@ -75,6 +75,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subscription = this.messagesService.subscribeToMessages(
       this.conversationId,
       (msg) => this.onIncoming(msg),
+      (msg) => this.onUpdated(msg),
     );
 
     try {
@@ -208,6 +209,12 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.hasNewBelow.set(true);
     }
     if (!isMine) this.markRead();
+  }
+
+  /** The recipient read one of our messages: flip its tick to "read". */
+  private onUpdated(msg: Message) {
+    if (!msg?.id || msg.conversation_id !== this.conversationId || !msg.read) return;
+    this.messages.update(list => list.map(m => (m.id === msg.id && !m.read ? { ...m, read: true } : m)));
   }
 
   /** Marks the thread read (refreshing the navbar badge) — deferred while the tab is hidden. */

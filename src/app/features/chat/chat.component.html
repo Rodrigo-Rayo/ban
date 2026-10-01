@@ -128,6 +128,19 @@
                 No enviado
               } @else {
                 {{ formatMessageTime(msg.created_at) }}
+                @if (msg.sender_id === currentUserId()) {
+                  <span class="inline-flex align-middle ml-1" [class.text-sky-200]="msg.read"
+                        [attr.aria-label]="msg.read ? 'Leído' : 'Enviado'" role="img"
+                        [attr.data-testid]="msg.read ? 'msg-read' : 'msg-sent'">
+                    <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                      @if (msg.read) {
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2 13l4 4L16 7M10 15l2 2L22 7"/>
+                      } @else {
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                      }
+                    </svg>
+                  </span>
+                }
               }
             </div>
           </div>

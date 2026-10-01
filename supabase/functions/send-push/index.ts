@@ -23,7 +23,7 @@ const MAX_MESSAGE_AGE_MS = 2 * 60 * 1000;
  * the last push actually sent (messages.push_sent_at). A burst still yields a push
  * every window instead of only the first message.
  */
-const SENDER_COOLDOWN_MS = 20 * 1000;
+const SENDER_COOLDOWN_MS = 5 * 1000;
 /** Best-effort in-isolate dedupe of message ids already pushed (isolates are ephemeral). */
 const pushedMessageIds = new Map<string, number>();
 
@@ -240,8 +240,8 @@ serve(async (req) => {
       notification: {
         title: senderName,
         body: text,
-        icon: '/favicon.svg',
-        badge: '/favicon.svg',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
         // Collapse a burst of messages from one thread into a single notification.
         tag: `conversation-${conversationId}`,
         renotify: true,

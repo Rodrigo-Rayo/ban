@@ -367,15 +367,22 @@ export class MessagesService {
       .subscribe();
   }
 
-  subscribeToMessages(conversationId: string, callback: (msg: Message) => void) {
+  /**
+   * Thread channel: INSERTs deliver new messages; UPDATEs (the other side flipping
+   * `read`) drive the sent/read ticks.
+   */
+  subscribeToMessages(
+    conversationId: string,
+    callback: (msg: Message) => void,
+    onUpdate?: (msg: Message) => void,
+  ) {
+    const filter = `conversation_id=eq.${conversationId}`;
     return this.supabase.client
       .channel(`messages:${conversationId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `conversation_id=eq.${conversationId}`,
-      }, (payload) => callback(payload.new as unknown as Message))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter },
+        (payload) => callback(payload.new as unknown as Message))
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter },
+        (payload) => onUpdate?.(payload.new as unknown as Message))
       .subscribe();
   }
 

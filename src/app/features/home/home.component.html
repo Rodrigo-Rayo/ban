@@ -35,41 +35,6 @@
         </div>
       }
 
-      <!-- ── DISCOVERY HERO ── -->
-      <div class="relative overflow-hidden rounded-2xl mb-5 p-5" style="background: linear-gradient(135deg, #2d1109 0%, #1c0e08 55%, #120c09 100%); border: 1px solid rgba(160,68,42,0.3)">
-        <!-- Atmospheric glow -->
-        <div class="absolute -top-6 -right-6 w-36 h-36 rounded-full opacity-25 blur-2xl pointer-events-none" style="background: radial-gradient(circle, #c4623e 0%, transparent 70%)"></div>
-        <div class="relative">
-          <p class="text-micro font-semibold uppercase tracking-wider text-primary-500 mb-1.5">Directorio musical</p>
-          <h2 class="text-lg font-black text-white leading-tight mb-3">¿A quién buscas hoy?</h2>
-          <!-- Fake search input — links to full search page -->
-          <a routerLink="/search" aria-label="Ir al buscador"
-             class="flex items-center gap-2.5 w-full rounded-xl px-4 py-3 text-sm text-ink-muted hover:text-ink transition-all mb-4 group"
-             style="background: rgba(15,11,7,0.65); border: 1px solid rgba(160,68,42,0.25)">
-            <svg aria-hidden="true" class="w-4 h-4 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <span class="group-hover:text-ink-muted transition-colors">Músicos, bandas, salas, profesores…</span>
-            <span class="ml-auto text-micro font-semibold text-primary-500 group-hover:text-primary-600 transition-colors flex-shrink-0">Buscar →</span>
-          </a>
-          <!-- Location + city chips -->
-          <div class="flex items-center gap-2 flex-wrap">
-            @if (userCity()) {
-              <span class="text-micro text-primary-500/60 font-medium flex-shrink-0">En tu zona:</span>
-              <a [routerLink]="['/search']" [queryParams]="{city: userCity()}"
-                 class="text-micro font-bold px-2.5 py-1 rounded-full flex-shrink-0 transition-colors"
-                 style="background: rgba(160,68,42,0.25); border: 1px solid rgba(160,68,42,0.4); color: #f4a47a">
-                <svg aria-hidden="true" class="w-2.5 h-2.5 inline mr-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
-                {{ userCity() }}
-              </a>
-            }
-            <a routerLink="/search" class="text-micro font-bold px-2.5 py-1 rounded-full flex-shrink-0 text-ink-muted border border-dark-600 hover:border-primary-500/40 hover:text-ink transition-colors" style="background: rgba(255,255,255,0.04)">
-              Toda España
-            </a>
-          </div>
-        </div>
-      </div>
-
       <!-- ── CATEGORY QUICK-NAV ── -->
       <nav aria-label="Categorías del directorio" class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6">
         <a routerLink="/search" [queryParams]="userCity() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}"

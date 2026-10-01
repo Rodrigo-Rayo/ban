@@ -4,6 +4,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { NotificationsService } from '../../../core/services/notifications.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { SeoService } from '../../../core/services/seo.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 import { filter } from 'rxjs/operators';
@@ -13,6 +14,16 @@ import { environment } from '../../../../environments/environment';
 
 /** How long the new-message toast stays up (paused while hovered or focused). */
 const MESSAGE_TOAST_MS = 6000;
+
+/** Badging API (installed PWA icon). Unsupported browsers simply ignore it. */
+function setAppBadge(count: number) {
+  const nav = navigator as Navigator & {
+    setAppBadge?: (n?: number) => Promise<void>;
+    clearAppBadge?: () => Promise<void>;
+  };
+  const op = count > 0 ? nav.setAppBadge?.(count) : nav.clearAppBadge?.();
+  op?.catch(() => { /* not permitted outside an installed app */ });
+}
 
 @Component({
     selector: 'app-navbar',
@@ -24,6 +35,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   notifSvc = inject(NotificationsService);
   messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
+  private seo = inject(SeoService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   menuOpen = false;
@@ -50,6 +62,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
     effect(() => {
       const userId = this.auth.user()?.id ?? null;
       untracked(() => this.onUserChange(userId));
+    });
+    // Unread messages show in the tab title and on the installed app's icon.
+    effect(() => {
+      const unread = this.messagesService.unreadCount();
+      untracked(() => {
+        this.seo.setUnreadCount(unread);
+        setAppBadge(unread);
+      });
     });
   }
 

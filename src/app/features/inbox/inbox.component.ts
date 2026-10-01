@@ -5,8 +5,25 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessagesService, InboxUpdate } from '../../core/services/messages.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
+import { PushNotificationService } from '../../core/services/push-notification.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Conversation } from '../../core/models';
 import { avatarColor } from '../../core/utils/display.utils';
+
+/** What the "enable notifications" strip should offer on this device. */
+export type PushPrompt = 'none' | 'ask' | 'denied' | 'ios-install';
+
+function detectPushPrompt(permission: NotificationPermission | 'unsupported', swEnabled: boolean): PushPrompt {
+  if (permission === 'unsupported' || !swEnabled) {
+    // iOS only exposes Web Push to apps added to the home screen.
+    const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const standalone = window.matchMedia?.('(display-mode: standalone)').matches;
+    return isIos && !standalone ? 'ios-install' : 'none';
+  }
+  if (permission === 'default') return 'ask';
+  if (permission === 'denied') return 'denied';
+  return 'none';
+}
 
 @Component({
     selector: 'app-inbox',
@@ -20,6 +37,8 @@ export class InboxComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private destroyRef = inject(DestroyRef);
   private toast = inject(ToastService);
+  private push = inject(PushNotificationService);
+  private auth = inject(AuthService);
 
   conversations = signal<Conversation[]>([]);
   names = signal<Record<string, string>>({});
@@ -27,6 +46,8 @@ export class InboxComponent implements OnInit {
   loading = signal(true);
   deleteError = signal('');
   deletingId = signal<string | null>(null);
+  pushPrompt = signal<PushPrompt>(detectPushPrompt(this.push.permission, this.push.isSupported));
+  enablingPush = signal(false);
 
   async ngOnInit() {
     try {
@@ -70,6 +91,22 @@ export class InboxComponent implements OnInit {
         if (!conv || this.conversations().some(c => c.id === convId)) return;
         this.conversations.update(convs => [{ ...conv, last_message: preview, last_message_at: conv.last_message_at ?? new Date().toISOString() }, ...convs]);
       }).catch(() => { /* list refreshes on next visit */ });
+    }
+  }
+
+  async enablePush() {
+    const userId = this.auth.user()?.id;
+    if (!userId || this.enablingPush()) return;
+    this.enablingPush.set(true);
+    const result = await this.push.requestAndSubscribe(userId);
+    this.enablingPush.set(false);
+    if (result === 'granted') {
+      this.pushPrompt.set('none');
+      this.toast.success('Notificaciones activadas.');
+    } else if (result === 'denied') {
+      this.pushPrompt.set('denied');
+    } else {
+      this.toast.error('No se pudieron activar las notificaciones. Inténtalo de nuevo.');
     }
   }
 
