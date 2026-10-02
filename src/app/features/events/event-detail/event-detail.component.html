@@ -1,198 +1,233 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+<div class="min-h-screen bg-dark-900 pb-cta-safe" style="padding-top:64px">
 
-  @if (event()) {
-    <div class="h-2 bg-poster-yellow border-b-2 border-ink"></div>
-  }
-
-  <!-- Back nav -->
-  <div class="px-5 sm:px-6 lg:px-10 border-b-2 border-ink">
+  <div class="border-b-2 border-ink bg-dark-800 px-4 sm:px-6 lg:px-10">
     <a [routerLink]="['/search']" [queryParams]="{tab:'events'}"
-       class="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-ink hover:text-primary-600 transition-colors group min-h-[44px]">
-      <svg aria-hidden="true" class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
+       class="group inline-flex items-center gap-1 min-h-[44px] font-mono text-xs font-bold uppercase tracking-wide text-ink hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 transition-transform group-hover:-translate-x-0.5"><path d="M15 6l-6 6 6 6"/></svg>
       Agenda
     </a>
   </div>
 
   @if (loading()) {
-    <div class="bg-dark-800 border-b-2 border-ink animate-pulse">
-      <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-8">
-        <div class="flex gap-5 items-start">
-          <div class="flex-shrink-0 w-20 h-28 bg-dark-700"></div>
-          <div class="flex-1 space-y-3 pt-1">
-            <div class="flex gap-2">
-              <div class="h-5 bg-dark-700 w-16"></div>
-              <div class="h-5 bg-dark-700 w-12"></div>
-            </div>
-            <div class="h-8 bg-dark-700 w-3/4"></div>
-            <div class="h-4 bg-dark-600 w-48"></div>
-          </div>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8 animate-pulse" aria-busy="true" aria-label="Cargando evento">
+      <div class="h-[320px] sm:h-[380px] bg-night border-2 border-ink"></div>
+      <div class="h-12 bg-primary-500/70 border-2 border-t-0 border-ink"></div>
+      <div class="mt-6 grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-10 gap-y-6">
+        <div class="space-y-3">
+          <div class="h-6 border-b border-ink/15"></div>
+          <div class="h-6 border-b border-ink/15"></div>
+          <div class="h-6 border-b border-ink/15"></div>
         </div>
+        <div class="h-32 bg-dark-800 border-2 border-ink"></div>
       </div>
-    </div>
-    <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-8 animate-pulse flex flex-col gap-5">
-      <div class="flex gap-3">
-        <div class="h-11 bg-dark-700 w-40"></div>
-        <div class="h-11 bg-dark-700 w-32"></div>
-      </div>
-      <div class="h-32 card-flat"></div>
-      <div class="h-40 card-flat"></div>
     </div>
   } @else if (!event()) {
     <div class="empty-state">
       <div class="empty-state-icon">
         <app-icon name="calendar" [size]="24" class="text-ink"/>
       </div>
-      <h2 class="text-3xl text-ink mb-1">Evento no encontrado</h2>
+      <h1 class="text-3xl text-ink mb-1">Evento no encontrado</h1>
       <p class="text-sm text-ink-muted mb-5">Puede que haya sido eliminado o el enlace sea incorrecto</p>
       <a [routerLink]="['/search']" [queryParams]="{tab:'events'}" class="btn-primary text-sm px-5 min-h-[44px] inline-flex items-center">Ver agenda</a>
     </div>
   } @else {
 
-  <!-- HERO -->
-  <div class="bg-dark-800 border-b-2 border-ink">
-    @if (isPast()) {
-      <div class="bg-poster-yellow border-b-2 border-ink px-5 sm:px-6 lg:px-10 py-2 flex items-center gap-2">
-        <svg aria-hidden="true" class="w-3.5 h-3.5 text-ink flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink">Este evento ya ha pasado</p>
-      </div>
-    }
-    <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-6 sm:py-8">
-      <div class="flex gap-4 sm:gap-5 items-start">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8">
 
-        <!-- Date block -->
-        <div class="flex-shrink-0 text-center border-2 border-ink px-4 sm:px-5 py-3 min-w-[76px] sm:min-w-[88px] shadow-[4px_4px_0_0_#141210]"
-             [class.bg-night]="!isPast()"
-             [class.bg-dark-700]="isPast()">
-          <p class="font-mono text-[11px] font-bold uppercase tracking-wide mb-0.5"
-             [ngClass]="isPast() ? 'text-ink-muted' : 'text-poster-yellow'">{{ event()!.date | date:'EEE' | uppercase }}</p>
-          <p class="font-display text-5xl leading-none"
-             [class.text-poster-paper]="!isPast()" [class.text-ink]="isPast()">{{ event()!.date | date:'d' }}</p>
-          <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-0.5"
-             [ngClass]="isPast() ? 'text-ink-muted' : 'text-poster-paper'">{{ event()!.date | date:'MMM' | uppercase }}</p>
-          @if (event()!.time) {
-            <p class="font-mono text-[11px] font-bold mt-2 pt-2 border-t"
-               [ngClass]="isPast() ? 'text-ink border-ink' : 'text-poster-paper border-poster-paper/40'">{{ event()!.time?.slice(0,5) }}h</p>
-          }
-        </div>
+    <!-- POSTER -->
+    <section aria-label="Cartel del evento">
+      @if (isPast()) {
+        <p class="bg-poster-yellow text-ink border-2 border-b-0 border-ink px-4 py-2.5 font-display uppercase text-xl sm:text-2xl leading-none flex items-center gap-2">
+          Evento pasado
+          <span class="font-mono text-xs font-bold tracking-wide ml-auto hidden sm:inline">Este evento ya ha tenido lugar</span>
+        </p>
+      }
+      <div class="relative profile-cover border-2 border-ink overflow-hidden px-4 sm:px-8 pt-14 pb-6 sm:pt-16 sm:pb-8 min-h-[320px] sm:min-h-[380px] flex flex-col justify-end gap-5">
+        <span class="absolute left-4 sm:left-8 top-3.5 font-mono text-[11px] font-bold uppercase tracking-wide text-poster-paper/80">
+          Concierto@if (event()!.genre) { · {{ event()!.genre }} }
+        </span>
+        @if (priceLabel()) {
+          <span class="absolute right-0 top-3 bg-poster-yellow text-ink border-2 border-r-0 border-ink font-mono text-xs font-bold uppercase tracking-wide px-3 py-1.5">{{ priceLabel() }}</span>
+        }
 
-        <!-- Info -->
-        <div class="flex-1 min-w-0">
-          <div class="flex flex-wrap gap-2 mb-3">
-            @if (event()!.genre) { <span class="tag">{{ event()!.genre }}</span> }
-            @if (event()!.price) { <span class="tag-accent">{{ event()!.price }}</span> }
+        <div class="flex gap-4 sm:gap-6 items-end">
+          <!-- Date block -->
+          <div class="flex-shrink-0 text-center border-2 border-ink px-3 sm:px-5 py-3 min-w-[84px] sm:min-w-[110px]"
+               [class.bg-primary-500]="!isPast()" [class.text-white]="!isPast()"
+               [class.bg-dark-700]="isPast()" [class.text-ink]="isPast()">
+            <p class="font-mono text-xs font-bold uppercase tracking-wide">{{ event()!.date | date:'EEE' | uppercase }}</p>
+            <p class="font-display text-6xl sm:text-7xl leading-[0.9]">{{ event()!.date | date:'d' }}</p>
+            <p class="font-mono text-xs font-bold uppercase tracking-wide">{{ event()!.date | date:'MMM' | uppercase }}</p>
+            @if (event()!.time) {
+              <p class="font-mono text-xs font-bold mt-2 pt-2 border-t" [class.border-white/40]="!isPast()" [class.border-ink/30]="isPast()">{{ event()!.time?.slice(0,5) }}h</p>
+            }
           </div>
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl text-ink leading-[0.95] mb-2 break-words">{{ event()!.title }}</h1>
-          <p class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted flex items-center gap-1.5">
-            <svg aria-hidden="true" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            {{ event()!.venue }}@if (event()!.city) { · {{ event()!.city }} }
-          </p>
+          <h1 class="min-w-0 font-display text-[clamp(2.25rem,11vw,4rem)] sm:text-6xl lg:text-7xl leading-[0.9] text-poster-paper [overflow-wrap:anywhere]">{{ event()!.title }}</h1>
         </div>
+      </div>
+      <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-4 py-2 font-display uppercase text-xl sm:text-2xl leading-tight flex items-center gap-2 [overflow-wrap:anywhere]">
+        <app-icon name="map-pin" [size]="18" class="flex-shrink-0"/>
+        <span class="min-w-0">{{ event()!.venue }}@if (event()!.city) { · {{ event()!.city }} }</span>
+      </p>
+    </section>
+
+    <div class="mt-6 lg:mt-8 grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-10 gap-y-8 items-start">
+
+      <!-- Meta + actions column -->
+      <aside class="min-w-0">
+        <dl class="border-t-2 border-ink" aria-label="Ficha del evento">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
+            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Fecha</dt>
+            <dd class="text-sm font-bold text-ink text-right min-w-0">{{ event()!.date | date:'EEEE, d MMMM yyyy' }}</dd>
+          </div>
+          @if (event()!.time) {
+            <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
+              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Hora</dt>
+              <dd class="text-sm font-bold text-ink text-right min-w-0">{{ event()!.time?.slice(0,5) }}h</dd>
+            </div>
+          }
+          @if (event()!.venue) {
+            <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
+              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Lugar</dt>
+              <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ event()!.venue }}</dd>
+            </div>
+          }
+          @if (event()!.city) {
+            <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
+              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Ciudad</dt>
+              <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ event()!.city }}</dd>
+            </div>
+          }
+          @if (event()!.genre) {
+            <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
+              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Género</dt>
+              <dd class="text-sm font-bold text-ink text-right min-w-0">{{ event()!.genre }}</dd>
+            </div>
+          }
+          @if (priceLabel()) {
+            <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
+              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Precio</dt>
+              <dd class="text-sm font-bold text-ink text-right min-w-0">{{ priceLabel() }}</dd>
+            </div>
+          }
+          @if (event()!.contact_email) {
+            <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[44px]">
+              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Organiza</dt>
+              <dd class="min-w-0 text-right">
+                <a [href]="'mailto:' + event()!.contact_email"
+                   class="text-sm font-bold text-primary-600 hover:text-primary-700 underline underline-offset-2 inline-flex items-center min-h-[44px] [overflow-wrap:anywhere] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                  {{ event()!.contact_email }}
+                </a>
+              </dd>
+            </div>
+          }
+        </dl>
+
+        <!-- Actions (tablet/desktop; mobile uses the sticky bar) -->
+        <div class="hidden sm:flex flex-col gap-2 mt-5">
+          @if (event()!.ticket_url) {
+            <a [href]="event()!.ticket_url" target="_blank" rel="noopener noreferrer" class="btn-primary text-sm min-h-[50px] w-full">
+              Comprar entradas<span class="sr-only"> (se abre en una pestaña nueva)</span>
+            </a>
+          }
+          <div class="grid grid-cols-2 gap-2">
+            @if (currentUserId()) {
+              <button type="button" (click)="toggleFav()" [disabled]="favLoading()"
+                [attr.aria-pressed]="isFav()"
+                [attr.aria-label]="isFav() ? 'Quitar de favoritos' : 'Añadir a favoritos'"
+                class="btn-secondary text-sm min-h-[44px] disabled:opacity-50" [class.bg-poster-yellow]="isFav()">
+                <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                {{ isFav() ? 'En favoritos' : 'Favorito' }}
+              </button>
+            } @else {
+              <a routerLink="/auth/login" class="btn-secondary text-sm min-h-[44px] text-center">
+                Inicia sesión para guardar
+              </a>
+            }
+            <button type="button" (click)="shareLink()" class="btn-secondary text-sm min-h-[44px]"
+              [class.bg-signal-gBg]="linkShared()" [class.text-signal-green]="linkShared()"
+              [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir evento'">
+              <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+              {{ linkShared() ? 'Copiado' : 'Compartir' }}
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Info column -->
+      <div class="min-w-0 flex flex-col gap-8">
+        @if (event()!.description) {
+          <section aria-labelledby="ev-desc-title">
+            <h2 id="ev-desc-title" class="font-display text-2xl leading-none border-t-2 border-ink pt-2 mb-3">Sobre el evento</h2>
+            <p class="text-base leading-7 text-ink whitespace-pre-line [overflow-wrap:anywhere]">{{ event()!.description }}</p>
+          </section>
+        } @else {
+          <div class="border-2 border-dashed border-ink px-5 py-10 text-center">
+            <p class="font-display text-2xl">Sin descripción</p>
+            <p class="text-sm text-ink-muted mt-1">Los organizadores aún no han añadido más detalles.</p>
+          </div>
+        }
+
+        @if (related().length) {
+          <section aria-labelledby="ev-related-title">
+            <div class="flex items-center justify-between gap-3 border-t-2 border-ink pt-2">
+              <h2 id="ev-related-title" class="font-display text-2xl leading-none">Más en la agenda</h2>
+              <a [routerLink]="['/search']" [queryParams]="{tab:'events'}" class="font-mono text-xs font-bold uppercase tracking-wide text-ink hover:text-primary-600 min-h-[44px] inline-flex items-center">Ver todo</a>
+            </div>
+            <ul>
+              @for (item of related(); track item.id) {
+                <li class="border-b border-ink/15">
+                  <a [routerLink]="['/events', item.id]"
+                     class="group flex items-stretch gap-3 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                    <div class="flex-shrink-0 w-16 text-center bg-primary-500 text-white border-2 border-ink py-1.5">
+                      <p class="font-mono text-[11px] font-bold uppercase tracking-wide">{{ item.date | date:'MMM' | uppercase }}</p>
+                      <p class="font-display text-3xl leading-none">{{ item.date | date:'d' }}</p>
+                    </div>
+                    <div class="min-w-0 flex-1 flex flex-col justify-center">
+                      <p class="font-display text-xl uppercase leading-tight text-ink group-hover:text-primary-600 transition-colors [overflow-wrap:anywhere]">{{ item.title }}</p>
+                      <p class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted [overflow-wrap:anywhere]">
+                        {{ item.venue }}@if (item.city) { · {{ item.city }} }@if (item.time) { · {{ item.time.slice(0,5) }}h }
+                      </p>
+                    </div>
+                  </a>
+                </li>
+              }
+            </ul>
+          </section>
+        }
       </div>
     </div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-8 flex flex-col gap-5">
-
-    <!-- Actions -->
-    <div class="flex gap-3 flex-wrap">
+  <!-- Mobile action bar — sits above the global bottom nav -->
+  <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink sm:hidden">
+    <div class="flex gap-2 px-3 py-2.5">
       @if (event()!.ticket_url) {
-        <a [href]="event()!.ticket_url" target="_blank" rel="noopener noreferrer" class="btn-primary px-6 py-2.5 min-h-[44px] text-sm inline-flex items-center">
-          Comprar entradas
+        <a [href]="event()!.ticket_url" target="_blank" rel="noopener noreferrer"
+           class="btn-night font-display text-xl leading-none min-h-[52px] flex-1">
+          Comprar entradas<span class="sr-only"> (se abre en una pestaña nueva)</span>
         </a>
       }
       @if (currentUserId()) {
-        <button (click)="toggleFav()" [disabled]="favLoading()"
+        <button type="button" (click)="toggleFav()" [disabled]="favLoading()"
           [attr.aria-pressed]="isFav()"
           [attr.aria-label]="isFav() ? 'Quitar de favoritos' : 'Añadir a favoritos'"
-          class="px-5 py-2.5 min-h-[44px] font-mono text-xs font-bold uppercase tracking-wide border-2 border-ink transition-colors disabled:opacity-50 flex items-center gap-2"
-          [class.bg-primary-500]="isFav()"
-          [class.text-white]="isFav()"
-          [class.bg-dark-800]="!isFav()"
-          [class.text-ink]="!isFav()">
-          <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-               [attr.fill]="isFav() ? 'currentColor' : 'none'">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-          </svg>
-          {{ isFav() ? 'En favoritos' : 'Favorito' }}
+          class="btn-secondary min-h-[52px] px-0 disabled:opacity-50"
+          [class.min-w-[52px]]="event()!.ticket_url"
+          [class.flex-1]="!(event()!.ticket_url)"
+          [class.bg-poster-yellow]="isFav()">
+          <svg aria-hidden="true" class="w-5 h-5 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          @if (!(event()!.ticket_url)) { <span class="text-sm">{{ isFav() ? 'En favoritos' : 'Favorito' }}</span> }
         </button>
       } @else {
-        <a routerLink="/auth/login" class="btn-secondary px-5 py-2.5 min-h-[44px] text-sm flex items-center">
-          Inicia sesión para añadir a favoritos
-        </a>
+        <a routerLink="/auth/login" class="btn-secondary min-h-[52px] flex-1 text-center text-sm">Inicia sesión para guardar</a>
       }
-      <button (click)="shareLink()"
-        class="px-4 py-2.5 min-h-[44px] font-mono text-xs font-bold uppercase tracking-wide border-2 transition-colors flex items-center gap-2 bg-dark-800"
-        [class.border-signal-green]="linkShared()" [class.text-signal-green]="linkShared()"
-        [class.border-ink]="!linkShared()" [class.text-ink]="!linkShared()"
-        [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir evento'">
-        <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
-        </svg>
-        {{ linkShared() ? 'Copiado' : 'Compartir' }}
+      <button type="button" (click)="shareLink()"
+        [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir evento'"
+        class="btn-secondary min-h-[52px] min-w-[52px] px-0" [class.bg-signal-gBg]="linkShared()" [class.text-signal-green]="linkShared()">
+        <svg aria-hidden="true" class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
       </button>
     </div>
-
-    <!-- Description -->
-    @if (event()!.description) {
-      <div class="card-flat p-5">
-        <h3 class="rule-label mb-3">Sobre el evento</h3>
-        <p class="text-[15px] text-ink-2 leading-relaxed whitespace-pre-line">{{ event()!.description }}</p>
-      </div>
-    }
-
-    <!-- Details card -->
-    <div class="card-flat overflow-hidden">
-      <div class="px-5 py-3 border-b-2 border-ink"><h3 class="section-label">Detalles</h3></div>
-      <div class="divide-y divide-dark-600 text-sm">
-        <div class="flex justify-between gap-4 px-5 py-2.5">
-          <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Fecha</span>
-          <span class="font-semibold text-ink text-right break-words min-w-0">{{ event()!.date | date:'EEEE, d MMMM yyyy' }}</span>
-        </div>
-        @if (event()!.time) {
-          <div class="flex justify-between gap-4 px-5 py-2.5">
-            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Hora</span>
-            <span class="font-semibold text-ink text-right break-words min-w-0">{{ event()!.time?.slice(0,5) }}h</span>
-          </div>
-        }
-        @if (event()!.venue) {
-          <div class="flex justify-between gap-4 px-5 py-2.5">
-            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Lugar</span>
-            <span class="font-semibold text-ink text-right break-words min-w-0">{{ event()!.venue }}</span>
-          </div>
-        }
-        @if (event()!.city) {
-          <div class="flex justify-between gap-4 px-5 py-2.5">
-            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Ciudad</span>
-            <span class="font-semibold text-ink text-right break-words min-w-0">{{ event()!.city }}</span>
-          </div>
-        }
-        @if (event()!.price) {
-          <div class="flex justify-between gap-4 px-5 py-2.5">
-            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Precio</span>
-            <span class="font-semibold text-ink text-right break-words min-w-0">{{ +event()!.price > 0 ? (event()!.price | number:'1.0-2') + ' €' : event()!.price }}</span>
-          </div>
-        }
-        @if (event()!.contact_email) {
-          <div class="flex justify-between gap-4 px-5 py-2.5 items-center">
-            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Contacto</span>
-            <a [href]="'mailto:' + event()!.contact_email"
-               class="font-medium text-primary-500 hover:text-primary-600 transition-colors truncate max-w-[60%]">
-              {{ event()!.contact_email }}
-            </a>
-          </div>
-        }
-      </div>
-    </div>
-
   </div>
   }
 </div>

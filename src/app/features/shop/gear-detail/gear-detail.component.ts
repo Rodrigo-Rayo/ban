@@ -10,7 +10,9 @@ import { SeoService } from '../../../core/services/seo.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { GearListing } from '../../../core/models';
 
-const GEAR_COLUMNS = 'id, user_id, title, description, price, category, condition, city, images, status, seller_name, seller_profile_type, seller_profile_id';
+const GEAR_COLUMNS = 'id, user_id, title, description, price, category, condition, city, images, status, seller_name, seller_profile_type, seller_profile_id, created_at';
+const RELATED_COLUMNS = 'id, title, price, category, city, images, status';
+const RELATED_LIMIT = 3;
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +35,8 @@ export class GearDetailComponent implements OnInit {
   currentUser = signal<User | null>(null);
   deleting = signal(false);
   contacting = signal(false);
+  related = signal<GearListing[]>([]);
+  linkShared = signal(false);
 
   readonly conditionLabels: Record<string, string> = {
     new: 'Nuevo', like_new: 'Como nuevo', good: 'Bueno', acceptable: 'Aceptable',
@@ -44,6 +48,16 @@ export class GearDetailComponent implements OnInit {
     good:       'tag',
     acceptable: 'tag',
   };
+
+  /** Older listings were saved without seller_name: look it up so the seller box is never empty. */
+  private async resolveSellerName(l: GearListing) {
+    try {
+      const { data } = await this.supabase.client.rpc('get_profile_name', { p_user_id: l.user_id });
+      if (typeof data === 'string' && data.trim() && this.listing()?.id === l.id) {
+        this.listing.set({ ...l, seller_name: data });
+      }
+    } catch { /* keep the generic label */ }
+  }
 
   async ngOnInit() {
     try {
@@ -57,6 +71,8 @@ export class GearDetailComponent implements OnInit {
       if (error) { this.toast.error('No se pudo cargar el anuncio. Recarga la página.'); return; }
       this.listing.set(data as GearListing | null);
       if (data) {
+        void this.loadRelated(data as GearListing);
+        if (!data.seller_name) void this.resolveSellerName(data as GearListing);
         this.seo.setListing(data.title, data.price, data.city, undefined, data.images?.[0]);
         this.seo.injectJsonLd({
           '@context': 'https://schema.org',
@@ -85,6 +101,46 @@ export class GearDetailComponent implements OnInit {
       this.toast.error('No se pudo cargar el anuncio. Recarga la página.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  /** Non-critical: same category first, then same city. Failures leave the strip hidden. */
+  private async loadRelated(current: GearListing) {
+    try {
+      const found: GearListing[] = [];
+      const fetchBy = async (column: 'category' | 'city', value: string | null) => {
+        if (!value || found.length >= RELATED_LIMIT) return;
+        const { data } = await this.supabase.client.from('gear_listings').select(RELATED_COLUMNS)
+          .eq('status', 'active').neq('id', current.id).eq(column, value)
+          .order('created_at', { ascending: false }).limit(RELATED_LIMIT);
+        if (!Array.isArray(data)) return;
+        for (const item of data as GearListing[]) {
+          if (found.length < RELATED_LIMIT && !found.some(f => f.id === item.id)) found.push(item);
+        }
+      };
+      await fetchBy('category', current.category);
+      await fetchBy('city', current.city);
+      this.related.set(found);
+    } catch {
+      this.related.set([]);
+    }
+  }
+
+  async shareLink() {
+    const l = this.listing();
+    if (!l) return;
+    const url = `${window.location.origin}/shop/${l.id}`;
+    if (navigator.share) {
+      await navigator.share({ title: l.title, url }).catch(() => {});
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      this.linkShared.set(true);
+      this.toast.success('Enlace copiado.');
+      setTimeout(() => this.linkShared.set(false), 2000);
+    } catch {
+      this.toast.error('No se pudo copiar el enlace.');
     }
   }
 

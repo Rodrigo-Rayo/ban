@@ -8,6 +8,8 @@ import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { localToday } from '../../../core/utils/date';
 
+const RELATED_COLUMNS = 'id, title, venue, city, date, time, genre, price';
+const RELATED_LIMIT = 3;
 const EVENT_COLUMNS = 'id, user_id, title, venue, city, date, time, genre, price, description, contact_email, ticket_url';
 
 @Component({
@@ -30,6 +32,13 @@ export class EventDetailComponent implements OnInit {
   isFav = signal(false);
   favLoading = signal(false);
   linkShared = signal(false);
+  related = signal<any[]>([]);
+
+  readonly priceLabel = computed(() => {
+    const price = this.event()?.price;
+    if (!price) return '';
+    return +price > 0 ? `${price} €` : String(price);
+  });
 
   readonly isPast = computed(() => {
     const e = this.event();
@@ -59,6 +68,7 @@ export class EventDetailComponent implements OnInit {
       ]);
       this.event.set(data);
       if (data) {
+        void this.loadRelated(data);
         this.seo.setEvent(data.title, data.date, data.city, data.description);
         this.seo.injectJsonLd({
           '@context': 'https://schema.org',
@@ -89,6 +99,30 @@ export class EventDetailComponent implements OnInit {
       this.toast.error('No se pudo cargar el evento. Recarga la página.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  /** Non-critical: next upcoming events, same city first. Failures hide the strip. */
+  private async loadRelated(current: { id: string; city?: string | null }) {
+    try {
+      const today = localToday();
+      const found: any[] = [];
+      const fetchUpcoming = async (city: string | null) => {
+        if (found.length >= RELATED_LIMIT) return;
+        let q = this.supabase.client.from('events').select(RELATED_COLUMNS)
+          .gte('date', today).neq('id', current.id);
+        if (city) q = q.eq('city', city);
+        const { data } = await q.order('date', { ascending: true }).limit(RELATED_LIMIT);
+        if (!Array.isArray(data)) return;
+        for (const item of data) {
+          if (found.length < RELATED_LIMIT && !found.some(f => f.id === item.id)) found.push(item);
+        }
+      };
+      await fetchUpcoming(current.city ?? null);
+      await fetchUpcoming(null);
+      this.related.set(found);
+    } catch {
+      this.related.set([]);
     }
   }
 
