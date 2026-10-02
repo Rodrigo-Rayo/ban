@@ -22,8 +22,8 @@
       </h1>
     </header>
 
-    <!-- ══ Category toggles ══ -->
-    <div class="mt-4 flex gap-1.5 overflow-x-auto no-scrollbar sm:flex-wrap -mx-4 px-4 lg:mx-0 lg:px-0" role="tablist" aria-label="Categorías de búsqueda">
+    <!-- ══ Category toggles — mobile/tablet only: on desktop the masthead nav already lists them ══ -->
+    <div class="mt-4 flex lg:hidden gap-1.5 overflow-x-auto no-scrollbar sm:flex-wrap -mx-4 px-4" role="tablist" aria-label="Categorías de búsqueda">
       @for (tab of tabs; track tab.id) {
         <button type="button" (click)="setTab(tab.id)"
           role="tab"
