@@ -273,7 +273,7 @@
               <a routerLink="/events/create" class="btn-primary text-xs px-5 py-2 min-h-[44px] inline-flex items-center">Publicar evento</a>
             </div>
           } @else {
-            <div class="divide-y-2 divide-ink">
+            <div class="divide-y divide-ink/15">
               @for (event of events(); track event.id) {
                 @if (editingEventId() === event.id) {
                   <!-- Inline edit form -->
@@ -409,7 +409,7 @@
               <a routerLink="/feed" [queryParams]="{new:'1'}" class="btn-primary text-xs px-5 py-2 min-h-[44px] inline-flex items-center">Publicar anuncio</a>
             </div>
           } @else {
-            <div class="divide-y-2 divide-ink">
+            <div class="divide-y divide-ink/15">
               @for (post of myPosts(); track post.id) {
                 <div class="flex items-start gap-3 px-5 py-3.5 group">
                   <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink
@@ -461,7 +461,7 @@
               <a routerLink="/shop/new" class="btn-primary text-xs px-5 py-2 min-h-[44px] inline-flex items-center">Publicar producto</a>
             </div>
           } @else {
-            <div class="divide-y-2 divide-ink">
+            <div class="divide-y divide-ink/15">
               @for (item of myListings(); track item.id) {
                 <div class="flex items-center gap-3 px-5 py-3.5 hover:bg-dark-750 transition-colors group">
                 <a [routerLink]="['/shop', item.id]"
@@ -535,7 +535,7 @@
               <p class="text-xs text-ink-muted mt-1">Tus solicitudes de ensayo aparecerán aquí</p>
             </div>
           } @else {
-            <div class="divide-y-2 divide-ink">
+            <div class="divide-y divide-ink/15">
               @for (b of myBookings(); track b.id) {
                 <div class="px-5 py-4 flex items-start gap-3">
                   <div class="flex-1 min-w-0">
@@ -599,7 +599,7 @@
               <p class="text-xs text-ink-muted mt-1">Las peticiones de ensayo aparecerán aquí</p>
             </div>
           } @else {
-            <div class="divide-y-2 divide-ink">
+            <div class="divide-y divide-ink/15">
               @for (b of bookings(); track b.id) {
                 <div class="px-5 py-4 flex items-start gap-3">
                   <div class="flex-1 min-w-0">

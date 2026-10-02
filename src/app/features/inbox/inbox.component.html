@@ -89,7 +89,7 @@
 
   <!-- ── CONVERSATION LIST ── -->
   } @else {
-    <div class="flex-1 overflow-y-auto divide-y-2 divide-ink">
+    <div class="flex-1 overflow-y-auto divide-y divide-ink/15">
       @for (conv of conversations(); track conv.id) {
         <div [class]="'flex items-center group transition-colors hover:bg-dark-700' + (unreadIds().has(conv.id) ? ' bg-primary-900' : '')">
 

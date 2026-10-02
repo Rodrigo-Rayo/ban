@@ -47,7 +47,7 @@
           <h2 class="text-4xl lg:text-5xl leading-[1.05] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
           @for (v of vacancies(); track v.id; let i = $index) {
             @if (v.bands; as b) {
-              <a [routerLink]="['/bands', b.id]" class="flex items-center gap-3 py-3 border-b-[1.5px] border-ink min-h-[56px] group">
+              <a [routerLink]="['/bands', b.id]" class="flex items-center gap-3 py-3 border-b border-ink/15 min-h-[56px] group">
                 <span class="font-mono text-xs font-bold text-ink-muted w-5 shrink-0">0{{ i + 1 }}</span>
                 <span class="flex-1 min-w-0">
                   <span class="block font-display text-xl uppercase leading-tight truncate group-hover:text-primary-500 transition-colors">{{ b.name }}</span>
@@ -68,7 +68,7 @@
           </div>
           <h2 class="text-4xl lg:text-5xl leading-[1.05] mt-1 mb-2">Gente que<br>ya está dentro</h2>
           @for (m of people(); track m.id) {
-            <a [routerLink]="['/musicians', m.id]" class="flex items-center gap-3 py-2.5 border-b-[1.5px] border-ink min-h-[56px] group">
+            <a [routerLink]="['/musicians', m.id]" class="flex items-center gap-3 py-2.5 border-b border-ink/15 min-h-[56px] group">
               <span class="avatar w-11 h-11 text-lg overflow-hidden" [style.background]="m.avatar_url ? null : avatarColor(m.name)">
                 @if (m.avatar_url) {
                   <img [src]="m.avatar_url" alt="" class="w-full h-full object-cover" loading="lazy"/>
@@ -111,11 +111,11 @@
     <a routerLink="/search" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
   </div>
   <h2 id="que-buscas" class="text-5xl lg:text-6xl leading-[1.05] mt-1 mb-4">¿Qué buscas?</h2>
-  <ul class="border-t-[1.5px] border-ink">
+  <ul class="border-t border-ink/15">
     @for (cat of catalog; track cat.tab; let i = $index) {
       <li>
         <a [routerLink]="['/search']" [queryParams]="{tab: cat.tab}"
-           class="flex items-center gap-4 py-4 border-b-[1.5px] border-ink min-h-[64px] group hover:bg-poster-yellow transition-colors px-1">
+           class="flex items-center gap-4 py-4 border-b border-ink/15 min-h-[64px] group hover:bg-poster-yellow transition-colors px-1">
           <span class="font-mono text-xs font-bold text-ink-muted w-6 shrink-0">0{{ i + 1 }}</span>
           <span class="font-display text-3xl lg:text-4xl uppercase leading-none flex-1 group-hover:translate-x-1 transition-transform">{{ cat.label }}</span>
           <span class="hidden sm:block text-sm text-ink-muted">{{ cat.desc }}</span>

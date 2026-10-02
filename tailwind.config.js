@@ -23,7 +23,7 @@ module.exports = {
           800: '#fbf7ee',   // cards
           750: '#ebe2d0',   // tinted surfaces
           700: '#e6dcc8',   // inputs / hover
-          600: '#2b2620',   // rules & borders — near-ink, fanzine look
+          600: '#d6cab4',   // hairlines (soft); structure uses border-ink
         },
         night: {
           DEFAULT: '#141210',

@@ -57,45 +57,45 @@
           <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>
         }
       </section>
-      <dl class="mt-4 border-t-[1.5px] border-ink" aria-label="Ficha del profesor">
+      <dl class="mt-4 border-t border-ink/15" aria-label="Ficha del profesor">
         @if (teacher()!.instrument) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Instrumento</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ teacher()!.instrument }}</dd>
           </div>
         }
         @if (teacher()!.city) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Ciudad</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ teacher()!.city }}</dd>
           </div>
         }
         @if (teacher()!.modality) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Modalidad</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]"><span class="capitalize">{{ teacher()!.modality }}</span></dd>
           </div>
         }
         @if (teacher()!.level) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Nivel</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]"><span class="capitalize">{{ teacher()!.level }}</span></dd>
           </div>
         }
         @if (teacher()!.experience_years) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Experiencia</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ teacher()!.experience_years }} años</dd>
           </div>
         }
         @if (teacher()!.hourly_rate) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Precio / hora</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]"><span class="font-display text-2xl leading-none text-primary-600">{{ teacher()!.hourly_rate }} €</span></dd>
           </div>
         }
         @if (avgRating()) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Valoración</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">★ {{ avgRating() }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}</dd>
           </div>
@@ -218,7 +218,7 @@
           } @else {
             <ul class="flex flex-col">
               @for (r of reviews(); track r.id) {
-                <li class="py-4 border-b-[1.5px] border-ink first:pt-1">
+                <li class="py-4 border-b border-ink/15 first:pt-1">
                   @if (r.comment) {
                     <blockquote class="border-l-[3px] border-primary-500 pl-3 text-base leading-7 text-ink [overflow-wrap:anywhere]">{{ r.comment }}</blockquote>
                   }

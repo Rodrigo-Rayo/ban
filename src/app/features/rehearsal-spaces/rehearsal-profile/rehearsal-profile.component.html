@@ -57,51 +57,51 @@
           <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>
         }
       </section>
-      <dl class="mt-4 border-t-[1.5px] border-ink" aria-label="Ficha del local">
+      <dl class="mt-4 border-t border-ink/15" aria-label="Ficha del local">
         @if (space()!.city) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Ciudad</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ space()!.city }}</dd>
           </div>
         }
         @if (space()!.address) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Dirección</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ space()!.address }}</dd>
           </div>
         }
         @if (space()!.capacity) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Capacidad</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ space()!.capacity }} personas</dd>
           </div>
         }
         @if (space()!.rooms_count) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Salas</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ space()!.rooms_count }}</dd>
           </div>
         }
         @if (space()!.opening_hours) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Horario</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ space()!.opening_hours }}</dd>
           </div>
         }
         @if (space()!.hourly_rate) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Precio / hora</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]"><span class="font-display text-2xl leading-none text-primary-600">{{ space()!.hourly_rate }} €</span></dd>
           </div>
         }
         @if (avgRating()) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Valoración</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">★ {{ avgRating() }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}</dd>
           </div>
         }
         @if (space()!.phone) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[44px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[44px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Teléfono</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]"><a [href]="'tel:' + space()!.phone" class="underline decoration-2 underline-offset-4 hover:text-primary-600 inline-flex items-center min-h-[44px]">{{ space()!.phone }}</a></dd>
           </div>
@@ -201,7 +201,7 @@
           } @else {
             <ul class="flex flex-col">
               @for (r of reviews(); track r.id) {
-                <li class="py-4 border-b-[1.5px] border-ink first:pt-1">
+                <li class="py-4 border-b border-ink/15 first:pt-1">
                   @if (r.comment) {
                     <blockquote class="border-l-[3px] border-primary-500 pl-3 text-base leading-7 text-ink [overflow-wrap:anywhere]">{{ r.comment }}</blockquote>
                   }

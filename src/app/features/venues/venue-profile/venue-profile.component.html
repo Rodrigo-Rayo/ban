@@ -57,39 +57,39 @@
           <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>
         }
       </section>
-      <dl class="mt-4 border-t-[1.5px] border-ink" aria-label="Ficha de la sala">
+      <dl class="mt-4 border-t border-ink/15" aria-label="Ficha de la sala">
         @if (venue()!.city) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Ciudad</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ venue()!.city }}</dd>
           </div>
         }
         @if (venue()!.address) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Dirección</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ venue()!.address }}</dd>
           </div>
         }
         @if (venue()!.capacity) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Aforo</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ venue()!.capacity }} personas</dd>
           </div>
         }
         @if (avgRating()) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[40px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Valoración</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">★ {{ avgRating() }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}</dd>
           </div>
         }
         @if (venue()!.phone) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[44px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[44px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Teléfono</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]"><a [href]="'tel:' + venue()!.phone" class="underline decoration-2 underline-offset-4 hover:text-primary-600 inline-flex items-center min-h-[44px]">{{ venue()!.phone }}</a></dd>
           </div>
         }
         @if (venue()!.contact_email) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b-[1.5px] border-ink min-h-[44px]">
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[44px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Email</dt>
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]"><a [href]="'mailto:' + venue()!.contact_email" class="underline decoration-2 underline-offset-4 hover:text-primary-600 inline-flex items-center min-h-[44px]">{{ venue()!.contact_email }}</a></dd>
           </div>
@@ -209,7 +209,7 @@
           } @else {
             <ul class="flex flex-col">
               @for (r of reviews(); track r.id) {
-                <li class="py-4 border-b-[1.5px] border-ink first:pt-1">
+                <li class="py-4 border-b border-ink/15 first:pt-1">
                   @if (r.comment) {
                     <blockquote class="border-l-[3px] border-primary-500 pl-3 text-base leading-7 text-ink [overflow-wrap:anywhere]">{{ r.comment }}</blockquote>
                   }

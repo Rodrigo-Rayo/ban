@@ -2,10 +2,10 @@
 
   <!-- Header -->
   <header class="border-b-2 border-ink bg-dark-900 sticky top-16 z-20">
-    <div class="px-5 lg:px-8 py-4">
+    <div class="max-w-5xl mx-auto px-5 lg:px-8 py-4">
       <div class="flex items-end justify-between gap-4">
         <div>
-          <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-primary-500 mb-1">Tablón · Bandas, músicos y colaboraciones</p>
+          <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-primary-500 mb-1">Bandas, músicos y colaboraciones</p>
           <h1 class="text-4xl sm:text-5xl leading-[1.05]">Se busca</h1>
         </div>
         @if (currentUser()) {
@@ -21,7 +21,7 @@
     </div>
   </header>
 
-  <div class="px-5 lg:px-8 py-5">
+  <div class="max-w-5xl mx-auto px-5 lg:px-8 py-5">
 
     <!-- ── NEW POST FORM ── -->
     @if (showForm()) {
@@ -157,7 +157,7 @@
           @for (v of vacancies(); track v.id; let i = $index) {
             <li>
               <a [routerLink]="['/bands', v.bands.id]"
-                 class="flex items-center gap-3 py-3 border-b-[1.5px] border-ink hover:bg-dark-800 transition-colors px-1">
+                 class="flex items-center gap-3 py-3 border-b border-ink/15 hover:bg-dark-800 transition-colors px-1">
                 <span class="font-mono text-xs font-bold text-ink-muted w-6 flex-shrink-0">{{ (i + 1).toString().padStart(2, '0') }}</span>
                 <span class="flex-1 min-w-0 flex flex-col">
                   <span class="font-display text-xl uppercase leading-tight truncate">{{ v.bands.name }}</span>
@@ -211,9 +211,9 @@
           </div>
         }
       } @else if (posts().length > 0) {
-        <div class="flex flex-col border-t-2 border-ink">
+        <div class="flex flex-col">
           @for (post of posts(); track post.id) {
-            <article class="border-b-2 border-ink hover:bg-dark-800 transition-colors duration-150">
+            <article class="border-b border-ink/15 last:border-b-0 hover:bg-dark-800 transition-colors duration-150">
 
               <a [routerLink]="['/posts', post.id]" class="block px-1 sm:px-3 pt-4 pb-3">
 
@@ -260,10 +260,6 @@
                   <span class="font-mono text-[11px] font-bold uppercase text-ink-muted truncate">{{ post.author_name }}</span>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
-                  <a [routerLink]="['/posts', post.id]"
-                    class="btn-secondary !px-3 !py-0 min-h-[44px] inline-flex items-center text-xs whitespace-nowrap">
-                    Ver anuncio
-                  </a>
                   @if (currentUser()?.id === post.user_id) {
                     <button (click)="deletePost(post.id)"
                       class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink hover:text-white hover:bg-signal-red border-[1.5px] border-ink transition-colors"
