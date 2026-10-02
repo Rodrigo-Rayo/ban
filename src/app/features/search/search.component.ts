@@ -72,7 +72,6 @@ export class SearchComponent implements OnInit, OnDestroy {
   tabs: { id: SearchType; label: string; icon: string }[] = [
     { id: 'musicians', label: 'Músicos',  icon: 'music'      },
     { id: 'bands',     label: 'Bandas',   icon: 'mic'        },
-    { id: 'vacancies', label: 'Se busca', icon: 'megaphone'  },
     { id: 'rehearsal', label: 'Locales',  icon: 'headphones' },
     { id: 'venues',    label: 'Salas',    icon: 'building'   },
     { id: 'events',    label: 'Agenda',   icon: 'calendar'   },
@@ -122,6 +121,11 @@ export class SearchComponent implements OnInit, OnDestroy {
 
     this.paramsSub = this.route.queryParams.subscribe(params => {
       const tab = (params['tab'] as SearchType) || 'musicians';
+      // "Se busca" now lives in /feed (posts + band vacancies together).
+      if (tab === 'vacancies') {
+        this.router.navigate(['/feed'], { queryParams: { ver: 'bandas' }, replaceUrl: true });
+        return;
+      }
       this.activeTab.set(tab);
       this.seo.set({
         title: tabTitles[tab] || 'Buscar',

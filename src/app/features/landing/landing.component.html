@@ -42,7 +42,7 @@
         <div>
           <div class="rule-label">
             <span>Se busca</span>
-            <a routerLink="/search" [queryParams]="{tab:'vacancies'}" class="underline min-h-[44px] inline-flex items-center">Todas las vacantes</a>
+            <a routerLink="/feed" [queryParams]="{ver:'bandas'}" class="underline min-h-[44px] inline-flex items-center">Todas las vacantes</a>
           </div>
           <h2 class="text-4xl lg:text-5xl leading-[1.05] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
           @for (v of vacancies(); track v.id; let i = $index) {

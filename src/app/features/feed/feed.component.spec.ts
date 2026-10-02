@@ -6,6 +6,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
+import { VacanciesService } from '../../core/services/vacancies.service';
 import { Post, PostType } from '../../core/models';
 
 // ---------------------------------------------------------------------------
@@ -57,9 +58,11 @@ describe('FeedComponent', () => {
   let locationSpy: jasmine.SpyObj<Location>;
   let routeMock: any;
   let fromBuilder: any;
+  let vacanciesSpy: { listOpen: jasmine.Spy };
 
   beforeEach(async () => {
     fromBuilder = mockBuilder({ data: [], error: null });
+    vacanciesSpy = { listOpen: jasmine.createSpy('listOpen').and.resolveTo([]) };
 
     supabaseSpy = {
       auth: {
@@ -100,6 +103,7 @@ describe('FeedComponent', () => {
         { provide: Router,          useValue: routerSpy },
         { provide: Location,        useValue: locationSpy },
         { provide: ActivatedRoute,  useValue: routeMock },
+        { provide: VacanciesService, useValue: vacanciesSpy },
       ],
     })
     .overrideComponent(FeedComponent, { set: { imports: [], template: '<div></div>' } })
@@ -379,5 +383,53 @@ describe('FeedComponent', () => {
     const old = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
     const post = makePost({ created_at: old });
     expect(component.isRecent(post)).toBeFalse();
+  });
+
+  describe('Se busca sections', () => {
+    it('lists every post type and a vacancies preview in "Todo"', async () => {
+      component.section.set('todo');
+      await component.loadPosts();
+      expect(fromBuilder.in).not.toHaveBeenCalledWith('type', jasmine.anything());
+      expect(vacanciesSpy.listOpen).toHaveBeenCalledWith(jasmine.objectContaining({ limit: 3 }));
+    });
+
+    it('"Bandas buscan" lists band posts plus the full vacancies list', async () => {
+      component.section.set('bandas');
+      await component.loadPosts();
+      expect(fromBuilder.in).toHaveBeenCalledWith('type', ['band_seeking_musician']);
+      expect(vacanciesSpy.listOpen).toHaveBeenCalledWith(jasmine.objectContaining({ limit: 30 }));
+    });
+
+    it('"Músicos buscan" lists musician posts and no vacancies', async () => {
+      component.section.set('musicos');
+      vacanciesSpy.listOpen.calls.reset();
+      await component.loadPosts();
+      expect(fromBuilder.in).toHaveBeenCalledWith('type', ['musician_seeking_band']);
+      expect(vacanciesSpy.listOpen).not.toHaveBeenCalled();
+      expect(component.vacancies()).toEqual([]);
+    });
+
+    it('passes the city and instrument filters to the vacancies', async () => {
+      component.section.set('bandas');
+      component.filterCity.set('Madrid');
+      component.filterInstrument.set('Batería');
+      await component.loadPosts();
+      expect(vacanciesSpy.listOpen).toHaveBeenCalledWith(jasmine.objectContaining({ city: 'Madrid', instrument: 'Batería' }));
+    });
+
+    it('a vacancies failure does not break the posts', async () => {
+      component.section.set('bandas');
+      vacanciesSpy.listOpen.and.rejectWith(new Error('boom'));
+      await component.loadPosts();
+      expect(component.vacancies()).toEqual([]);
+      expect(component.loading()).toBeFalse();
+    });
+
+    it('setSection writes the section to the URL (todo clears it)', () => {
+      component.setSection('otros');
+      expect(routerSpy.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { ver: 'otros' } }));
+      component.setSection('todo');
+      expect(routerSpy.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { ver: null } }));
+    });
   });
 });

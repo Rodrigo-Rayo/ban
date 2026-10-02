@@ -27,11 +27,20 @@ test.describe('Search page', () => {
 });
 
 test.describe('Feed page', () => {
-  test('renders feed with filter controls', async ({ page }) => {
+  test('renders "Se busca" with filters and sections', async ({ page }) => {
     await page.goto('/feed');
-    await expect(page.getByRole('heading', { name: /anuncios/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: /se busca/i })).toBeVisible();
     // City filter should be visible
     await expect(page.locator('select').first()).toBeVisible();
+    const sections = page.getByRole('navigation', { name: 'Secciones de Se busca' });
+    await sections.getByRole('button', { name: 'Bandas buscan' }).click();
+    await expect(page).toHaveURL(/ver=bandas/);
+  });
+
+  test('old "Vacantes" search links land on Se busca', async ({ page }) => {
+    await page.goto('/search?tab=vacancies');
+    await expect(page).toHaveURL(/\/feed\?ver=bandas/);
+    await expect(page.getByRole('heading', { level: 1, name: /se busca/i })).toBeVisible();
   });
 
   test('shows skeleton then content', async ({ page }) => {

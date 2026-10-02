@@ -31,19 +31,18 @@ export interface NavSection { label: string; link: string; query?: Record<string
 export interface PublishOption { label: string; hint: string; icon: string; link: string; query?: Record<string, string>; }
 
 export const NAV_SECTIONS: readonly NavSection[] = [
-  { label: 'Agenda',   link: '/search', query: { tab: 'events' } },
-  { label: 'Se busca', link: '/search', query: { tab: 'vacancies' } },
+  { label: 'Se busca', link: '/feed' },
   { label: 'Músicos',  link: '/search', query: { tab: 'musicians' } },
   { label: 'Bandas',   link: '/search', query: { tab: 'bands' } },
   { label: 'Locales',  link: '/search', query: { tab: 'rehearsal' } },
-  { label: 'Salas',    link: '/search', query: { tab: 'venues' } },
   { label: 'Clases',   link: '/search', query: { tab: 'teachers' } },
+  { label: 'Agenda',   link: '/search', query: { tab: 'events' } },
+  { label: 'Salas',    link: '/search', query: { tab: 'venues' } },
   { label: 'Tienda',   link: '/shop' },
-  { label: 'Anuncios', link: '/feed' },
 ];
 
 export const PUBLISH_OPTIONS: readonly PublishOption[] = [
-  { label: 'Anuncio',          hint: 'Busco banda, músicos, colaboración…', icon: 'newspaper',     link: '/feed', query: { new: '1' } },
+  { label: 'Anuncio en Se busca', hint: 'Busco banda, músicos, colaboración…', icon: 'newspaper',   link: '/feed', query: { new: '1' } },
   { label: 'Concierto',        hint: 'Bolo, jam session, festival',          icon: 'calendar',      link: '/events/create' },
   { label: 'Vender equipo',    hint: 'Instrumentos, amplis, efectos',        icon: 'shopping-cart', link: '/shop/new' },
   { label: 'Vacante en tu banda', hint: 'Desde el perfil de tu banda',       icon: 'users',         link: '/dashboard' },
