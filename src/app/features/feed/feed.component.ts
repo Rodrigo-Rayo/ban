@@ -325,6 +325,44 @@ export class FeedComponent implements OnInit, OnDestroy {
 
   typeIcon(type: PostType)  { return this.postTypeMap.get(type)?.icon ?? 'newspaper'; }
 
+  /** What the row is asking for, in plain words: "Busca banda", "Busca guitarra"… */
+  askLabel(item: SeBuscaItem): string {
+    if (item.kind === 'vacancy') return `Busca ${item.vacancy.instrument.toLowerCase()}`;
+    const p = item.post;
+    switch (p.type) {
+      case 'musician_seeking_band': return 'Busca banda';
+      case 'band_seeking_musician': return p.instrument ? `Busca ${p.instrument.toLowerCase()}` : 'Busca músico';
+      case 'session_offer': return 'Ofrece sesiones';
+      case 'looking_for_rehearsal': return 'Busca local';
+      case 'collab': return 'Busca colaboración';
+      default: return this.typeLabel(p.type);
+    }
+  }
+
+  askStamp(item: SeBuscaItem): string {
+    return this.typeStamp(item.kind === 'vacancy' ? 'band_seeking_musician' : item.post.type);
+  }
+
+  /** Who is asking: the band, or the post's author. */
+  whoLabel(item: SeBuscaItem): string {
+    return item.kind === 'vacancy' ? item.vacancy.bands.name : (item.post.author_name || 'Usuario');
+  }
+
+  /** One quiet line: instrument (when not already in the stamp) · genre · city. */
+  metaLine(item: SeBuscaItem): string {
+    if (item.kind === 'vacancy') {
+      const v = item.vacancy;
+      return [v.genre || v.bands.genre, v.bands.city].filter(Boolean).join(' · ');
+    }
+    const p = item.post;
+    const instrumentInStamp = p.type === 'band_seeking_musician' && !!p.instrument;
+    return [instrumentInStamp ? null : p.instrument, p.genre, p.city].filter(Boolean).join(' · ');
+  }
+
+  detailText(item: SeBuscaItem): string | null {
+    return item.kind === 'vacancy' ? item.vacancy.description : item.post.text;
+  }
+
   profileRoute(p: Post): string[] | null {
     if (!p.author_profile_id || !p.author_profile_type) return null;
     const map: Record<string, string> = {
