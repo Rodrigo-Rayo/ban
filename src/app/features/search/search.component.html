@@ -14,6 +14,9 @@
 
     <!-- ══ Poster headline: CATEGORÍA / CIUDAD ══ -->
     <header>
+      @if (activeTab() === 'events') {
+        <p class="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wide text-primary-500 mb-1">Conciertos, jams y festivales</p>
+      }
       <h1 class="text-[2.6rem] leading-[1.08] sm:text-6xl lg:text-7xl tracking-[0.005em] text-ink">
         {{ tabLabel() }}<span class="text-primary-500" aria-hidden="true">/</span><span class="sr-only"> en </span>{{ selectedCity() }}
       </h1>

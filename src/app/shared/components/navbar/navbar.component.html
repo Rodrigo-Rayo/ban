@@ -1,13 +1,13 @@
 <!-- MASTHEAD — poster wordmark + section nav (desktop) -->
 <header class="fixed top-0 left-0 right-0 z-50 bg-dark-900 border-b-2 border-ink">
-  <div class="px-4 sm:px-6 h-16 flex items-center gap-4 lg:gap-6">
+  <div class="px-4 sm:px-6 h-16 flex items-center gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-6">
 
     <a [routerLink]="auth.isLoggedIn() ? '/home' : '/'" aria-label="BandYou, portada"
-       class="flex-shrink-0 font-display text-[30px] leading-none uppercase text-ink tracking-tight">
+       class="flex-shrink-0 lg:justify-self-start font-display text-[30px] leading-none uppercase text-ink tracking-tight">
       Band<span class="text-primary-500">You</span>
     </a>
 
-    <nav aria-label="Secciones" class="hidden lg:flex flex-1 min-w-0 items-center gap-4 xl:gap-6 overflow-x-auto no-scrollbar h-full">
+    <nav aria-label="Secciones" class="hidden lg:flex min-w-0 items-center justify-center gap-4 xl:gap-7 overflow-x-auto no-scrollbar h-full">
       @for (s of sections; track s.label) {
         <a [routerLink]="s.link" [queryParams]="s.query ?? null"
            [attr.aria-current]="isActive(s) ? 'page' : null"
@@ -21,7 +21,7 @@
     <div class="flex-1 lg:hidden"></div>
 
     <!-- Actions -->
-    <div class="flex items-center gap-1 flex-shrink-0">
+    <div class="flex items-center gap-1 flex-shrink-0 lg:justify-self-end">
       <a routerLink="/search" aria-label="Buscar" aria-keyshortcuts="Control+K Meta+K" [attr.title]="'Buscar (' + shortcutLabel + ')'"
          class="hidden lg:flex w-11 h-11 items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors">
         <app-icon name="search" [size]="20"/>

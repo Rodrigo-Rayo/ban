@@ -73,9 +73,9 @@ export class SearchComponent implements OnInit, OnDestroy {
     { id: 'musicians', label: 'Músicos',  icon: 'music'      },
     { id: 'bands',     label: 'Bandas',   icon: 'mic'        },
     { id: 'rehearsal', label: 'Locales',  icon: 'headphones' },
-    { id: 'venues',    label: 'Salas',    icon: 'building'   },
-    { id: 'events',    label: 'Agenda',   icon: 'calendar'   },
     { id: 'teachers',  label: 'Clases',   icon: 'book-open'  },
+    { id: 'events',    label: 'Agenda',   icon: 'calendar'   },
+    { id: 'venues',    label: 'Salas',    icon: 'building'   },
   ];
 
   /** Mobile: secondary filters (city, instrument, genre) collapse behind a toggle. */
