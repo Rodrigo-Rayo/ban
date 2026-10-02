@@ -4,6 +4,7 @@ import { ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { ToastComponent } from './shared/components/toast/toast.component';
+import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 import { InstallBannerComponent } from './shared/components/install-banner/install-banner.component';
 import { CookieBannerComponent } from './shared/components/cookie-banner/cookie-banner.component';
 import { NotificationPermissionBannerComponent } from './shared/components/notification-permission-banner/notification-permission-banner.component';
@@ -13,7 +14,7 @@ import { SeoService } from './core/services/seo.service';
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, RouterLink, NavbarComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent, NotificationPermissionBannerComponent],
+    imports: [RouterOutlet, RouterLink, NavbarComponent, ConfirmDialogComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent, NotificationPermissionBannerComponent],
     template: `
     <app-navbar />
     <main id="main-content" tabindex="-1" class="pb-16 lg:pb-0">
@@ -31,6 +32,7 @@ import { SeoService } from './core/services/seo.service';
       }
     </main>
     <app-toast />
+    <app-confirm-dialog />
     <app-install-banner />
     <app-notification-permission-banner />
     <app-cookie-banner />

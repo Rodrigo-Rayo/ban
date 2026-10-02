@@ -20,8 +20,9 @@ export function timeAgo(dateStr: string): string {
   if (isNaN(d.getTime())) return '';
   const mins = Math.floor((Date.now() - d.getTime()) / 60000);
   if (mins < 1) return 'ahora';
-  if (mins < 60) return `hace ${mins}m`;
-  if (mins < 1440) return `hace ${Math.floor(mins / 60)}h`;
-  if (mins < 10080) return `hace ${Math.floor(mins / 1440)}d`;
+  // "hace 1m" read as "1 mes": spell the units out.
+  if (mins < 60) return `hace ${mins} min`;
+  if (mins < 1440) return `hace ${Math.floor(mins / 60)} h`;
+  if (mins < 10080) { const days = Math.floor(mins / 1440); return days === 1 ? 'ayer' : `hace ${days} días`; }
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }

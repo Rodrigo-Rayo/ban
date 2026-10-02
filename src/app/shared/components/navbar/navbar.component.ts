@@ -5,6 +5,7 @@ import { MessagesService } from '../../../core/services/messages.service';
 import { NotificationsService } from '../../../core/services/notifications.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { AvatarUploadService } from '../../../core/services/avatar-upload.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 import { filter } from 'rxjs/operators';
@@ -62,6 +63,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
   private seo = inject(SeoService);
+  private avatarUpload = inject(AvatarUploadService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   menuOpen = false;
@@ -111,6 +113,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
     effect(() => {
       const userId = this.auth.user()?.id ?? null;
       untracked(() => this.onUserChange(userId));
+    });
+    // A photo changed anywhere (Mi panel, Portada, own profile) shows up right away.
+    effect(() => {
+      const url = this.avatarUpload.avatarUrl();
+      if (url) untracked(() => this.avatarUrl.set(url));
     });
     // Unread messages show in the tab title and on the installed app's icon.
     effect(() => {

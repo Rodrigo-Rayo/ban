@@ -131,6 +131,7 @@ export const routes: Routes = [
   {
     path: 'legal',
     children: [
+      { path: '', pathMatch: 'full', redirectTo: 'aviso-legal' },
       {
         path: 'privacidad',
         loadComponent: () => import('./features/legal/privacy/privacy.component').then(m => m.PrivacyComponent),
@@ -149,6 +150,11 @@ export const routes: Routes = [
       },
     ],
   },
+  // Short aliases people type or older links may use.
+  { path: 'privacidad',  redirectTo: 'legal/privacidad' },
+  { path: 'terminos',    redirectTo: 'legal/terminos' },
+  { path: 'cookies',     redirectTo: 'legal/cookies' },
+  { path: 'aviso-legal', redirectTo: 'legal/aviso-legal' },
   {
     path: '**', data: NOINDEX,
     loadComponent: () => import('./features/not-found/not-found.component').then(m => m.NotFoundComponent),
