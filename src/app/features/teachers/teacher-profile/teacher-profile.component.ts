@@ -58,6 +58,7 @@ export class TeacherProfileComponent implements OnInit {
   bookingSuccess = signal(false);
   linkShared = signal(false);
 
+  readonly posterLine = computed(() => ['Clases', this.teacher()?.instrument, this.teacher()?.city].filter(Boolean).join(' · '));
   readonly avgRating = computed(() => {
     const r = this.reviews();
     if (!r.length) return null;

@@ -141,6 +141,11 @@ export class BandProfileComponent implements OnInit {
     }
   }
 
+  readonly posterLine = computed(() => [this.band()?.genre, this.band()?.city].filter(Boolean).join(' · '));
+  readonly hasLinks = computed(() => {
+    const b = this.band();
+    return !!(b && (b.spotify_url || b.youtube_url || b.soundcloud_url || b.instagram_url || b.website_url));
+  });
   readonly isOwner = computed(() => !!(this.currentUserId() && this.band()?.user_id === this.currentUserId()));
   readonly openVacancies = computed(() => this.vacancies().filter(v => v.open));
   readonly closedVacancies = computed(() => this.vacancies().filter(v => !v.open));
@@ -173,7 +178,9 @@ export class BandProfileComponent implements OnInit {
       if (vacancyIds.length === 0) return;
       const { data: apps, error } = await this.supabase.client
         .from('vacancy_applications')
-        .select('*, band_vacancies(instrument)')
+        // No embed: the band_vacancies relationship is not guaranteed in the live
+        // schema; the instrument is resolved from the vacancies already loaded.
+        .select('*')
         .in('vacancy_id', vacancyIds)
         .order('created_at', { ascending: false })
         .limit(200);
@@ -183,7 +190,12 @@ export class BandProfileComponent implements OnInit {
         ? await this.supabase.client.from('musicians').select('id, name, city, genre, avatar_url').in('id', musicianIds)
         : { data: [] };
       const musicianMap = new Map((musicians || []).map(m => [m.id, m]));
-      this.applications.set((apps || []).map(app => ({ ...app, musician: musicianMap.get(app.musician_id) ?? null })) as VacancyApplication[]);
+      const instrumentById = new Map(this.vacancies().map(v => [v.id, v.instrument]));
+      this.applications.set((apps || []).map(app => ({
+        ...app,
+        musician: musicianMap.get(app.musician_id) ?? null,
+        band_vacancies: { instrument: instrumentById.get(app.vacancy_id) ?? '' },
+      })) as VacancyApplication[]);
     } finally {
       this.applicationsLoading.set(false);
     }

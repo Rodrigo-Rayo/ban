@@ -1,13 +1,13 @@
-﻿<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
   @if (event()) {
-    <div class="h-1 bg-primary-500"></div>
+    <div class="h-2 bg-poster-yellow border-b-2 border-ink"></div>
   }
 
   <!-- Back nav -->
-  <div class="px-5 sm:px-6 lg:px-10 border-b border-dark-600 bg-dark-800/60">
+  <div class="px-5 sm:px-6 lg:px-10 border-b-2 border-ink">
     <a [routerLink]="['/search']" [queryParams]="{tab:'events'}"
-       class="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-600 transition-colors group min-h-[44px]">
+       class="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-ink hover:text-primary-600 transition-colors group min-h-[44px]">
       <svg aria-hidden="true" class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
@@ -16,68 +16,66 @@
   </div>
 
   @if (loading()) {
-    <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600 animate-pulse">
+    <div class="bg-dark-800 border-b-2 border-ink animate-pulse">
       <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-8">
         <div class="flex gap-5 items-start">
-          <div class="flex-shrink-0 w-20 h-28 rounded-2xl bg-dark-700"></div>
+          <div class="flex-shrink-0 w-20 h-28 bg-dark-700"></div>
           <div class="flex-1 space-y-3 pt-1">
             <div class="flex gap-2">
-              <div class="h-5 bg-dark-700 rounded-full w-16"></div>
-              <div class="h-5 bg-dark-700 rounded-full w-12"></div>
+              <div class="h-5 bg-dark-700 w-16"></div>
+              <div class="h-5 bg-dark-700 w-12"></div>
             </div>
-            <div class="h-8 bg-dark-700 rounded w-3/4"></div>
-            <div class="h-4 bg-dark-600 rounded w-48"></div>
+            <div class="h-8 bg-dark-700 w-3/4"></div>
+            <div class="h-4 bg-dark-600 w-48"></div>
           </div>
         </div>
       </div>
     </div>
     <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-8 animate-pulse flex flex-col gap-5">
       <div class="flex gap-3">
-        <div class="h-11 bg-dark-700 rounded-xl w-40"></div>
-        <div class="h-11 bg-dark-700 rounded-xl w-32"></div>
+        <div class="h-11 bg-dark-700 w-40"></div>
+        <div class="h-11 bg-dark-700 w-32"></div>
       </div>
-      <div class="h-32 bg-dark-800 rounded-2xl border border-dark-600"></div>
-      <div class="h-40 bg-dark-800 rounded-2xl border border-dark-600"></div>
+      <div class="h-32 card-flat"></div>
+      <div class="h-40 card-flat"></div>
     </div>
   } @else if (!event()) {
     <div class="empty-state">
-      <div class="w-14 h-14 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
-        <app-icon name="calendar" [size]="24" class="text-ink-muted"/>
+      <div class="empty-state-icon">
+        <app-icon name="calendar" [size]="24" class="text-ink"/>
       </div>
-      <h2 class="text-base font-bold text-ink mb-1">Evento no encontrado</h2>
+      <h2 class="text-3xl text-ink mb-1">Evento no encontrado</h2>
       <p class="text-sm text-ink-muted mb-5">Puede que haya sido eliminado o el enlace sea incorrecto</p>
-      <a [routerLink]="['/search']" [queryParams]="{tab:'events'}" class="btn-primary text-sm px-5">Ver agenda</a>
+      <a [routerLink]="['/search']" [queryParams]="{tab:'events'}" class="btn-primary text-sm px-5 min-h-[44px] inline-flex items-center">Ver agenda</a>
     </div>
   } @else {
 
   <!-- HERO -->
-  <div class="bg-gradient-to-br from-dark-800 via-dark-800 to-primary-900/20 border-b border-dark-600"
-       [class.opacity-60]="isPast()">
+  <div class="bg-dark-800 border-b-2 border-ink">
     @if (isPast()) {
-      <div class="bg-dark-700/80 border-b border-dark-600 px-5 sm:px-6 lg:px-10 py-2 flex items-center gap-2">
-        <svg aria-hidden="true" class="w-3.5 h-3.5 text-ink-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="bg-poster-yellow border-b-2 border-ink px-5 sm:px-6 lg:px-10 py-2 flex items-center gap-2">
+        <svg aria-hidden="true" class="w-3.5 h-3.5 text-ink flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        <p class="text-xs text-ink-muted font-medium">Este evento ya ha pasado</p>
+        <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink">Este evento ya ha pasado</p>
       </div>
     }
     <div class="max-w-5xl mx-auto px-5 sm:px-6 lg:px-10 py-6 sm:py-8">
       <div class="flex gap-4 sm:gap-5 items-start">
 
         <!-- Date block -->
-        <div class="flex-shrink-0 text-center rounded-2xl px-4 sm:px-5 py-4 shadow-lg min-w-[72px] sm:min-w-[80px]"
-             [class.bg-primary-600]="!isPast()"
-             [class.bg-dark-600]="isPast()">
-          <p class="text-micro font-bold uppercase tracking-widest mb-0.5"
-             [ngClass]="isPast() ? 'text-ink-muted' : 'text-white/70'">{{ event()!.date | date:'EEE' | uppercase }}</p>
-          <p class="text-4xl font-black leading-none"
-             [class.text-white]="!isPast()" [class.text-ink-muted]="isPast()">{{ event()!.date | date:'d' }}</p>
-          <p class="text-micro font-bold uppercase tracking-widest mt-0.5"
-             [ngClass]="isPast() ? 'text-ink-muted' : 'text-white/70'">{{ event()!.date | date:'MMM' | uppercase }}</p>
+        <div class="flex-shrink-0 text-center border-2 border-ink px-4 sm:px-5 py-3 min-w-[76px] sm:min-w-[88px] shadow-[4px_4px_0_0_#141210]"
+             [class.bg-night]="!isPast()"
+             [class.bg-dark-700]="isPast()">
+          <p class="font-mono text-[11px] font-bold uppercase tracking-wide mb-0.5"
+             [ngClass]="isPast() ? 'text-ink-muted' : 'text-poster-yellow'">{{ event()!.date | date:'EEE' | uppercase }}</p>
+          <p class="font-display text-5xl leading-none"
+             [class.text-poster-paper]="!isPast()" [class.text-ink]="isPast()">{{ event()!.date | date:'d' }}</p>
+          <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-0.5"
+             [ngClass]="isPast() ? 'text-ink-muted' : 'text-poster-paper'">{{ event()!.date | date:'MMM' | uppercase }}</p>
           @if (event()!.time) {
-            <p class="text-xs font-medium mt-2.5 pt-2.5 border-t"
-               [class.text-white]="!isPast()" [class.text-ink-muted]="isPast()"
-               [ngClass]="isPast() ? 'border-dark-600' : 'border-white/20'">{{ event()!.time?.slice(0,5) }}h</p>
+            <p class="font-mono text-[11px] font-bold mt-2 pt-2 border-t"
+               [ngClass]="isPast() ? 'text-ink border-ink' : 'text-poster-paper border-poster-paper/40'">{{ event()!.time?.slice(0,5) }}h</p>
           }
         </div>
 
@@ -87,8 +85,8 @@
             @if (event()!.genre) { <span class="tag">{{ event()!.genre }}</span> }
             @if (event()!.price) { <span class="tag-accent">{{ event()!.price }}</span> }
           </div>
-          <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-ink leading-tight mb-2 break-words">{{ event()!.title }}</h1>
-          <p class="text-sm text-ink-muted flex items-center gap-1.5">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl text-ink leading-[0.95] mb-2 break-words">{{ event()!.title }}</h1>
+          <p class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted flex items-center gap-1.5">
             <svg aria-hidden="true" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -106,38 +104,35 @@
     <!-- Actions -->
     <div class="flex gap-3 flex-wrap">
       @if (event()!.ticket_url) {
-        <a [href]="event()!.ticket_url" target="_blank" rel="noopener noreferrer" class="btn-primary px-6 py-2.5 min-h-[44px] text-sm">
+        <a [href]="event()!.ticket_url" target="_blank" rel="noopener noreferrer" class="btn-primary px-6 py-2.5 min-h-[44px] text-sm inline-flex items-center">
           Comprar entradas
         </a>
       }
       @if (currentUserId()) {
         <button (click)="toggleFav()" [disabled]="favLoading()"
           [attr.aria-pressed]="isFav()"
-          [attr.aria-label]="isFav() ? 'Quitar de guardados' : 'Guardar evento'"
-          class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-colors disabled:opacity-50 flex items-center gap-2"
-          [class.bg-primary-600]="isFav()"
-          [class.border-primary-500]="isFav()"
+          [attr.aria-label]="isFav() ? 'Quitar de favoritos' : 'Añadir a favoritos'"
+          class="px-5 py-2.5 min-h-[44px] font-mono text-xs font-bold uppercase tracking-wide border-2 border-ink transition-colors disabled:opacity-50 flex items-center gap-2"
+          [class.bg-primary-500]="isFav()"
           [class.text-white]="isFav()"
-          [class.bg-dark-700]="!isFav()"
-          [class.border-dark-600]="!isFav()"
+          [class.bg-dark-800]="!isFav()"
           [class.text-ink]="!isFav()">
           <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                [attr.fill]="isFav() ? 'currentColor' : 'none'">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
           </svg>
-          {{ isFav() ? 'Guardado' : 'Guardar' }}
+          {{ isFav() ? 'En favoritos' : 'Favorito' }}
         </button>
       } @else {
-        <a routerLink="/auth/login" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border border-dark-600 bg-dark-700 text-ink-3 hover:border-primary-500/50 hover:text-ink transition-colors flex items-center">
-          Inicia sesión para guardar
+        <a routerLink="/auth/login" class="btn-secondary px-5 py-2.5 min-h-[44px] text-sm flex items-center">
+          Inicia sesión para añadir a favoritos
         </a>
       }
       <button (click)="shareLink()"
-        class="px-4 py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-colors flex items-center gap-2"
+        class="px-4 py-2.5 min-h-[44px] font-mono text-xs font-bold uppercase tracking-wide border-2 transition-colors flex items-center gap-2 bg-dark-800"
         [class.border-signal-green]="linkShared()" [class.text-signal-green]="linkShared()"
-        [class.border-dark-600]="!linkShared()" [class.text-ink-muted]="!linkShared()"
-        [class.bg-dark-700]="true"
+        [class.border-ink]="!linkShared()" [class.text-ink]="!linkShared()"
         [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir evento'">
         <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
@@ -149,46 +144,46 @@
     <!-- Description -->
     @if (event()!.description) {
       <div class="card-flat p-5">
-        <h3 class="section-label mb-3">Sobre el evento</h3>
-        <p class="text-sm text-ink-3 leading-relaxed">{{ event()!.description }}</p>
+        <h3 class="rule-label mb-3">Sobre el evento</h3>
+        <p class="text-[15px] text-ink-2 leading-relaxed whitespace-pre-line">{{ event()!.description }}</p>
       </div>
     }
 
     <!-- Details card -->
     <div class="card-flat overflow-hidden">
-      <div class="px-5 py-3 border-b border-dark-600"><h3 class="section-label">Detalles</h3></div>
+      <div class="px-5 py-3 border-b-2 border-ink"><h3 class="section-label">Detalles</h3></div>
       <div class="divide-y divide-dark-600 text-sm">
         <div class="flex justify-between gap-4 px-5 py-2.5">
-          <span class="text-ink-muted">Fecha</span>
-          <span class="font-medium text-ink text-right break-words min-w-0">{{ event()!.date | date:'EEEE, d MMMM yyyy' }}</span>
+          <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Fecha</span>
+          <span class="font-semibold text-ink text-right break-words min-w-0">{{ event()!.date | date:'EEEE, d MMMM yyyy' }}</span>
         </div>
         @if (event()!.time) {
           <div class="flex justify-between gap-4 px-5 py-2.5">
-            <span class="text-ink-muted">Hora</span>
-            <span class="font-medium text-ink text-right break-words min-w-0">{{ event()!.time?.slice(0,5) }}h</span>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Hora</span>
+            <span class="font-semibold text-ink text-right break-words min-w-0">{{ event()!.time?.slice(0,5) }}h</span>
           </div>
         }
         @if (event()!.venue) {
           <div class="flex justify-between gap-4 px-5 py-2.5">
-            <span class="text-ink-muted">Lugar</span>
-            <span class="font-medium text-ink text-right break-words min-w-0">{{ event()!.venue }}</span>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Lugar</span>
+            <span class="font-semibold text-ink text-right break-words min-w-0">{{ event()!.venue }}</span>
           </div>
         }
         @if (event()!.city) {
           <div class="flex justify-between gap-4 px-5 py-2.5">
-            <span class="text-ink-muted">Ciudad</span>
-            <span class="font-medium text-ink text-right break-words min-w-0">{{ event()!.city }}</span>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Ciudad</span>
+            <span class="font-semibold text-ink text-right break-words min-w-0">{{ event()!.city }}</span>
           </div>
         }
         @if (event()!.price) {
           <div class="flex justify-between gap-4 px-5 py-2.5">
-            <span class="text-ink-muted">Precio</span>
-            <span class="font-medium text-ink text-right break-words min-w-0">{{ +event()!.price > 0 ? (event()!.price | number:'1.0-2') + ' €' : event()!.price }}</span>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Precio</span>
+            <span class="font-semibold text-ink text-right break-words min-w-0">{{ +event()!.price > 0 ? (event()!.price | number:'1.0-2') + ' €' : event()!.price }}</span>
           </div>
         }
         @if (event()!.contact_email) {
           <div class="flex justify-between gap-4 px-5 py-2.5 items-center">
-            <span class="text-ink-muted">Contacto</span>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted self-center">Contacto</span>
             <a [href]="'mailto:' + event()!.contact_email"
                class="font-medium text-primary-500 hover:text-primary-600 transition-colors truncate max-w-[60%]">
               {{ event()!.contact_email }}

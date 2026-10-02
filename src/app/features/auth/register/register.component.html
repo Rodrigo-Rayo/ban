@@ -3,14 +3,14 @@
   <!-- Form panel -->
   <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden">
     <!-- Mobile logo -->
-    <a routerLink="/" class="lg:hidden text-xl font-black text-ink tracking-tighter mb-10">
+    <a routerLink="/" class="lg:hidden font-display text-4xl uppercase text-ink leading-none mb-8">
       Band<span class="text-primary-500">You</span>
     </a>
 
     <div class="w-full max-w-sm">
 
       <div class="mb-7">
-          <h1 class="text-2xl font-black text-ink mb-2 tracking-tight">Únete a BandYou.</h1>
+          <h1 class="text-5xl text-ink leading-[0.9] mb-2">Únete a BandYou.</h1>
           <p class="text-sm text-ink-muted">Crea tu cuenta y elige tu perfil en el siguiente paso.</p>
         </div>
 
@@ -18,7 +18,7 @@
         <div class="mb-5">
           <label for="reg-legal" class="flex items-start gap-2.5 text-xs text-ink-2 leading-snug cursor-pointer">
             <input id="reg-legal" type="checkbox" [formControl]="legalConsent" required
-              class="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-dark-600 text-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500"
+              class="mt-0.5 h-4 w-4 flex-shrink-0 border-2 border-ink text-primary-500 accent-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500"
               [attr.aria-invalid]="legalConsent.invalid && legalConsent.touched"
               [attr.aria-describedby]="legalConsent.invalid && legalConsent.touched ? 'reg-legal-error' : null"/>
             <span>
@@ -29,7 +29,7 @@
             </span>
           </label>
           @if (legalConsent.invalid && legalConsent.touched) {
-            <p id="reg-legal-error" role="alert" class="text-xs text-signal-red mt-1.5">
+            <p id="reg-legal-error" role="alert" class="text-xs font-bold text-signal-red mt-1.5">
               Debes confirmar tu edad y aceptar los Términos para crear una cuenta.
             </p>
           }
@@ -37,7 +37,7 @@
 
         <!-- Google -->
         <button type="button" (click)="loginWithGoogle()"
-          class="w-full flex items-center justify-center gap-3 bg-dark-800 border border-dark-600 hover:border-primary-500/50 hover:shadow-sm text-ink font-medium py-3 px-4 rounded-xl transition-all duration-200 mb-5 min-h-[48px]">
+          class="w-full flex items-center justify-center gap-3 btn-secondary py-3 px-4 mb-5 min-h-[48px]">
           <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -48,26 +48,26 @@
         </button>
 
         <div class="flex items-center gap-3 my-5">
-          <div class="flex-1 h-px bg-dark-600"></div>
-          <span class="text-xs text-ink-muted font-medium">o con email</span>
-          <div class="flex-1 h-px bg-dark-600"></div>
+          <div class="flex-1 h-0.5 bg-ink"></div>
+          <span class="font-mono text-[11px] text-ink font-bold uppercase tracking-wide">o con email</span>
+          <div class="flex-1 h-0.5 bg-ink"></div>
         </div>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
 
           <div>
-            <label for="reg-email" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">Email</label>
+            <label for="reg-email" class="block font-mono text-[11px] font-bold text-ink mb-1.5 uppercase tracking-wide">Email</label>
             <input id="reg-email" formControlName="email" type="email" placeholder="tu@email.com"
               class="input-field" autocomplete="email" required
               [attr.aria-invalid]="isInvalid('email')"
               [attr.aria-describedby]="isInvalid('email') ? 'reg-email-error' : null"/>
             @if (isInvalid('email')) {
-              <p id="reg-email-error" class="text-xs text-signal-red mt-1.5">Introduce un email válido.</p>
+              <p id="reg-email-error" class="text-xs font-bold text-signal-red mt-1.5">Introduce un email válido.</p>
             }
           </div>
 
           <div>
-            <label for="reg-password" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">Contraseña</label>
+            <label for="reg-password" class="block font-mono text-[11px] font-bold text-ink mb-1.5 uppercase tracking-wide">Contraseña</label>
             <div class="relative">
               <input id="reg-password" formControlName="password" [type]="showPassword() ? 'text' : 'password'"
                 placeholder="Mínimo 8 caracteres" class="input-field pr-12" autocomplete="new-password" required
@@ -76,7 +76,7 @@
                 [attr.aria-describedby]="isInvalid('password') ? 'reg-password-error reg-password-hint' : 'reg-password-hint'"/>
               <button type="button" (click)="showPassword.set(!showPassword())"
                 [attr.aria-pressed]="showPassword()" aria-label="Mostrar contraseña" aria-controls="reg-password"
-                class="absolute inset-y-0 right-0 flex items-center justify-center w-11 text-ink-muted hover:text-ink rounded-r-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                class="absolute inset-y-0 right-0 flex items-center justify-center w-11 text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                 @if (showPassword()) {
                   <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.58 10.58a2 2 0 002.83 2.83M9.88 5.09A9.77 9.77 0 0112 5c5 0 9 4.5 10 7a13.2 13.2 0 01-2.2 3.4M6.6 6.6C4.3 8 2.7 10.2 2 12c1 2.5 5 7 10 7 1.6 0 3.1-.4 4.4-1.1"/></svg>
                 } @else {
@@ -86,7 +86,7 @@
             </div>
             <p id="reg-password-hint" class="sr-only">Mínimo 8 caracteres.</p>
             @if (isInvalid('password')) {
-              <p id="reg-password-error" class="text-xs text-signal-red mt-1.5">La contraseña debe tener al menos 8 caracteres.</p>
+              <p id="reg-password-error" class="text-xs font-bold text-signal-red mt-1.5">La contraseña debe tener al menos 8 caracteres.</p>
             }
             @if (form.get('password')?.value) {
               <div class="mt-2" aria-live="polite">
@@ -119,7 +119,7 @@
           </div>
 
           @if (error()) {
-            <div role="alert" aria-live="assertive" class="bg-signal-rBg border border-signal-red/30 text-signal-red px-4 py-3 rounded-xl text-xs font-medium flex items-center gap-2">
+            <div role="alert" aria-live="assertive" class="bg-signal-rBg border-2 border-signal-red text-signal-red px-4 py-3 text-xs font-bold flex items-center gap-2">
               <svg aria-hidden="true" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
@@ -139,4 +139,13 @@
         </p>
     </div>
   </div>
+  <!-- Poster panel — desktop only -->
+  <aside class="hidden lg:flex lg:w-[440px] flex-shrink-0 bg-poster-yellow border-l-2 border-ink flex-col justify-between p-10" aria-hidden="true">
+    <a routerLink="/" tabindex="-1" class="font-display text-4xl uppercase text-ink leading-none">Band<span class="text-primary-500">You</span></a>
+    <div>
+      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-3">La red musical de España</p>
+      <p class="font-display text-7xl uppercase leading-[0.88] text-ink">Músicos,<br>bandas,<br>salas.</p>
+      <p class="mt-6 border-t-2 border-ink pt-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink">Tablón de la escena · Entrada libre</p>
+    </div>
+  </aside>
 </div>

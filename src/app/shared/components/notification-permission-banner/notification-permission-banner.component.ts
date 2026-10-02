@@ -11,26 +11,26 @@ const DISMISSED_KEY = 'notif-permission-dismissed';
   template: `
     @if (show()) {
       <div class="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2 lg:bottom-4 animate-in slide-in-from-bottom-4 duration-300">
-        <div class="bg-dark-800 border border-primary-500/30 rounded-2xl p-4 flex items-center gap-3 shadow-2xl shadow-black/40 max-w-sm md:ml-auto md:mr-4">
-          <div class="w-10 h-10 rounded-xl bg-primary-900 border border-primary-500/30 flex items-center justify-center flex-shrink-0 text-lg">
+        <div class="bg-dark-800 border-2 border-ink p-4 flex items-center gap-3 shadow-[4px_4px_0_0_#141210] max-w-sm md:ml-auto md:mr-4">
+          <div class="w-10 h-10 bg-poster-yellow border-2 border-ink flex items-center justify-center flex-shrink-0 text-lg">
             🔔
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold text-ink leading-tight">Activa las notificaciones</p>
+            <p class="font-display text-xl uppercase text-ink leading-tight">Activa las notificaciones</p>
             @if (error()) {
-              <p class="text-xs text-signal-red mt-0.5 leading-snug" role="alert">No se pudieron activar. Inténtalo de nuevo.</p>
+              <p class="text-xs font-bold text-signal-red mt-0.5 leading-snug" role="alert">No se pudieron activar. Inténtalo de nuevo.</p>
             } @else {
-              <p class="text-xs text-ink-muted mt-0.5 leading-snug">Recibe tus mensajes aunque tengas la app cerrada</p>
+              <p class="text-xs text-ink-2 mt-0.5 leading-snug">Recibe tus mensajes aunque tengas la app cerrada</p>
             }
           </div>
           <div class="flex flex-col gap-1.5 flex-shrink-0">
             <button (click)="activate()"
               [disabled]="loading()"
-              class="px-3 py-2 bg-primary-500 hover:bg-primary-400 text-white text-xs font-bold rounded-xl transition-colors disabled:opacity-60 whitespace-nowrap min-h-[44px]">
+              class="btn-primary px-3 py-2 text-xs disabled:opacity-60 whitespace-nowrap min-h-[44px]">
               {{ loading() ? 'Activando…' : 'Activar' }}
             </button>
             <button (click)="dismiss()"
-              class="px-3 py-2 text-ink-muted hover:text-ink text-xs rounded-xl transition-colors whitespace-nowrap min-h-[44px]">
+              class="px-3 py-2 font-mono font-bold uppercase text-ink hover:text-primary-600 text-[11px] transition-colors whitespace-nowrap min-h-[44px]">
               Ahora no
             </button>
           </div>

@@ -218,6 +218,19 @@ export class FeedComponent implements OnInit, OnDestroy {
 
   typeLabel(type: PostType) { return this.postTypeMap.get(type)?.label ?? type; }
   typeEmoji(type: PostType) { return this.postTypeMap.get(type)?.emoji ?? '📢'; }
+  /** Poster stamp per post type. */
+  typeStamp(type: PostType): string {
+    const map: Record<string, string> = {
+      musician_seeking_band: 'tag-accent',
+      band_seeking_musician: 'tag-red',
+      event_announcement: 'tag !bg-night !text-poster-paper',
+      session_offer: 'tag-green',
+      looking_for_rehearsal: 'tag',
+      collab: 'tag !bg-primary-900',
+    };
+    return map[type] ?? 'tag';
+  }
+
   typeIcon(type: PostType)  { return this.postTypeMap.get(type)?.icon ?? 'newspaper'; }
 
   profileRoute(p: Post): string[] | null {

@@ -10,12 +10,12 @@ import { ToastService } from '../../../core/services/toast.service';
          role="status" aria-live="polite" aria-atomic="false" aria-relevant="additions">
       @for (toast of toastSvc.toasts(); track toast.id) {
         <div
-          class="flex items-start gap-3 px-4 py-3 rounded-xl shadow-xl border text-sm font-medium pointer-events-auto animate-slide-up"
+          class="flex items-start gap-3 px-4 py-3 border-2 border-ink text-sm font-semibold pointer-events-auto animate-slide-up"
           [class]="toastClasses[toast.type]">
-          <span class="text-base flex-shrink-0 mt-0.5" aria-hidden="true">{{ toastIcon[toast.type] }}</span>
+          <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center border-[1.5px] border-ink font-mono text-xs font-bold" [class]="toastIconClasses[toast.type]" aria-hidden="true">{{ toastIcon[toast.type] }}</span>
           <span class="flex-1 leading-snug">@if (toast.type === 'error') {<span class="sr-only">Error: </span>}{{ toast.message }}</span>
           <button type="button" (click)="toastSvc.dismiss(toast.id)"
-            class="flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity text-xs font-bold ml-1"
+            class="flex-shrink-0 min-w-[44px] min-h-[44px] -my-3 -mr-4 flex items-center justify-center text-ink hover:text-primary-500 transition-colors text-xs font-bold"
             aria-label="Cerrar notificación">✕</button>
         </div>
       }
@@ -33,9 +33,15 @@ export class ToastComponent {
   toastSvc = inject(ToastService);
 
   readonly toastClasses = {
-    success: 'bg-dark-800 border-signal-green/40 text-ink',
-    error:   'bg-dark-800 border-signal-red/40 text-ink',
-    info:    'bg-dark-800 border-primary-500/40 text-ink',
+    success: 'bg-dark-800 text-ink shadow-[4px_4px_0_0_#1d6b3a]',
+    error:   'bg-dark-800 text-ink shadow-[4px_4px_0_0_#b3261e]',
+    info:    'bg-dark-800 text-ink shadow-[4px_4px_0_0_#141210]',
+  };
+
+  readonly toastIconClasses = {
+    success: 'bg-signal-gBg text-signal-green',
+    error:   'bg-signal-rBg text-signal-red',
+    info:    'bg-poster-yellow text-ink',
   };
 
   readonly toastIcon = {

@@ -2,24 +2,21 @@
 
   <!-- Form panel -->
   <div class="flex-1 flex flex-col items-center justify-center px-6 py-16 relative overflow-hidden">
-    <!-- Background texture -->
-    <div class="absolute inset-0 opacity-[0.02] pointer-events-none"
-         style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 32px 32px;"></div>
-
+    
     <!-- Mobile logo -->
-    <a routerLink="/" class="lg:hidden text-xl font-black text-ink tracking-tighter mb-10 relative z-10">
+    <a routerLink="/" class="lg:hidden font-display text-4xl uppercase text-ink leading-none mb-8 relative z-10">
       Band<span class="text-primary-500">You</span>
     </a>
 
     <div class="w-full max-w-sm relative z-10">
       <div class="mb-8">
-        <h1 class="text-2xl font-black text-ink mb-1.5 tracking-tight">Bienvenido de vuelta.</h1>
+        <h1 class="text-5xl text-ink leading-[0.9] mb-1.5">Bienvenido de vuelta.</h1>
         <p class="text-sm text-ink-muted">Accede a tu cuenta para continuar.</p>
       </div>
 
       <!-- Google OAuth -->
       <button type="button" (click)="loginWithGoogle()"
-        class="w-full flex items-center justify-center gap-3 bg-dark-800 border border-dark-600 hover:border-primary-500/50 hover:bg-dark-700 text-ink font-medium py-3 px-4 rounded-xl transition-all duration-200 mb-5 min-h-[48px]">
+        class="w-full flex items-center justify-center gap-3 btn-secondary py-3 px-4 mb-5 min-h-[48px]">
         <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -31,16 +28,16 @@
 
       <!-- Divider -->
       <div class="flex items-center gap-3 my-5">
-        <div class="flex-1 h-px bg-dark-600"></div>
-        <span class="text-xs text-ink-muted font-medium">o con email</span>
-        <div class="flex-1 h-px bg-dark-600"></div>
+        <div class="flex-1 h-0.5 bg-ink"></div>
+        <span class="font-mono text-[11px] text-ink font-bold uppercase tracking-wide">o con email</span>
+        <div class="flex-1 h-0.5 bg-ink"></div>
       </div>
 
       <!-- Form -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
         <!-- Email -->
         <div>
-          <label for="login-email" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">
+          <label for="login-email" class="block font-mono text-[11px] font-bold text-ink mb-1.5 uppercase tracking-wide">
             Email
           </label>
           <input id="login-email" formControlName="email" type="email" placeholder="tu@email.com"
@@ -48,13 +45,13 @@
             [attr.aria-invalid]="isInvalid('email')"
             [attr.aria-describedby]="isInvalid('email') ? 'login-email-error' : null"/>
           @if (isInvalid('email')) {
-            <p id="login-email-error" class="text-xs text-signal-red mt-1.5">Introduce un email válido.</p>
+            <p id="login-email-error" class="text-xs font-bold text-signal-red mt-1.5">Introduce un email válido.</p>
           }
         </div>
 
         <!-- Password -->
         <div>
-          <label for="login-password" class="block text-xs font-bold text-ink-muted mb-1.5 uppercase tracking-widest">
+          <label for="login-password" class="block font-mono text-[11px] font-bold text-ink mb-1.5 uppercase tracking-wide">
             Contraseña
           </label>
           <div class="relative">
@@ -64,7 +61,7 @@
               [attr.aria-describedby]="isInvalid('password') ? 'login-password-error' : null"/>
             <button type="button" (click)="showPassword.set(!showPassword())"
               [attr.aria-pressed]="showPassword()" aria-label="Mostrar contraseña" aria-controls="login-password"
-              class="absolute inset-y-0 right-0 flex items-center justify-center w-11 text-ink-muted hover:text-ink rounded-r-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+              class="absolute inset-y-0 right-0 flex items-center justify-center w-11 text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
               @if (showPassword()) {
                 <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.58 10.58a2 2 0 002.83 2.83M9.88 5.09A9.77 9.77 0 0112 5c5 0 9 4.5 10 7a13.2 13.2 0 01-2.2 3.4M6.6 6.6C4.3 8 2.7 10.2 2 12c1 2.5 5 7 10 7 1.6 0 3.1-.4 4.4-1.1"/></svg>
               } @else {
@@ -73,7 +70,7 @@
             </button>
           </div>
           @if (isInvalid('password')) {
-            <p id="login-password-error" class="text-xs text-signal-red mt-1.5">La contraseña es obligatoria.</p>
+            <p id="login-password-error" class="text-xs font-bold text-signal-red mt-1.5">La contraseña es obligatoria.</p>
           }
         </div>
 
@@ -86,7 +83,7 @@
         </div>
 
         @if (error()) {
-          <div role="alert" aria-live="assertive" class="bg-signal-rBg border border-signal-red/30 text-signal-red px-4 py-3 rounded-xl text-xs font-medium flex items-center gap-2">
+          <div role="alert" aria-live="assertive" class="bg-signal-rBg border-2 border-signal-red text-signal-red px-4 py-3 text-xs font-bold flex items-center gap-2">
             <svg aria-hidden="true" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
@@ -117,4 +114,13 @@
       </p>
     </div>
   </div>
+  <!-- Poster panel — desktop only -->
+  <aside class="hidden lg:flex lg:w-[440px] flex-shrink-0 bg-poster-yellow border-l-2 border-ink flex-col justify-between p-10" aria-hidden="true">
+    <a routerLink="/" tabindex="-1" class="font-display text-4xl uppercase text-ink leading-none">Band<span class="text-primary-500">You</span></a>
+    <div>
+      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-3">La red musical de España</p>
+      <p class="font-display text-7xl uppercase leading-[0.88] text-ink">Músicos,<br>bandas,<br>salas.</p>
+      <p class="mt-6 border-t-2 border-ink pt-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink">Tablón de la escena · Entrada libre</p>
+    </div>
+  </aside>
 </div>

@@ -1,16 +1,16 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
   <!-- Header bar -->
-  <div class="px-6 lg:px-10 py-4 border-b border-dark-600 bg-dark-800/80 backdrop-blur-sm flex items-center gap-4 sticky top-16 z-10">
+  <div class="px-6 lg:px-10 py-3 border-b-2 border-ink bg-dark-900 flex items-center gap-4 sticky top-16 z-10">
     <button type="button" (click)="goBack()" aria-label="Volver atrás"
-       class="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-muted hover:text-ink hover:bg-dark-700 rounded-xl transition-colors">
+       class="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink hover:bg-dark-700 border-[1.5px] border-ink transition-colors">
       <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
     </button>
     <div class="flex-1">
-      <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-500 leading-none mb-0.5">Publicar</p>
-      <h1 class="text-base font-black text-ink leading-none">Nuevo evento</h1>
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-primary-500 leading-none mb-0.5">Publicar</p>
+      <h1 class="text-3xl text-ink leading-none">Nuevo evento</h1>
     </div>
   </div>
 
@@ -19,39 +19,39 @@
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
 
         <!-- Section: Información -->
-        <div class="card-flat overflow-hidden">
-          <div class="px-6 py-4 border-b border-dark-600 flex items-center gap-3">
-            <div class="w-7 h-7 rounded-lg bg-primary-500/15 flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-3.5 h-3.5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
+          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
+            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
+              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
               </svg>
             </div>
-            <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-widest">Información del evento</h2>
+            <h2 class="text-xl text-ink">Información del evento</h2>
           </div>
           <div class="p-6 flex flex-col gap-5">
 
             <div>
-              <label for="event-title" class="block text-xs font-semibold text-ink-muted mb-1.5">Nombre del evento <span aria-hidden="true">*</span></label>
+              <label for="event-title" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Nombre del evento <span aria-hidden="true">*</span></label>
               <input id="event-title" formControlName="title" type="text" placeholder="Ej: Noche de Jazz en Sala Clamores" class="input-field" required
                   [attr.aria-invalid]="isInvalid('title')"
                   [attr.aria-describedby]="isInvalid('title') ? 'event-title-error' : null"/>
               @if (form.get('title')?.invalid && form.get('title')?.touched) {
-                <p id="event-title-error" class="text-xs text-signal-red mt-1.5">Mínimo 5 caracteres.</p>
+                <p id="event-title-error" class="text-xs font-bold text-signal-red mt-1.5">Mínimo 5 caracteres.</p>
               }
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="event-venue" class="block text-xs font-semibold text-ink-muted mb-1.5">Local / Sala <span aria-hidden="true">*</span></label>
+                <label for="event-venue" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Local / Sala <span aria-hidden="true">*</span></label>
                 <input id="event-venue" formControlName="venue" type="text" placeholder="Nombre del local" class="input-field" required
                   [attr.aria-invalid]="isInvalid('venue')"
                   [attr.aria-describedby]="isInvalid('venue') ? 'event-venue-error' : null"/>
                 @if (form.get('venue')?.invalid && form.get('venue')?.touched) {
-                  <p id="event-venue-error" class="text-xs text-signal-red mt-1.5">El local es obligatorio.</p>
+                  <p id="event-venue-error" class="text-xs font-bold text-signal-red mt-1.5">El local es obligatorio.</p>
                 }
               </div>
               <div>
-                <label for="event-city" class="block text-xs font-semibold text-ink-muted mb-1.5">Ciudad <span aria-hidden="true">*</span></label>
+                <label for="event-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad <span aria-hidden="true">*</span></label>
                 <select id="event-city" formControlName="city" class="input-field" required
                   [attr.aria-invalid]="isInvalid('city')"
                   [attr.aria-describedby]="isInvalid('city') ? 'event-city-error' : null">
@@ -60,39 +60,39 @@
                   }
                 </select>
                 @if (form.get('city')?.invalid && form.get('city')?.touched) {
-                  <p id="event-city-error" class="text-xs text-signal-red mt-1.5">La ciudad es obligatoria.</p>
+                  <p id="event-city-error" class="text-xs font-bold text-signal-red mt-1.5">La ciudad es obligatoria.</p>
                 }
               </div>
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="event-date" class="block text-xs font-semibold text-ink-muted mb-1.5">Fecha <span aria-hidden="true">*</span></label>
+                <label for="event-date" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Fecha <span aria-hidden="true">*</span></label>
                 <input id="event-date" formControlName="date" type="date" [min]="today" class="input-field" required
                   [attr.aria-invalid]="isInvalid('date')"
                   [attr.aria-describedby]="isInvalid('date') ? 'event-date-error' : null"/>
                 @if (form.get('date')?.touched) {
                   @if (form.get('date')?.errors?.['required']) {
-                    <p id="event-date-error" class="text-xs text-signal-red mt-1.5">La fecha es obligatoria.</p>
+                    <p id="event-date-error" class="text-xs font-bold text-signal-red mt-1.5">La fecha es obligatoria.</p>
                   } @else if (form.get('date')?.errors?.['pastDate']) {
-                    <p id="event-date-error" class="text-xs text-signal-red mt-1.5">La fecha debe ser hoy o posterior.</p>
+                    <p id="event-date-error" class="text-xs font-bold text-signal-red mt-1.5">La fecha debe ser hoy o posterior.</p>
                   }
                 }
               </div>
               <div>
-                <label for="event-time" class="block text-xs font-semibold text-ink-muted mb-1.5">Hora <span aria-hidden="true">*</span></label>
+                <label for="event-time" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Hora <span aria-hidden="true">*</span></label>
                 <input id="event-time" formControlName="time" type="time" class="input-field" required
                   [attr.aria-invalid]="isInvalid('time')"
                   [attr.aria-describedby]="isInvalid('time') ? 'event-time-error' : null"/>
                 @if (isInvalid('time')) {
-                  <p id="event-time-error" class="text-xs text-signal-red mt-1.5">La hora es obligatoria.</p>
+                  <p id="event-time-error" class="text-xs font-bold text-signal-red mt-1.5">La hora es obligatoria.</p>
                 }
               </div>
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="event-genre" class="block text-xs font-semibold text-ink-muted mb-1.5">Género <span aria-hidden="true">*</span></label>
+                <label for="event-genre" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Género <span aria-hidden="true">*</span></label>
                 <select id="event-genre" formControlName="genre" class="input-field" required
                   [attr.aria-invalid]="isInvalid('genre')"
                   [attr.aria-describedby]="isInvalid('genre') ? 'event-genre-error' : null">
@@ -102,11 +102,11 @@
                   }
                 </select>
                 @if (form.get('genre')?.invalid && form.get('genre')?.touched) {
-                  <p id="event-genre-error" class="text-xs text-signal-red mt-1.5">Selecciona un género.</p>
+                  <p id="event-genre-error" class="text-xs font-bold text-signal-red mt-1.5">Selecciona un género.</p>
                 }
               </div>
               <div>
-                <label for="event-price" class="block text-xs font-semibold text-ink-muted mb-1.5">Precio (€)</label>
+                <label for="event-price" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Precio (€)</label>
                 <div class="relative">
                   <input id="event-price" formControlName="price" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" class="input-field pr-8"/>
                   <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted pointer-events-none">€</span>
@@ -115,8 +115,8 @@
             </div>
 
             <div>
-              <label for="event-description" class="block text-xs font-semibold text-ink-muted mb-1.5">
-                Descripción <span class="opacity-50 normal-case">(opcional)</span>
+              <label for="event-description" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">
+                Descripción <span class="text-ink-muted normal-case">(opcional)</span>
               </label>
               <textarea id="event-description" formControlName="description" rows="3" maxlength="500"
                 placeholder="Cuéntanos más sobre el evento..."
@@ -127,44 +127,44 @@
         </div>
 
         <!-- Section: Contacto -->
-        <div class="card-flat overflow-hidden">
-          <div class="px-6 py-4 border-b border-dark-600 flex items-center gap-3">
-            <div class="w-7 h-7 rounded-lg bg-primary-500/15 flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-3.5 h-3.5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
+          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
+            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
+              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
               </svg>
             </div>
-            <h2 class="text-xs font-semibold text-ink-muted uppercase tracking-widest">Entradas y contacto</h2>
+            <h2 class="text-xl text-ink">Entradas y contacto</h2>
           </div>
           <div class="p-6 flex flex-col gap-5">
             <div>
-              <label for="event-ticketUrl" class="block text-xs font-semibold text-ink-muted mb-1.5">
-                Link de entradas <span class="opacity-50 normal-case">(opcional)</span>
+              <label for="event-ticketUrl" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">
+                Link de entradas <span class="text-ink-muted normal-case">(opcional)</span>
               </label>
               <input id="event-ticketUrl" formControlName="ticketUrl" type="url" placeholder="https://..." class="input-field"
                   [attr.aria-invalid]="isInvalid('ticketUrl')"
                   [attr.aria-describedby]="isInvalid('ticketUrl') ? 'event-ticketUrl-error' : null"/>
               @if (form.get('ticketUrl')?.errors?.['url'] && form.get('ticketUrl')?.touched) {
-                <p id="event-ticketUrl-error" class="text-xs text-signal-red mt-1.5">Introduce una URL válida (https://...).</p>
+                <p id="event-ticketUrl-error" class="text-xs font-bold text-signal-red mt-1.5">Introduce una URL válida (https://...).</p>
               }
             </div>
             <div>
-              <label for="event-contactEmail" class="block text-xs font-semibold text-ink-muted mb-1.5">
-                Email de contacto <span class="opacity-50 normal-case">(opcional)</span>
+              <label for="event-contactEmail" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">
+                Email de contacto <span class="text-ink-muted normal-case">(opcional)</span>
               </label>
               <input id="event-contactEmail" formControlName="contactEmail" type="email" placeholder="info@ejemplo.com"
                 autocomplete="email" class="input-field"
                   [attr.aria-invalid]="isInvalid('contactEmail')"
                   [attr.aria-describedby]="isInvalid('contactEmail') ? 'event-contactEmail-error' : null"/>
               @if (form.get('contactEmail')?.errors?.['email'] && form.get('contactEmail')?.touched) {
-                <p id="event-contactEmail-error" class="text-xs text-signal-red mt-1.5">Email no válido.</p>
+                <p id="event-contactEmail-error" class="text-xs font-bold text-signal-red mt-1.5">Email no válido.</p>
               }
             </div>
           </div>
         </div>
 
         @if (error()) {
-          <div role="alert" class="bg-signal-rBg border border-signal-red/30 text-signal-red px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
+          <div role="alert" class="bg-signal-rBg border-2 border-signal-red text-signal-red px-4 py-3 rounded-none text-sm font-medium flex items-center gap-2">
             <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>

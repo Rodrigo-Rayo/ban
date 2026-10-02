@@ -1,190 +1,159 @@
-<!-- HERO ─────────────────────────────────────────────── -->
-<section class="relative overflow-hidden px-5 sm:px-8 lg:px-14 pt-20 pb-16 max-w-7xl mx-auto">
+<!-- HERO · cartel ─────────────────────────────────────── -->
+<section class="px-4 sm:px-8 lg:px-14 pt-24 pb-10 lg:pb-14 max-w-7xl mx-auto">
+  <p class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted mb-3 border-t-2 border-ink pt-2">
+    Comunidad musical · Sin algoritmos · Perfil gratis
+  </p>
 
-  <!-- Decorative atmospheric blobs -->
-  <div class="absolute top-10 right-0 w-96 h-96 rounded-full bg-primary-500/6 blur-3xl pointer-events-none"></div>
-  <div class="absolute -bottom-10 -left-20 w-96 h-96 rounded-full bg-primary-900/50 blur-3xl pointer-events-none"></div>
-  <div class="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-primary-800/8 blur-2xl pointer-events-none"></div>
-
-  <div class="max-w-2xl relative">
-
-    <!-- Eyebrow pill -->
-    <div class="inline-flex items-center gap-2 bg-primary-900 border border-primary-500/30 rounded-full px-3.5 py-1.5 mb-8">
-      <span class="w-1.5 h-1.5 rounded-full bg-signal-green animate-pulse flex-shrink-0"></span>
-      <span class="text-xs font-bold text-primary-600 tracking-wide">Comunidad musical de España</span>
-    </div>
-
-    <!-- Headline — editorial serif/sans mix -->
-    <h1 class="text-[clamp(2.4rem,8vw,5.5rem)] font-black text-ink leading-[0.9] tracking-tighter mb-7">
+  <div class="relative">
+    <h1 class="text-[clamp(3.25rem,15vw,10rem)] leading-[1.12] pt-2 break-words">
       La red musical<br>
-      <span class="display-serif text-primary-500" style="font-style:italic">de España.</span>
+      <span class="text-primary-500">de España</span>
     </h1>
 
-    <p class="text-base sm:text-lg text-ink-muted max-w-md leading-relaxed mb-9">
-      Músicos, bandas, salas y profesores — en un solo lugar.
-      Sin algoritmos, sin intermediarios, sin complicaciones.
-    </p>
-
-    <div class="flex flex-col sm:flex-row gap-3 mb-9">
-      <a routerLink="/auth/register" class="btn-primary px-8 py-3.5 text-base">Crear perfil gratis</a>
-      <a routerLink="/search" class="btn-secondary px-8 py-3.5 text-base">Explorar directorio</a>
-    </div>
-
-    <!-- Profile type strip — grounding signal -->
-    <div class="flex flex-wrap gap-2">
-      @for (role of ['Guitarristas', 'Baterías', 'Bandas', 'Salas', 'Profesores', 'Vocalistas']; track role) {
-        <span class="tag">{{ role }}</span>
-      }
-      <span class="tag">y más →</span>
-    </div>
-
+    <!-- Stamp -->
+    <span aria-hidden="true"
+          class="hidden md:flex absolute right-2 lg:right-10 top-0 rotate-6 bg-poster-yellow border-2 border-ink px-4 py-2 font-display text-2xl lg:text-3xl uppercase leading-none text-ink shadow-[4px_4px_0_0_#141210]">
+      Se busca<br>banda
+    </span>
   </div>
+
+  <div class="mt-6 grid lg:grid-cols-[1fr_auto] gap-6 items-end">
+    <p class="text-base sm:text-lg text-ink max-w-xl leading-relaxed">
+      Músicos, bandas, salas, profesores y locales de ensayo en un solo cartel.
+      Ves un perfil, escribes, tocáis.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3">
+      <a routerLink="/auth/register" class="btn-primary px-8 py-3.5 text-sm min-h-[48px]">Crear perfil gratis</a>
+      <a routerLink="/search" class="btn-secondary px-8 py-3.5 text-sm min-h-[48px]">Explorar</a>
+    </div>
+  </div>
+  <p class="mt-4 text-sm text-ink-muted">
+    ¿Ya tienes cuenta?
+    <a routerLink="/auth/login" class="font-bold text-ink underline hover:text-primary-500 inline-flex items-center min-h-[44px]">Entrar</a>
+  </p>
 </section>
 
+<!-- TEASERS · contenido real, solo si hay datos ──────── -->
+@if (vacancies().length > 0 || people().length > 0) {
+  <section class="px-4 sm:px-8 lg:px-14 pb-14 max-w-7xl mx-auto" aria-label="Lo que se cuece ahora">
+    <div class="grid gap-10 lg:gap-14" [class.lg:grid-cols-2]="vacancies().length > 0 && people().length > 0">
 
-<!-- STATS BAR ───────────────────────────────────────── -->
-@if (stats().musicians > 0 || stats().bands > 0) {
-  <section class="px-5 sm:px-8 lg:px-14 py-10 border-b border-dark-600" aria-label="Estadísticas de la comunidad">
-    <div class="max-w-7xl mx-auto">
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
-        @for (item of statItems(); track item.label) {
-          <div class="text-center">
-            <div class="text-3xl sm:text-4xl font-black text-ink leading-none mb-1.5 display-serif">
-              {{ item.value }}<span class="text-primary-500 text-2xl sm:text-3xl">+</span>
-            </div>
-            <p class="text-xs font-semibold text-ink-muted uppercase tracking-wider">{{ item.label }}</p>
+      @if (vacancies().length > 0) {
+        <div>
+          <div class="rule-label">
+            <span>Se busca</span>
+            <a routerLink="/search" [queryParams]="{tab:'vacancies'}" class="underline min-h-[44px] inline-flex items-center">Todas las vacantes</a>
           </div>
-        }
-      </div>
+          <h2 class="text-4xl lg:text-5xl leading-[1.05] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
+          @for (v of vacancies(); track v.id; let i = $index) {
+            @if (v.bands; as b) {
+              <a [routerLink]="['/bands', b.id]" class="flex items-center gap-3 py-3 border-b-[1.5px] border-ink min-h-[56px] group">
+                <span class="font-mono text-xs font-bold text-ink-muted w-5 shrink-0">0{{ i + 1 }}</span>
+                <span class="flex-1 min-w-0">
+                  <span class="block font-display text-xl uppercase leading-tight truncate group-hover:text-primary-500 transition-colors">{{ b.name }}</span>
+                  <span class="block text-sm text-ink-muted truncate">{{ v.genre || b.genre }}@if (b.city) { · {{ b.city }}}</span>
+                </span>
+                <span class="tag-accent shrink-0">Busca {{ v.instrument }}</span>
+              </a>
+            }
+          }
+        </div>
+      }
+
+      @if (people().length > 0) {
+        <div>
+          <div class="rule-label">
+            <span>Recién llegados</span>
+            <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="underline min-h-[44px] inline-flex items-center">Ver músicos</a>
+          </div>
+          <h2 class="text-4xl lg:text-5xl leading-[1.05] mt-1 mb-2">Gente que<br>ya está dentro</h2>
+          @for (m of people(); track m.id) {
+            <a [routerLink]="['/musicians', m.id]" class="flex items-center gap-3 py-2.5 border-b-[1.5px] border-ink min-h-[56px] group">
+              <span class="avatar w-11 h-11 text-lg overflow-hidden" [style.background]="m.avatar_url ? null : avatarColor(m.name)">
+                @if (m.avatar_url) {
+                  <img [src]="m.avatar_url" alt="" class="w-full h-full object-cover" loading="lazy"/>
+                } @else {
+                  {{ m.name.slice(0,2) }}
+                }
+              </span>
+              <span class="flex-1 min-w-0">
+                <span class="block font-bold text-sm truncate group-hover:text-primary-500 transition-colors">{{ m.name }}</span>
+                <span class="block text-sm text-ink-muted truncate">{{ m.instrument }}@if (m.city) { · {{ m.city }}}</span>
+              </span>
+            </a>
+          }
+        </div>
+      }
     </div>
   </section>
 }
 
 <!-- CÓMO FUNCIONA ────────────────────────────────────── -->
-<section class="px-5 sm:px-8 lg:px-14 py-20 max-w-7xl mx-auto">
-  <div class="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
-
-    <div class="lg:w-64 flex-shrink-0">
-      <p class="text-micro font-semibold uppercase tracking-wider text-primary-500 mb-3">Cómo funciona</p>
-      <h2 class="text-3xl lg:text-4xl font-black text-ink leading-tight tracking-tight">Simple.<br>Directo.</h2>
-      <div class="mt-6 h-px bg-gradient-to-r from-primary-500/40 to-transparent w-24"></div>
-      <p class="mt-4 text-sm text-ink-muted leading-relaxed">
-        En menos de 5 minutos tienes tu perfil visible para toda la comunidad musical española.
-      </p>
-    </div>
-
-    <div class="flex-1 grid sm:grid-cols-2 gap-4">
+<section class="bg-ink text-poster-paper border-y-2 border-ink">
+  <div class="px-4 sm:px-8 lg:px-14 py-14 lg:py-20 max-w-7xl mx-auto">
+    <p class="font-mono text-xs font-bold uppercase tracking-wide text-poster-yellow mb-3">Cómo funciona</p>
+    <h2 class="text-5xl lg:text-7xl leading-[1.05] mb-10">Simple. <span class="text-poster-yellow">Directo.</span></h2>
+    <ol class="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8">
       @for (step of steps; track step.n) {
-        <div class="relative bg-dark-800 border border-dark-600 rounded-2xl p-5 overflow-hidden group hover:border-primary-500/30 hover:shadow-sm transition-all duration-200">
-          <!-- Large backdrop step number -->
-          <!-- Decorative numeral drawn via ::before so it is not treated as text content. -->
-          <span class="absolute -top-3 -right-1 text-[72px] font-black text-dark-600/60 leading-none select-none pointer-events-none display-serif before:content-[attr(data-n)]" aria-hidden="true" [attr.data-n]="step.n"></span>
-          <!-- Step number pill -->
-          <div class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary-900 border border-primary-500/30 text-xs font-black text-primary-500 mb-4 relative z-10">{{ step.n }}</div>
-          <h3 class="text-sm font-bold text-ink mb-1.5 relative z-10">{{ step.title }}</h3>
-          <p class="text-xs text-ink-muted leading-relaxed relative z-10">{{ step.desc }}</p>
-        </div>
+        <li class="border-t-2 border-poster-paper pt-3">
+          <span class="font-display text-5xl leading-none text-primary-400" aria-hidden="true">{{ step.n }}</span>
+          <h3 class="font-display text-2xl uppercase leading-tight mt-3 mb-1">{{ step.title }}</h3>
+          <p class="text-sm leading-relaxed text-poster-paper/85">{{ step.desc }}</p>
+        </li>
       }
-    </div>
+    </ol>
   </div>
 </section>
 
-<!-- DIRECTORIO BENTO ─────────────────────────────────── -->
-<section class="px-5 sm:px-8 lg:px-14 py-20 border-y border-dark-600 bg-dark-800/40">
-  <div class="max-w-7xl mx-auto">
-
-    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
-      <div>
-        <p class="text-micro font-semibold uppercase tracking-wider text-primary-500 mb-2">Directorio completo</p>
-        <h2 class="text-3xl lg:text-4xl font-black text-ink tracking-tight">¿Qué buscas?</h2>
-      </div>
-      <a routerLink="/search" class="text-sm font-bold text-primary-500 hover:text-primary-600 transition-colors flex-shrink-0 flex items-center gap-1.5 group">
-        Ver todo
-        <svg aria-hidden="true" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-      </a>
-    </div>
-
-    <!-- Bento grid — first card spans 2 rows on desktop -->
-    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
-      @for (cat of catalog; track cat.tab; let i = $index) {
+<!-- ¿QUÉ BUSCAS? ─────────────────────────────────────── -->
+<section class="px-4 sm:px-8 lg:px-14 py-14 lg:py-20 max-w-7xl mx-auto" aria-labelledby="que-buscas">
+  <div class="rule-label"><span>Directorio</span>
+    <a routerLink="/search" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
+  </div>
+  <h2 id="que-buscas" class="text-5xl lg:text-6xl leading-[1.05] mt-1 mb-4">¿Qué buscas?</h2>
+  <ul class="border-t-[1.5px] border-ink">
+    @for (cat of catalog; track cat.tab; let i = $index) {
+      <li>
         <a [routerLink]="['/search']" [queryParams]="{tab: cat.tab}"
-           class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden cursor-pointer group hover:border-primary-500/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
-           [class.lg:row-span-2]="i === 0"
-           [class.col-span-2]="i === 4"
-           [class.lg:col-span-1]="i === 4">
-
-          <!-- Accent strip -->
-          <div class="h-1 flex-shrink-0 bg-gradient-to-r from-primary-600 to-primary-400"
-               [style.opacity]="i === 0 ? '1' : '0.6'"></div>
-
-          <div class="p-5 flex flex-col gap-4 flex-1" [class.lg:p-8]="i === 0">
-            <div class="flex-shrink-0 rounded-2xl bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500 transition-all duration-200"
-                 [class.w-14]="i === 0" [class.h-14]="i === 0"
-                 [class.w-10]="i !== 0" [class.h-10]="i !== 0">
-              <app-icon [name]="cat.icon" [size]="i === 0 ? 24 : 18"/>
-            </div>
-            <div>
-              <div class="font-bold text-ink group-hover:text-primary-600 transition-colors leading-snug"
-                   [class.text-xl]="i === 0" [class.text-sm]="i !== 0">{{ cat.label }}</div>
-              <p class="text-xs text-ink-muted leading-relaxed mt-1.5"
-                 [class.text-sm]="i === 0" [class.mt-2]="i === 0">{{ cat.desc }}</p>
-            </div>
-            <div class="text-xs font-bold text-primary-500 group-hover:text-primary-600 transition-colors mt-auto flex items-center gap-1">
-              Explorar
-              <svg aria-hidden="true" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </div>
-          </div>
+           class="flex items-center gap-4 py-4 border-b-[1.5px] border-ink min-h-[64px] group hover:bg-poster-yellow transition-colors px-1">
+          <span class="font-mono text-xs font-bold text-ink-muted w-6 shrink-0">0{{ i + 1 }}</span>
+          <span class="font-display text-3xl lg:text-4xl uppercase leading-none flex-1 group-hover:translate-x-1 transition-transform">{{ cat.label }}</span>
+          <span class="hidden sm:block text-sm text-ink-muted">{{ cat.desc }}</span>
+          <span aria-hidden="true" class="font-display text-2xl">→</span>
         </a>
-      }
-    </div>
-  </div>
+      </li>
+    }
+  </ul>
 </section>
-
 
 <!-- CTA FINAL ───────────────────────────────────────── -->
-<section class="px-5 sm:px-8 lg:px-14 py-20 max-w-7xl mx-auto text-center">
-  <p class="text-micro font-semibold uppercase tracking-wider text-primary-500 mb-4">Únete a la comunidad</p>
-  <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-ink tracking-tight leading-tight mb-4">
-    Tu próxima banda<br>
-    <span class="display-serif text-primary-500">te está esperando.</span>
-  </h2>
-  <p class="text-sm text-ink-muted max-w-sm mx-auto mb-8 leading-relaxed">
-    Perfil gratuito. Sin algoritmos. Sin comisiones.
-  </p>
-  <div class="flex flex-wrap justify-center gap-3 mb-10">
-    @for (role of roles; track role.id) {
-      <a [routerLink]="['/auth/register']"
-         class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500/50 hover:bg-dark-750 transition-all group cursor-pointer min-h-[44px]">
-        <span class="w-7 h-7 rounded-lg bg-primary-900 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all flex-shrink-0">
-          <app-icon [name]="role.icon" [size]="14"/>
-        </span>
-        <div class="text-left">
-          <div class="text-xs font-bold text-ink">{{ role.label }}</div>
-          <div class="text-micro text-ink-muted">{{ role.desc }}</div>
-        </div>
-      </a>
-    }
+<section class="px-4 sm:px-8 lg:px-14 pb-16 lg:pb-24 max-w-7xl mx-auto">
+  <div class="bg-primary-500 text-white border-2 border-ink shadow-[6px_6px_0_0_#141210] p-6 sm:p-10 lg:p-14">
+    <p class="font-mono text-xs font-bold uppercase tracking-wide mb-3">Únete a la comunidad</p>
+    <h2 class="text-5xl sm:text-6xl lg:text-8xl leading-[1.05] mb-6">Tu próxima banda<br>te está esperando</h2>
+    <div class="flex flex-wrap gap-2 mb-8">
+      @for (role of roles; track role.id) {
+        <a routerLink="/auth/register" class="tag-accent min-h-[44px] px-3 hover:bg-ink hover:text-poster-yellow transition-colors">{{ role.label }}</a>
+      }
+    </div>
+    <a routerLink="/auth/register" class="btn-night px-10 py-4 text-sm min-h-[48px]">Crear perfil gratis</a>
+    <p class="mt-4 text-sm">Perfil gratuito. Sin algoritmos. Sin comisiones.</p>
   </div>
-  <a routerLink="/auth/register" class="btn-primary px-10 py-4 text-base">Crear perfil gratis</a>
 </section>
 
 <!-- FOOTER ───────────────────────────────────────────── -->
-<footer class="px-5 sm:px-8 lg:px-14 pt-8 pb-24 sm:pb-8 border-t border-dark-600">
-  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+<footer class="px-4 sm:px-8 lg:px-14 pt-6 pb-24 sm:pb-8 border-t-2 border-ink">
+  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
     <div class="flex items-center gap-4">
-      <span class="text-sm font-black text-ink tracking-tight">Band<span class="text-primary-500">You</span></span>
-      <span class="text-xs text-ink-muted">© Bandyou, 2026</span>
+      <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
+      <span class="font-mono text-[11px] font-bold uppercase text-ink-muted">© Bandyou, 2026</span>
     </div>
-    <div class="flex gap-6 text-xs text-ink-muted">
-      <a routerLink="/legal/privacidad" class="hover:text-ink transition-colors">Privacidad</a>
-      <a routerLink="/legal/terminos" class="hover:text-ink transition-colors">Términos</a>
-      <a routerLink="/legal/cookies" class="hover:text-ink transition-colors">Cookies</a>
-      <a routerLink="/legal/aviso-legal" class="hover:text-ink transition-colors">Aviso legal</a>
-      <a href="mailto:hola@bandyou.es" class="hover:text-ink transition-colors">Contacto</a>
-    </div>
+    <nav aria-label="Legal" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
+      <a routerLink="/legal/privacidad" class="hover:text-ink py-2">Privacidad</a>
+      <a routerLink="/legal/terminos" class="hover:text-ink py-2">Términos</a>
+      <a routerLink="/legal/cookies" class="hover:text-ink py-2">Cookies</a>
+      <a routerLink="/legal/aviso-legal" class="hover:text-ink py-2">Aviso legal</a>
+      <a href="mailto:hola@bandyou.es" class="hover:text-ink py-2">Contacto</a>
+    </nav>
   </div>
 </footer>

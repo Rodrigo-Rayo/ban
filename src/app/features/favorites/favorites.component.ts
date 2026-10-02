@@ -44,7 +44,7 @@ export class FavoritesComponent implements OnInit {
     { id: 'musician',  label: 'Músicos' },
     { id: 'band',      label: 'Bandas' },
     { id: 'venue',     label: 'Salas' },
-    { id: 'event',     label: 'Eventos' },
+    { id: 'event',     label: 'Agenda' },
     { id: 'teacher',   label: 'Clases' },
     { id: 'rehearsal', label: 'Locales' },
   ];

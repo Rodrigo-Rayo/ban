@@ -17,7 +17,8 @@ test.describe('SEO', () => {
     // In-app navigation (no reload): login → register → privacy policy link.
     await page.getByRole('link', { name: /regístrate/i }).click();
     await expect(page).toHaveURL(/auth\/register/);
-    await page.getByRole('link', { name: /privacidad/i }).first().click();
+    // The site footer link opens in the same tab (the form's link opens a new one).
+    await page.locator('footer').getByRole('link', { name: /privacidad/i }).click();
     await expect(page).toHaveURL(/legal\/privacidad/);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(robots(page)).toHaveAttribute('content', /index,follow/);
@@ -65,11 +66,11 @@ test.describe('Search', () => {
   });
 });
 
-test.describe('Sidebar filters', () => {
+test.describe('Search page filters', () => {
   test('restore from the URL and keep existing filters when adding one', async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 900 });
     await page.goto('/search?tab=musicians&city=Madrid&q=gui');
-    const side = page.locator('aside');
+    const side = page.locator('main');
     await expect(side.getByLabel('Filtrar por ciudad')).toHaveValue('Madrid');
     await expect(side.getByLabel('Buscar en el directorio')).toHaveValue('gui');
     await side.getByLabel('Filtrar por instrumento').selectOption({ index: 2 });

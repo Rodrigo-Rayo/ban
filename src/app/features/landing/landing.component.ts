@@ -1,31 +1,31 @@
-import { Component, signal, inject, OnInit, computed, effect } from '@angular/core';
+import { Component, signal, inject, OnInit, effect } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 
-import { IconComponent } from '../../shared/components/icon/icon.component';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { VacanciesService } from '../../core/services/vacancies.service';
 import { SeoService } from '../../core/services/seo.service';
 import { AuthService } from '../../core/services/auth.service';
-import { localToday } from '../../core/utils/date';
+import { avatarColor } from '../../core/utils/display.utils';
+
+interface LandingVacancy { id: string; instrument: string; genre: string | null; bands: { id: string; name: string; city: string | null; genre: string | null } | null; }
+interface LandingPerson { id: string; name: string; city: string | null; instrument: string | null; avatar_url: string | null; }
 
 @Component({
     selector: 'app-landing',
-    imports: [RouterLink, IconComponent],
+    imports: [RouterLink],
     templateUrl: './landing.component.html'
 })
 export class LandingComponent implements OnInit {
+  readonly avatarColor = avatarColor;
   private supabase = inject(SupabaseService);
+  private vacanciesSvc = inject(VacanciesService);
   private seo = inject(SeoService);
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  stats = signal({ musicians: 0, bands: 0, events: 0, venues: 0 });
-
-  statItems = computed(() => [
-    { value: this.stats().musicians, label: 'Músicos' },
-    { value: this.stats().bands,     label: 'Bandas' },
-    { value: this.stats().venues,    label: 'Salas' },
-    { value: this.stats().events,    label: 'Eventos próximos' },
-  ]);
+  /** Curated teasers; each block is hidden while empty. */
+  vacancies = signal<LandingVacancy[]>([]);
+  people = signal<LandingPerson[]>([]);
 
   catalog = [
     { tab: 'musicians', label: 'Músicos',    icon: 'music',      desc: 'Guitarras, bajos, voces y más' },
@@ -86,26 +86,16 @@ export class LandingComponent implements OnInit {
     });
 
     try {
-      const [
-        { count: musicians },
-        { count: bands },
-        { count: events },
-        { count: venues },
-      ] = await Promise.all([
-        this.supabase.client.from('musicians').select('*', { count: 'exact', head: true }),
-        this.supabase.client.from('bands').select('*', { count: 'exact', head: true }),
-        this.supabase.client.from('events').select('*', { count: 'exact', head: true })
-          .gte('date', localToday()),
-        this.supabase.client.from('venues').select('*', { count: 'exact', head: true }),
+      const [vac, ppl] = await Promise.all([
+        this.vacanciesSvc.listOpen({ limit: 4 }).then(data => ({ data }), () => ({ data: [] })),
+        this.supabase.client.from('musicians')
+          .select('id, name, city, instrument, avatar_url')
+          .order('created_at', { ascending: false }).limit(4),
       ]);
-      this.stats.set({
-        musicians: musicians ?? 0,
-        bands: bands ?? 0,
-        events: events ?? 0,
-        venues: venues ?? 0,
-      });
+      this.vacancies.set((vac.data || []) as unknown as LandingVacancy[]);
+      this.people.set((ppl.data || []) as unknown as LandingPerson[]);
     } catch {
-      // Stats are non-critical — landing page renders fine with zeros
+      // Teasers are non-critical — the landing renders fine without them
     }
   }
 }

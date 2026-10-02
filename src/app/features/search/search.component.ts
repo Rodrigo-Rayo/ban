@@ -4,17 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { VacanciesService } from '../../core/services/vacancies.service';
 import { SeoService } from '../../core/services/seo.service';
-import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
 import { INSTRUMENTS } from '../../core/constants/music.constants';
 import { avatarColor } from '../../core/utils/display.utils';
 import { environment } from '../../../environments/environment';
+import { parseList } from '../../core/utils/list';
 import { ListPipe } from '../../shared/pipes/list.pipe';
 
 type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal' | 'vacancies';
 
-interface MusicianResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; genre: string; created_at: string; user_id: string; }
+interface MusicianResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; genre: string; availability_days?: string | null; created_at: string; user_id: string; }
 interface BandResult { id: string; name: string; city: string; avatar_url: string | null; genre: string; looking_for?: string | null; created_at: string; user_id: string; }
 interface VenueResult { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; genres: string | null; created_at: string; user_id: string; }
 interface EventResult { id: string; title: string; venue: string; city: string; date: string; time: string | null; genre: string; description: string | null; price?: string | null; created_at: string; user_id: string; }
@@ -25,7 +26,7 @@ interface VacancyResult { id: string; instrument: string; description: string | 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-search',
-    imports: [FormsModule, RouterLink, CommonModule, DatePipe, IconComponent, ListPipe],
+    imports: [FormsModule, RouterLink, CommonModule, DatePipe, ListPipe],
     templateUrl: './search.component.html'
 })
 export class SearchComponent implements OnInit, OnDestroy {
@@ -34,6 +35,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
+  private vacanciesSvc = inject(VacanciesService);
   private seo = inject(SeoService);
 
   activeTab = signal<SearchType>('musicians');
@@ -68,14 +70,32 @@ export class SearchComponent implements OnInit, OnDestroy {
   instruments = INSTRUMENTS;
 
   tabs: { id: SearchType; label: string; icon: string }[] = [
-    { id: 'musicians', label: 'Músicos',         icon: 'music'      },
-    { id: 'bands',     label: 'Bandas',          icon: 'mic'        },
-    { id: 'vacancies', label: 'Vacantes',        icon: 'megaphone'  },
-    { id: 'venues',    label: 'Salas',           icon: 'building'   },
-    { id: 'events',    label: 'Eventos',         icon: 'calendar'   },
-    { id: 'teachers',  label: 'Clases',          icon: 'book-open'  },
-    { id: 'rehearsal', label: 'Locales ensayo',  icon: 'headphones' },
+    { id: 'musicians', label: 'Músicos',  icon: 'music'      },
+    { id: 'bands',     label: 'Bandas',   icon: 'mic'        },
+    { id: 'vacancies', label: 'Se busca', icon: 'megaphone'  },
+    { id: 'rehearsal', label: 'Locales',  icon: 'headphones' },
+    { id: 'venues',    label: 'Salas',    icon: 'building'   },
+    { id: 'events',    label: 'Agenda',   icon: 'calendar'   },
+    { id: 'teachers',  label: 'Clases',   icon: 'book-open'  },
   ];
+
+  /** Mobile: secondary filters (city, instrument, genre) collapse behind a toggle. */
+  filtersOpen = signal(false);
+
+  readonly weekdays = [
+    { key: 'lunes', label: 'L', full: 'Lunes' },
+    { key: 'martes', label: 'M', full: 'Martes' },
+    { key: 'miercoles', label: 'X', full: 'Miércoles' },
+    { key: 'jueves', label: 'J', full: 'Jueves' },
+    { key: 'viernes', label: 'V', full: 'Viernes' },
+    { key: 'sabado', label: 'S', full: 'Sábado' },
+    { key: 'domingo', label: 'D', full: 'Domingo' },
+  ];
+
+  /** Normalised set of available weekday keys ('Miércoles' -> 'miercoles'). */
+  availableDays(value: string | null | undefined): Set<string> {
+    return new Set(parseList(value).map(d => d.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')));
+  }
 
   async ngOnInit() {
 
@@ -132,6 +152,16 @@ export class SearchComponent implements OnInit, OnDestroy {
   private readonly tabLabelMap = new Map(this.tabs.map(t => [t.id, t.label]));
 
   readonly tabLabel = computed(() => this.tabLabelMap.get(this.activeTab()) ?? 'Resultados');
+  private static readonly PLACEHOLDERS: Record<string, string> = {
+    musicians: 'Buscar músicos por nombre…',
+    bands: 'Buscar bandas…',
+    vacancies: 'Instrumento que buscan: batería, voz…',
+    rehearsal: 'Buscar locales de ensayo…',
+    venues: 'Buscar salas de conciertos…',
+    events: 'Buscar conciertos…',
+    teachers: 'Buscar profesores…',
+  };
+  readonly searchPlaceholder = computed(() => SearchComponent.PLACEHOLDERS[this.activeTab()] ?? 'Buscar…');
 
   readonly currentCount = computed(() => {
     const tab = this.activeTab();
@@ -144,6 +174,19 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'vacancies') return this.vacancyResults().length;
     return 0;
   });
+
+  readonly hasInstrumentFilter = computed(() => {
+    const tab = this.activeTab();
+    return tab === 'musicians' || tab === 'teachers' || tab === 'vacancies';
+  });
+  readonly hasGenreFilter = computed(() => this.activeTab() !== 'rehearsal' && this.activeTab() !== 'events');
+
+  /** Number of secondary filters applied (city, instrument, genre). */
+  readonly activeFilterCount = computed(() =>
+    (this.selectedCity() !== 'Toda España' ? 1 : 0) +
+    (this.selectedInstrument() ? 1 : 0) +
+    (this.selectedGenre() ? 1 : 0)
+  );
 
   readonly hasActiveFilters = computed(() =>
     !!this.searchQuery() ||
@@ -244,8 +287,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   private static readonly SEARCH_COLS = {
-    musicians:  'id,name,city,avatar_url,instrument,genre,created_at,user_id',
-    bands:      'id,name,city,avatar_url,genre,created_at,user_id',
+    musicians:  'id,name,city,avatar_url,instrument,genre,availability_days,created_at,user_id',
+    bands:      'id,name,city,avatar_url,genre,looking_for,created_at,user_id',
     venues:     'id,name,city,avatar_url,capacity,genres,created_at,user_id',
     events:     'id,title,venue,city,date,time,genre,description,price,created_at,user_id',
     teachers:   'id,name,city,avatar_url,instrument,hourly_rate,modality,created_at,user_id',
@@ -324,21 +367,22 @@ export class SearchComponent implements OnInit, OnDestroy {
 
     if (tab === 'vacancies') {
       const instrument = this.selectedInstrument();
-      let q = this.supabase.client
-        .from('band_vacancies')
-        .select('id, instrument, description, genre, created_at, bands!inner(id, name, city, avatar_url)')
-        .eq('open', true);
-      // Supabase TS types don't expose dot-notation foreign table filters; cast is intentional
-      if (city !== 'Toda España') q = (q as any).filter('bands.city', 'eq', city);
-      if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
-      if (instrument) q = q.ilike('instrument', `%${instrument}%`);
-      if (query) q = q.ilike('instrument', `%${query}%`);
-      const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
-      if (error) throw error;
-      return data || [];
+      return this.vacanciesSvc.listOpen({
+        city: city !== 'Toda España' ? city : null,
+        genre: genre && genre !== 'Todos' ? genre : null,
+        instrument, query, offset, limit: this.LIMIT,
+      });
     }
 
     return [];
+  }
+
+  clearFilters() {
+    this.selectedGenre.set('');
+    this.selectedCity.set(this.userCity() || 'Toda España');
+    this.searchQuery.set('');
+    this.selectedInstrument.set('');
+    this.filterChanged();
   }
 
   async joinAs(role: string) {

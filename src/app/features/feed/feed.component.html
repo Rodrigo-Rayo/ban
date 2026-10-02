@@ -1,21 +1,21 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
-  <!-- Sticky header -->
-  <header class="border-b border-dark-600 bg-dark-900/98 backdrop-blur-md sticky top-16 z-20">
+  <!-- Header -->
+  <header class="border-b-2 border-ink bg-dark-900 sticky top-16 z-20">
     <div class="px-5 lg:px-8 py-4">
-      <div class="flex items-center justify-between gap-4">
+      <div class="flex items-end justify-between gap-4">
         <div>
-          <p class="text-micro font-semibold uppercase tracking-wider text-primary-500 mb-0.5">Comunidad</p>
-          <h1 class="text-lg font-black text-ink tracking-tight leading-none">Anuncios</h1>
+          <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-primary-500 mb-1">Tablón · Comunidad</p>
+          <h1 class="text-4xl sm:text-5xl leading-[0.9]">Anuncios</h1>
         </div>
         @if (currentUser()) {
           <button (click)="cancelOrToggleForm()"
             class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 flex items-center gap-1.5">
             <app-icon [name]="showForm() ? 'x' : 'edit'" [size]="14" [strokeWidth]="2.5"/>
-            {{ showForm() ? 'Cancelar' : 'Publicar' }}
+            {{ showForm() ? 'Cancelar' : 'Publicar anuncio' }}
           </button>
         } @else {
-          <a routerLink="/auth/login" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0">Entrar</a>
+          <a routerLink="/auth/login" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 inline-flex items-center">Entrar</a>
         }
       </div>
     </div>
@@ -25,17 +25,16 @@
 
     <!-- ── NEW POST FORM ── -->
     @if (showForm()) {
-      <div class="card-flat overflow-hidden mb-6 animate-slide-in">
-        <!-- Top accent gradient -->
-        <div class="h-1 bg-gradient-to-r from-primary-700 via-primary-400 to-primary-600"></div>
+      <div class="card-flat overflow-hidden mb-6 animate-slide-in shadow-[4px_4px_0_0_#141210]">
+        <div class="h-2 bg-poster-yellow border-b-2 border-ink"></div>
         <div class="p-5">
-          <p class="section-label mb-4">Nuevo anuncio</p>
+          <p class="rule-label mb-4">Nuevo anuncio</p>
 
-          <!-- Type selector — horizontal scrollable pills -->
+          <!-- Type selector -->
           <div class="flex gap-1.5 mb-4 overflow-x-auto pb-1 no-scrollbar fade-edge-r">
             @for (t of postTypes; track t.id) {
               <button (click)="newPost.type = t.id"
-                class="text-xs font-semibold px-3.5 py-2 rounded-full border transition-colors duration-150 flex items-center gap-1.5 flex-shrink-0 snap-start whitespace-nowrap min-h-[44px]"
+                class="font-mono text-[11px] font-bold uppercase tracking-wide px-3 py-2 border-[1.5px] border-ink transition-colors duration-150 flex items-center gap-1.5 flex-shrink-0 snap-start whitespace-nowrap min-h-[44px]"
                 [attr.aria-pressed]="newPost.type === t.id"
                 [class.genre-pill-active]="newPost.type === t.id"
                 [class.genre-pill-inactive]="newPost.type !== t.id">
@@ -51,7 +50,7 @@
               placeholder="Ej: Batería con 5 años de experiencia busca banda de rock en Madrid. Disponible fines de semana."
               class="input-field resize-none pr-16"
               aria-label="Texto del anuncio"></textarea>
-            <span class="absolute bottom-3 right-3 text-micro font-medium pointer-events-none"
+            <span class="absolute bottom-3 right-3 font-mono text-[11px] font-bold pointer-events-none"
                  [class.text-ink-muted]="newPost.text.length <= MAX_POST_LENGTH * 0.85"
                  [class.text-signal-amber]="newPost.text.length > MAX_POST_LENGTH * 0.85 && newPost.text.length <= MAX_POST_LENGTH * 0.95"
                  [class.text-signal-red]="newPost.text.length > MAX_POST_LENGTH * 0.95">
@@ -61,21 +60,21 @@
 
           <!-- Meta fields -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-            <select [(ngModel)]="newPost.city" class="input-field text-xs py-2.5" aria-label="Ciudad">
+            <select [(ngModel)]="newPost.city" class="input-field text-xs py-2.5 min-h-[44px]" aria-label="Ciudad">
               @for (c of cities.slice(1); track c) { <option [value]="c">{{ c }}</option> }
             </select>
-            <select [(ngModel)]="newPost.instrument" class="input-field text-xs py-2.5" aria-label="Instrumento">
+            <select [(ngModel)]="newPost.instrument" class="input-field text-xs py-2.5 min-h-[44px]" aria-label="Instrumento">
               <option value="">Sin instrumento</option>
               @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
             </select>
-            <select [(ngModel)]="newPost.genre" class="input-field text-xs py-2.5" aria-label="Género musical">
+            <select [(ngModel)]="newPost.genre" class="input-field text-xs py-2.5 min-h-[44px]" aria-label="Género musical">
               <option value="">Sin género</option>
               @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
             </select>
           </div>
 
           @if (error()) {
-            <p role="alert" aria-live="assertive" class="text-xs text-signal-red mb-3 flex items-center gap-1.5">
+            <p role="alert" aria-live="assertive" class="text-xs font-bold text-signal-red mb-3 flex items-center gap-1.5">
               <svg aria-hidden="true" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
@@ -95,20 +94,19 @@
 
     <!-- ── FILTERS ── -->
     <div class="mb-5 space-y-2.5">
-      <!-- City + instrument row -->
       <div class="flex items-center gap-2 overflow-x-auto no-scrollbar fade-edge-r pb-1">
         <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadPosts()"
-          class="bg-dark-800 border border-dark-600 hover:border-ink-muted/40 rounded-full px-3.5 py-2 text-base sm:text-xs text-ink outline-none focus:border-primary-500 transition-colors min-h-[44px]"
+          class="input-field !w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px]"
           aria-label="Filtrar por ciudad">
           @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
         </select>
         <input [value]="filterInstrument()" (input)="onInstrumentChange($any($event.target).value)"
           placeholder="Instrumento…"
-          class="bg-dark-800 border border-dark-600 rounded-full px-3.5 py-2 text-base sm:text-xs text-ink placeholder-ink-muted outline-none focus:border-primary-500 transition-colors w-36 min-h-[44px]"
+          class="input-field !w-36 !py-2 !px-3 text-base sm:text-xs min-h-[44px]"
           aria-label="Filtrar por instrumento"/>
         @if (filterCity() !== 'Toda España' || filterType() || filterInstrument()) {
           <button (click)="filterCity.set('Toda España'); filterType.set(''); filterInstrument.set(''); loadPosts()"
-            class="flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink border border-dark-600 hover:border-ink-muted/40 rounded-full px-3.5 py-2 transition-colors min-h-[44px]"
+            class="btn-ghost flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase px-3 py-2 min-h-[44px]"
             aria-label="Limpiar filtros">
             <svg aria-hidden="true" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -118,22 +116,22 @@
         }
       </div>
 
-      <!-- Type pills -->
+      <!-- Type filters -->
       <div class="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar fade-edge-r">
         <button (click)="filterType.set(''); loadPosts()"
-          class="text-xs font-semibold px-3.5 py-2 rounded-full border transition-colors duration-150 min-h-[44px] flex-shrink-0 snap-start"
+          class="font-mono text-[11px] font-bold uppercase tracking-wide px-3 py-2 border-[1.5px] border-ink transition-colors duration-150 min-h-[44px] flex-shrink-0 snap-start"
           [attr.aria-pressed]="filterType() === ''"
           [class.genre-pill-active]="filterType() === ''"
-                [class.genre-pill-inactive]="filterType() !== ''">
+          [class.genre-pill-inactive]="filterType() !== ''">
           Todos
         </button>
         @for (t of postTypes; track t.id) {
           <button (click)="filterType.set(filterType() === t.id ? '' : t.id); loadPosts()"
-            class="text-xs font-semibold px-3.5 py-2 rounded-full border transition-colors duration-150 flex items-center gap-1 min-h-[44px] flex-shrink-0 snap-start whitespace-nowrap"
+            class="font-mono text-[11px] font-bold uppercase tracking-wide px-3 py-2 border-[1.5px] border-ink transition-colors duration-150 flex items-center gap-1.5 min-h-[44px] flex-shrink-0 snap-start whitespace-nowrap"
             [attr.aria-pressed]="filterType() === t.id"
             [class.genre-pill-active]="filterType() === t.id"
-                [class.genre-pill-inactive]="filterType() !== t.id">
-            <app-icon [name]="t.icon" [size]="10"/>
+            [class.genre-pill-inactive]="filterType() !== t.id">
+            <app-icon [name]="t.icon" [size]="11"/>
             {{ t.label }}
           </button>
         }
@@ -142,27 +140,13 @@
 
     <!-- ── LOADING SKELETON ── -->
     @if (loading()) {
-      <div class="flex flex-col gap-3" role="status" aria-label="Cargando anuncios...">
+      <div class="flex flex-col border-t-2 border-ink" role="status" aria-label="Cargando anuncios...">
         @for (i of [1,2,3,4]; track i) {
-          <div class="card-flat p-4 animate-pulse">
-            <div class="flex items-center gap-2 mb-3">
-              <div class="h-5 bg-dark-700 rounded-full w-36"></div>
-              <div class="h-4 bg-dark-700 rounded-full w-14 ml-auto"></div>
-            </div>
-            <div class="h-3.5 bg-dark-700 rounded-full w-full mb-2"></div>
-            <div class="h-3 bg-dark-600 rounded-full w-5/6 mb-2"></div>
-            <div class="h-3 bg-dark-600 rounded-full w-2/3 mb-3"></div>
-            <div class="flex items-center gap-1.5 mb-3">
-              <div class="h-5 bg-dark-700 rounded-full w-20"></div>
-              <div class="h-5 bg-dark-700 rounded-full w-16"></div>
-            </div>
-            <div class="flex items-center justify-between pt-3 border-t border-dark-600/60">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-full bg-dark-700"></div>
-                <div class="h-3 bg-dark-600 rounded-full w-20"></div>
-              </div>
-              <div class="h-7 bg-dark-700 rounded-lg w-24"></div>
-            </div>
+          <div class="py-4 border-b border-dark-600 animate-pulse">
+            <div class="h-5 bg-dark-700 w-36 mb-3"></div>
+            <div class="h-3.5 bg-dark-700 w-full mb-2"></div>
+            <div class="h-3 bg-dark-700 w-5/6 mb-2"></div>
+            <div class="h-3 bg-dark-700 w-2/3"></div>
           </div>
         }
       </div>
@@ -172,108 +156,93 @@
     @if (!loading()) {
       @if (posts().length === 0) {
         @if (filterCity() !== 'Toda España' || filterType() || filterInstrument()) {
-          <!-- Filtered empty state -->
           <div class="empty-state">
-            <div class="w-16 h-16 rounded-2xl bg-dark-800 border border-dark-600 flex items-center justify-center mb-4">
-              <svg aria-hidden="true" class="w-7 h-7 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="empty-state-icon">
+              <svg aria-hidden="true" class="w-7 h-7 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                       d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
               </svg>
             </div>
-            <p class="text-sm font-bold text-ink mb-2">Sin resultados</p>
-            <p class="text-xs text-ink-muted mb-5 max-w-[200px]">No hay anuncios que coincidan con tus filtros</p>
+            <p class="font-display text-2xl uppercase text-ink">Sin resultados</p>
+            <p class="text-sm text-ink-muted mb-3 max-w-[260px]">No hay anuncios que coincidan con tus filtros</p>
             <button (click)="filterCity.set('Toda España'); filterType.set(''); filterInstrument.set(''); loadPosts()"
               class="btn-secondary text-sm">
               Limpiar filtros
             </button>
           </div>
         } @else {
-          <!-- Truly empty -->
           <div class="empty-state">
-            <div class="w-16 h-16 rounded-2xl bg-dark-800 border border-dark-600 flex items-center justify-center mb-4">
-              <app-icon name="newspaper" [size]="28" class="text-ink-muted"/>
+            <div class="empty-state-icon">
+              <app-icon name="newspaper" [size]="28" class="text-ink"/>
             </div>
-            <p class="text-sm font-bold text-ink mb-2">Sin anuncios aún</p>
-            <p class="text-xs text-ink-muted mb-5">Sé el primero en publicar en tu zona</p>
+            <p class="font-display text-2xl uppercase text-ink">Sin anuncios aún</p>
+            <p class="text-sm text-ink-muted mb-3">Sé el primero en publicar en tu zona</p>
             @if (currentUser()) {
-              <button (click)="showForm.set(true)" class="btn-primary text-xs px-5 py-2">
+              <button (click)="showForm.set(true)" class="btn-primary text-sm px-5 py-2 min-h-[44px]">
                 Publicar anuncio
               </button>
             } @else {
-              <a routerLink="/auth/register" class="btn-primary text-xs px-5 py-2">Crear cuenta gratis</a>
+              <a routerLink="/auth/register" class="btn-primary text-sm px-5 py-2 min-h-[44px] inline-flex items-center">Crear cuenta gratis</a>
             }
           </div>
         }
       } @else {
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col border-t-2 border-ink">
           @for (post of posts(); track post.id) {
-            <article class="relative bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden
-                            hover:border-primary-500/50 hover:shadow-lg hover:shadow-black/25
-                            transition-all duration-200 group">
+            <article class="border-b-2 border-ink hover:bg-dark-800 transition-colors duration-150">
 
-              <!-- Left accent bar -->
-              <div class="absolute inset-y-0 left-0 w-[3px] bg-primary-500/50 group-hover:bg-primary-500/80 transition-colors rounded-l-2xl"></div>
+              <a [routerLink]="['/posts', post.id]" class="block px-1 sm:px-3 pt-4 pb-3">
 
-              <!-- Clickable main area -->
-              <a [routerLink]="['/posts', post.id]" class="block px-4 pt-4 pb-3 pl-6">
-
-                <!-- Type badge + time -->
+                <!-- Type stamp + time -->
                 <div class="flex items-center justify-between gap-3 mb-2.5">
-                  <div class="flex items-center gap-1.5 bg-primary-900/60 border border-primary-500/20 rounded-full px-2.5 py-1">
-                    <app-icon [name]="typeIcon(post.type)" [size]="10" class="text-primary-500 flex-shrink-0"/>
-                    <span class="text-micro font-bold uppercase tracking-wider text-primary-500">
-                      {{ typeLabel(post.type) }}
-                    </span>
-                  </div>
-                  <div class="flex items-center gap-1.5 flex-shrink-0">
+                  <span [class]="typeStamp(post.type)">
+                    <app-icon [name]="typeIcon(post.type)" [size]="11" class="mr-1.5 flex-shrink-0"/>
+                    {{ typeLabel(post.type) }}
+                  </span>
+                  <div class="flex items-center gap-2 flex-shrink-0">
                     @if (isRecent(post)) {
-                      <span class="tag text-xs bg-primary-900 text-primary-500">Nuevo</span>
+                      <span class="tag-accent">Nuevo</span>
                     }
-                    <span class="text-micro text-ink-muted font-medium">
-                      {{ timeAgo(post.created_at) }}
-                    </span>
+                    <span class="meta">{{ timeAgo(post.created_at) }}</span>
                   </div>
                 </div>
 
-                <!-- Body text -->
-                <p class="text-sm text-ink leading-relaxed mb-3 line-clamp-3">{{ post.text }}</p>
+                <p class="text-[15px] text-ink leading-relaxed mb-3 line-clamp-3">{{ post.text }}</p>
 
-                <!-- Tags -->
                 @if (post.city || post.instrument || post.genre) {
                   <div class="flex flex-wrap items-center gap-1.5">
                     @if (post.city) {
-                      <span class="flex items-center gap-1 text-micro font-medium text-ink-muted bg-dark-700 border border-dark-600 rounded-full px-2 py-0.5">
-                        <app-icon name="map-pin" [size]="9"/>
+                      <span class="meta !text-ink mr-1">
+                        <app-icon name="map-pin" [size]="11"/>
                         {{ post.city }}
                       </span>
                     }
                     @if (post.instrument) {
-                      <span class="tag text-micro py-0.5">{{ post.instrument }}</span>
+                      <span class="tag">{{ post.instrument }}</span>
                     }
                     @if (post.genre) {
-                      <span class="tag text-micro py-0.5">{{ post.genre }}</span>
+                      <span class="tag">{{ post.genre }}</span>
                     }
                   </div>
                 }
               </a>
 
               <!-- Footer: author + actions -->
-              <div class="flex items-center justify-between px-4 py-3 pl-6 border-t border-dark-600/60 gap-3">
+              <div class="flex items-center justify-between px-1 sm:px-3 pb-3 gap-3">
                 <div class="flex items-center gap-2 min-w-0">
-                  <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white flex-shrink-0"
-                       [style.background]="avatarColor(post.author_name)">
+                  <div class="avatar w-8 h-8 text-sm">
                     {{ (post.author_name || 'U').slice(0,1).toUpperCase() }}
                   </div>
-                  <span class="text-xs text-ink-muted truncate font-medium">{{ post.author_name }}</span>
+                  <span class="font-mono text-[11px] font-bold uppercase text-ink-muted truncate">{{ post.author_name }}</span>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
                   <a [routerLink]="['/posts', post.id]"
-                    class="text-xs font-semibold text-primary-500 border border-primary-500/30 hover:bg-primary-500/10 hover:border-primary-500/60 px-3.5 min-h-[44px] inline-flex items-center rounded-lg transition-colors whitespace-nowrap">
+                    class="btn-secondary !px-3 !py-0 min-h-[44px] inline-flex items-center text-xs whitespace-nowrap">
                     Ver anuncio
                   </a>
                   @if (currentUser()?.id === post.user_id) {
                     <button (click)="deletePost(post.id)"
-                      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-signal-red hover:bg-signal-red/10 rounded-lg transition-colors"
+                      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink hover:text-white hover:bg-signal-red border-[1.5px] border-ink transition-colors"
                       aria-label="Eliminar anuncio">
                       <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -312,10 +281,10 @@
 
   </div>
 
-  <!-- Mobile FAB: sticky Publicar button (hidden on lg+, covered by header button) -->
+  <!-- Mobile FAB -->
   @if (currentUser() && !formOnly() && !showForm()) {
     <button (click)="cancelOrToggleForm()"
-      class="fixed bottom-above-nav mb-4 right-4 z-50 lg:hidden w-14 h-14 rounded-full bg-primary-500 hover:bg-primary-600 active:scale-95 text-white shadow-xl shadow-black/40 flex items-center justify-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+      class="fixed bottom-above-nav mb-4 right-4 z-50 lg:hidden w-14 h-14 bg-primary-500 hover:bg-primary-600 active:translate-x-0.5 active:translate-y-0.5 text-white border-2 border-ink shadow-[4px_4px_0_0_#141210] flex items-center justify-center transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
       aria-label="Nuevo anuncio">
       <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>

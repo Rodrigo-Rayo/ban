@@ -9,6 +9,7 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
+import { parseList } from '../../../core/utils/list';
 import { Venue, Review } from '../../../core/models';
 import { ListPipe } from '../../../shared/pipes/list.pipe';
 
@@ -48,6 +49,7 @@ export class VenueProfileComponent implements OnInit {
   msgError = signal<string | null>(null);
   linkShared = signal(false);
 
+  readonly posterLine = computed(() => [this.venue()?.city, ...parseList(this.venue()?.genres).slice(0, 2)].filter(Boolean).join(' · '));
   readonly avgRating = computed(() => {
     const r = this.reviews();
     if (!r.length) return null;

@@ -30,7 +30,7 @@ test.describe('404 page', () => {
   test('shows not found for unknown routes', async ({ page }) => {
     await page.goto('/esta-ruta-no-existe-123');
     await expect(page.getByText('404')).toBeVisible();
-    // Scope to the page body: the sidebar also has an "Inicio" link.
+    // Scope to the page body: the navigation also links home.
     await expect(page.locator('main').getByRole('link', { name: /inicio/i })).toBeVisible();
   });
 });

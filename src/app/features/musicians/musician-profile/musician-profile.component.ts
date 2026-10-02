@@ -14,6 +14,16 @@ import { Musician } from '../../../core/models';
 /** Columns rendered by the profile page (avoid select('*')). */
 const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
 
+const WEEK_DAYS = [
+  { letter: 'L', key: 'lunes', label: 'Lunes' },
+  { letter: 'M', key: 'martes', label: 'Martes' },
+  { letter: 'X', key: 'miercoles', label: 'Miércoles' },
+  { letter: 'J', key: 'jueves', label: 'Jueves' },
+  { letter: 'V', key: 'viernes', label: 'Viernes' },
+  { letter: 'S', key: 'sabado', label: 'Sábado' },
+  { letter: 'D', key: 'domingo', label: 'Domingo' },
+] as const;
+
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-musician-profile',
@@ -34,6 +44,16 @@ export class MusicianProfileComponent implements OnInit {
   musician = signal<Musician | null>(null);
   availabilityDays = computed(() => parseList(this.musician()?.availability_days));
   availabilitySlots = computed(() => parseList(this.musician()?.availability_slots));
+  /** L M X J V S D strip: `on` when the musician listed that weekday. */
+  weekStrip = computed(() => {
+    const listed = new Set(this.availabilityDays().map(d => d.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()));
+    return WEEK_DAYS.map(d => ({ ...d, on: listed.has(d.key) }));
+  });
+  posterLine = computed(() => [this.musician()?.instrument, this.musician()?.genre].filter(Boolean).join(' · '));
+  hasLinks = computed(() => {
+    const m = this.musician();
+    return !!(m && (m.spotify_url || m.youtube_url || m.soundcloud_url || m.instagram_url || m.website_url));
+  });
   loading = signal(true);
   isFav = signal(false);
   avatarError = signal(false);

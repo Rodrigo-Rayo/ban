@@ -29,17 +29,17 @@ const STORAGE_ITEMS: readonly StorageItem[] = [
     <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
       <div class="max-w-3xl mx-auto px-5 lg:px-8 py-10">
 
-        <a routerLink="/" class="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-ink mb-8 transition-colors">
+        <a routerLink="/" class="inline-flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink hover:text-primary-600 mb-6 min-h-[44px] transition-colors">
           <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
           Volver al inicio
         </a>
 
-        <div class="mb-10">
-          <p class="text-xs font-bold text-primary-500 uppercase tracking-widest mb-2">Legal</p>
-          <h1 class="text-3xl font-black text-ink tracking-tight mb-3">Política de Cookies</h1>
-          <p class="text-sm text-ink-muted">Última actualización: {{ info.updated }}</p>
+        <div class="mb-10 border-b-2 border-ink pb-5">
+          <p class="font-mono text-[11px] font-bold text-primary-500 uppercase tracking-wide mb-2">Legal</p>
+          <h1 class="text-5xl sm:text-6xl text-ink leading-[0.9] mb-3">Política de Cookies</h1>
+          <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Última actualización: {{ info.updated }}</p>
         </div>
 
         <div class="prose-legal">

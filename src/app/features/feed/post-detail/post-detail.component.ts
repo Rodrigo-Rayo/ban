@@ -113,6 +113,19 @@ export class PostDetailComponent implements OnInit {
   private readonly postTypeMap = new Map(this.postTypes.map(t => [t.id, t]));
 
   typeLabel(type: PostType) { return this.postTypeMap.get(type)?.label ?? 'Anuncio'; }
+  /** Poster stamp per post type. */
+  typeStamp(type: PostType): string {
+    const map: Record<string, string> = {
+      musician_seeking_band: 'tag-accent',
+      band_seeking_musician: 'tag-red',
+      event_announcement: 'tag !bg-night !text-poster-paper',
+      session_offer: 'tag-green',
+      looking_for_rehearsal: 'tag',
+      collab: 'tag !bg-primary-900',
+    };
+    return map[type] ?? 'tag';
+  }
+
   typeIcon(type: PostType)  { return this.postTypeMap.get(type)?.icon  ?? 'newspaper'; }
 
 

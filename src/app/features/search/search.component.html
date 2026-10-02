@@ -1,200 +1,186 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+<!-- Square photo / initials block shared by every result row -->
+<ng-template #photo let-name="name" let-url="url">
+  <div class="avatar self-stretch w-16 sm:w-20 min-h-[84px] border-r-2 border-ink overflow-hidden text-2xl sm:text-3xl uppercase">
+    @if (url) {
+      <img [src]="url" class="w-full h-full object-cover" alt="" loading="lazy"/>
+    } @else {
+      {{ name.slice(0,2) }}
+    }
+  </div>
+</ng-template>
 
-  <!-- ══ Category tab strip ══ -->
-  <div class="bg-dark-800 border-b border-dark-600">
-    <div class="flex overflow-x-auto no-scrollbar fade-edge-r pl-4 [--fade-pad:1rem] lg:px-8" role="tablist" aria-label="Categorías de búsqueda">
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+  <div class="px-4 lg:px-8 pt-5 lg:pt-8 max-w-screen-xl mx-auto">
+
+    <!-- ══ Poster headline: CATEGORÍA / CIUDAD ══ -->
+    <header>
+      <h1 class="text-[2.6rem] leading-[1.08] sm:text-6xl lg:text-7xl tracking-[0.005em] text-ink">
+        {{ tabLabel() }}<span class="text-primary-500" aria-hidden="true">/</span><span class="sr-only"> en </span>{{ selectedCity() }}
+      </h1>
+    </header>
+
+    <!-- ══ Category toggles ══ -->
+    <div class="mt-4 flex gap-1.5 overflow-x-auto no-scrollbar sm:flex-wrap -mx-4 px-4 lg:mx-0 lg:px-0" role="tablist" aria-label="Categorías de búsqueda">
       @for (tab of tabs; track tab.id) {
-        <button (click)="setTab(tab.id)"
+        <button type="button" (click)="setTab(tab.id)"
           role="tab"
           [attr.aria-selected]="activeTab() === tab.id"
           [id]="'tab-' + tab.id"
           [attr.aria-controls]="'panel-' + tab.id"
-          class="flex items-center gap-1.5 px-4 min-h-[48px] text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0 border-b-2"
-          [class.text-primary-500]="activeTab() === tab.id"
-          [class.border-primary-500]="activeTab() === tab.id"
-          [class.text-ink-muted]="activeTab() !== tab.id"
-          [class.border-transparent]="activeTab() !== tab.id">
-          <app-icon [name]="tab.icon" [size]="13" class="shrink-0"/>
+          class="min-h-[44px] px-3.5 font-mono text-xs font-bold uppercase tracking-wide whitespace-nowrap flex-shrink-0 border-[1.5px] border-ink transition-colors duration-150
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
+          [class.tab-btn-active]="activeTab() === tab.id"
+          [class.tab-btn-inactive]="activeTab() !== tab.id">
           {{ tab.label }}
         </button>
       }
     </div>
-  </div>
 
-  <!-- ══ Sticky filter bar ══ -->
-  <div class="lg:sticky lg:top-16 z-30 bg-dark-800/95 backdrop-blur border-b border-dark-600">
-    <form role="search" aria-label="Filtros de búsqueda" (submit)="$event.preventDefault()">
+    <!-- ══ Filters ══ -->
+    <form role="search" aria-label="Filtros de búsqueda" (submit)="$event.preventDefault()" class="mt-3">
 
-      <!-- Row 1: Prominent search input -->
-      <div class="px-4 lg:px-8 pt-3 pb-2">
-        <div class="relative">
-          <svg aria-hidden="true" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Search input + mobile filters toggle -->
+      <div class="flex gap-2">
+        <div class="relative flex-1 min-w-0">
+          <svg aria-hidden="true" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-ink pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
           <input name="q" [ngModel]="searchQuery()" (ngModelChange)="onSearchQueryChange($event)"
             type="search"
-            placeholder="Buscar {{ tabLabel().toLowerCase() }}..."
+            [placeholder]="searchPlaceholder()"
             aria-label="Buscar en el directorio"
-            class="w-full bg-dark-700 border border-dark-600 rounded-xl pl-10 pr-11 py-2.5 min-h-[44px] text-base sm:text-sm text-ink placeholder-ink-muted outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 transition-all duration-150"/>
+            class="input-field pl-11 pr-12 min-h-[48px] text-base sm:text-sm"/>
           @if (searchQuery()) {
             <button type="button" (click)="onSearchQueryChange('')"
-              class="absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-ink-muted hover:text-ink rounded-full hover:bg-dark-600 transition-colors"
+              class="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors"
               aria-label="Borrar búsqueda">
-              <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
               </svg>
             </button>
           }
         </div>
+        <button type="button" (click)="filtersOpen.set(!filtersOpen())"
+          [attr.aria-expanded]="filtersOpen()" aria-controls="search-filters"
+          class="lg:hidden flex-shrink-0 min-h-[48px] px-3 font-mono text-xs font-bold uppercase tracking-wide border-2 border-ink transition-colors
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
+          [class.bg-ink]="filtersOpen()" [class.text-poster-paper]="filtersOpen()"
+          [class.bg-dark-800]="!filtersOpen()" [class.text-ink]="!filtersOpen()">
+          {{ filtersOpen() ? '− Filtros' : '+ Filtros' }}@if (activeFilterCount() > 0) { ({{ activeFilterCount() }}) }
+        </button>
       </div>
 
-      <!-- Row 2: Compact filters + active removable chips -->
-      <div class="pl-4 lg:px-8 pb-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar fade-edge-r [--fade-pad:1rem] [--fade-pad:1rem]">
-        <!-- City select -->
-        <select name="city" [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event); filterChanged()"
-          aria-label="Filtrar por ciudad"
-          class="bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-2 min-h-[40px] text-base sm:text-xs text-ink outline-none focus:border-primary-500 transition-colors flex-shrink-0 max-w-[150px]">
-          @for (city of cities; track city) { <option [value]="city">{{ city }}</option> }
-        </select>
-        <!-- Instrument filter -->
-        @if (activeTab() === 'musicians' || activeTab() === 'teachers' || activeTab() === 'vacancies') {
-          <select name="instrument" [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
-            aria-label="Filtrar por instrumento"
-            class="bg-dark-700 border border-dark-600 rounded-lg px-2.5 py-2 min-h-[40px] text-base sm:text-xs text-ink outline-none focus:border-primary-500 transition-colors flex-shrink-0 max-w-[150px]">
-            <option value="">Instrumento</option>
-            @for (inst of instruments; track inst) {
-              <option [value]="inst">{{ inst }}</option>
-            }
+      <!-- Applied filters as removable stamps (visible while the panel is collapsed on mobile) -->
+      @if (activeFilterCount() > 0 && !filtersOpen()) {
+        <div class="lg:hidden mt-2 flex flex-wrap gap-1.5" aria-label="Filtros aplicados" role="group">
+          @if (selectedCity() !== 'Toda España') {
+            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()"
+              class="tag min-h-[44px] px-3 gap-1.5 hover:bg-ink hover:text-poster-paper transition-colors"
+              aria-label="Quitar filtro de ciudad: {{ selectedCity() }}">
+              {{ selectedCity() }} <span aria-hidden="true">×</span>
+            </button>
+          }
+          @if (selectedInstrument()) {
+            <button type="button" (click)="selectedInstrument.set(''); filterChanged()"
+              class="tag min-h-[44px] px-3 gap-1.5 hover:bg-ink hover:text-poster-paper transition-colors"
+              aria-label="Quitar filtro de instrumento: {{ selectedInstrument() }}">
+              {{ selectedInstrument() }} <span aria-hidden="true">×</span>
+            </button>
+          }
+          @if (selectedGenre()) {
+            <button type="button" (click)="selectedGenre.set(''); filterChanged()"
+              class="tag min-h-[44px] px-3 gap-1.5 hover:bg-ink hover:text-poster-paper transition-colors"
+              aria-label="Quitar filtro de género: {{ selectedGenre() }}">
+              {{ selectedGenre() }} <span aria-hidden="true">×</span>
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Secondary filters: collapsible on mobile, always open on desktop -->
+      <div id="search-filters" class="mt-3 lg:flex lg:flex-wrap lg:items-center lg:gap-x-2 lg:gap-y-3" [class.hidden]="!filtersOpen()">
+        <div class="grid grid-cols-2 gap-2 lg:contents">
+          <select name="city" [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event); filterChanged()"
+            aria-label="Filtrar por ciudad"
+            class="input-field min-h-[44px] py-2 px-3 font-mono font-bold uppercase text-base sm:text-xs lg:w-auto lg:max-w-[200px]">
+            @for (city of cities; track city) { <option [value]="city">{{ city }}</option> }
           </select>
-        }
-        <!-- Active filter chips: removable -->
-        @if (selectedCity() !== 'Toda España') {
-          <button type="button" (click)="selectedCity.set(userCity() || 'Toda España'); filterChanged()"
-            class="inline-flex items-center gap-1 text-xs font-semibold bg-primary-900 text-primary-600 border border-primary-500/30 rounded-full px-3 py-2 min-h-[40px] flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
-            aria-label="Quitar filtro de ciudad">
-            <svg aria-hidden="true" class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-            </svg>
-            {{ selectedCity() }}
-            <svg aria-hidden="true" class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        }
-        @if (selectedInstrument()) {
-          <button type="button" (click)="selectedInstrument.set(''); filterChanged()"
-            class="inline-flex items-center gap-1 text-xs font-semibold bg-primary-900 text-primary-600 border border-primary-500/30 rounded-full px-3 py-2 min-h-[40px] flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
-            aria-label="Quitar filtro de instrumento">
-            {{ selectedInstrument() }}
-            <svg aria-hidden="true" class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        }
-        @if (selectedGenre()) {
-          <button type="button" (click)="selectedGenre.set(''); filterChanged()"
-            class="inline-flex items-center gap-1 text-xs font-semibold bg-primary-900 text-primary-600 border border-primary-500/30 rounded-full px-3 py-2 min-h-[40px] flex-shrink-0 hover:bg-primary-900/80 transition-colors whitespace-nowrap"
-            aria-label="Quitar filtro de género">
-            {{ selectedGenre() }}
-            <svg aria-hidden="true" class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        }
-        <!-- Clear all -->
-        @if (hasActiveFilters()) {
-          <button type="button" (click)="selectedGenre.set(''); selectedCity.set(userCity() || 'Toda España'); searchQuery.set(''); selectedInstrument.set(''); filterChanged()"
-            aria-label="Limpiar todos los filtros"
-            class="w-10 h-10 flex items-center justify-center rounded-full bg-dark-700 border border-dark-600 text-ink-muted hover:text-signal-red hover:border-signal-red/30 transition-colors flex-shrink-0 ml-auto">
-            <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        }
-      </div>
+          @if (hasInstrumentFilter()) {
+            <select name="instrument" [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
+              aria-label="Filtrar por instrumento"
+              class="input-field min-h-[44px] py-2 px-3 font-mono font-bold uppercase text-base sm:text-xs lg:w-auto lg:max-w-[200px]">
+              <option value="">Instrumento</option>
+              @for (inst of instruments; track inst) {
+                <option [value]="inst">{{ inst }}</option>
+              }
+            </select>
+          }
+        </div>
 
-      <!-- Genre pills row -->
-      @if (activeTab() !== 'rehearsal' && activeTab() !== 'events') {
-        <div class="pb-2.5">
-          <div class="flex gap-1.5 overflow-x-auto no-scrollbar fade-edge-r pl-4 [--fade-pad:1rem] lg:px-8" role="group" aria-label="Filtrar por género">
+        @if (hasGenreFilter()) {
+          <div class="mt-3 lg:mt-0 flex flex-wrap gap-1.5 lg:ml-2" role="group" aria-label="Filtrar por género">
             @for (g of genres; track g) {
-              <button (click)="selectedGenre.set(g === 'Todos' ? '' : g); filterChanged()"
+              <button type="button" (click)="selectedGenre.set(g === 'Todos' ? '' : g); filterChanged()"
                 [attr.aria-pressed]="(g === 'Todos' && !selectedGenre()) || selectedGenre() === g"
-                class="px-3.5 py-2 min-h-[36px] rounded-full text-xs font-semibold border whitespace-nowrap transition-colors flex-shrink-0"
+                class="px-2.5 min-h-[44px] sm:min-h-[36px] border-[1.5px] font-mono text-[11px] font-bold uppercase tracking-wide whitespace-nowrap transition-colors
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
                 [class.genre-pill-active]="(g === 'Todos' && !selectedGenre()) || selectedGenre() === g"
                 [class.genre-pill-inactive]="(g !== 'Todos' || !!selectedGenre()) && selectedGenre() !== g">
                 {{ g }}
               </button>
             }
           </div>
-        </div>
-      }
+        }
+
+        @if (hasActiveFilters()) {
+          <button type="button" (click)="clearFilters()"
+            class="mt-3 lg:mt-0 lg:ml-auto min-h-[44px] px-1 font-mono text-xs font-bold uppercase underline underline-offset-4 text-ink hover:text-primary-500 transition-colors">
+            Limpiar todo
+          </button>
+        }
+      </div>
     </form>
-  </div>
 
-  <!-- ══ Main content ══ -->
-  <div class="px-4 lg:px-8 py-5 lg:py-7 max-w-screen-xl mx-auto">
-
-    <!-- Title + count + CTA -->
-    <div class="flex items-center flex-wrap gap-x-3 gap-y-2 mb-4 sm:mb-5">
-      <h1 class="text-xl font-black text-ink tracking-tight">{{ tabLabel() }}</h1>
-      @if (!loading()) {
-        @if (currentCount() > 0) {
-          <span class="text-xs font-semibold text-ink-muted bg-dark-800 border border-dark-600 px-2.5 py-1 rounded-full">
-            {{ currentCount() }}{{ hasMore() ? '+' : '' }} encontrados
-          </span>
+    <!-- ══ Result count + CTA ══ -->
+    <div class="mt-5 rule-label gap-3">
+      <span aria-live="polite">
+        @if (loading()) {
+          Buscando…
+        } @else if (currentCount() > 0) {
+          {{ currentCount() }}{{ hasMore() ? '+' : '' }} {{ currentCount() === 1 && !hasMore() ? 'resultado' : 'resultados' }}
         } @else if (hasActiveFilters()) {
-          <span class="text-xs font-semibold text-signal-red/70 bg-dark-800 border border-dark-600 px-2.5 py-1 rounded-full">
-            Sin resultados
-          </span>
+          Sin resultados
+        } @else {
+          {{ tabLabel() }}
         }
-      }
-      @if (selectedCity() !== 'Toda España') {
-        <span class="flex items-center gap-1 text-micro font-semibold text-primary-600 bg-primary-900/40 border border-primary-500/20 px-2 py-0.5 rounded-full">
-          <svg aria-hidden="true" class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
-          {{ selectedCity() }}
-        </span>
-      }
-      <div class="flex-1"></div>
-      @if (isLoggedIn()) {
-        @if (activeTab() === 'events') {
-          <a routerLink="/events/create"
-            class="btn-primary text-xs px-4 min-h-[44px]">
-            <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Publicar evento
-          </a>
-        }
+      </span>
+      @if (isLoggedIn() && activeTab() === 'events') {
+        <a routerLink="/events/create" class="btn-primary min-h-[44px] text-xs px-4 -mt-1">+ Publicar evento</a>
       }
     </div>
 
-    <!-- ── Loading skeleton — profile card shape ── -->
+    <div class="mt-4">
+
+    <!-- ── Error ── -->
     @if (searchError()) {
-      <div role="alert" class="empty-state">
-        <p class="text-ink font-semibold mb-1">Error al cargar los resultados</p>
-        <p class="text-sm text-ink-muted mb-4">Comprueba tu conexión y vuelve a intentarlo.</p>
+      <div role="alert" class="border-2 border-ink bg-dark-800 shadow-[4px_4px_0_0_#141210] p-5 mb-4 max-w-xl">
+        <span class="tag-red">Error</span>
+        <p class="font-display text-2xl uppercase leading-none mt-2">Error al cargar los resultados</p>
+        <p class="text-sm text-ink-muted mt-2 mb-4">Comprueba tu conexión y vuelve a intentarlo.</p>
         <button type="button" (click)="filterChanged()" class="btn-primary text-sm min-h-[44px]">Reintentar</button>
       </div>
     }
 
+    <!-- ── Loading skeleton: poster rows ── -->
     @if (loading()) {
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3" aria-hidden="true">
         @for (i of [1,2,3,4,5,6]; track i) {
-          <div class="bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden animate-pulse flex flex-row items-center gap-3 p-3 sm:p-0 sm:flex-col sm:items-stretch">
-            <div class="hidden sm:block h-14 bg-dark-700"></div>
-            <div class="flex flex-row sm:flex-col items-center gap-3 sm:gap-0 sm:-mt-7 sm:px-5 sm:pb-5 flex-1 min-w-0">
-              <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-dark-600 sm:border-[3px] border-dark-900 flex-shrink-0"></div>
-              <div class="sm:mt-3 space-y-2 w-full">
-                <div class="h-4 bg-dark-700 rounded w-2/3 sm:mx-auto"></div>
-                <div class="h-3 bg-dark-600 rounded w-1/2 sm:mx-auto"></div>
-                <div class="h-3 bg-dark-700 rounded w-1/3 sm:mx-auto"></div>
-                <div class="hidden sm:flex justify-center gap-1 mt-2">
-                  <div class="h-5 bg-dark-700 rounded-full w-14"></div>
-                  <div class="h-5 bg-dark-700 rounded-full w-10"></div>
-                </div>
-                <div class="hidden sm:block h-8 bg-dark-700 rounded-full w-full mt-3"></div>
-              </div>
+          <div class="flex items-stretch bg-dark-800 border-2 border-ink animate-pulse min-h-[84px]">
+            <div class="w-16 sm:w-20 bg-dark-700 border-r-2 border-ink"></div>
+            <div class="flex-1 p-3 space-y-2">
+              <div class="h-5 bg-dark-700 w-2/3"></div>
+              <div class="h-3 bg-dark-700 w-1/2"></div>
+              <div class="h-4 bg-dark-700 w-1/3"></div>
             </div>
           </div>
         }
@@ -205,61 +191,42 @@
     @if (activeTab() === 'musicians' && !loading()) {
       <div role="tabpanel" id="panel-musicians" aria-labelledby="tab-musicians">
       @if (musicians().length === 0) {
-        <div class="empty-state">
-          <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
-            <app-icon name="music" [size]="28" class="text-ink-muted"/>
+        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
+          <span class="tag-accent">Sin resultados</span>
+          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay músicos con esos filtros</p>
+          <p class="text-sm text-ink-muted mt-3">Prueba a cambiar la ciudad o amplía la búsqueda. O sé el primero en tu zona.</p>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <button type="button" (click)="joinAs('musician')" class="btn-primary min-h-[44px] text-sm">Crear mi perfil de músico</button>
+            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todos los músicos</button>
           </div>
-          <p class="font-semibold text-ink text-[15px] mb-1">No hay músicos con esos filtros</p>
-          <p class="text-[13px] text-ink-muted mb-3">Prueba a cambiar la ciudad o amplía la búsqueda</p>
-          <button (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary text-sm">Ver todos los músicos</button>
-          <button (click)="joinAs('musician')" class="btn-primary text-sm mt-2">Crear mi perfil de músico</button>
         </div>
       } @else {
-        <!-- Social profile cards: gradient banner + overlapping circular avatar + centered info -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
           @for (m of musicians(); track m.id) {
-            <a [routerLink]="['/musicians', m.id]"
-               class="group card overflow-hidden cursor-pointer flex flex-row items-center gap-3 p-3 sm:p-0 sm:flex-col sm:items-stretch">
-              <!-- Gradient banner (tablet+) -->
-              <div class="hidden sm:block h-14 flex-shrink-0 profile-cover"
-                   [style.--cover]="avatarColor(m.name)">
-              </div>
-              <!-- Mobile: compact row. Tablet+: avatar overlapping banner + centered content -->
-              <div class="flex flex-row sm:flex-col items-center gap-3 sm:gap-0 sm:-mt-7 sm:px-5 sm:pb-5 flex-1 min-w-0">
-                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full sm:border-[3px] border-dark-800 overflow-hidden flex items-center justify-center text-white font-black text-base flex-shrink-0"
-                     [style.background]="avatarColor(m.name)">
-                  @if (m.avatar_url) {
-                    <img [src]="m.avatar_url" class="w-full h-full object-cover" alt="" loading="lazy"/>
-                  } @else {
-                    {{ m.name.slice(0,2).toUpperCase() }}
-                  }
-                </div>
-                <div class="text-left sm:text-center sm:mt-3 w-full min-w-0 flex-1 flex flex-col">
-                  <h2 class="font-black text-ink text-[15px] leading-tight group-hover:text-primary-500 transition-colors truncate sm:whitespace-normal">
-                    {{ m.name }}
-                  </h2>
-                  <p class="text-xs font-semibold text-primary-500 mt-0.5">{{ m.instrument || 'Músico' }}</p>
-                  @if (m.city) {
-                    <p class="text-xs text-ink-muted mt-1 sm:mt-1.5 flex items-center sm:justify-center gap-1">
-                      <app-icon name="map-pin" [size]="11"/>
-                      {{ m.city }}
-                    </p>
-                  }
-                  @if (m.genre) {
-                    <div class="flex flex-wrap gap-1 sm:justify-center mt-1.5 sm:mt-3">
-                      @for (g of (m.genre | list).slice(0,3); track g) {
+            <a [routerLink]="['/musicians', m.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
+              <ng-container *ngTemplateOutlet="photo; context: { name: m.name, url: m.avatar_url }"/>
+              <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
+                <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ m.name }}</h2>
+                <p class="text-[13px] text-ink-muted truncate">{{ m.instrument || 'Músico' }}@if (m.city) { · {{ m.city }} }</p>
+                @let days = availableDays(m.availability_days);
+                @if (days.size > 0 || m.genre) {
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    @if (days.size > 0) {
+                      <span class="inline-flex" role="img" [attr.aria-label]="'Disponible: ' + (m.availability_days | list).join(', ')">
+                        @for (d of weekdays; track d.key) {
+                          <span aria-hidden="true" class="w-[22px] h-[22px] -ml-[1.5px] first:ml-0 flex items-center justify-center border-[1.5px] border-ink font-mono text-[11px] font-bold"
+                                [class.bg-poster-yellow]="days.has(d.key)"
+                                [class.bg-dark-800]="!days.has(d.key)" [class.opacity-40]="!days.has(d.key)">{{ d.label }}</span>
+                        }
+                      </span>
+                    }
+                    @if (m.genre) {
+                      @for (g of (m.genre | list).slice(0,2); track g) {
                         <span class="tag">{{ g.trim() }}</span>
                       }
-                    </div>
-                  }
-                  <!-- Ghost-to-filled CTA button (tablet+; whole card is the link on mobile) -->
-                  <div class="hidden sm:block mt-auto pt-4">
-                    <span class="block w-full text-xs font-bold text-primary-500 border border-primary-500/30 rounded-full py-2 group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500 transition-all">
-                      Ver perfil
-                    </span>
+                    }
                   </div>
-                </div>
-                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sm:hidden text-ink-muted flex-shrink-0 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+                }
               </div>
             </a>
           }
@@ -272,67 +239,35 @@
     @if (activeTab() === 'bands' && !loading()) {
       <div role="tabpanel" id="panel-bands" aria-labelledby="tab-bands">
       @if (bands().length === 0) {
-        <div class="empty-state">
-          <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-ink-muted flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
+          <span class="tag-accent">Sin resultados</span>
+          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay bandas que coincidan</p>
+          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o amplía los filtros. ¿Tienes banda? Que te encuentren.</p>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <button type="button" (click)="joinAs('band')" class="btn-primary min-h-[44px] text-sm">Registrar mi banda</button>
+            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todas las bandas</button>
           </div>
-          <p class="font-semibold text-ink text-[15px] mb-1">No hay bandas que coincidan con tu búsqueda</p>
-          <p class="text-[13px] text-ink-muted mb-3">Prueba con otra ciudad o amplía los filtros</p>
-          <button (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary text-sm">Ver todas las bandas</button>
-          <button (click)="joinAs('band')" class="btn-primary text-sm mt-2">Registrar mi banda</button>
         </div>
       } @else {
-        <!-- Same social profile style as musicians + "Busca miembros" status badge in banner -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
           @for (band of bands(); track band.id) {
-            <a [routerLink]="['/bands', band.id]"
-               class="group card cursor-pointer flex flex-row items-center gap-3 p-3 sm:p-0 sm:flex-col sm:items-stretch">
-              <!-- Gradient banner with optional recruiting badge (tablet+) -->
-              <div class="hidden sm:block h-14 flex-shrink-0 relative overflow-hidden rounded-t-xl profile-cover"
-                   [style.--cover]="avatarColor(band.name)">
-                @if (band.looking_for) {
-                  <span class="absolute top-2.5 right-2.5 tag-green">Busca miembros</span>
-                }
-              </div>
-              <div class="flex flex-row sm:flex-col items-center gap-3 sm:gap-0 sm:-mt-7 sm:px-5 sm:pb-5 flex-1 min-w-0">
-                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full sm:border-[3px] border-dark-800 overflow-hidden flex items-center justify-center text-white font-black text-base flex-shrink-0 relative z-10"
-                     [style.background]="avatarColor(band.name)">
-                  @if (band.avatar_url) {
-                    <img [src]="band.avatar_url" class="w-full h-full object-cover" alt="" loading="lazy"/>
-                  } @else {
-                    {{ band.name.slice(0,2).toUpperCase() }}
-                  }
-                </div>
-                <div class="text-left sm:text-center sm:mt-3 w-full min-w-0 flex-1 flex flex-col">
-                  <h2 class="font-black text-ink text-[15px] leading-tight group-hover:text-primary-500 transition-colors truncate sm:whitespace-normal">
-                    {{ band.name }}
-                  </h2>
-                  @if (band.city) {
-                    <p class="text-xs text-ink-muted mt-1 sm:mt-1.5 flex items-center sm:justify-center gap-1">
-                      <app-icon name="map-pin" [size]="11"/>
-                      {{ band.city }}
-                    </p>
-                  }
-                  @if (band.genre || band.looking_for) {
-                    <div class="flex flex-wrap gap-1 sm:justify-center mt-1.5 sm:mt-3">
-                      @if (band.looking_for) {
-                        <span class="tag-green sm:hidden">Busca miembros</span>
+            <a [routerLink]="['/bands', band.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
+              <ng-container *ngTemplateOutlet="photo; context: { name: band.name, url: band.avatar_url }"/>
+              <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
+                <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ band.name }}</h2>
+                @if (band.city) { <p class="text-[13px] text-ink-muted truncate">{{ band.city }}</p> }
+                @if (band.looking_for || band.genre) {
+                  <div class="flex flex-wrap gap-1.5">
+                    @if (band.looking_for) {
+                      <span class="tag-accent">Busca {{ band.looking_for.trim() }}</span>
+                    }
+                    @if (band.genre) {
+                      @for (g of (band.genre | list).slice(0,2); track g) {
+                        <span class="tag">{{ g.trim() }}</span>
                       }
-                      @if (band.genre) {
-                        @for (g of (band.genre | list).slice(0,3); track g) {
-                          <span class="tag">{{ g.trim() }}</span>
-                        }
-                      }
-                    </div>
-                  }
-
-                  <div class="hidden sm:block mt-auto pt-4">
-                    <span class="block w-full text-xs font-bold text-primary-500 border border-primary-500/30 rounded-full py-2 group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500 transition-all">
-                      Ver banda
-                    </span>
+                    }
                   </div>
-                </div>
-                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sm:hidden text-ink-muted flex-shrink-0 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+                }
               </div>
             </a>
           }
@@ -341,69 +276,36 @@
       </div><!-- /panel-bands -->
     }
 
-    <!-- ══ VACANTES ══ -->
+    <!-- ══ SE BUSCA (vacantes) ══ -->
     @if (activeTab() === 'vacancies' && !loading()) {
       <div role="tabpanel" id="panel-vacancies" aria-labelledby="tab-vacancies">
       @if (vacancyResults().length === 0) {
-        <div class="empty-state">
-          <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
-            <app-icon name="megaphone" [size]="28" class="text-ink-muted"/>
+        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
+          <span class="tag-accent">Sin resultados</span>
+          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay vacantes abiertas con esos filtros</p>
+          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o amplía la búsqueda. ¿Tu banda necesita a alguien?</p>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <a [routerLink]="isLoggedIn() ? '/dashboard' : '/auth/register'" class="btn-primary min-h-[44px] text-sm">Publica un anuncio</a>
+            <button type="button" (click)="selectedCity.set('Toda España'); selectedInstrument.set(''); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todas las vacantes</button>
           </div>
-          <p class="font-semibold text-ink text-[15px] mb-1">No hay vacantes abiertas con esos filtros</p>
-          <p class="text-[13px] text-ink-muted mb-3">Prueba con otra ciudad o amplía la búsqueda</p>
-          <button (click)="selectedCity.set('Toda España'); selectedInstrument.set(''); filterChanged()" class="btn-secondary text-sm">Ver todas las vacantes</button>
         </div>
       } @else {
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
           @for (v of vacancyResults(); track v.id) {
-            <a [routerLink]="['/bands', v.bands?.id]"
-               class="group card cursor-pointer flex flex-col overflow-hidden">
-              <!-- Accent bar -->
-              <div class="h-1 flex-shrink-0"
-                   [style.background]="avatarColor(v.bands?.name || v.instrument)"></div>
-              <div class="p-5 flex flex-col gap-3 flex-1">
-                <!-- Instrument headline + genre badge -->
-                <div class="flex items-start justify-between gap-2">
-                  <h2 class="font-black text-ink text-[17px] leading-tight group-hover:text-primary-500 transition-colors">
-                    {{ v.instrument }}
-                  </h2>
-                  @if (v.genre) {
-                    <span class="tag flex-shrink-0">{{ v.genre }}</span>
-                  }
+            <a [routerLink]="['/bands', v.bands?.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
+              <ng-container *ngTemplateOutlet="photo; context: { name: v.bands?.name || v.instrument, url: v.bands?.avatar_url }"/>
+              <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="tag-accent">Se busca</span>
+                  @if (v.genre) { <span class="tag">{{ v.genre }}</span> }
                 </div>
-                <!-- Band row -->
+                <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ v.instrument }}</h2>
                 @if (v.bands) {
-                  <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg flex-shrink-0 overflow-hidden flex items-center justify-center text-white font-black text-xs"
-                         [style.background]="avatarColor(v.bands.name)">
-                      @if (v.bands.avatar_url) {
-                        <img [src]="v.bands.avatar_url" class="w-full h-full object-cover" alt="" loading="lazy"/>
-                      } @else {
-                        {{ v.bands.name.slice(0,2).toUpperCase() }}
-                      }
-                    </div>
-                    <span class="text-xs font-semibold text-ink-muted group-hover:text-primary-600 transition-colors truncate">{{ v.bands.name }}</span>
-                    @if (v.bands.city) {
-                      <span class="flex items-center gap-0.5 text-xs text-ink-muted flex-shrink-0 ml-auto">
-                        <app-icon name="map-pin" [size]="10"/>{{ v.bands.city }}
-                      </span>
-                    }
-                  </div>
+                  <p class="text-[13px] text-ink-muted truncate">{{ v.bands.name }}@if (v.bands.city) { · {{ v.bands.city }} }</p>
                 }
-                <!-- Description snippet -->
                 @if (v.description) {
-                  <p class="text-xs text-ink-muted leading-relaxed line-clamp-2">{{ v.description }}</p>
+                  <p class="text-[13px] text-ink-muted line-clamp-1">{{ v.description }}</p>
                 }
-                <!-- CTA footer -->
-                <div class="flex items-center justify-between mt-auto pt-3 border-t border-dark-600">
-                  <span class="flex items-center gap-1.5 text-[11px] text-signal-green font-semibold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-signal-green inline-block"></span>
-                    Abierta
-                  </span>
-                  <span class="text-xs font-bold text-primary-500 flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                    Ver banda <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
-                  </span>
-                </div>
               </div>
             </a>
           }
@@ -416,67 +318,33 @@
     @if (activeTab() === 'venues' && !loading()) {
       <div role="tabpanel" id="panel-venues" aria-labelledby="tab-venues">
       @if (venues().length === 0) {
-        <div class="empty-state">
-          <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
-            <app-icon name="building" [size]="28" class="text-ink-muted"/>
+        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
+          <span class="tag-accent">Sin resultados</span>
+          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay salas en esta zona</p>
+          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o amplía los filtros. ¿Programas conciertos? Publica tu sala.</p>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <a routerLink="/venues/new" class="btn-primary min-h-[44px] text-sm">Publica tu sala</a>
+            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todas las salas</button>
           </div>
-          <p class="font-semibold text-ink text-[15px] mb-1">No hay salas en esta zona</p>
-          <p class="text-[13px] text-ink-muted mb-3">Prueba con otra ciudad o amplía los filtros</p>
-          <button (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary text-sm">Ver todas las salas</button>
         </div>
       } @else {
-        <!-- Venue cards: stat-forward — capacity as hero number top-right -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
           @for (venue of venues(); track venue.id) {
-            <a [routerLink]="['/venues', venue.id]"
-               class="group card cursor-pointer">
-              <div class="p-5">
-                <!-- Header: square avatar + name/city + capacity stat -->
-                <div class="flex items-start gap-3 mb-4">
-                  <div class="w-11 h-11 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-sm"
-                       [style.background]="avatarColor(venue.name)">
-                    @if (venue.avatar_url) {
-                      <img [src]="venue.avatar_url" class="w-full h-full object-cover" alt="" loading="lazy"/>
-                    } @else {
-                      {{ venue.name.slice(0,2).toUpperCase() }}
-                    }
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <h2 class="font-black text-ink text-[15px] leading-tight group-hover:text-primary-500 transition-colors truncate">
-                      {{ venue.name }}
-                    </h2>
-                    @if (venue.city) {
-                      <p class="text-xs text-ink-muted mt-1 flex items-center gap-1">
-                        <app-icon name="map-pin" [size]="10"/>
-                        {{ venue.city }}
-                      </p>
-                    }
-                  </div>
-                  <!-- Capacity as bold hero number -->
-                  @if (venue.capacity) {
-                    <div class="flex-shrink-0 text-right">
-                      <p class="text-2xl font-black text-ink leading-none">{{ venue.capacity }}</p>
-                      <p class="text-micro font-semibold text-ink-muted uppercase tracking-wide">pers.</p>
-                    </div>
-                  } @else {
-                    <div class="w-10 h-10 rounded-xl bg-primary-900 border border-primary-500/20 flex items-center justify-center text-primary-500 flex-shrink-0">
-                      <app-icon name="building" [size]="18"/>
-                    </div>
-                  }
-                </div>
-                @if (venue.genres) {
-                  <div class="flex flex-wrap gap-1.5 mb-4">
-                    @for (g of (venue.genres | list).slice(0,4); track g) {
-                      <span class="tag">{{ g.trim() }}</span>
+            <a [routerLink]="['/venues', venue.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
+              <ng-container *ngTemplateOutlet="photo; context: { name: venue.name, url: venue.avatar_url }"/>
+              <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
+                <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ venue.name }}</h2>
+                @if (venue.city) { <p class="text-[13px] text-ink-muted truncate">Sala de conciertos · {{ venue.city }}</p> }
+                @if (venue.capacity || venue.genres) {
+                  <div class="flex flex-wrap gap-1.5">
+                    @if (venue.capacity) { <span class="tag-accent">Aforo {{ venue.capacity }}</span> }
+                    @if (venue.genres) {
+                      @for (g of (venue.genres | list).slice(0,2); track g) {
+                        <span class="tag">{{ g.trim() }}</span>
+                      }
                     }
                   </div>
                 }
-                <div class="flex items-center justify-between pt-3 border-t border-dark-600">
-                  <span class="text-xs text-ink-muted">Sala de conciertos</span>
-                  <span class="text-xs font-bold text-primary-500 flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                    Ver sala <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
-                  </span>
-                </div>
               </div>
             </a>
           }
@@ -485,78 +353,40 @@
       </div><!-- /panel-venues -->
     }
 
-    <!-- ══ EVENTOS ══ -->
+    <!-- ══ AGENDA (eventos) ══ -->
     @if (activeTab() === 'events' && !loading()) {
       <div role="tabpanel" id="panel-events" aria-labelledby="tab-events">
       @if (events().length === 0) {
-        <div class="empty-state">
-          <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
-            <app-icon name="calendar" [size]="28" class="text-ink-muted"/>
+        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
+          <span class="tag-accent">Sin resultados</span>
+          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay eventos próximos en esta zona</p>
+          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o cuelga tu propio cartel.</p>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <a routerLink="/events/create" class="btn-primary min-h-[44px] text-sm">Publicar evento</a>
+            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todos los eventos</button>
           </div>
-          <p class="font-semibold text-ink text-[15px] mb-1">No hay eventos próximos en esta zona</p>
-          <p class="text-[13px] text-ink-muted mb-3">Prueba con otra ciudad o publica tu propio evento</p>
-          <a routerLink="/events/create" class="btn-primary text-sm">Publicar evento</a>
-          <button (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary text-sm mt-2">Ver todos los eventos</button>
         </div>
       } @else {
-        <!-- Event cards: date-box design; first card is featured (terracotta accent) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          @for (event of events(); track event.id; let i = $index) {
-            <a [routerLink]="['/events', event.id]"
-               class="group flex flex-col bg-dark-800 border border-dark-600 rounded-2xl overflow-hidden hover:border-primary-400/60 hover:shadow-md transition-all duration-200 cursor-pointer"
-               [class.event-card-featured]="i === 0">
-              <div class="h-1 flex-shrink-0"
-                   [class.bg-primary-500]="i === 0" [class.bg-dark-600]="i !== 0"></div>
-              <div class="p-5 flex flex-col gap-4 flex-1">
-                <div class="flex items-start gap-3">
-                  <!-- Date box: CSS classes toggle bg + border without ngClass -->
-                  <div class="flex-shrink-0 text-center rounded-xl px-3 py-2 border"
-                       [class.date-box-featured]="i === 0"
-                       [class.date-box-default]="i !== 0">
-                    <div class="text-micro font-bold uppercase tracking-widest leading-none mb-0.5"
-                         [class.text-primary-500]="i === 0"
-                         [class.text-ink-muted]="i !== 0">
-                      {{ event.date | date:'MMM' | uppercase }}
-                    </div>
-                    <div class="text-[22px] font-black leading-none"
-                         [class.text-primary-500]="i === 0"
-                         [class.text-ink]="i !== 0">
-                      {{ event.date | date:'d' }}
-                    </div>
-                    @if (event.time) {
-                      <div class="text-micro font-medium mt-0.5"
-                           [class.text-primary-500]="i === 0"
-                           [class.text-ink-muted]="i !== 0">
-                        {{ event.time?.slice(0,5) }}
-                      </div>
-                    }
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <h2 class="font-bold text-ink text-[15px] leading-tight group-hover:text-primary-500 transition-colors">
-                      {{ event.title }}
-                    </h2>
-                    <p class="text-[13px] text-ink-muted mt-0.5 flex items-center gap-1 truncate">
-                      <app-icon name="map-pin" [size]="11" class="flex-shrink-0"/>
-                      {{ event.venue }}@if (event.city) { · {{ event.city }} }
-                    </p>
-                  </div>
-                </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          @for (event of events(); track event.id) {
+            <a [routerLink]="['/events', event.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
+              <!-- Date block -->
+              <div class="self-stretch w-16 sm:w-20 min-h-[84px] flex flex-col items-center justify-center bg-primary-500 text-white border-r-2 border-ink">
+                <span class="font-mono text-[11px] font-bold uppercase tracking-wide leading-none">{{ event.date | date:'MMM' | uppercase }}</span>
+                <span class="font-display text-[32px] sm:text-4xl leading-none mt-1">{{ event.date | date:'d' }}</span>
+                @if (event.time) {
+                  <span class="font-mono text-[11px] font-bold leading-none mt-1">{{ event.time.slice(0,5) }}</span>
+                }
+              </div>
+              <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
+                <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ event.title }}</h2>
+                <p class="text-[13px] text-ink-muted truncate">{{ event.venue }}@if (event.city) { · {{ event.city }} }</p>
                 @if (event.genre || event.price) {
                   <div class="flex flex-wrap gap-1.5">
-                    @if (event.genre) {
-                      <span class="tag-accent">{{ event.genre }}</span>
-                    }
-                    @if (event.price) {
-                      <span class="tag">{{ event.price }}</span>
-                    }
+                    @if (event.price) { <span class="tag-accent">{{ event.price }}</span> }
+                    @if (event.genre) { <span class="tag">{{ event.genre }}</span> }
                   </div>
                 }
-                <div class="flex items-center justify-between mt-auto pt-3 border-t border-dark-600">
-                  <span class="text-xs text-ink-muted">{{ event.date | date:'EEEE' }}</span>
-                  <span class="text-[12px] font-semibold text-primary-500 flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                    Ver evento <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
-                  </span>
-                </div>
               </div>
             </a>
           }
@@ -565,66 +395,33 @@
       </div><!-- /panel-events -->
     }
 
-    <!-- ══ CLASES / PROFESORES ══ -->
+    <!-- ══ CLASES ══ -->
     @if (activeTab() === 'teachers' && !loading()) {
       <div role="tabpanel" id="panel-teachers" aria-labelledby="tab-teachers">
       @if (teachers().length === 0) {
-        <div class="empty-state">
-          <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
-            <app-icon name="book-open" [size]="28" class="text-ink-muted"/>
+        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
+          <span class="tag-accent">Sin resultados</span>
+          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay profesores en esta zona</p>
+          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o con el instrumento que buscas. ¿Das clases? Publícate.</p>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <a routerLink="/teachers/new" class="btn-primary min-h-[44px] text-sm">Ofrece tus clases</a>
+            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todos los profesores</button>
           </div>
-          <p class="font-semibold text-ink text-[15px] mb-1">No hay profesores de música en esta zona</p>
-          <p class="text-[13px] text-ink-muted mb-3">Prueba con otra ciudad o el instrumento que buscas</p>
-          <button (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary text-sm">Ver todos los profesores</button>
         </div>
       } @else {
-        <!-- Teacher cards: price-first (Vinted-inspired) — price badge top-right, circular avatar -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
           @for (t of teachers(); track t.id) {
-            <a [routerLink]="['/teachers', t.id]"
-               class="group card cursor-pointer">
-              <div class="p-5">
-                <!-- Row: circular avatar + name/instrument/city + price badge -->
-                <div class="flex items-start gap-3 mb-4">
-                  <div class="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-white font-black text-sm"
-                       [style.background]="avatarColor(t.name)">
-                    @if (t.avatar_url) {
-                      <img [src]="t.avatar_url" class="w-full h-full object-cover" alt="" loading="lazy"/>
-                    } @else {
-                      {{ t.name.slice(0,2).toUpperCase() }}
-                    }
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <h2 class="font-black text-ink text-[15px] leading-tight group-hover:text-primary-500 transition-colors truncate">
-                      {{ t.name }}
-                    </h2>
-                    <p class="text-xs font-semibold text-primary-500 mt-0.5 truncate">{{ t.instrument || 'Profesor' }}</p>
-                    @if (t.city) {
-                      <p class="text-xs text-ink-muted mt-0.5 flex items-center gap-1">
-                        <app-icon name="map-pin" [size]="10"/>
-                        {{ t.city }}
-                      </p>
-                    }
-                  </div>
-                  <!-- Price badge: primary-tinted box -->
-                  @if (t.hourly_rate) {
-                    <div class="flex-shrink-0 bg-primary-900 border border-primary-500/20 rounded-xl px-3 py-2 text-center">
-                      <p class="text-lg font-black text-primary-500 leading-none">{{ t.hourly_rate }}€</p>
-                      <p class="text-micro font-semibold text-primary-500 uppercase tracking-wide">/hora</p>
-                    </div>
-                  }
-                </div>
-                @if (t.modality) {
-                  <div class="mb-4">
-                    <span class="tag">{{ t.modality }}</span>
+            <a [routerLink]="['/teachers', t.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
+              <ng-container *ngTemplateOutlet="photo; context: { name: t.name, url: t.avatar_url }"/>
+              <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
+                <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ t.name }}</h2>
+                <p class="text-[13px] text-ink-muted truncate">{{ t.instrument || 'Profesor' }}@if (t.city) { · {{ t.city }} }</p>
+                @if (t.hourly_rate || t.modality) {
+                  <div class="flex flex-wrap gap-1.5">
+                    @if (t.hourly_rate) { <span class="tag-accent">{{ t.hourly_rate }} €/h</span> }
+                    @if (t.modality) { <span class="tag">{{ t.modality }}</span> }
                   </div>
                 }
-                <div class="flex items-center justify-between pt-3 border-t border-dark-600">
-                  <span class="text-xs text-ink-muted">Clases particulares</span>
-                  <span class="text-xs font-bold text-primary-500 flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                    Ver perfil <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
-                  </span>
-                </div>
               </div>
             </a>
           }
@@ -637,73 +434,29 @@
     @if (activeTab() === 'rehearsal' && !loading()) {
       <div role="tabpanel" id="panel-rehearsal" aria-labelledby="tab-rehearsal">
       @if (rehearsals().length === 0) {
-        <div class="empty-state">
-          <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mb-4">
-            <app-icon name="headphones" [size]="28" class="text-ink-muted"/>
+        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
+          <span class="tag-accent">Sin resultados</span>
+          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay locales de ensayo en esta zona</p>
+          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o amplía los filtros. ¿Alquilas un local? Publícalo.</p>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <a routerLink="/rehearsal/new" class="btn-primary min-h-[44px] text-sm">Publica tu local</a>
+            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todos los locales</button>
           </div>
-          <p class="font-semibold text-ink text-[15px] mb-1">No hay locales de ensayo en esta zona</p>
-          <p class="text-[13px] text-ink-muted mb-3">Prueba con otra ciudad o amplía los filtros</p>
-          <button (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary text-sm">Ver todos los locales</button>
         </div>
       } @else {
-        <!-- Rehearsal space cards: price as hero number top-right + capacity/rooms specs row -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
           @for (r of rehearsals(); track r.id) {
-            <a [routerLink]="['/rehearsal', r.id]"
-               class="group card cursor-pointer">
-              <div class="p-5">
-                <!-- Row: square avatar + name/city + hourly rate hero number -->
-                <div class="flex items-start gap-3 mb-3">
-                  <div class="w-11 h-11 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-sm"
-                       [style.background]="avatarColor(r.name)">
-                    @if (r.avatar_url) {
-                      <img [src]="r.avatar_url" class="w-full h-full object-cover" alt="" loading="lazy"/>
-                    } @else {
-                      {{ r.name.slice(0,2).toUpperCase() }}
-                    }
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <h2 class="font-black text-ink text-[15px] leading-tight group-hover:text-primary-500 transition-colors truncate">
-                      {{ r.name }}
-                    </h2>
-                    @if (r.city) {
-                      <p class="text-xs text-ink-muted mt-1 flex items-center gap-1">
-                        <app-icon name="map-pin" [size]="10"/>
-                        {{ r.city }}
-                      </p>
-                    }
-                  </div>
-                  <!-- Price as large bold number -->
-                  @if (r.hourly_rate) {
-                    <div class="flex-shrink-0 text-right">
-                      <p class="text-2xl font-black text-ink leading-none">{{ r.hourly_rate }}€</p>
-                      <p class="text-micro font-semibold text-ink-muted uppercase tracking-wide">/hora</p>
-                    </div>
-                  }
-                </div>
-                <!-- Space specs: capacity + room count -->
-                @if (r.capacity || r.rooms_count) {
-                  <div class="flex gap-4 mb-3">
-                    @if (r.capacity) {
-                      <div class="flex items-center gap-1.5 text-xs text-ink-muted">
-                        <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-                        {{ r.capacity }} personas
-                      </div>
-                    }
-                    @if (r.rooms_count) {
-                      <div class="flex items-center gap-1.5 text-xs text-ink-muted">
-                        <app-icon name="headphones" [size]="11"/>
-                        {{ r.rooms_count }} sala{{ r.rooms_count > 1 ? 's' : '' }}
-                      </div>
-                    }
+            <a [routerLink]="['/rehearsal', r.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
+              <ng-container *ngTemplateOutlet="photo; context: { name: r.name, url: r.avatar_url }"/>
+              <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
+                <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ r.name }}</h2>
+                @if (r.city) { <p class="text-[13px] text-ink-muted truncate">Local de ensayo · {{ r.city }}</p> }
+                @if (r.hourly_rate || r.capacity) {
+                  <div class="flex flex-wrap gap-1.5">
+                    @if (r.hourly_rate) { <span class="tag-accent">{{ r.hourly_rate }} €/h</span> }
+                    @if (r.capacity) { <span class="tag">{{ r.capacity }} pers.</span> }
                   </div>
                 }
-                <div class="flex items-center justify-between pt-3 border-t border-dark-600">
-                  <span class="text-xs text-ink-muted">Local de ensayo</span>
-                  <span class="text-xs font-bold text-primary-500 flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                    Ver local <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
-                  </span>
-                </div>
               </div>
             </a>
           }
@@ -715,10 +468,10 @@
     <!-- ── Cargar más ── -->
     @if (hasMore() || loadingMore()) {
       <div class="flex justify-center mt-8">
-        <button (click)="loadMore()" [disabled]="loadingMore()"
+        <button type="button" (click)="loadMore()" [disabled]="loadingMore()"
           class="btn-secondary px-8 min-h-[44px] text-sm disabled:opacity-50 flex items-center gap-2">
           @if (loadingMore()) {
-            <span class="w-3.5 h-3.5 border-2 border-ink-muted border-t-ink rounded-full animate-spin"></span>
+            <span class="w-3.5 h-3.5 border-2 border-ink-muted border-t-ink animate-spin"></span>
             Cargando...
           } @else {
             Cargar más
@@ -727,5 +480,6 @@
       </div>
     }
 
+    </div>
   </div>
 </div>

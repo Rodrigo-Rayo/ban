@@ -1,10 +1,10 @@
 <div class="fixed inset-x-0 top-16 bottom-16 lg:bottom-0 flex flex-col bg-dark-900">
 
   <!-- Thread header — sticky below navbar -->
-  <div class="flex items-center gap-3 px-4 py-3 border-b border-dark-600 bg-dark-800/98 backdrop-blur-sm flex-shrink-0">
+  <div class="flex items-center gap-3 px-4 py-3 border-b-2 border-ink bg-dark-800 flex-shrink-0">
     <!-- Back button -->
     <a routerLink="/inbox"
-       class="p-2 text-ink-muted hover:text-ink hover:bg-dark-700 rounded-xl transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+       class="p-2 text-ink hover:bg-dark-700 border-[1.5px] border-ink transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
        aria-label="Volver a mensajes">
       <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -12,12 +12,12 @@
     </a>
 
     <!-- Avatar + name -->
-    <div class="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0 shadow-sm">
+    <div class="avatar w-10 h-10 text-base bg-primary-500 !text-white border-[1.5px] border-ink">
       {{ otherName().slice(0,2).toUpperCase() }}
     </div>
     <div class="flex-1 min-w-0">
-      <p class="text-sm font-bold text-ink leading-tight truncate">{{ otherName() }}</p>
-      <p class="text-[10px] font-medium" aria-live="polite" data-testid="chat-status"
+      <p class="font-display text-xl uppercase text-ink leading-tight truncate">{{ otherName() }}</p>
+      <p class="font-mono text-[11px] font-bold uppercase tracking-wide" aria-live="polite" data-testid="chat-status"
          [class.text-primary-500]="otherTyping() || otherOnline()"
          [class.text-ink-muted]="!otherTyping() && !otherOnline()">
         {{ otherTyping() ? 'escribiendo…' : otherOnline() ? 'en línea' : 'Mensaje directo' }}
@@ -28,7 +28,7 @@
     <button type="button" (click)="deleteConversation()" [disabled]="isDeleting()"
       title="Borrar conversación"
       aria-label="Borrar conversación"
-      class="p-2 text-ink-muted hover:text-signal-red hover:bg-dark-700 rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed">
+      class="p-2 text-ink hover:text-white hover:bg-signal-red border-[1.5px] border-ink transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed">
       <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -45,36 +45,36 @@
        [attr.aria-busy]="loading() || loadingMore()"
        tabindex="0"
        (scroll)="onScroll()"
-       class="relative flex-1 overflow-y-auto px-4 sm:px-5 py-5 flex flex-col gap-2 no-scrollbar focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
+       class="relative flex-1 overflow-y-auto px-4 sm:px-5 py-5 flex flex-col gap-2 no-scrollbar focus:outline-none focus-visible:ring-2 focus-visible:ring-ink">
 
     @if (loading()) {
       <!-- Loading skeletons -->
       <div class="flex flex-col gap-3 py-4" role="status" aria-label="Cargando mensajes...">
         <div class="flex justify-start animate-pulse">
-          <div class="h-10 bg-dark-800 border border-dark-600 rounded-2xl rounded-bl-sm w-48"></div>
+          <div class="h-10 bg-dark-800 border-2 border-ink w-48"></div>
         </div>
         <div class="flex justify-end animate-pulse">
-          <div class="h-10 bg-primary-900 rounded-2xl rounded-br-sm w-40"></div>
+          <div class="h-10 bg-dark-700 w-40"></div>
         </div>
         <div class="flex justify-start animate-pulse">
-          <div class="h-16 bg-dark-800 border border-dark-600 rounded-2xl rounded-bl-sm w-56"></div>
+          <div class="h-16 bg-dark-800 border-2 border-ink w-56"></div>
         </div>
         <div class="flex justify-end animate-pulse">
-          <div class="h-10 bg-primary-900 rounded-2xl rounded-br-sm w-32"></div>
+          <div class="h-10 bg-dark-700 w-32"></div>
         </div>
       </div>
 
     } @else if (messages().length === 0) {
       <!-- Empty state -->
       <div class="flex flex-col items-center justify-center flex-1 text-center py-10 px-6">
-        <div class="w-16 h-16 rounded-2xl bg-primary-900/60 border border-primary-500/20 flex items-center justify-center mb-4">
-          <svg aria-hidden="true" class="w-7 h-7 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="empty-state-icon">
+          <svg aria-hidden="true" class="w-7 h-7 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                   d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"/>
           </svg>
         </div>
-        <p class="text-sm font-bold text-ink mb-1.5">Empieza la conversación</p>
-        <p class="text-xs text-ink-muted leading-relaxed">
+        <p class="font-display text-2xl uppercase text-ink mb-1.5">Empieza la conversación</p>
+        <p class="text-sm text-ink-muted leading-relaxed">
           Escríbele directamente a <span class="text-ink font-semibold">{{ otherName() }}</span>
         </p>
       </div>
@@ -85,7 +85,7 @@
         <div class="flex justify-center pt-1 pb-2">
           <button type="button" (click)="loadMore()"
             [disabled]="loadingMore()"
-            class="text-xs font-semibold text-primary-500 hover:text-primary-600 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-xl hover:bg-dark-700 transition-colors flex items-center gap-1.5">
+            class="btn-ghost font-mono text-[11px] font-bold uppercase tracking-wide disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 min-h-[44px] flex items-center gap-1.5">
             @if (loadingMore()) {
               <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -99,33 +99,30 @@
 
       <!-- Date separator -->
       <div class="flex items-center gap-3 my-2">
-        <div class="flex-1 h-px bg-dark-700"></div>
-        <span class="text-[10px] font-bold text-ink-muted/60 uppercase tracking-widest px-1 whitespace-nowrap">
+        <div class="flex-1 h-0.5 bg-ink"></div>
+        <span class="font-mono text-[11px] font-bold text-ink uppercase tracking-wide px-1 whitespace-nowrap">
           Inicio de la conversación
         </span>
-        <div class="flex-1 h-px bg-dark-700"></div>
+        <div class="flex-1 h-0.5 bg-ink"></div>
       </div>
 
       <!-- Messages -->
       @for (msg of messages(); track msg.id) {
         <div class="flex flex-col" [class.items-end]="msg.sender_id === currentUserId()" [class.items-start]="msg.sender_id !== currentUserId()">
-          <div class="max-w-[78%] sm:max-w-sm px-4 py-2.5 text-sm leading-relaxed transition-opacity"
-               [class.bg-primary-500]="msg.sender_id === currentUserId()"
-               [class.text-white]="msg.sender_id === currentUserId()"
-               [class.shadow-md]="msg.sender_id === currentUserId()"
-               [class.rounded-2xl]="true"
-               [class.rounded-br-sm]="msg.sender_id === currentUserId()"
+          <div class="max-w-[78%] sm:max-w-sm px-4 py-2.5 text-sm leading-relaxed transition-opacity border-2"
+               [class.bg-night]="msg.sender_id === currentUserId()"
+               [class.text-poster-paper]="msg.sender_id === currentUserId()"
+               [class.border-ink]="msg.status !== 'failed'"
+               [class.shadow-[3px_3px_0_0_#c23a1f]]="msg.sender_id === currentUserId() && msg.status !== 'failed'"
                [class.bg-dark-800]="msg.sender_id !== currentUserId()"
                [class.text-ink]="msg.sender_id !== currentUserId()"
-               [class.border]="msg.sender_id !== currentUserId() || msg.status === 'failed'"
-               [class.border-dark-600]="msg.sender_id !== currentUserId()"
+               [class.shadow-[3px_3px_0_0_#141210]]="msg.sender_id !== currentUserId()"
                [class.border-signal-red]="msg.status === 'failed'"
-               [class.opacity-70]="msg.status === 'sending'"
-               [class.rounded-bl-sm]="msg.sender_id !== currentUserId()">
+               [class.opacity-70]="msg.status === 'sending'">
             <span class="sr-only">{{ msg.sender_id === currentUserId() ? 'Tú' : otherName() }}:</span>
             <span class="break-words whitespace-pre-wrap">{{ msg.text }}</span>
-            <div class="text-[10px] mt-1.5 text-right select-none"
-                 [ngClass]="msg.sender_id === currentUserId() ? 'text-white/80' : 'text-ink-muted'">
+            <div class="font-mono text-[11px] font-bold mt-1.5 text-right select-none"
+                 [ngClass]="msg.sender_id === currentUserId() ? 'text-poster-paper/80' : 'text-ink-muted'">
               @if (msg.status === 'sending') {
                 Enviando…
               } @else if (msg.status === 'failed') {
@@ -151,12 +148,12 @@
           @if (msg.status === 'failed') {
             <div class="flex items-center gap-1 mt-1">
               <button type="button" (click)="retry(msg)" [disabled]="sending()"
-                class="text-xs font-semibold text-primary-500 hover:text-primary-600 px-2 py-1 min-h-[32px] rounded-lg hover:bg-dark-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                class="font-mono text-[11px] font-bold uppercase text-primary-500 hover:text-primary-600 px-2 py-1 min-h-[44px] hover:bg-dark-700 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Reintentar envío del mensaje">
                 Reintentar
               </button>
               <button type="button" (click)="discard(msg)"
-                class="text-xs font-medium text-ink-muted hover:text-ink px-2 py-1 min-h-[32px] rounded-lg hover:bg-dark-700"
+                class="font-mono text-[11px] font-bold uppercase text-ink-muted hover:text-ink px-2 py-1 min-h-[44px] hover:bg-dark-700"
                 aria-label="Descartar mensaje no enviado">
                 Descartar
               </button>
@@ -171,7 +168,7 @@
   @if (hasNewBelow()) {
     <div class="relative flex-shrink-0">
       <button type="button" (click)="jumpToLatest()"
-        class="absolute -top-12 left-1/2 -translate-x-1/2 btn-primary text-xs px-3 py-2 rounded-full shadow-lg">
+        class="absolute -top-12 left-1/2 -translate-x-1/2 btn-primary text-xs px-3 py-2 min-h-[44px]">
         Nuevos mensajes ↓
       </button>
     </div>
@@ -179,13 +176,13 @@
 
   <!-- Send error -->
   @if (sendError()) {
-    <div role="alert" class="px-4 py-2 bg-signal-red/10 border-t border-signal-red/20 flex-shrink-0">
-      <p class="text-xs text-signal-red text-center">{{ sendError() }}</p>
+    <div role="alert" class="px-4 py-2 bg-signal-rBg border-t-2 border-signal-red flex-shrink-0">
+      <p class="text-xs font-bold text-signal-red text-center">{{ sendError() }}</p>
     </div>
   }
 
   <!-- Input area -->
-  <div class="flex items-end gap-2 px-4 py-3 border-t border-dark-600 bg-dark-800 flex-shrink-0">
+  <div class="flex items-end gap-2 px-4 py-3 border-t-2 border-ink bg-dark-800 flex-shrink-0">
     <div class="flex-1 min-w-0 flex flex-col">
       <textarea
         [(ngModel)]="newMessage"
@@ -195,10 +192,10 @@
         rows="1"
         [attr.maxlength]="maxLength"
         aria-describedby="chat-char-counter"
-        class="flex-1 bg-dark-700 border border-dark-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/10 text-ink text-sm px-4 py-3 rounded-2xl resize-none outline-none transition-all placeholder-ink-muted"
+        class="input-field flex-1 resize-none !py-3"
         style="min-height:44px;max-height:120px"
         aria-label="Escribe un mensaje"></textarea>
-      <p id="chat-char-counter" class="text-[10px] text-right mt-1 px-2"
+      <p id="chat-char-counter" class="font-mono text-[11px] font-bold text-right mt-1 px-2"
          [class.sr-only]="newMessage.length < maxLength - counterThreshold"
          [class.text-ink-muted]="newMessage.length < maxLength"
          [class.text-signal-red]="newMessage.length >= maxLength">
@@ -208,7 +205,7 @@
 
     <button type="button" (click)="send()"
       [disabled]="!newMessage.trim() || sending()"
-      class="btn-primary text-sm px-4 py-3 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] rounded-2xl"
+      class="btn-primary text-sm px-4 py-3 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px] min-w-[44px]"
       [attr.aria-busy]="sending()"
       aria-label="Enviar mensaje">
       @if (sending()) {

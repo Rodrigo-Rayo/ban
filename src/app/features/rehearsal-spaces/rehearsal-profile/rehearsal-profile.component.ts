@@ -63,6 +63,7 @@ export class RehearsalProfileComponent implements OnInit {
   bookingDone = signal(false);
   bookingError = signal<string | null>(null);
 
+  readonly posterLine = computed(() => ['Local de ensayo', this.space()?.city].filter(Boolean).join(' · '));
   readonly avgRating = computed(() => {
     const r = this.reviews();
     if (!r.length) return null;

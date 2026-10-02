@@ -35,10 +35,12 @@ test.describe('Register page', () => {
     await page.goto('/auth/register');
   });
 
-  test('renders register form with role selector', async ({ page }) => {
+  test('renders the register form (role is chosen later, in onboarding)', async ({ page }) => {
     await expect(page.getByRole('heading', { name: /únete/i })).toBeVisible();
-    await expect(page.getByText('Músico')).toBeVisible();
-    await expect(page.getByText('Banda')).toBeVisible();
+    const form = page.locator('main form').first();
+    await expect(form.locator('input[type="email"]')).toBeVisible();
+    await expect(form.locator('input[type="password"]').first()).toBeVisible();
+    await expect(form.getByRole('button', { name: /continuar/i }).first()).toBeVisible();
   });
 
   test('terms and privacy links point to legal pages', async ({ page }) => {

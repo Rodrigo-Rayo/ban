@@ -1,11 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, signal, OnInit, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { VacanciesService } from '../../core/services/vacancies.service';
 import { SeoService } from '../../core/services/seo.service';
-import { IconComponent } from '../../shared/components/icon/icon.component';
+import { MessagesService } from '../../core/services/messages.service';
 import { avatarColor, timeAgo } from '../../core/utils/display.utils';
+import { localToday } from '../../core/utils/date';
 import { environment } from '../../../environments/environment';
 
 interface HomeMusician { id: string; name: string; city: string; instrument: string; avatar_url: string | null; created_at: string; }
@@ -16,12 +18,13 @@ interface HomeTeacher { id: string; name: string; city: string; instrument: stri
 interface HomeRehearsal { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate?: number | null; created_at: string; }
 interface HomePost { id: string; type: string; text: string; city: string | null; instrument: string | null; author_name: string; author_profile_type: string | null; author_profile_id: string | null; created_at: string; }
 interface HomeListing { id: string; title: string; price: number | null; condition: string | null; category: string | null; city: string | null; images: string[] | null; created_at: string; }
+interface HomeVacancy { id: string; instrument: string; genre: string | null; bands: { id: string; name: string; city: string | null; genre: string | null } | null; }
 interface HomeProfile { id?: string; name: string; city?: string | null; avatar_url?: string | null; }
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-home',
-    imports: [RouterLink, CommonModule, DatePipe, IconComponent],
+    imports: [RouterLink, DecimalPipe],
     templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit {
@@ -30,7 +33,9 @@ export class HomeComponent implements OnInit {
 
   auth = inject(AuthService);
   private supabase = inject(SupabaseService);
+  private vacanciesSvc = inject(VacanciesService);
   private seo = inject(SeoService);
+  private messages = inject(MessagesService);
 
   constructor() {
     // Watch the auth user signal. When the user becomes available (which may be
@@ -61,6 +66,8 @@ export class HomeComponent implements OnInit {
   recentPosts      = signal<HomePost[]>([]);
   recentListings   = signal<HomeListing[]>([]);
 
+  recentVacancies  = signal<HomeVacancy[]>([]);
+
   loading      = signal(true);
   loadError    = signal(false);
   userCity     = signal('');
@@ -68,6 +75,35 @@ export class HomeComponent implements OnInit {
   userType     = signal('');
 
   today = new Date();
+
+  /** Upcoming events only (never past ones), soonest first. */
+  readonly upcomingEvents = computed(() => {
+    const today = localToday();
+    return this.recentEvents().filter(e => (e.date ?? '').slice(0, 10) >= today);
+  });
+  readonly featuredEvent = computed(() => this.upcomingEvents()[0] ?? null);
+  readonly moreEvents = computed(() => this.upcomingEvents().slice(1, 4));
+  readonly featuredRehearsal = computed(() => this.recentRehearsals()[0] ?? null);
+  readonly otherRehearsals = computed(() => this.recentRehearsals().slice(1, 4));
+  readonly displayCity = computed(() => this.userCity() || 'España');
+  /** Vacancies from the user's city first. */
+  readonly vacanciesSorted = computed(() => {
+    const city = this.userCity();
+    const list = [...this.recentVacancies()];
+    return city ? list.sort((a, b) => Number(b.bands?.city === city) - Number(a.bands?.city === city)) : list;
+  });
+  /** Single most useful nudge, built only from data that exists. */
+  readonly nextStep = computed<{ text: string; cta: string; link: string } | null>(() => {
+    const unread = this.messages.unreadCount();
+    if (unread > 0) {
+      return { text: unread === 1 ? 'Tienes 1 mensaje sin leer.' : `Tienes ${unread} mensajes sin leer.`, cta: 'Leer', link: '/inbox' };
+    }
+    const profile = this.userProfile();
+    if (profile && !profile.avatar_url) {
+      return { text: 'Añade una foto: los perfiles con foto reciben más mensajes.', cta: 'Añadir', link: '/onboarding' };
+    }
+    return null;
+  });
 
   readonly postTypeMap: Record<string, { label: string; icon: string }> = {
     musician_seeking_band: { label: 'Músico busca banda', icon: 'music'         },
@@ -113,6 +149,7 @@ export class HomeComponent implements OnInit {
         { data: teachers },
         { data: rehearsals },
         { data: posts },
+        { data: vacancies },
         { data: listings },
       ] = await Promise.all([
         city
@@ -134,6 +171,8 @@ export class HomeComponent implements OnInit {
           ? this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).eq('city', city).order('created_at', { ascending: false }).limit(5)
           : this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).order('created_at', { ascending: false }).limit(5),
         this.supabase.client.from('posts').select(postCols).order('created_at', { ascending: false }).limit(4),
+        // Non-critical module: a failure just hides "Se busca".
+        this.vacanciesSvc.listOpen({ limit: 6 }).then(data => ({ data }), () => ({ data: [] })),
         this.supabase.client.from('gear_listings').select(listingCols).eq('status', 'active').order('created_at', { ascending: false }).limit(6),
       ]);
 
@@ -161,6 +200,7 @@ export class HomeComponent implements OnInit {
       this.recentTeachers.set((teachers || []) as unknown as HomeTeacher[]);
       this.recentRehearsals.set((rehearsals || []) as unknown as HomeRehearsal[]);
       this.recentPosts.set(((posts || []) as unknown as HomePost[]).slice(0, 4));
+      this.recentVacancies.set((vacancies || []) as unknown as HomeVacancy[]);
       this.recentListings.set(((listings || []) as unknown as HomeListing[]).slice(0, 6));
 
       // Fallbacks run in background and update signals when ready
@@ -198,6 +238,22 @@ export class HomeComponent implements OnInit {
     this.loadContent();
   }
 
+
+  /** ISO week number, for the masthead dateline. */
+  readonly weekNumber = (() => {
+    const d = new Date(Date.UTC(this.today.getFullYear(), this.today.getMonth(), this.today.getDate()));
+    const day = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - day);
+    const yearStart = Date.UTC(d.getUTCFullYear(), 0, 1);
+    return Math.ceil(((d.getTime() - yearStart) / 86400000 + 1) / 7);
+  })();
+
+  /** Event date parts for the poster date block (local time, no TZ shift). */
+  dateParts(date: string): { weekday: string; day: string; month: string } {
+    const d = new Date(`${date.slice(0, 10)}T00:00:00`);
+    const fmt = (o: Intl.DateTimeFormatOptions) => d.toLocaleDateString('es-ES', o).replace('.', '');
+    return { weekday: fmt({ weekday: 'short' }), day: String(d.getDate()), month: fmt({ month: 'short' }) };
+  }
 
   postInfo(type: string) {
     return this.postTypeMap[type] ?? { label: 'Anuncio', icon: 'newspaper' };

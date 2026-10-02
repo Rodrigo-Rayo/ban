@@ -140,6 +140,12 @@
            bg-primary-500 border-[1.5px] border-ink
            inline-flex items-center;
   }
+  .tag-night {
+    @apply font-mono text-[11px] font-bold text-poster-paper uppercase tracking-wide
+           px-2 py-0.5
+           bg-ink border-[1.5px] border-ink
+           inline-flex items-center;
+  }
   /* ── Meta label ──────────────────────────────── */
   .meta {
     @apply font-mono text-[11px] font-bold text-ink-muted tracking-wide uppercase
@@ -263,15 +269,15 @@
 /* ── Legal prose ─────────────────────────────────── */
 .prose-legal section { margin-bottom: 2rem; }
 .prose-legal h2 {
-  @apply text-base font-bold text-ink mb-3 mt-6;
+  @apply text-2xl text-ink mb-3 mt-8 pt-2 border-t-2 border-ink;
 }
 .prose-legal p { @apply text-sm text-ink-muted leading-relaxed mb-3; }
 .prose-legal ul { @apply text-sm text-ink-muted leading-relaxed mb-3 list-disc list-inside space-y-1; }
 .prose-legal a { @apply text-primary-500 hover:underline; }
 .prose-legal strong { @apply text-ink font-semibold; }
 .prose-legal table { @apply w-full text-sm border-collapse mb-3; }
-.prose-legal th { @apply text-left text-xs font-bold text-ink-muted uppercase tracking-widest py-2 px-3 border-b border-dark-600; }
-.prose-legal td { @apply text-xs text-ink-muted py-2 px-3 border-b border-dark-700; }
+.prose-legal th { @apply text-left font-mono text-[11px] font-bold text-ink uppercase tracking-wide py-2 px-3 border-b-2 border-ink; }
+.prose-legal td { @apply text-xs text-ink-muted py-2 px-3 border-b border-ink/30; }
 .prose-legal code { @apply text-[11px] bg-dark-700 text-primary-600 px-1.5 py-0.5 font-mono; }
 
 /* ═══════════════════════════════════════════════════════════
@@ -322,3 +328,11 @@ body.has-bottom-nav .bottom-above-nav { bottom: calc(4rem + env(safe-area-inset-
 
 /* Square poster theme sets rounded-full to 0; loading spinners stay circular. */
 .animate-spin.rounded-full { border-radius: 9999px; }
+
+/* Anton capitals carry accents (Í, Ñ, Ú) above the cap height: a clipped
+   (truncate / overflow-hidden) poster line needs room or the accent is cut. */
+h1.truncate, h2.truncate, h3.truncate, .font-display.truncate,
+h1.line-clamp-1, h2.line-clamp-1, h2.line-clamp-2, .font-display.line-clamp-2 {
+  line-height: 1.18;
+  padding-top: 0.06em;
+}
