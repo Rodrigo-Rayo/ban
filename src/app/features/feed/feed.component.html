@@ -94,16 +94,18 @@
 
     <!-- ── FILTERS ── -->
     <div class="mb-5 space-y-2.5">
-      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar fade-edge-r pb-1">
+      <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 pb-1">
         <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadPosts()"
-          class="input-field !w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px]"
+          class="input-field sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
           aria-label="Filtrar por ciudad">
           @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
         </select>
-        <input [value]="filterInstrument()" (input)="onInstrumentChange($any($event.target).value)"
-          placeholder="Instrumento…"
-          class="input-field !w-36 !py-2 !px-3 text-base sm:text-xs min-h-[44px]"
-          aria-label="Filtrar por instrumento"/>
+        <select [ngModel]="filterInstrument()" (ngModelChange)="onInstrumentChange($event)"
+          class="input-field sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
+          aria-label="Filtrar por instrumento">
+          <option value="">Instrumento</option>
+          @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
+        </select>
         @if (hasActiveFilters()) {
           <button (click)="clearFilters()"
             class="btn-ghost flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase px-3 py-2 min-h-[44px]"
@@ -144,41 +146,9 @@
       </div>
     }
 
-    <!-- ── BAND VACANCIES (structured "se busca" from band profiles) ── -->
-    @if (!loading() && showVacancies() && vacancies().length > 0) {
-      <section aria-labelledby="vacancies-title" class="mb-8">
-        <div class="rule-label mb-1">
-          <span id="vacancies-title">Vacantes en bandas</span>
-          @if (section() === 'todo') {
-            <button type="button" (click)="setSection('bandas')" class="underline min-h-[44px]">Ver todas</button>
-          }
-        </div>
-        <ul class="flex flex-col">
-          @for (v of vacancies(); track v.id; let i = $index) {
-            <li>
-              <a [routerLink]="['/bands', v.bands.id]"
-                 class="flex items-center gap-3 py-3 border-b border-ink/15 hover:bg-dark-800 transition-colors px-1">
-                <span class="font-mono text-xs font-bold text-ink-muted w-6 flex-shrink-0">{{ (i + 1).toString().padStart(2, '0') }}</span>
-                <span class="flex-1 min-w-0 flex flex-col">
-                  <span class="font-display text-xl uppercase leading-tight truncate">{{ v.bands.name }}</span>
-                  <span class="text-sm text-ink-muted truncate">
-                    {{ v.bands.genre || v.genre || 'Banda' }}@if (v.bands.city) { · {{ v.bands.city }} }
-                  </span>
-                </span>
-                <span class="tag-accent flex-shrink-0">Busca {{ v.instrument }}</span>
-              </a>
-            </li>
-          }
-        </ul>
-      </section>
-    }
-
     <!-- ── POSTS ── -->
     @if (!loading()) {
-      @if (showVacancies() && vacancies().length > 0 && posts().length > 0) {
-        <p class="rule-label mb-1">Anuncios</p>
-      }
-      @if (posts().length === 0 && !(showVacancies() && vacancies().length > 0)) {
+      @if (items().length === 0) {
         @if (hasActiveFilters()) {
           <div class="empty-state">
             <div class="empty-state-icon">
@@ -210,59 +180,75 @@
             }
           </div>
         }
-      } @else if (posts().length > 0) {
-        <div class="flex flex-col">
-          @for (post of posts(); track post.id) {
-            <article class="border-b border-ink/15 last:border-b-0 hover:bg-dark-800 transition-colors duration-150">
-
-              <a [routerLink]="['/posts', post.id]" class="block px-1 sm:px-3 pt-4 pb-3">
-
-                <!-- Type stamp + time -->
-                <div class="flex items-center justify-between gap-3 mb-2.5">
-                  <span [class]="typeStamp(post.type)">
-                    <app-icon [name]="typeIcon(post.type)" [size]="11" class="mr-1.5 flex-shrink-0"/>
-                    {{ typeLabel(post.type) }}
-                  </span>
-                  <div class="flex items-center gap-2 flex-shrink-0">
-                    @if (isRecent(post)) {
-                      <span class="tag-accent">Nuevo</span>
-                    }
-                    <span class="meta">{{ timeAgo(post.created_at) }}</span>
+      } @else {
+        <ul class="flex flex-col border-t-2 border-ink">
+          @for (item of items(); track item.kind + item.id) {
+            <li class="border-b border-ink/15 last:border-b-0 hover:bg-dark-800 transition-colors duration-150">
+              @if (item.kind === 'vacancy') {
+                <!-- Band vacancy: structured, links to the band profile (apply there) -->
+                <a [routerLink]="['/bands', item.vacancy.bands.id]" class="block px-1 sm:px-3 pt-4 pb-4">
+                  <div class="flex items-center justify-between gap-3 mb-2">
+                    <span [class]="typeStamp('band_seeking_musician')">
+                      <app-icon [name]="typeIcon('band_seeking_musician')" [size]="11" class="mr-1.5 flex-shrink-0"/>
+                      Banda busca músico
+                    </span>
+                    <span class="meta">{{ timeAgo(item.created_at) }}</span>
                   </div>
-                </div>
-
-                <p class="text-[15px] text-ink leading-relaxed mb-3 line-clamp-3">{{ post.text }}</p>
-
-                @if (post.city || post.instrument || post.genre) {
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-1.5">
+                    <span class="font-display text-2xl uppercase leading-tight">{{ item.vacancy.bands.name }}</span>
+                    <span class="tag-accent">Busca {{ item.vacancy.instrument }}</span>
+                  </div>
+                  @if (item.vacancy.description) {
+                    <p class="text-[15px] text-ink leading-relaxed mb-2 line-clamp-2">{{ item.vacancy.description }}</p>
+                  }
                   <div class="flex flex-wrap items-center gap-1.5">
-                    @if (post.city) {
-                      <span class="meta !text-ink mr-1">
-                        <app-icon name="map-pin" [size]="11"/>
-                        {{ post.city }}
-                      </span>
+                    @if (item.vacancy.bands.city) {
+                      <span class="meta !text-ink mr-1"><app-icon name="map-pin" [size]="11"/> {{ item.vacancy.bands.city }}</span>
                     }
-                    @if (post.instrument) {
-                      <span class="tag">{{ post.instrument }}</span>
+                    @if (item.vacancy.genre || item.vacancy.bands.genre) {
+                      <span class="tag">{{ item.vacancy.genre || item.vacancy.bands.genre }}</span>
                     }
-                    @if (post.genre) {
-                      <span class="tag">{{ post.genre }}</span>
-                    }
+                    <span class="font-mono text-[11px] font-bold uppercase text-primary-600 ml-auto">Ver banda y postularme →</span>
                   </div>
-                }
-              </a>
-
-              <!-- Footer: author + actions -->
-              <div class="flex items-center justify-between px-1 sm:px-3 pb-3 gap-3">
-                <div class="flex items-center gap-2 min-w-0">
-                  <div class="avatar w-8 h-8 text-sm">
-                    {{ (post.author_name || 'U').slice(0,1).toUpperCase() }}
+                </a>
+              } @else {
+                @let post = item.post;
+                <a [routerLink]="['/posts', post.id]" class="block px-1 sm:px-3 pt-4 pb-3">
+                  <div class="flex items-center justify-between gap-3 mb-2.5">
+                    <span [class]="typeStamp(post.type)">
+                      <app-icon [name]="typeIcon(post.type)" [size]="11" class="mr-1.5 flex-shrink-0"/>
+                      {{ typeLabel(post.type) }}
+                    </span>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                      @if (isRecent(post)) {
+                        <span class="tag-accent">Nuevo</span>
+                      }
+                      <span class="meta">{{ timeAgo(post.created_at) }}</span>
+                    </div>
                   </div>
-                  <span class="font-mono text-[11px] font-bold uppercase text-ink-muted truncate">{{ post.author_name }}</span>
-                </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
+                  <p class="text-[15px] text-ink leading-relaxed mb-3 line-clamp-3">{{ post.text }}</p>
+                  @if (post.city || post.instrument || post.genre) {
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      @if (post.city) {
+                        <span class="meta !text-ink mr-1"><app-icon name="map-pin" [size]="11"/> {{ post.city }}</span>
+                      }
+                      @if (post.instrument) {
+                        <span class="tag">{{ post.instrument }}</span>
+                      }
+                      @if (post.genre) {
+                        <span class="tag">{{ post.genre }}</span>
+                      }
+                    </div>
+                  }
+                </a>
+                <div class="flex items-center justify-between px-1 sm:px-3 pb-3 gap-3">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="avatar w-8 h-8 text-sm">{{ (post.author_name || 'U').slice(0,1).toUpperCase() }}</div>
+                    <span class="font-mono text-[11px] font-bold uppercase text-ink-muted truncate">{{ post.author_name }}</span>
+                  </div>
                   @if (currentUser()?.id === post.user_id) {
                     <button (click)="deletePost(post.id)"
-                      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink hover:text-white hover:bg-signal-red border-[1.5px] border-ink transition-colors"
+                      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink hover:text-white hover:bg-signal-red border-[1.5px] border-ink transition-colors flex-shrink-0"
                       aria-label="Eliminar anuncio">
                       <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -271,11 +257,10 @@
                     </button>
                   }
                 </div>
-              </div>
-
-            </article>
+              }
+            </li>
           }
-        </div>
+        </ul>
       }
     }
 

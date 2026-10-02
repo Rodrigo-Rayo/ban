@@ -24,8 +24,37 @@ export const SE_BUSCA_SECTIONS: readonly { id: SeBuscaSection; label: string; ty
   { id: 'musicos', label: 'Músicos buscan',         types: ['musician_seeking_band'] },
   { id: 'otros',   label: 'Colaboraciones y otros', types: ['collab', 'session_offer', 'looking_for_rehearsal', 'event_announcement', 'gear_sale', 'other'] },
 ];
-const VACANCY_PREVIEW = 3;
-const VACANCY_PAGE = 30;
+const VACANCY_LIMIT = 30;
+
+/** One row of the merged "Se busca" list: a free-text post or a band vacancy. */
+export type SeBuscaItem =
+  | { kind: 'post'; id: string; created_at: string; post: Post }
+  | { kind: 'vacancy'; id: string; created_at: string; vacancy: OpenVacancy };
+
+const norm = (v: string | null | undefined) => (v ?? '').trim().toLowerCase();
+
+/**
+ * Posts + vacancies in one list, newest first. A "banda busca músico" post that
+ * repeats one of the band's open vacancies (same band, same instrument) is shown
+ * once, as the vacancy (it links to the profile where musicians can apply).
+ * While more posts can be loaded, vacancies older than the oldest loaded post wait
+ * for the next page so the date order stays true.
+ */
+export function mergeSeBusca(posts: Post[], vacancies: OpenVacancy[], morePosts: boolean): SeBuscaItem[] {
+  const covered = new Set(vacancies.flatMap(v => [
+    `${v.bands.id}|${norm(v.instrument)}`, `${norm(v.bands.name)}|${norm(v.instrument)}`,
+  ]));
+  const isDuplicate = (p: Post) => p.type === 'band_seeking_musician' && (
+    covered.has(`${p.author_profile_id}|${norm(p.instrument)}`) || covered.has(`${norm(p.author_name)}|${norm(p.instrument)}`));
+  const oldestPost = posts.at(-1)?.created_at ?? '';
+  const items: SeBuscaItem[] = [
+    ...posts.filter(p => !isDuplicate(p)).map(p => ({ kind: 'post' as const, id: p.id, created_at: p.created_at, post: p })),
+    ...vacancies
+      .filter(v => !morePosts || v.created_at >= oldestPost)
+      .map(v => ({ kind: 'vacancy' as const, id: v.id, created_at: v.created_at, vacancy: v })),
+  ];
+  return items.sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
 
 @Component({
     selector: 'app-feed',
@@ -56,16 +85,17 @@ export class FeedComponent implements OnInit, OnDestroy {
   error = signal('');
   private readonly PAGE_SIZE = 20;
   readonly MAX_POST_LENGTH = 500;
-  private instrumentTimeout: ReturnType<typeof setTimeout> | undefined;
 
   filterCity = signal('Toda España');
   filterInstrument = signal('');
   /** Which "Se busca" section is shown (URL: ?ver=bandas|musicos|otros). */
   section = signal<SeBuscaSection>('todo');
   readonly sections = SE_BUSCA_SECTIONS;
-  /** Open band vacancies, shown in "Todo" (preview) and "Bandas buscan" (full list). */
+  /** Open band vacancies, merged into "Todo" and "Bandas buscan". */
   vacancies = signal<OpenVacancy[]>([]);
   readonly showVacancies = computed(() => this.section() === 'todo' || this.section() === 'bandas');
+  /** The single merged list rendered by the page. */
+  readonly items = computed(() => mergeSeBusca(this.posts(), this.vacancies(), this.hasMore()));
   private initialised = false;
 
   currentUser = signal<User | null>(null);
@@ -94,8 +124,7 @@ export class FeedComponent implements OnInit, OnDestroy {
 
   onInstrumentChange(val: string) {
     this.filterInstrument.set(val);
-    clearTimeout(this.instrumentTimeout);
-    this.instrumentTimeout = setTimeout(() => this.loadPosts(), 400);
+    this.loadPosts();
   }
 
   hasActiveFilters(): boolean {
@@ -162,7 +191,7 @@ export class FeedComponent implements OnInit, OnDestroy {
       this.vacancies.set(await this.vacanciesSvc.listOpen({
         city: this.filterCity() !== 'Toda España' ? this.filterCity() : null,
         instrument: this.filterInstrument() || null,
-        limit: this.section() === 'todo' ? VACANCY_PREVIEW : VACANCY_PAGE,
+        limit: VACANCY_LIMIT,
       }));
     } catch {
       this.vacancies.set([]); // non-critical: the posts still load
@@ -194,7 +223,6 @@ export class FeedComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    clearTimeout(this.instrumentTimeout);
   }
 
   async loadMore() {

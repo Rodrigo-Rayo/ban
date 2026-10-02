@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
-import { FeedComponent } from './feed.component';
+import { FeedComponent, mergeSeBusca } from './feed.component';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -386,11 +386,11 @@ describe('FeedComponent', () => {
   });
 
   describe('Se busca sections', () => {
-    it('lists every post type and a vacancies preview in "Todo"', async () => {
+    it('lists every post type and the band vacancies in "Todo"', async () => {
       component.section.set('todo');
       await component.loadPosts();
       expect(fromBuilder.in).not.toHaveBeenCalledWith('type', jasmine.anything());
-      expect(vacanciesSpy.listOpen).toHaveBeenCalledWith(jasmine.objectContaining({ limit: 3 }));
+      expect(vacanciesSpy.listOpen).toHaveBeenCalledWith(jasmine.objectContaining({ limit: 30 }));
     });
 
     it('"Bandas buscan" lists band posts plus the full vacancies list', async () => {
@@ -430,6 +430,40 @@ describe('FeedComponent', () => {
       expect(routerSpy.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { ver: 'otros' } }));
       component.setSection('todo');
       expect(routerSpy.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { ver: null } }));
+    });
+  });
+
+  describe('mergeSeBusca', () => {
+    const vacancy = (over: Record<string, unknown> = {}) => ({
+      id: 'v1', band_id: 'b1', instrument: 'Batería', description: null, genre: null,
+      created_at: '2026-07-20T10:00:00Z',
+      bands: { id: 'b1', name: 'Los Despistados', city: 'Madrid', genre: 'Rock', avatar_url: null },
+      ...over,
+    }) as any;
+
+    it('merges posts and vacancies newest first', () => {
+      const items = mergeSeBusca(
+        [makePost({ id: 'p1', created_at: '2026-07-22T10:00:00Z' }), makePost({ id: 'p2', created_at: '2026-07-18T10:00:00Z' })],
+        [vacancy()], false);
+      expect(items.map(i => i.id)).toEqual(['p1', 'v1', 'p2']);
+    });
+
+    it('shows a band post that repeats one of its vacancies only once, as the vacancy', () => {
+      const dup = makePost({ id: 'p1', type: 'band_seeking_musician' as PostType, author_name: 'Los Despistados', instrument: 'batería' });
+      const items = mergeSeBusca([dup], [vacancy()], false);
+      expect(items.map(i => i.kind)).toEqual(['vacancy']);
+    });
+
+    it('keeps a band post for a different instrument', () => {
+      const other = makePost({ id: 'p1', type: 'band_seeking_musician' as PostType, author_name: 'Los Despistados', instrument: 'Voz' });
+      expect(mergeSeBusca([other], [vacancy()], false).length).toBe(2);
+    });
+
+    it('holds back vacancies older than the loaded posts while more posts can load', () => {
+      const posts = [makePost({ id: 'p1', created_at: '2026-07-22T10:00:00Z' })];
+      const old = vacancy({ id: 'v-old', created_at: '2026-01-01T00:00:00Z' });
+      expect(mergeSeBusca(posts, [old], true).map(i => i.id)).toEqual(['p1']);
+      expect(mergeSeBusca(posts, [old], false).map(i => i.id)).toEqual(['p1', 'v-old']);
     });
   });
 });
