@@ -1,6 +1,6 @@
 const AVATAR_COLORS = [
   // Every colour is ≥ 4.5:1 against the white initials (WCAG AA).
-  '#a0442a', '#a85a3c', '#7a3320', '#b85040', '#8b3a2a', '#a5502f',
+  '#141210', '#c23a1f', '#1d4d3a', '#23407a', '#5a2a5c', '#6b4a12',
 ];
 
 export function avatarColor(name: string | null): string {

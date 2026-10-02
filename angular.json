@@ -52,13 +52,14 @@
               }
             ],
             "styles": [
-              "@fontsource/dm-sans/latin-400.css",
-              "@fontsource/dm-sans/latin-500.css",
-              "@fontsource/dm-sans/latin-700.css",
-              "@fontsource/dm-sans/latin-400-italic.css",
-              "@fontsource/instrument-serif/latin-400.css",
-              "@fontsource/instrument-serif/latin-400-italic.css",
-              "@fontsource/jetbrains-mono/latin-400.css",
+              "@fontsource/anton/latin-400.css",
+              "@fontsource/instrument-sans/latin-400.css",
+              "@fontsource/instrument-sans/latin-500.css",
+              "@fontsource/instrument-sans/latin-600.css",
+              "@fontsource/instrument-sans/latin-700.css",
+              "@fontsource/instrument-sans/latin-400-italic.css",
+              "@fontsource/jetbrains-mono/latin-500.css",
+              "@fontsource/jetbrains-mono/latin-700.css",
               "src/styles.css"
             ],
             "scripts": []

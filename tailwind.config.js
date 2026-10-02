@@ -4,60 +4,74 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Direction C · "Cartel": gig-poster palette. Token names kept so every
+        // existing class re-themes: primary = poster red, dark-* = paper surfaces.
         primary: {
-          50:  '#fef6f2',
-          100: '#fde8df',
-          200: '#fbd0be',
-          300: '#d4876a',
-          400: '#bf6040',
-          500: '#a0442a',   // terracota mate
-          600: '#883924',
-          700: '#702f1d',
-          800: '#5a2617',
-          900: '#fef0e8',   // fondo tintado activos
+          50:  '#fcf1ee',
+          100: '#f8ddd6',
+          200: '#f0b9ab',
+          300: '#e08a74',
+          400: '#d0603f',
+          500: '#c23a1f',   // rojo cartel — 5.6:1 with white, 4.7:1 on paper
+          600: '#a23019',
+          700: '#832714',
+          800: '#641e10',
+          900: '#f6e2d9',   // tinted background for active states
         },
         dark: {
-          900: '#f4efe6',   // fondo — crema portada de disco
-          800: '#fffef9',   // cards — blanco cálido
-          750: '#f0e8d8',   // surfaces tintadas
-          700: '#ede3d0',   // inputs / hover
-          600: '#d8ccb8',   // bordes
+          900: '#f2ebdd',   // papel (page background)
+          800: '#fbf7ee',   // cards
+          750: '#ebe2d0',   // tinted surfaces
+          700: '#e6dcc8',   // inputs / hover
+          600: '#2b2620',   // rules & borders — near-ink, fanzine look
         },
         night: {
-          DEFAULT: '#111111',   // negro vinilo
-          2:       '#1c1c1c',
-          3:       '#282828',
-          4:       '#363636',
+          DEFAULT: '#141210',
+          2:       '#1f1c19',
+          3:       '#2b2723',
+          4:       '#3a352f',
         },
         ink: {
-          DEFAULT: '#111111',   // negro editorial
-          2:       '#3a3530',
-          3:       '#6b6358',
-          muted:   '#6d645b',   // ≥4.5:1 on dark-700 (WCAG AA)
-          line:    '#d8ccb8',
+          DEFAULT: '#141210',   // tinta
+          2:       '#2e2924',
+          3:       '#4a433a',
+          muted:   '#544d43',   // ≥6:1 on paper
+          line:    '#2b2620',
+        },
+        poster: {
+          yellow: '#e8b931',    // stamps: "SE BUSCA", highlights (ink text only)
+          red:    '#c23a1f',
+          paper:  '#f2ebdd',
+          card:   '#fbf7ee',
         },
         signal: {
-          green: '#197538',
-          gBg:   '#edf7ee',
-          amber: '#8d5c00',   // ≥4.5:1 on dark-700 (WCAG AA)
-          aBg:   '#fef8e6',
-          red:   '#b91c1c',
-          rBg:   '#fef2f2',
+          green: '#1d6b3a',
+          gBg:   '#e4f1e6',
+          amber: '#7e5300',
+          aBg:   '#fbf1d6',
+          red:   '#b3261e',
+          rBg:   '#fbe9e6',
         },
       },
       fontFamily: {
-        sans:  ['Inter', 'system-ui', 'sans-serif'],
-        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
-        mono:  ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        sans:    ['"Instrument Sans"', 'system-ui', 'sans-serif'],
+        display: ['Anton', 'Impact', '"Arial Narrow"', 'sans-serif'],
+        serif:   ['Anton', 'Impact', 'sans-serif'],
+        mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
+      // Poster look: square corners everywhere except true circles (dots, badges).
       borderRadius: {
-        'xl':  '10px',
-        '2xl': '14px',
+        'sm': '0', DEFAULT: '0', 'md': '0', 'lg': '0', 'xl': '0', '2xl': '0', '3xl': '0', 'full': '0',
       },
       boxShadow: {
-        'card':    '0 1px 2px rgba(30,20,10,0.07), 0 1px 4px rgba(30,20,10,0.05)',
-        'card-md': '0 3px 12px rgba(30,20,10,0.11)',
-        'card-lg': '0 8px 28px rgba(30,20,10,0.16)',
+        'card':    '3px 3px 0 0 #141210',
+        'card-md': '4px 4px 0 0 #141210',
+        'card-lg': '6px 6px 0 0 #141210',
+        'sm':      '2px 2px 0 0 rgba(20,18,16,0.9)',
+        'md':      '4px 4px 0 0 #141210',
+        'lg':      '6px 6px 0 0 #141210',
+        'xl':      '8px 8px 0 0 #141210',
+        '2xl':     '10px 10px 0 0 #141210',
       },
       keyframes: {
         'slide-in': {

@@ -9,10 +9,9 @@
   left: 16px;
   z-index: 9999;
   padding: 10px 20px;
-  background: #1a1a18;
-  color: #fffef9;
-  border: 2px solid #a0442a;
-  border-radius: 8px;
+  background: #141210;
+  color: #f2ebdd;
+  border: 2px solid #c23a1f;
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -25,8 +24,18 @@
 @layer base {
   body {
     @apply bg-dark-900 text-ink antialiased;
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif;
   }
+  /* Poster headlines: Anton is single-weight, so never fake-bold it. */
+  h1, h2, .font-display {
+    font-family: 'Anton', Impact, 'Arial Narrow', sans-serif;
+    font-weight: 400 !important;
+    font-synthesis: none;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1.02;
+  }
+  ::selection { background: #e8b931; color: #141210; }
   * { @apply box-border; }
 
   /* Programmatic focus target after route changes — no ring around the whole page. */
@@ -39,8 +48,8 @@
   label:has(> input[type="file"]:focus-visible) { @apply ring-2 ring-primary-500 ring-offset-2; }
 
   select option {
-    background-color: #fffef9;
-    color: #111111;
+    background-color: #fbf7ee;
+    color: #141210;
   }
 
   ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -51,119 +60,118 @@
 
 @layer components {
 
-  /* ── Buttons ─────────────────────────────────── */
-  .btn-primary {
-    @apply bg-primary-500 text-white font-semibold text-sm
-           px-5 py-2.5 rounded-full
-           hover:bg-primary-600 active:bg-primary-700
-           hover:-translate-y-px hover:shadow-md
-           transition-all duration-200 cursor-pointer
+  /* ── Buttons (poster: square, ink outline, offset shadow on hover) ── */
+  .btn-primary, .btn-accent {
+    @apply bg-primary-500 text-white font-mono font-bold text-[13px] uppercase tracking-wide
+           px-5 py-2.5 border-2 border-ink
+           hover:bg-primary-600 hover:shadow-[3px_3px_0_0_#141210] hover:-translate-x-px hover:-translate-y-px
+           active:translate-x-0 active:translate-y-0 active:shadow-none
+           transition-all duration-150 cursor-pointer
            inline-flex items-center justify-center gap-2
-           disabled:opacity-40 disabled:cursor-not-allowed
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
-  }
-  .btn-accent {
-    @apply bg-primary-500 text-white font-semibold text-sm
-           px-5 py-2.5 rounded-full
-           hover:bg-primary-600 active:bg-primary-700
-           hover:-translate-y-px hover:shadow-md
-           transition-all duration-200 cursor-pointer
-           inline-flex items-center justify-center gap-2
-           disabled:opacity-40 disabled:cursor-not-allowed
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-poster-yellow;
   }
   .btn-secondary {
-    @apply bg-transparent text-ink font-medium text-sm
-           px-5 py-2.5 rounded-full
-           border border-dark-600
-           hover:border-primary-500 hover:text-primary-600
-           transition-all duration-200 cursor-pointer
+    @apply bg-dark-800 text-ink font-mono font-bold text-[13px] uppercase tracking-wide
+           px-5 py-2.5 border-2 border-ink
+           hover:bg-ink hover:text-poster-paper
+           transition-colors duration-150 cursor-pointer
            inline-flex items-center justify-center gap-2
            disabled:opacity-40 disabled:cursor-not-allowed
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
   }
   .btn-ghost {
-    @apply bg-transparent text-ink-muted font-medium text-sm
-           px-4 py-2 rounded-xl
+    @apply bg-transparent text-ink-muted font-semibold text-sm
+           px-4 py-2
            hover:text-ink hover:bg-dark-700
            transition-colors duration-150 cursor-pointer
            inline-flex items-center justify-center gap-2
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1;
   }
   .btn-night {
-    @apply bg-night-3 text-white font-semibold text-sm
-           px-5 py-2.5 rounded-full border border-night-4
-           hover:bg-night-4 hover:-translate-y-px
-           transition-all duration-200 cursor-pointer
+    @apply bg-ink text-poster-paper font-mono font-bold text-[13px] uppercase tracking-wide
+           px-5 py-2.5 border-2 border-ink
+           hover:bg-primary-500 hover:text-white
+           transition-colors duration-150 cursor-pointer
            inline-flex items-center justify-center gap-2
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2;
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
   }
 
   /* ── Card ────────────────────────────────────── */
   .card {
-    @apply bg-dark-800 border border-dark-600 rounded-2xl
-           shadow-sm
-           hover:shadow-md hover:border-primary-500/30
-           transition-all duration-200;
+    @apply bg-dark-800 border-2 border-ink
+           hover:shadow-[4px_4px_0_0_#141210] hover:-translate-x-0.5 hover:-translate-y-0.5
+           transition-all duration-150;
   }
   .card-flat {
-    @apply bg-dark-800 border border-dark-600 rounded-2xl shadow-sm;
+    @apply bg-dark-800 border-2 border-ink;
   }
   /* ── Form fields ─────────────────────────────── */
   .input-field {
-    @apply w-full bg-dark-700 border border-dark-600
-           focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15
+    @apply w-full bg-dark-800 border-2 border-ink
+           focus:border-primary-500 focus:shadow-[3px_3px_0_0_#c23a1f]
            text-ink placeholder-ink-muted
            px-4 py-3 outline-none transition-all duration-150
-           text-sm rounded-xl;
+           text-sm;
   }
 
-  /* ── Tags / Pills ────────────────────────────── */
+  /* ── Tags / stamps ───────────────────────────── */
   .tag {
-    @apply text-[10px] font-semibold text-ink-3 tracking-wide uppercase
-           px-2.5 py-0.5 rounded-full
-           bg-dark-700 border border-dark-600
+    @apply font-mono text-[11px] font-bold text-ink uppercase tracking-wide
+           px-2 py-0.5
+           bg-dark-800 border-[1.5px] border-ink
            inline-flex items-center;
   }
   .tag-accent {
-    @apply text-[10px] font-semibold text-primary-700 tracking-wide uppercase
-           px-2.5 py-0.5 rounded-full
-           bg-primary-900 border border-primary-200
+    @apply font-mono text-[11px] font-bold text-ink uppercase tracking-wide
+           px-2 py-0.5
+           bg-poster-yellow border-[1.5px] border-ink
            inline-flex items-center;
   }
   .tag-green {
-    @apply text-[10px] font-semibold text-signal-green tracking-wide uppercase
-           px-2.5 py-0.5 rounded-full
-           bg-signal-gBg border border-signal-green/20
+    @apply font-mono text-[11px] font-bold text-signal-green uppercase tracking-wide
+           px-2 py-0.5
+           bg-signal-gBg border-[1.5px] border-signal-green
            inline-flex items-center gap-1;
+  }
+  .tag-red {
+    @apply font-mono text-[11px] font-bold text-white uppercase tracking-wide
+           px-2 py-0.5
+           bg-primary-500 border-[1.5px] border-ink
+           inline-flex items-center;
   }
   /* ── Meta label ──────────────────────────────── */
   .meta {
-    @apply text-[10px] font-bold text-ink-muted tracking-widest uppercase
+    @apply font-mono text-[11px] font-bold text-ink-muted tracking-wide uppercase
            flex items-center gap-1.5;
   }
 
-  /* ── Avatar ──────────────────────────────────── */
+  /* ── Avatar (square, ink block) ──────────────── */
   .avatar {
-    @apply rounded-xl bg-dark-750 border border-dark-600 flex items-center justify-center
-           font-bold text-ink-2 flex-shrink-0 select-none;
+    @apply bg-ink text-poster-paper flex items-center justify-center
+           font-display flex-shrink-0 select-none;
   }
 
-  /* ── Sidebar nav item ───────────────────────── */
+  /* ── Nav item (menus) ───────────────────────── */
   .nav-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+    @apply flex items-center gap-3 px-3 py-2.5 text-sm font-semibold transition-colors duration-150
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1;
   }
   .nav-item-active {
-    @apply bg-primary-900 text-primary-600 font-semibold border-l-2 border-primary-500;
+    @apply bg-ink text-poster-paper;
   }
   .nav-item-inactive {
-    @apply text-ink-muted hover:text-ink hover:bg-dark-700;
+    @apply text-ink hover:bg-dark-700;
   }
 
   /* ── Section header ──────────────────────────── */
   .section-label {
-    @apply text-[10px] font-bold text-ink-muted uppercase tracking-widest;
+    @apply font-mono text-[11px] font-bold text-ink uppercase tracking-wide;
+  }
+  /* Ruled section header: 2px ink rule with a mono label (newspaper style). */
+  .rule-label {
+    @apply flex items-center justify-between border-t-2 border-ink pt-2
+           font-mono text-xs font-bold uppercase tracking-wide text-ink;
   }
 
   /* ── Divider ─────────────────────────────────── */
@@ -171,8 +179,8 @@
 
   /* ── Badge ───────────────────────────────────── */
   .badge {
-    @apply absolute -top-1 -right-1 w-4 h-4 rounded-full
-           bg-primary-500 text-white text-[10px] font-bold
+    @apply absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1
+           bg-poster-yellow text-ink border-[1.5px] border-ink font-mono text-[11px] font-bold
            flex items-center justify-center;
   }
 
@@ -181,46 +189,48 @@
     @apply flex flex-col items-center justify-center py-20 text-center px-6 gap-3;
   }
   .empty-state-icon {
-    @apply w-16 h-16 rounded-2xl bg-dark-800 border border-dark-600
-           flex items-center justify-center mb-1 text-ink-muted;
+    @apply w-16 h-16 bg-poster-yellow border-2 border-ink
+           flex items-center justify-center mb-1 text-ink;
   }
 
   /* ── Serif display helper ────────────────────── */
   .display-serif {
-    font-family: 'Instrument Serif', Georgia, serif;
-    font-style: italic;
+    font-family: 'Anton', Impact, sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    text-transform: uppercase;
   }
 
   /* ── Search tab states ──────────────────────────── */
   .tab-btn-active {
-    background-color: #a0442a;
-    color: #ffffff;
-    border-color: rgba(160,68,42,0.9);
+    background-color: #141210;
+    color: #f2ebdd;
+    border-color: #141210;
   }
-  .tab-btn-active:hover { background-color: #883924; }
+  .tab-btn-active:hover { background-color: #2e2924; }
   .tab-btn-inactive { @apply text-ink-3; }
   .tab-btn-inactive:hover { @apply bg-dark-700 text-ink; }
 
   /* ── Genre pill states ───────────────────────────── */
   .genre-pill-active {
-    background-color: #a0442a;
-    color: #ffffff;
-    border-color: rgba(160,68,42,0.8);
+    background-color: #141210;
+    color: #f2ebdd;
+    border-color: #141210;
   }
-  .genre-pill-inactive { @apply border-dark-600 text-ink-muted; }
-  .genre-pill-inactive:hover { @apply text-ink-2 border-ink-muted/40; }
+  .genre-pill-inactive { @apply border-ink text-ink bg-dark-800; }
+  .genre-pill-inactive:hover { @apply bg-dark-700; }
 
   /* ── Directory listing: event date boxes ─────────── */
   .date-box-featured {
-    background-color: #fef0e8;       /* primary-900 light peach */
-    border-color: rgba(160,68,42,0.25);
+    background-color: #e8b931;
+    border-color: #141210;
   }
   .date-box-default {
-    background-color: #ede3d0;       /* dark-700 warm gray */
-    border-color: #d8ccb8;           /* dark-600 warm beige */
+    background-color: #fbf7ee;
+    border-color: #141210;
   }
   /* ── Directory card featured event outer border ──── */
-  .event-card-featured { border-color: rgba(160,68,42,0.4); }
+  .event-card-featured { border-color: #c23a1f; }
 
   /* ── Scrollbar hidden ────────────────────────── */
   .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -262,7 +272,7 @@
 .prose-legal table { @apply w-full text-sm border-collapse mb-3; }
 .prose-legal th { @apply text-left text-xs font-bold text-ink-muted uppercase tracking-widest py-2 px-3 border-b border-dark-600; }
 .prose-legal td { @apply text-xs text-ink-muted py-2 px-3 border-b border-dark-700; }
-.prose-legal code { @apply text-[11px] bg-dark-700 text-primary-600 px-1.5 py-0.5 rounded font-mono; }
+.prose-legal code { @apply text-[11px] bg-dark-700 text-primary-600 px-1.5 py-0.5 font-mono; }
 
 /* ═══════════════════════════════════════════════════════════
    MOBILE POLISH (ui-ux, 2026-10) — append-only section
@@ -271,11 +281,10 @@
 /* Profile cover: avatar colour (via --cover) tinted into the cream palette.
    Replaces hardcoded dark gradients that clashed with the light theme. */
 .profile-cover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--cover, theme('colors.primary.500')) 42%, theme('colors.primary.900')) 0%,
-    theme('colors.primary.900') 100%
-  );
+  /* Poster cover: solid ink block with a faint halftone dot screen. */
+  background-color: #141210;
+  background-image: radial-gradient(rgba(242,235,221,0.10) 1px, transparent 1.2px);
+  background-size: 8px 8px;
 }
 
 /* Horizontal chip/tab rows: right-edge fade hints that the row scrolls.
@@ -297,7 +306,7 @@
    nav only when it exists (logged-in, < md) — AppComponent toggles body.has-bottom-nav. */
 .bottom-above-nav { bottom: env(safe-area-inset-bottom, 0px); }
 body.has-bottom-nav .bottom-above-nav { bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   body.has-bottom-nav .bottom-above-nav, .bottom-above-nav { bottom: 0; }
 }
 .pb-cta-safe { padding-bottom: calc(9rem + env(safe-area-inset-bottom, 0px)); }
@@ -310,3 +319,6 @@ body.has-bottom-nav .bottom-above-nav { bottom: calc(4rem + env(safe-area-inset-
 
 /* Tiny-but-legible label (never below 11px) */
 .text-micro { font-size: 0.6875rem; line-height: 1rem; }
+
+/* Square poster theme sets rounded-full to 0; loading spinners stay circular. */
+.animate-spin.rounded-full { border-radius: 9999px; }

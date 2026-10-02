@@ -1,9 +1,8 @@
-import { Component, inject, effect } from '@angular/core';
-import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { Component, inject, effect, signal } from '@angular/core';
+import { RouterOutlet, RouterLink, Router, NavigationEnd } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
-import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { InstallBannerComponent } from './shared/components/install-banner/install-banner.component';
 import { CookieBannerComponent } from './shared/components/cookie-banner/cookie-banner.component';
@@ -14,12 +13,22 @@ import { SeoService } from './core/services/seo.service';
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, NavbarComponent, SidebarComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent, NotificationPermissionBannerComponent],
+    imports: [RouterOutlet, RouterLink, NavbarComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent, NotificationPermissionBannerComponent],
     template: `
     <app-navbar />
-    <app-sidebar />
-    <main id="main-content" tabindex="-1" class="lg:pl-56 md:pb-0" [class.pb-16]="auth.isLoggedIn()">
+    <main id="main-content" tabindex="-1" class="pb-16 lg:pb-0">
       <router-outlet />
+      @if (showFooter()) {
+        <footer class="border-t-2 border-ink mt-8 px-4 sm:px-6 py-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
+          <nav aria-label="Legal" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
+            <a routerLink="/legal/aviso-legal" class="hover:text-ink py-1">Aviso legal</a>
+            <a routerLink="/legal/privacidad" class="hover:text-ink py-1">Privacidad</a>
+            <a routerLink="/legal/terminos" class="hover:text-ink py-1">Términos</a>
+            <a routerLink="/legal/cookies" class="hover:text-ink py-1">Cookies</a>
+          </nav>
+        </footer>
+      }
     </main>
     <app-toast />
     <app-install-banner />
@@ -37,6 +46,8 @@ export class AppComponent {
   private seo = inject(SeoService);
 
   private lastPath: string | null = null;
+  /** The landing has its own footer and the chat is a full-height panel. */
+  showFooter = signal(false);
 
   constructor() {
     this.router.events
@@ -45,6 +56,7 @@ export class AppComponent {
         // Only react to real page changes: query-param updates (search typing,
         // filters) must not steal focus, and the first load keeps the skip link first.
         const path = e.urlAfterRedirects.split(/[?#]/)[0];
+        this.showFooter.set(path !== '/' && !path.startsWith('/inbox/'));
         const isFirst = this.lastPath === null;
         const pathChanged = path !== this.lastPath;
         this.lastPath = path;
@@ -54,8 +66,8 @@ export class AppComponent {
         if (main) main.focus({ preventScroll: true });
       });
 
-    // The mobile bottom nav only exists for logged-in users; fixed bars offset from it via CSS.
-    effect(() => document.body.classList.toggle('has-bottom-nav', this.auth.isLoggedIn()));
+    // The bottom nav exists for every visitor below lg; fixed bars offset from it via CSS.
+    document.body.classList.add('has-bottom-nav');
 
     effect(() => {
       const user = this.auth.user();

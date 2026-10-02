@@ -25,6 +25,33 @@ function setAppBadge(count: number) {
   op?.catch(() => { /* not permitted outside an installed app */ });
 }
 
+/** A top-level section of the site (one name per concept, see docs/design). */
+export interface NavSection { label: string; link: string; query?: Record<string, string>; }
+/** One way to publish something, listed in the single "Publicar" sheet. */
+export interface PublishOption { label: string; hint: string; icon: string; link: string; query?: Record<string, string>; }
+
+export const NAV_SECTIONS: readonly NavSection[] = [
+  { label: 'Agenda',   link: '/search', query: { tab: 'events' } },
+  { label: 'Se busca', link: '/search', query: { tab: 'vacancies' } },
+  { label: 'Músicos',  link: '/search', query: { tab: 'musicians' } },
+  { label: 'Bandas',   link: '/search', query: { tab: 'bands' } },
+  { label: 'Locales',  link: '/search', query: { tab: 'rehearsal' } },
+  { label: 'Salas',    link: '/search', query: { tab: 'venues' } },
+  { label: 'Clases',   link: '/search', query: { tab: 'teachers' } },
+  { label: 'Tienda',   link: '/shop' },
+  { label: 'Anuncios', link: '/feed' },
+];
+
+export const PUBLISH_OPTIONS: readonly PublishOption[] = [
+  { label: 'Anuncio',          hint: 'Busco banda, músicos, colaboración…', icon: 'newspaper',     link: '/feed', query: { new: '1' } },
+  { label: 'Concierto',        hint: 'Bolo, jam session, festival',          icon: 'calendar',      link: '/events/create' },
+  { label: 'Vender equipo',    hint: 'Instrumentos, amplis, efectos',        icon: 'shopping-cart', link: '/shop/new' },
+  { label: 'Vacante en tu banda', hint: 'Desde el perfil de tu banda',       icon: 'users',         link: '/dashboard' },
+  { label: 'Dar clases',       hint: 'Perfil de profesor',                   icon: 'book-open',     link: '/teachers/new' },
+  { label: 'Local de ensayo',  hint: 'Alquila tu local por horas',           icon: 'headphones',    link: '/rehearsal/new' },
+  { label: 'Sala de conciertos', hint: 'Programa música en directo',         icon: 'building',      link: '/venues/new' },
+];
+
 @Component({
     selector: 'app-navbar',
     imports: [RouterLink, RouterLinkActive, IconComponent],
@@ -40,6 +67,29 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   menuOpen = false;
   publishOpen = false;
+  readonly sections = NAV_SECTIONS;
+  readonly publishOptions = PUBLISH_OPTIONS;
+  /** Current URL, to mark the active section (search tabs differ only by query). */
+  private currentUrl = signal(this.router.url);
+
+  isActive(s: NavSection): boolean {
+    const tree = this.router.parseUrl(this.currentUrl());
+    const path = '/' + (tree.root.children['primary']?.segments.map(x => x.path).join('/') ?? '');
+    if (path !== s.link) return false;
+    return !s.query || Object.entries(s.query).every(([k, v]) => tree.queryParams[k] === v)
+      || (s.query['tab'] === 'musicians' && !tree.queryParams['tab']);
+  }
+
+  togglePublish() {
+    this.publishOpen = !this.publishOpen;
+    this.menuOpen = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.publishOpen = false;
+    this.menuOpen = false;
+  }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -77,8 +127,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(() => {
+    ).subscribe(e => {
       this.publishOpen = false;
+      this.menuOpen = false;
+      this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
     });
   }
 
