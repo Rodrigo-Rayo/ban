@@ -437,6 +437,20 @@ describe('FeedComponent', () => {
       expect(vacanciesSpy.listOpen).toHaveBeenCalledWith(jasmine.objectContaining({ city: 'Madrid', instrument: 'Batería' }));
     });
 
+    it('never shows asks older than three months, and narrows to the chosen period', async () => {
+      const day = 86400000;
+      const daysBack = () => (Date.now() - new Date(fromBuilder.gte.calls.mostRecent().args[1]).getTime()) / day;
+      await component.loadPosts();
+      expect(Math.abs(daysBack() - 90)).toBeLessThan(0.01);
+      component.onPeriodChange('7');
+      await component.loadPosts();
+      expect(Math.abs(daysBack() - 7)).toBeLessThan(0.01);
+      expect(vacanciesSpy.listOpen).toHaveBeenCalledWith(jasmine.objectContaining({ since: jasmine.any(String) }));
+      expect(component.hasActiveFilters()).toBeTrue();
+      component.clearFilters();
+      expect(component.filterDays()).toBe(90);
+    });
+
     it('a vacancies failure does not break the posts', async () => {
       component.section.set('bandas');
       vacanciesSpy.listOpen.and.rejectWith(new Error('boom'));

@@ -28,7 +28,7 @@ import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { timeAgo } from '../../core/utils/display.utils';
-import { askLabel, askStampClass, POST_TYPE_OPTIONS } from '../../core/utils/se-busca';
+import { askLabel, askStampClass, POST_TYPE_OPTIONS, SE_BUSCA_MAX_DAYS, SE_BUSCA_PERIODS, sinceISO } from '../../core/utils/se-busca';
 
 export type SeBuscaSection = 'todo' | 'bandas' | 'musicos' | 'otros';
 
@@ -104,6 +104,9 @@ export class FeedComponent implements OnInit {
 
   filterCity = signal('Toda España');
   filterInstrument = signal('');
+  /** "Publicado" window in days; never more than SE_BUSCA_MAX_DAYS. */
+  filterDays = signal(SE_BUSCA_MAX_DAYS);
+  readonly periods = SE_BUSCA_PERIODS;
   /** Which "Se busca" section is shown (URL: ?ver=bandas|musicos|otros). */
   section = signal<SeBuscaSection>('todo');
   readonly sections = SE_BUSCA_SECTIONS;
@@ -137,11 +140,16 @@ export class FeedComponent implements OnInit {
   }
 
   hasActiveFilters(): boolean {
-    return this.filterCity() !== 'Toda España' || !!this.filterInstrument();
+    return this.filterCity() !== 'Toda España' || !!this.filterInstrument() || this.filterDays() !== SE_BUSCA_MAX_DAYS;
   }
 
   /** Only the city narrows the list (no instrument): the empty state offers all of Spain. */
-  readonly onlyCityFilter = computed(() => this.filterCity() !== ALL_SPAIN && !this.filterInstrument());
+  readonly onlyCityFilter = computed(() => this.filterCity() !== ALL_SPAIN && !this.filterInstrument() && this.filterDays() === SE_BUSCA_MAX_DAYS);
+
+  onPeriodChange(days: number | string) {
+    this.filterDays.set(Number(days) || SE_BUSCA_MAX_DAYS);
+    this.loadPosts();
+  }
 
   showAllSpain() {
     this.filterCity.set(ALL_SPAIN);
@@ -151,6 +159,7 @@ export class FeedComponent implements OnInit {
   clearFilters() {
     this.filterCity.set('Toda España');
     this.filterInstrument.set('');
+    this.filterDays.set(SE_BUSCA_MAX_DAYS);
     this.loadPosts();
   }
 
@@ -226,32 +235,45 @@ export class FeedComponent implements OnInit {
     return SE_BUSCA_SECTIONS.find(s => s.id === this.section())?.types ?? null;
   }
 
-  private async loadVacancies() {
+  /** Bumped on every new list request: a slower, older response must not overwrite a newer one. */
+  private listSeq = 0;
+  /** Lower bound used by the current list, reused by "load more" so the window does not drift. */
+  private listSince = '';
+
+  private async loadVacancies(seq: number) {
     if (!this.showVacancies()) { this.vacancies.set([]); return; }
     try {
-      this.vacancies.set(await this.vacanciesSvc.listOpen({
+      const rows = await this.vacanciesSvc.listOpen({
         city: this.filterCity() !== 'Toda España' ? this.filterCity() : null,
         instrument: this.filterInstrument() || null,
+        since: this.listSince,
         limit: VACANCY_LIMIT,
-      }));
+      });
+      if (seq === this.listSeq) this.vacancies.set(rows);
     } catch {
-      this.vacancies.set([]); // non-critical: the posts still load
+      if (seq === this.listSeq) this.vacancies.set([]); // non-critical: the posts still load
     }
   }
 
   private static readonly POST_COLS = 'id,user_id,type,text,city,instrument,genre,author_name,author_profile_type,author_profile_id,created_at';
 
   async loadPosts() {
+    const seq = ++this.listSeq;
+    this.listSince = sinceISO(this.filterDays());
     this.loading.set(true);
+    this.loadingMore.set(false);
     this.hasMore.set(true);
-    const vacanciesDone = this.loadVacancies();
+    const vacanciesDone = this.loadVacancies(seq);
     try {
-      let q = this.supabase.client.from('posts').select(FeedComponent.POST_COLS).order('created_at', { ascending: false });
+      let q = this.supabase.client.from('posts').select(FeedComponent.POST_COLS)
+        .gte('created_at', this.listSince)
+        .order('created_at', { ascending: false });
       if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
       const types = this.sectionTypes();
       if (types) q = q.in('type', types);
       if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
       const { data, error } = await q.limit(this.PAGE_SIZE);
+      if (seq !== this.listSeq) return; // filters changed meanwhile
       if (error) { this.error.set('No se pudieron cargar los anuncios. Inténtalo de nuevo.'); }
       else {
         this.posts.set(data || []);
@@ -259,28 +281,31 @@ export class FeedComponent implements OnInit {
       }
       await vacanciesDone;
     } finally {
-      this.loading.set(false);
+      if (seq === this.listSeq) this.loading.set(false);
     }
   }
 
   async loadMore() {
     if (this.loadingMore() || !this.hasMore()) return;
     this.loadingMore.set(true);
+    const seq = this.listSeq;
     try {
       const last = this.posts().at(-1);
       let q = this.supabase.client.from('posts').select(FeedComponent.POST_COLS)
         .order('created_at', { ascending: false })
-        .lt('created_at', last?.created_at ?? new Date().toISOString());
+        .lt('created_at', last?.created_at ?? new Date().toISOString())
+        .gte('created_at', this.listSince || sinceISO(this.filterDays()));
       if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
       const types = this.sectionTypes();
       if (types) q = q.in('type', types);
       if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
       const { data, error } = await q.limit(this.PAGE_SIZE);
+      if (seq !== this.listSeq) return; // a new list replaced this one
       if (error) { this.toast.error('No se pudieron cargar más anuncios.'); return; }
       this.posts.update(p => [...p, ...(data || [])]);
       this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
     } finally {
-      this.loadingMore.set(false);
+      if (seq === this.listSeq) this.loadingMore.set(false);
     }
   }
 

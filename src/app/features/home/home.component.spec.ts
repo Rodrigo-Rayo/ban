@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { HomeComponent, seededRandom, shuffled } from './home.component';
+import { HomeComponent, seededRandom, shuffled, cityFirst } from './home.component';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { VacanciesService } from '../../core/services/vacancies.service';
@@ -91,6 +91,14 @@ describe('HomeComponent', () => {
       expect(component.newPeople().map(m => m.id)).toEqual(['b', 'c']);
     });
 
+    it('puts the user city first, then people with a photo', () => {
+      component.userCity.set('Madrid');
+      const p = (id: string, city: string, photo: boolean) =>
+        ({ id, user_id: 'u-' + id, name: id, city, instrument: 'Bajo', avatar_url: photo ? 'x.png' : null, created_at: '' });
+      component.recentMusicians.set([p('far-photo', 'Bilbao', true), p('here-nophoto', 'Madrid', false), p('here-photo', 'Madrid', true)]);
+      expect(component.newPeople().map(m => m.id)).toEqual(['here-photo', 'here-nophoto', 'far-photo']);
+    });
+
     it('shows at most eight people', () => {
       component.recentMusicians.set(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map(i => person(i, `u${i}`)));
       expect(component.newPeople().length).toBe(8);
@@ -142,6 +150,21 @@ describe('HomeComponent', () => {
       expect(titleFor(7)).toBe(titleFor(7));
       const seen = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(titleFor));
       expect(seen.size).toBeGreaterThan(1);
+    });
+  });
+
+  describe('city first', () => {
+    it('keeps local items first and fills with the rest of Spain without duplicates', () => {
+      const x = (id: string) => ({ id });
+      expect(cityFirst([x('a'), x('b')], [x('b'), x('c'), x('d')], 3).map(i => i.id)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('lists rehearsal spaces of the user city before the others', () => {
+      component.userCity.set('Madrid');
+      const r = (id: string, city: string) => ({ id, name: id, city, avatar_url: null, capacity: null, created_at: '' });
+      component.recentRehearsals.set([r('b1', 'Bilbao'), r('m1', 'Madrid'), r('m2', 'Madrid')]);
+      const shown = component.rehearsalsShown().map(x => x.city);
+      expect(shown).toEqual(['Madrid', 'Madrid', 'Bilbao']);
     });
   });
 

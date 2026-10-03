@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { gearConditionLabel, gearConditionValues, GEAR_CONDITION_FORM_OPTIONS } from '../constants/gear';
 import { formatShortDate, formatLongDate, formatTime, dateParts } from './date';
-import { askLabel, askStampClass } from './se-busca';
+import { askLabel, askStampClass, sinceISO, SE_BUSCA_PERIODS, SE_BUSCA_MAX_DAYS } from './se-busca';
 import { timeAgo } from './display.utils';
 import { ConfirmService } from '../services/confirm.service';
 import { AvatarUploadService } from '../services/avatar-upload.service';
@@ -51,6 +51,16 @@ describe('Se busca stamps', () => {
   it('labels say what is wanted', () => {
     expect(askLabel('vacancy', 'Batería')).toBe('Busca batería');
     expect(askLabel('musician_seeking_band')).toBe('Busca banda');
+  });
+});
+
+describe('Se busca age window', () => {
+  it('sinceISO goes back the given number of days', () => {
+    expect(sinceISO(7, new Date('2026-10-10T12:00:00Z'))).toBe('2026-10-03T12:00:00.000Z');
+  });
+  it('the longest period is the three-month maximum', () => {
+    expect(SE_BUSCA_PERIODS.at(-1)!.days).toBe(SE_BUSCA_MAX_DAYS);
+    expect(SE_BUSCA_MAX_DAYS).toBe(90);
   });
 });
 

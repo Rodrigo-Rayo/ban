@@ -30,6 +30,21 @@ export function askLabel(type: PostType | 'vacancy', instrument?: string | null)
   }
 }
 
+/** Se busca never shows asks older than this: after three months they are rarely still valid. */
+export const SE_BUSCA_MAX_DAYS = 90;
+
+/** "Publicado" filter on the Se busca page (the last one is the default and the maximum). */
+export const SE_BUSCA_PERIODS: readonly { days: number; label: string }[] = [
+  { days: 7,  label: '7 días' },
+  { days: 30, label: '30 días' },
+  { days: SE_BUSCA_MAX_DAYS, label: '3 meses' },
+];
+
+/** ISO timestamp `days` ago, for `created_at >= …` filters. */
+export function sinceISO(days: number, now: Date = new Date()): string {
+  return new Date(now.getTime() - days * 86400000).toISOString();
+}
+
 /** Labels for the post-type picker in the "Publicar en Se busca" form (no emojis). */
 export const POST_TYPE_OPTIONS: readonly { id: PostType; label: string; hint: string }[] = [
   { id: 'musician_seeking_band', label: 'Busco banda',        hint: 'Eres músico y quieres tocar en un grupo' },

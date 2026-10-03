@@ -111,7 +111,7 @@
 
     <!-- ── FILTERS ── -->
     <div class="mb-5 space-y-2.5">
-      <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 pb-1">
+      <div class="grid grid-cols-3 sm:flex sm:flex-wrap items-center gap-2 pb-1">
         <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadPosts()"
           class="input-field sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
           aria-label="Filtrar por ciudad">
@@ -122,6 +122,11 @@
           aria-label="Filtrar por instrumento">
           <option value="">Instrumento</option>
           @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
+        </select>
+        <select [ngModel]="filterDays()" (ngModelChange)="onPeriodChange($event)"
+          class="input-field sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
+          aria-label="Publicado en los últimos">
+          @for (p of periods; track p.days) { <option [ngValue]="p.days">{{ p.label }}</option> }
         </select>
         @if (hasActiveFilters()) {
           <button (click)="clearFilters()"

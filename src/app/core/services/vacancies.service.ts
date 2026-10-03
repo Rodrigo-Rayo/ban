@@ -26,6 +26,8 @@ export interface OpenVacancyFilters {
   genre?: string | null;
   instrument?: string | null;
   query?: string | null;
+  /** Only vacancies created at or after this ISO timestamp. */
+  since?: string | null;
   offset?: number;
   limit?: number;
 }
@@ -45,7 +47,7 @@ export class VacanciesService {
   private supabase = inject(SupabaseService);
 
   async listOpen(filters: OpenVacancyFilters = {}): Promise<OpenVacancy[]> {
-    const { city, genre, instrument, query, offset = 0, limit = 20 } = filters;
+    const { city, genre, instrument, query, since, offset = 0, limit = 20 } = filters;
     const db = this.supabase.client;
 
     // Bands first: only vacancies of existing bands are listed, so orphans (no FK
@@ -61,6 +63,7 @@ export class VacanciesService {
     if (genre) q = q.ilike('genre', `%${genre}%`);
     if (instrument) q = q.ilike('instrument', `%${instrument}%`);
     if (query) q = q.ilike('instrument', `%${query}%`);
+    if (since) q = q.gte('created_at', since);
     const { data: rows, error } = await q
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);

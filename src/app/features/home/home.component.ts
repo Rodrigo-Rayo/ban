@@ -7,7 +7,7 @@ import { VacanciesService } from '../../core/services/vacancies.service';
 import { SeoService } from '../../core/services/seo.service';
 import { timeAgo, avatarColor } from '../../core/utils/display.utils';
 import { localToday, dateParts as sharedDateParts } from '../../core/utils/date';
-import { askLabel, askStampClass } from '../../core/utils/se-busca';
+import { askLabel, askStampClass, SE_BUSCA_MAX_DAYS, sinceISO } from '../../core/utils/se-busca';
 import { AvatarUploadService } from '../../core/services/avatar-upload.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../shared/components/avatar-upload/avatar-upload.component';
@@ -73,6 +73,15 @@ export function shuffled<T>(list: readonly T[], rnd: () => number): T[] {
     [out[i], out[j]] = [out[j], out[i]];
   }
   return out;
+}
+
+/**
+ * The user's city first, then the rest of Spain to fill up to `limit` (no duplicates).
+ * Both lists keep their own order (newest / soonest first).
+ */
+export function cityFirst<T extends { id: string }>(local: readonly T[], all: readonly T[], limit: number): T[] {
+  const seen = new Set(local.map(x => x.id));
+  return [...local, ...all.filter(x => !seen.has(x.id))].slice(0, limit);
 }
 
 const SE_BUSCA_LIMIT = 5;
@@ -144,7 +153,22 @@ export class HomeComponent implements OnInit {
   /** New musicians, never the signed-in user. */
   readonly newPeople = computed(() => {
     const me = this.auth.user()?.id;
-    return this.recentMusicians().filter(m => !me || m.user_id !== me).slice(0, NEW_PEOPLE_LIMIT);
+    const city = this.userCity();
+    // Same city first, then people with a photo; otherwise newest first (stable sort).
+    const rank = (m: HomeMusician) => (city && m.city === city ? 0 : 2) + (m.avatar_url ? 0 : 1);
+    return this.recentMusicians()
+      .filter(m => !me || m.user_id !== me)
+      .map((m, i) => ({ m, i }))
+      .sort((a, b) => rank(a.m) - rank(b.m) || a.i - b.i)
+      .map(x => x.m)
+      .slice(0, NEW_PEOPLE_LIMIT);
+  });
+  /** Rehearsal spaces: the user's city first, each group in a random order per visit. */
+  readonly rehearsalsShown = computed(() => {
+    const city = this.userCity();
+    const rnd = seededRandom(this.featuredSeed() + 1);
+    const list = this.recentRehearsals();
+    return [...shuffled(list.filter(r => r.city === city), rnd), ...shuffled(list.filter(r => r.city !== city), rnd)];
   });
   /** First name for the greeting ("Hola, Lola"). */
   readonly firstName = computed(() => (this.userProfile()?.name ?? '').trim().split(/\s+/)[0] ?? '');
@@ -300,84 +324,55 @@ export class HomeComponent implements OnInit {
       const postCols       = 'id, type, text, city, instrument, author_name, author_profile_type, author_profile_id, created_at';
       const listingCols    = 'id, title, price, condition, category, city, images, created_at';
 
-      const [
-        { data: musicians },
-        { data: events },
-        { data: venues },
-        { data: rehearsals },
-        { data: posts },
-        { data: vacancies },
-        { data: listings },
-      ] = await Promise.all([
-        city
-          ? this.supabase.client.from('musicians').select(musicianCols).eq('city', city).order('created_at', { ascending: false }).limit(12)
-          : this.supabase.client.from('musicians').select(musicianCols).order('created_at', { ascending: false }).limit(12),
-        city
-          ? this.supabase.client.from('events').select(eventCols).eq('city', city).gte('date', todayStr).order('date', { ascending: true }).limit(5)
-          : this.supabase.client.from('events').select(eventCols).gte('date', todayStr).order('date', { ascending: true }).limit(5),
-        city
-          ? this.supabase.client.from('venues').select(venueCols).eq('city', city).order('created_at', { ascending: false }).limit(5)
-          : this.supabase.client.from('venues').select(venueCols).order('created_at', { ascending: false }).limit(5),
-        city
-          ? this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).eq('city', city).order('created_at', { ascending: false }).limit(5)
-          : this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).order('created_at', { ascending: false }).limit(5),
-        this.seBuscaPostsQuery(postCols, city),
-        // Non-critical module: a failure just hides "Se busca".
-        this.vacanciesSvc.listOpen({ city: city || null, limit: 6 }).then(data => ({ data }), () => ({ data: [] })),
-        this.supabase.client.from('gear_listings').select(listingCols).eq('status', 'active').order('created_at', { ascending: false }).limit(6),
+      const db = this.supabase.client;
+      const since = sinceISO(SE_BUSCA_MAX_DAYS);
+      // Each list is asked twice in parallel — the user's city and all of Spain —
+      // and merged city-first, so local content always leads and gaps get filled.
+      const both = <T>(build: (local: boolean) => PromiseLike<{ data: unknown }>): Promise<[T[], T[]]> => Promise.all([
+        // A failed list just stays empty; it never takes the whole home down.
+        city ? build(true).then(r => (r.data ?? []) as T[], () => [] as T[]) : Promise.resolve([] as T[]),
+        build(false).then(r => (r.data ?? []) as T[], () => [] as T[]),
+      ]);
+      // `any`: Supabase's PostgrestFilterBuilder generics are too deep to thread through a helper.
+      const inCity = (q: any, local: boolean) => local ? q.eq('city', city) : q; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+      const [musicians, events, venues, rehearsals, listings, posts, vacancies] = await Promise.all([
+        both<HomeMusician>(l => inCity(db.from('musicians').select(musicianCols), l).order('created_at', { ascending: false }).limit(12)),
+        both<HomeEvent>(l => inCity(db.from('events').select(eventCols), l).gte('date', todayStr).order('date', { ascending: true }).limit(5)),
+        both<HomeVenue>(l => inCity(db.from('venues').select(venueCols), l).order('created_at', { ascending: false }).limit(5)),
+        both<HomeRehearsal>(l => inCity(db.from('rehearsal_spaces').select(rehearsalCols), l).order('created_at', { ascending: false }).limit(5)),
+        both<HomeListing>(l => inCity(db.from('gear_listings').select(listingCols).eq('status', 'active'), l).order('created_at', { ascending: false }).limit(6)),
+        this.seBuscaPostsQuery(postCols, city, since).then(r => r, () => ({ data: [] })),
+        // Non-critical module: a failure just hides those rows.
+        this.vacanciesSvc.listOpen({ city: city || null, since, limit: 6 }).catch(() => []),
       ]);
 
       // A newer load (e.g. for the profile's city) started meanwhile: drop this one.
       if (seq !== this.loadSeq) return;
 
-      const fallbackCols: Record<string, string> = {
-        musicians: musicianCols,
-        events: eventCols,
-        venues: venueCols,
-        rehearsal_spaces: rehearsalCols,
-      };
-      // extraFilter uses `any` because Supabase's PostgrestFilterBuilder generic is too complex to type here
-      const globalFallback = async (table: string, limit: number, extraFilter?: (q: any) => any): Promise<Record<string, unknown>[]> => {
-        const cols = fallbackCols[table] ?? 'id, name, city, avatar_url, created_at';
-        let q = this.supabase.client.from(table).select(cols).order('created_at', { ascending: false }).limit(limit);
-        if (extraFilter) q = extraFilter(q);
-        const { data } = await q;
-        return (data as unknown as Record<string, unknown>[]) || [];
-      };
+      const people = cityFirst(musicians[0], musicians[1], NEW_PEOPLE_LIMIT + 1);
+      this.recentMusicians.set(people);
+      // "Ver todo" keeps the city filter unless the city itself has few musicians.
+      this.musiciansNationwide.set(!!city && musicians[0].length < 6);
+      this.seBuscaNationwide.set(false);
+      this.recentEvents.set(cityFirst(events[0], events[1], 5));
+      this.recentVenues.set(cityFirst(venues[0], venues[1], 5));
+      this.recentRehearsals.set(cityFirst(rehearsals[0], rehearsals[1], 5));
+      this.recentListings.set(cityFirst(listings[0], listings[1], 6));
+      this.recentPosts.set((posts.data || []) as unknown as HomePost[]);
+      this.recentVacancies.set(vacancies as unknown as HomeVacancy[]);
 
-      this.recentMusicians.set(((musicians || []) as unknown as HomeMusician[]).slice(0, NEW_PEOPLE_LIMIT + 1));
-      this.recentEvents.set((events || []) as unknown as HomeEvent[]);
-      this.recentVenues.set((venues || []) as unknown as HomeVenue[]);
-      this.recentRehearsals.set((rehearsals || []) as unknown as HomeRehearsal[]);
-      this.recentPosts.set((posts || []) as unknown as HomePost[]);
-      this.recentVacancies.set((vacancies || []) as unknown as HomeVacancy[]);
-      this.recentListings.set(((listings || []) as unknown as HomeListing[]).slice(0, 6));
-
-      // Fallbacks run in background and update signals when ready
-      if (city && !(posts?.length) && !(vacancies?.length)) {
-        // Nothing wanted in the user's city yet: show all of Spain and say so.
+      if (city && !(posts.data?.length) && !vacancies.length) {
+        // Nobody wants anything in the user's city yet: show all of Spain and say so.
         Promise.all([
-          this.seBuscaPostsQuery(postCols, ''),
-          this.vacanciesSvc.listOpen({ limit: 6 }).catch(() => []),
+          this.seBuscaPostsQuery(postCols, '', since),
+          this.vacanciesSvc.listOpen({ since, limit: 6 }).catch(() => []),
         ]).then(([{ data: p }, v]) => {
+          if (seq !== this.loadSeq) return;
           this.seBuscaNationwide.set(true);
           this.recentPosts.set((p || []) as unknown as HomePost[]);
           this.recentVacancies.set(v as unknown as HomeVacancy[]);
         }).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
-      }
-      if (city) {
-        if ((musicians?.length ?? 0) < 6) {
-          globalFallback('musicians', 12).then(d => { this.musiciansNationwide.set(true); this.recentMusicians.set(d.slice(0, NEW_PEOPLE_LIMIT + 1) as unknown as HomeMusician[]); }).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
-        }
-        if ((events?.length ?? 0) < 2) {
-          globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d as unknown as HomeEvent[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
-        }
-        if ((venues?.length ?? 0) < 2) {
-          globalFallback('venues', 5).then(d => this.recentVenues.set(d as unknown as HomeVenue[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
-        }
-        if ((rehearsals?.length ?? 0) < 2) {
-          globalFallback('rehearsal_spaces', 5).then(d => this.recentRehearsals.set(d as unknown as HomeRehearsal[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
-        }
       }
     } catch (err) {
       if (!environment.production) console.error('[Home] loadContent error:', err);
@@ -387,9 +382,9 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  /** Latest board posts, from one city or (empty city) all of Spain. */
-  private seBuscaPostsQuery(cols: string, city: string) {
-    const q = this.supabase.client.from('posts').select(cols).order('created_at', { ascending: false }).limit(8);
+  /** Latest board posts (last three months), from one city or (empty city) all of Spain. */
+  private seBuscaPostsQuery(cols: string, city: string, since: string) {
+    const q = this.supabase.client.from('posts').select(cols).gte('created_at', since).order('created_at', { ascending: false }).limit(8);
     return city ? q.eq('city', city) : q;
   }
 
