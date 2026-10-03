@@ -1,11 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import { of } from 'rxjs';
 import { Location } from '@angular/common';
 import { FeedComponent, mergeSeBusca } from './feed.component';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { VacanciesService } from '../../core/services/vacancies.service';
 import { Post, PostType } from '../../core/models';
 
@@ -59,9 +61,11 @@ describe('FeedComponent', () => {
   let routeMock: any;
   let fromBuilder: any;
   let vacanciesSpy: { listOpen: jasmine.Spy };
+  let confirmAsk: jasmine.Spy;
 
   beforeEach(async () => {
     fromBuilder = mockBuilder({ data: [], error: null });
+    confirmAsk = jasmine.createSpy('ask').and.resolveTo(true);
     vacanciesSpy = { listOpen: jasmine.createSpy('listOpen').and.resolveTo([]) };
 
     supabaseSpy = {
@@ -88,6 +92,7 @@ describe('FeedComponent', () => {
     locationSpy = jasmine.createSpyObj<Location>('Location', ['back']);
 
     routeMock = {
+      queryParamMap: of(convertToParamMap({})),
       snapshot: {
         queryParamMap: { get: jasmine.createSpy('get').and.returnValue(null) },
       },
@@ -104,6 +109,7 @@ describe('FeedComponent', () => {
         { provide: Location,        useValue: locationSpy },
         { provide: ActivatedRoute,  useValue: routeMock },
         { provide: VacanciesService, useValue: vacanciesSpy },
+        { provide: ConfirmService, useValue: { ask: confirmAsk } },
       ],
     })
     .overrideComponent(FeedComponent, { set: { imports: [], template: '<div></div>' } })
@@ -240,14 +246,14 @@ describe('FeedComponent', () => {
   });
 
   it('17. deletePost does nothing when user cancels confirm dialog', async () => {
-    spyOn(window, 'confirm').and.returnValue(false);
+    confirmAsk.and.resolveTo(false);
     component.currentUser.set({ id: 'u1' } as any);
     await component.deletePost('post-1');
     expect(supabaseSpy.client.from).not.toHaveBeenCalled();
   });
 
   it('18. deletePost removes post from list on success', async () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+    confirmAsk.and.resolveTo(true);
     supabaseSpy.client.from.and.returnValue(mockBuilder({ data: null, error: null }));
     component.currentUser.set({ id: 'u1' } as any);
     component.posts.set([makePost({ id: 'post-1' }), makePost({ id: 'post-2' })]);
@@ -257,7 +263,7 @@ describe('FeedComponent', () => {
   });
 
   it('19. deletePost calls toast.success on successful delete', async () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+    confirmAsk.and.resolveTo(true);
     supabaseSpy.client.from.and.returnValue(mockBuilder({ data: null, error: null }));
     component.currentUser.set({ id: 'u1' } as any);
     component.posts.set([makePost()]);
@@ -266,7 +272,7 @@ describe('FeedComponent', () => {
   });
 
   it('20. deletePost calls toast.error when supabase returns error', async () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+    confirmAsk.and.resolveTo(true);
     supabaseSpy.client.from.and.returnValue(mockBuilder({ data: null, error: { message: 'delete failed' } }));
     component.currentUser.set({ id: 'u1' } as any);
     component.posts.set([makePost()]);
@@ -275,7 +281,7 @@ describe('FeedComponent', () => {
   });
 
   it('21. deletePost calls toast.error on thrown exception', async () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+    confirmAsk.and.resolveTo(true);
     supabaseSpy.client.from.and.throwError('Unexpected');
     component.currentUser.set({ id: 'u1' } as any);
     await component.deletePost('post-1');
@@ -371,18 +377,32 @@ describe('FeedComponent', () => {
   });
 
   // -------------------------------------------------------------------------
-  // isRecent()
+  // Shared wording / stamps / default type
   // -------------------------------------------------------------------------
 
-  it('31. isRecent returns true for a post created seconds ago', () => {
-    const post = makePost({ created_at: new Date().toISOString() });
-    expect(component.isRecent(post)).toBeTrue();
+  it('31. askLabel and askStamp use the shared wording: yellow = busca, ink = ofrece', () => {
+    const post = (type: PostType, instrument = '') => ({ kind: 'post' as const, id: 'x', created_at: '', post: makePost({ type, instrument }) });
+    expect(component.askLabel(post('musician_seeking_band'))).toBe('Busca banda');
+    expect(component.askStamp(post('musician_seeking_band'))).toBe('tag-accent');
+    expect(component.askLabel(post('session_offer'))).toBe('Ofrece sesiones');
+    expect(component.askStamp(post('session_offer'))).toBe('tag-night');
   });
 
-  it('32. isRecent returns false for a post older than 24 hours', () => {
-    const old = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
-    const post = makePost({ created_at: old });
-    expect(component.isRecent(post)).toBeFalse();
+  it('32. the form defaults to "Buscamos músico" for a band profile and "Busco banda" otherwise', async () => {
+    authSpy.userProfileData.and.returnValue({ id: 'b1', name: 'Los X', city: 'Madrid', avatar_url: null });
+    authSpy.userProfileType.and.returnValue('band');
+    await component.ngOnInit();
+    expect(component.newPost.type).toBe('band_seeking_musician');
+
+    const other = TestBed.createComponent(FeedComponent).componentInstance;
+    authSpy.userProfileType.and.returnValue('musician');
+    await other.ngOnInit();
+    expect(other.newPost.type).toBe('musician_seeking_band');
+  });
+
+  it('33. the type picker offers the shared emoji-free options', () => {
+    expect(component.postTypes.map(t => t.label)).toContain('Buscamos músico');
+    expect(component.postTypes.every(t => !/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(t.label))).toBeTrue();
   });
 
   describe('Se busca sections', () => {

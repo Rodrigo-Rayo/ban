@@ -1,19 +1,22 @@
-import { Component, signal, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { PushNotificationService } from '../../../core/services/push-notification.service';
+import { IconComponent } from '../icon/icon.component';
+import { bannerWants, showNotifBanner } from '../cookie-banner/banner-queue';
 
 const DISMISSED_KEY = 'notif-permission-dismissed';
 
 @Component({
   selector: 'app-notification-permission-banner',
   standalone: true,
+  imports: [IconComponent],
   template: `
     @if (show()) {
-      <div class="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2 lg:bottom-4 animate-in slide-in-from-bottom-4 duration-300">
+      <div class="fixed bottom-above-nav left-0 right-0 z-40 px-4 pb-2 lg:pb-4 animate-slide-in">
         <div class="bg-dark-800 border-2 border-ink p-4 flex items-center gap-3 shadow-[4px_4px_0_0_#141210] max-w-sm md:ml-auto md:mr-4">
-          <div class="w-10 h-10 bg-poster-yellow border-2 border-ink flex items-center justify-center flex-shrink-0 text-lg">
-            🔔
+          <div class="w-10 h-10 bg-poster-yellow border-2 border-ink flex items-center justify-center flex-shrink-0">
+            <app-icon name="bell" [size]="20"/>
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-display text-xl uppercase text-ink leading-tight">Activa las notificaciones</p>
@@ -24,12 +27,12 @@ const DISMISSED_KEY = 'notif-permission-dismissed';
             }
           </div>
           <div class="flex flex-col gap-1.5 flex-shrink-0">
-            <button (click)="activate()"
+            <button type="button" (click)="activate()"
               [disabled]="loading()"
               class="btn-primary px-3 py-2 text-xs disabled:opacity-60 whitespace-nowrap min-h-[44px]">
               {{ loading() ? 'Activando…' : 'Activar' }}
             </button>
-            <button (click)="dismiss()"
+            <button type="button" (click)="dismiss()"
               class="px-3 py-2 font-mono font-bold uppercase text-ink hover:text-primary-600 text-[11px] transition-colors whitespace-nowrap min-h-[44px]">
               Ahora no
             </button>
@@ -39,12 +42,13 @@ const DISMISSED_KEY = 'notif-permission-dismissed';
     }
   `,
 })
-export class NotificationPermissionBannerComponent implements OnInit {
+export class NotificationPermissionBannerComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private auth = inject(AuthService);
   private push = inject(PushNotificationService);
 
-  show = signal(false);
+  /** Visible only while the cookie notice is not showing. */
+  readonly show = showNotifBanner;
   loading = signal(false);
   error = signal(false);
 
@@ -58,9 +62,13 @@ export class NotificationPermissionBannerComponent implements OnInit {
     // Show after a delay so it doesn't appear immediately on every page load
     setTimeout(() => {
       if (this.auth.isLoggedIn() && Notification.permission === 'default') {
-        this.show.set(true);
+        bannerWants.notif.set(true);
       }
     }, 5000);
+  }
+
+  ngOnDestroy() {
+    bannerWants.notif.set(false);
   }
 
   async activate() {
@@ -78,7 +86,7 @@ export class NotificationPermissionBannerComponent implements OnInit {
       this.error.set(true);
       return;
     }
-    this.show.set(false);
+    bannerWants.notif.set(false);
     if (result === 'denied') {
       // Permission denied — don't ask again
       try { localStorage.setItem(DISMISSED_KEY, '1'); } catch { /* storage unavailable */ }
@@ -86,7 +94,7 @@ export class NotificationPermissionBannerComponent implements OnInit {
   }
 
   dismiss() {
-    this.show.set(false);
+    bannerWants.notif.set(false);
     try { localStorage.setItem(DISMISSED_KEY, Date.now().toString()); } catch { /* storage unavailable */ }
   }
 }

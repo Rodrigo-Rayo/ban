@@ -8,65 +8,33 @@ import { MessagesService } from '../../../core/services/messages.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { Post, PostType } from '../../../core/models';
-import { timeAgo } from '../../../core/utils/display.utils';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { ConfirmService } from '../../../core/services/confirm.service';
+import { avatarSrc, timeAgo } from '../../../core/utils/display.utils';
+import { askLabel, askStampClass } from '../../../core/utils/se-busca';
+import { fetchProfileAvatar, initialOf } from '../../inbox/profile-avatar';
 
 const POST_COLUMNS = 'id, user_id, type, text, city, instrument, genre, author_name, author_profile_type, author_profile_id, created_at';
 const RELATED_LIMIT = 4;
 
-const TYPE_LABELS: Record<string, string> = {
-  musician_seeking_band: 'Músico busca banda',
-  band_seeking_musician: 'Banda busca músico',
-  event_announcement: 'Anuncia un evento',
-  session_offer: 'Ofrezco sesión',
-  gear_sale: 'Vendo equipamiento',
-  looking_for_rehearsal: 'Busco local ensayo',
-  collab: 'Busco colaboración',
-  other: 'Otro',
-};
-
-/** What the post asks for, in plain words: "Busca banda", "Busca guitarra"… (same wording as the list). */
-export function askLabelFor(p: Pick<Post, 'type' | 'instrument'>): string {
-  switch (p.type) {
-    case 'musician_seeking_band': return 'Busca banda';
-    case 'band_seeking_musician': return p.instrument ? `Busca ${p.instrument.toLowerCase()}` : 'Busca músico';
-    case 'session_offer': return 'Ofrece sesiones';
-    case 'looking_for_rehearsal': return 'Busca local';
-    case 'collab': return 'Busca colaboración';
-    default: return TYPE_LABELS[p.type] ?? 'Anuncio';
-  }
-}
-
-/** Stamp colour per post type (same logic as the list). */
-export function stampFor(type: PostType): string {
-  const map: Record<string, string> = {
-    musician_seeking_band: 'tag-accent',
-    band_seeking_musician: 'tag-red',
-    event_announcement: 'tag !bg-night !text-poster-paper',
-    session_offer: 'tag-green',
-    looking_for_rehearsal: 'tag',
-    collab: 'tag !bg-primary-900',
-  };
-  return map[type] ?? 'tag';
-}
-
-/** Stamp variant that stays legible on the ink poster block. */
+/** Stamp variant that stays legible on the ink poster block: yellow = busca, paper = ofrece. */
 export function heroStampFor(type: PostType): string {
-  if (type === 'band_seeking_musician') return 'tag-red';
-  if (type === 'session_offer') return 'tag-green';
-  return 'tag-accent';
+  return askStampClass(type) === 'tag-accent' ? 'tag-accent' : 'tag';
 }
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-post-detail',
-    imports: [RouterLink],
+    imports: [RouterLink, IconComponent],
     templateUrl: './post-detail.component.html'
 })
 export class PostDetailComponent implements OnInit {
   readonly timeAgo = timeAgo;
-  readonly askLabelFor = askLabelFor;
-  readonly stampFor = stampFor;
+  readonly askLabelFor = (p: Pick<Post, 'type' | 'instrument'>) => askLabel(p.type, p.instrument);
+  readonly stampFor = askStampClass;
   readonly heroStampFor = heroStampFor;
+  readonly avatarSrc = avatarSrc;
+  readonly initialOf = initialOf;
 
   private supabase = inject(SupabaseService);
   private route = inject(ActivatedRoute);
@@ -75,6 +43,7 @@ export class PostDetailComponent implements OnInit {
   private toast = inject(ToastService);
   private seo = inject(SeoService);
   private destroyRef = inject(DestroyRef);
+  private confirm = inject(ConfirmService);
   auth = inject(AuthService);
 
   post = signal<Post | null>(null);
@@ -83,6 +52,7 @@ export class PostDetailComponent implements OnInit {
   deleting = signal(false);
   linkCopied = signal(false);
   related = signal<Post[]>([]);
+  authorAvatar = signal<string | null>(null);
   currentUser = signal<any>(null);
 
   ngOnInit() {
@@ -96,6 +66,7 @@ export class PostDetailComponent implements OnInit {
     this.loading.set(true);
     this.post.set(null);
     this.related.set([]);
+    this.authorAvatar.set(null);
     try {
       const [{ data: { user } }, { data, error }] = await Promise.all([
         this.supabase.auth.getUser(),
@@ -105,10 +76,11 @@ export class PostDetailComponent implements OnInit {
       if (error) { this.toast.error('No se pudo cargar el anuncio.'); return; }
       this.post.set(data);
       if (data) {
-        const label = TYPE_LABELS[data.type] ?? 'Anuncio';
+        const label = askLabel(data.type, data.instrument);
         const desc = data.text?.slice(0, 155) ?? `${label} — BandYou`;
         this.seo.set({ title: `${label} · ${data.author_name}`, description: desc, type: 'article' });
         void this.loadRelated(data);
+        void fetchProfileAvatar(this.supabase, data.user_id).then(url => this.authorAvatar.set(url));
       } else {
         this.seo.setNotFound();
       }
@@ -132,12 +104,12 @@ export class PostDetailComponent implements OnInit {
     return seg ? [`/${seg}`, p.author_profile_id] : null;
   });
 
-  readonly askLabel = computed(() => { const p = this.post(); return p ? askLabelFor(p) : ''; });
+  readonly askLabel = computed(() => { const p = this.post(); return p ? askLabel(p.type, p.instrument) : ''; });
 
   /** "GUITARRA · MADRID" strip under the poster. */
   readonly posterLine = computed(() => {
     const p = this.post();
-    return p ? [p.instrument, p.city].filter(Boolean).join(' · ') : '';
+    return p ? [p.instrument, p.city, p.genre].filter(Boolean).join(' · ') : '';
   });
 
   /** Label/value rows of the data sheet; only rows with data. */
@@ -193,7 +165,7 @@ export class PostDetailComponent implements OnInit {
     const p = this.post();
     if (!p) return;
     const url = window.location.href;
-    const title = `${askLabelFor(p)} · ${p.author_name ?? 'Se busca'}`;
+    const title = `${askLabel(p.type, p.instrument)} · ${p.author_name ?? 'Se busca'}`;
     if (typeof navigator.share === 'function') {
       try {
         await navigator.share({ title, text: p.text.slice(0, 120), url });
@@ -215,7 +187,13 @@ export class PostDetailComponent implements OnInit {
 
   async deletePost() {
     if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
-    if (!confirm('¿Eliminar este anuncio?')) return;
+    const ok = await this.confirm.ask({
+      title: '¿Eliminar este anuncio?',
+      message: 'Dejará de aparecer en Se busca.',
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
     this.deleting.set(true);
     const { error } = await this.supabase.client.from('posts').delete().eq('id', this.post()!.id);
     this.deleting.set(false);

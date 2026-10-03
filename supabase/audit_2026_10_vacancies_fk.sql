@@ -31,3 +31,18 @@ CREATE INDEX IF NOT EXISTS band_vacancies_band_id_idx ON band_vacancies (band_id
 
 -- 3) Make PostgREST pick up the new relationship.
 NOTIFY pgrst, 'reload schema';
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 4) Band owners can dismiss ("Descartar") applications to their own vacancies.
+--    Today only the applicant can delete. Safe to run more than once.
+-- ═══════════════════════════════════════════════════════════════════════════
+DROP POLICY IF EXISTS "Band owner can dismiss applications" ON vacancy_applications;
+CREATE POLICY "Band owner can dismiss applications" ON vacancy_applications
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM band_vacancies bv
+      JOIN bands b ON b.id = bv.band_id
+      WHERE bv.id = vacancy_applications.vacancy_id
+        AND b.user_id = auth.uid()
+    )
+  );

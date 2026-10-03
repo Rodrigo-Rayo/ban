@@ -1,4 +1,4 @@
-﻿import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -7,6 +7,7 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { parseList } from '../../../core/utils/list';
 import { Musician } from '../../../core/models';
@@ -15,19 +16,31 @@ import { Musician } from '../../../core/models';
 const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
 
 const WEEK_DAYS = [
-  { letter: 'L', key: 'lunes', label: 'Lunes' },
-  { letter: 'M', key: 'martes', label: 'Martes' },
-  { letter: 'X', key: 'miercoles', label: 'Miércoles' },
-  { letter: 'J', key: 'jueves', label: 'Jueves' },
-  { letter: 'V', key: 'viernes', label: 'Viernes' },
-  { letter: 'S', key: 'sabado', label: 'Sábado' },
-  { letter: 'D', key: 'domingo', label: 'Domingo' },
+  { key: 'lunes', label: 'lunes' },
+  { key: 'martes', label: 'martes' },
+  { key: 'miercoles', label: 'miércoles' },
+  { key: 'jueves', label: 'jueves' },
+  { key: 'viernes', label: 'viernes' },
+  { key: 'sabado', label: 'sábado' },
+  { key: 'domingo', label: 'domingo' },
 ] as const;
+
+const stripAccents = (v: string) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+/** ['jueves','Lunes'] -> "Lunes y jueves"; all seven -> "Todos los días"; none -> "". */
+export function joinWeekdays(listed: string[]): string {
+  const set = new Set(listed.map(stripAccents));
+  const names = WEEK_DAYS.filter(d => set.has(d.key)).map(d => d.label);
+  if (names.length === 0) return '';
+  if (names.length === WEEK_DAYS.length) return 'Todos los días';
+  const text = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-musician-profile',
-    imports: [RouterLink, IconComponent],
+    imports: [RouterLink, IconComponent, AvatarUploadComponent],
     templateUrl: './musician-profile.component.html'
 })
 export class MusicianProfileComponent implements OnInit {
@@ -44,12 +57,9 @@ export class MusicianProfileComponent implements OnInit {
   musician = signal<Musician | null>(null);
   availabilityDays = computed(() => parseList(this.musician()?.availability_days));
   availabilitySlots = computed(() => parseList(this.musician()?.availability_slots));
-  /** L M X J V S D strip: `on` when the musician listed that weekday. */
-  weekStrip = computed(() => {
-    const listed = new Set(this.availabilityDays().map(d => d.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()));
-    return WEEK_DAYS.map(d => ({ ...d, on: listed.has(d.key) }));
-  });
-  posterLine = computed(() => [this.musician()?.instrument, this.musician()?.genre].filter(Boolean).join(' · '));
+  /** "Lunes y jueves": only the listed weekdays, in week order, as plain text. */
+  availableDaysText = computed(() => joinWeekdays(this.availabilityDays()));
+  posterLine = computed(() => [this.musician()?.instrument, this.musician()?.city].filter(Boolean).join(' · '));
   hasLinks = computed(() => {
     const m = this.musician();
     return !!(m && (m.spotify_url || m.youtube_url || m.soundcloud_url || m.instagram_url || m.website_url));
@@ -62,6 +72,26 @@ export class MusicianProfileComponent implements OnInit {
   sending = signal(false);
   msgError = signal<string | null>(null);
   linkShared = signal(false);
+
+  /** Signed-in user owns this profile. */
+  readonly isOwner = computed(() => {
+    const uid = this.currentUserId();
+    const owner = this.musician()?.user_id;
+    return !!uid && !!owner && uid === owner;
+  });
+  /** Can write to the owner: someone else's profile that has an account behind it. */
+  readonly canMessage = computed(() => !this.isOwner() && !!this.musician()?.user_id);
+
+  onPhotoUploaded(url: string) {
+    this.musician.update(v => (v ? { ...v, avatar_url: url } : v));
+    this.avatarError.set(false);
+  }
+
+  /** Logged-out visitors go to login and come back to this profile afterwards. */
+  goToLogin() {
+    try { sessionStorage.setItem('bandyou_return_url', window.location.pathname); } catch { /* storage blocked */ }
+    this.router.navigate(['/auth/login']);
+  }
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -101,7 +131,7 @@ export class MusicianProfileComponent implements OnInit {
   }
 
   async toggleFav() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     this.favLoading.set(true);
     try {
       const musician = this.musician();
@@ -118,7 +148,7 @@ export class MusicianProfileComponent implements OnInit {
   async sendMessage() {
     const uid = this.currentUserId();
     const musician = this.musician();
-    if (!uid) { this.router.navigate(['/auth/login']); return; }
+    if (!uid) { this.goToLogin(); return; }
     if (!musician) return;
     if (uid === musician.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);

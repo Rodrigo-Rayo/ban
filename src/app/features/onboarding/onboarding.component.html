@@ -43,6 +43,18 @@
   @if (!pendingConfirmation()) {
   <div class="flex-1 px-5 py-8 sm:py-12 max-w-xl mx-auto w-full">
 
+    @if (isEditing()) {
+      <div class="flex items-end justify-between gap-3 border-b-2 border-ink pb-3 mb-6">
+        <p class="font-display text-3xl uppercase leading-none text-ink">Editar perfil</p>
+        @if (step() > 0) {
+          <button type="button" (click)="changeRole()"
+            class="min-h-[44px] font-mono text-[11px] font-bold uppercase tracking-wide underline text-ink hover:text-primary-600">
+            Cambiar tipo de perfil
+          </button>
+        }
+      </div>
+    }
+
     <!-- ── STEP 0: Role selection ──────────────────────────────── -->
     @if (step() === 0) {
       <div class="animate-slide-in">
@@ -131,26 +143,12 @@
           <div role="alert" class="text-xs font-bold text-signal-red mb-4">{{ error() }}</div>
         }
 
-        <div class="flex gap-3">
-          <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
-          @if (isListener()) {
-            <button type="button" (click)="nextFromName()" [disabled]="loading()"
-              class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-              @if (loading()) { Entrando... } @else { Entrar }
-            </button>
-          } @else {
-            <button type="button" (click)="nextFromName()"
-              class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-              Continuar
-            </button>
-          }
-        </div>
-        @if (!isEditing() && isListener()) {
+        @if (!isEditing() && isListener() && needsConsent()) {
           <!-- Explicit consent for accounts that skipped /auth/register (Google sign-in from /auth/login) -->
           @if (needsConsent()) {
-            <div class="mt-4 text-left">
-              <label class="flex items-start gap-2.5 text-xs text-ink-2 leading-snug cursor-pointer">
-                <input id="onb-consent" type="checkbox" class="mt-0.5 w-4 h-4 accent-primary-500 flex-shrink-0"
+            <div class="mb-4 text-left">
+              <label class="flex items-start gap-3 min-h-[44px] py-2 text-sm text-ink-2 leading-snug cursor-pointer">
+                <input id="onb-consent" type="checkbox" class="mt-0.5 w-5 h-5 accent-primary-500 flex-shrink-0"
                        [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
                        [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
                 <span>Confirmo que tengo 14 años o más, acepto los
@@ -159,11 +157,25 @@
                   Tu perfil será público.</span>
               </label>
               @if (consentError()) {
-                <p id="onb-consent-error" role="alert" class="text-xs font-bold text-signal-red mt-1.5">Debes aceptar para crear tu cuenta.</p>
+                <p id="onb-consent-error" role="alert" class="text-xs font-bold text-signal-red mt-1.5">Debes aceptar para crear tu perfil.</p>
               }
             </div>
           }
         }
+        <div class="flex gap-3">
+          <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">{{ isEditing() ? 'Cancelar' : 'Atrás' }}</button>
+          @if (isListener()) {
+            <button type="button" (click)="nextFromName()" [disabled]="loading()"
+              class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+              {{ loading() ? submitBusyLabel() : submitLabel() }}
+            </button>
+          } @else {
+            <button type="button" (click)="nextFromName()"
+              class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+              Continuar
+            </button>
+          }
+        </div>
       </div>
     }
 
@@ -202,6 +214,25 @@
           }
         </div>
 
+        @if (!isEditing() && needsConsent()) {
+          <!-- Explicit consent for accounts that skipped /auth/register (Google sign-in from /auth/login) -->
+          @if (needsConsent()) {
+            <div class="mb-4 text-left">
+              <label class="flex items-start gap-3 min-h-[44px] py-2 text-sm text-ink-2 leading-snug cursor-pointer">
+                <input id="onb-consent" type="checkbox" class="mt-0.5 w-5 h-5 accent-primary-500 flex-shrink-0"
+                       [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
+                       [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
+                <span>Confirmo que tengo 14 años o más, acepto los
+                  <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
+                  y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
+                  Tu perfil será público.</span>
+              </label>
+              @if (consentError()) {
+                <p id="onb-consent-error" role="alert" class="text-xs font-bold text-signal-red mt-1.5">Debes aceptar para crear tu perfil.</p>
+              }
+            </div>
+          }
+        }
         <div class="flex gap-3">
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
           <button type="button" (click)="tryNext(canProceedStep2(), 'Selecciona al menos un instrumento.')"
@@ -417,7 +448,7 @@
 
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">
-            <h2 class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-3">Redes & portfolio <span class="text-ink-muted">(opcional)</span></h2>
+            <h2 class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-3">Redes y enlaces <span class="text-ink-muted">(opcional)</span></h2>
             <div class="grid sm:grid-cols-2 gap-3">
               @if (role() === 'musician' || role() === 'band') {
                 <div>
@@ -485,28 +516,9 @@
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
           <button type="button" (click)="submitZone()" [disabled]="loading()"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-            @if (loading()) { Creando cuenta... } @else { Crear cuenta }
+            {{ loading() ? submitBusyLabel() : submitLabel() }}
           </button>
         </div>
-        @if (!isEditing()) {
-          <!-- Explicit consent for accounts that skipped /auth/register (Google sign-in from /auth/login) -->
-          @if (needsConsent()) {
-            <div class="mt-4 text-left">
-              <label class="flex items-start gap-2.5 text-xs text-ink-2 leading-snug cursor-pointer">
-                <input id="onb-consent" type="checkbox" class="mt-0.5 w-4 h-4 accent-primary-500 flex-shrink-0"
-                       [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
-                       [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
-                <span>Confirmo que tengo 14 años o más, acepto los
-                  <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
-                  y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
-                  Tu perfil será público.</span>
-              </label>
-              @if (consentError()) {
-                <p id="onb-consent-error" role="alert" class="text-xs font-bold text-signal-red mt-1.5">Debes aceptar para crear tu cuenta.</p>
-              }
-            </div>
-          }
-        }
       </div>
     }
 
@@ -547,6 +559,25 @@
           }
         </div>
 
+        @if (!isEditing() && needsConsent()) {
+          <!-- Explicit consent for accounts that skipped /auth/register (Google sign-in from /auth/login) -->
+          @if (needsConsent()) {
+            <div class="mb-4 text-left">
+              <label class="flex items-start gap-3 min-h-[44px] py-2 text-sm text-ink-2 leading-snug cursor-pointer">
+                <input id="onb-consent" type="checkbox" class="mt-0.5 w-5 h-5 accent-primary-500 flex-shrink-0"
+                       [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
+                       [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
+                <span>Confirmo que tengo 14 años o más, acepto los
+                  <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
+                  y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
+                  Tu perfil será público.</span>
+              </label>
+              @if (consentError()) {
+                <p id="onb-consent-error" role="alert" class="text-xs font-bold text-signal-red mt-1.5">Debes aceptar para crear tu perfil.</p>
+              }
+            </div>
+          }
+        }
         <div class="flex gap-3">
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
           <button type="button" (click)="next()" class="btn-accent flex-1 py-4 text-sm">
@@ -667,7 +698,7 @@
 
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">
-            <h2 class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-3">Redes & portfolio <span class="text-ink-muted">(opcional)</span></h2>
+            <h2 class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-3">Redes y enlaces <span class="text-ink-muted">(opcional)</span></h2>
             <div class="grid sm:grid-cols-2 gap-3">
               @if (role() === 'musician') {
                 <div>
@@ -735,28 +766,9 @@
           <button type="button" (click)="back()" class="btn-secondary py-4 px-6 text-sm">Atrás</button>
           <button type="button" (click)="submitZone()" [disabled]="loading()"
             class="btn-accent flex-1 py-4 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-            @if (loading()) { Creando cuenta... } @else { Crear cuenta }
+            {{ loading() ? submitBusyLabel() : submitLabel() }}
           </button>
         </div>
-        @if (!isEditing()) {
-          <!-- Explicit consent for accounts that skipped /auth/register (Google sign-in from /auth/login) -->
-          @if (needsConsent()) {
-            <div class="mt-4 text-left">
-              <label class="flex items-start gap-2.5 text-xs text-ink-2 leading-snug cursor-pointer">
-                <input id="onb-consent" type="checkbox" class="mt-0.5 w-4 h-4 accent-primary-500 flex-shrink-0"
-                       [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
-                       [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
-                <span>Confirmo que tengo 14 años o más, acepto los
-                  <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
-                  y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
-                  Tu perfil será público.</span>
-              </label>
-              @if (consentError()) {
-                <p id="onb-consent-error" role="alert" class="text-xs font-bold text-signal-red mt-1.5">Debes aceptar para crear tu cuenta.</p>
-              }
-            </div>
-          }
-        }
       </div>
     }
 

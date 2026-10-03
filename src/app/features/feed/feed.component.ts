@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy, DestroyRef, computed } from '@angular/core';
+import { Component, signal, inject, OnInit, DestroyRef, computed, ElementRef, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
@@ -13,7 +13,9 @@ import { Post, PostType } from '../../core/models';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { IconComponent } from '../../shared/components/icon/icon.component';
-import { avatarColor, timeAgo } from '../../core/utils/display.utils';
+import { ConfirmService } from '../../core/services/confirm.service';
+import { timeAgo } from '../../core/utils/display.utils';
+import { askLabel, askStampClass, POST_TYPE_OPTIONS } from '../../core/utils/se-busca';
 
 export type SeBuscaSection = 'todo' | 'bandas' | 'musicos' | 'otros';
 
@@ -61,8 +63,7 @@ export function mergeSeBusca(posts: Post[], vacancies: OpenVacancy[], morePosts:
     imports: [FormsModule, RouterLink, IconComponent],
     templateUrl: './feed.component.html'
 })
-export class FeedComponent implements OnInit, OnDestroy {
-  readonly avatarColor = avatarColor;
+export class FeedComponent implements OnInit {
   readonly timeAgo = timeAgo;
 
   private supabase = inject(SupabaseService);
@@ -74,6 +75,8 @@ export class FeedComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private location = inject(Location);
+  private confirm = inject(ConfirmService);
+  private readonly sectionNav = viewChild<ElementRef<HTMLElement>>('sectionNav');
 
   posts = signal<Post[]>([]);
   loading = signal(true);
@@ -113,14 +116,7 @@ export class FeedComponent implements OnInit, OnDestroy {
   readonly instruments = INSTRUMENTS;
   readonly genres = GENRES;
 
-  readonly postTypes: { id: PostType; label: string; emoji: string; icon: string }[] = [
-    { id: 'musician_seeking_band',  label: 'Músico busca banda',    emoji: '🎸', icon: 'music'          },
-    { id: 'band_seeking_musician',  label: 'Banda busca músico',    emoji: '🥁', icon: 'mic'            },
-    { id: 'session_offer',          label: 'Ofrezco sesión',        emoji: '🎙️', icon: 'mic'            },
-    { id: 'looking_for_rehearsal',  label: 'Busco local ensayo',    emoji: '🏠', icon: 'headphones'     },
-    { id: 'collab',                 label: 'Busco colaboración',    emoji: '🤝', icon: 'users'          },
-    { id: 'other',                  label: 'Otro',                  emoji: '📢', icon: 'newspaper'      },
-  ];
+  readonly postTypes = POST_TYPE_OPTIONS;
 
   onInstrumentChange(val: string) {
     this.filterInstrument.set(val);
@@ -135,6 +131,19 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.filterCity.set('Toda España');
     this.filterInstrument.set('');
     this.loadPosts();
+  }
+
+  /** Bands look for musicians; everyone else looks for a band. */
+  private defaultPostType(): PostType {
+    return this.userProfile()?.type === 'band' ? 'band_seeking_musician' : 'musician_seeking_band';
+  }
+
+  /** Keeps the active section tab visible when the tab strip is scrolled. */
+  private revealActiveSection() {
+    setTimeout(() => {
+      const nav = this.sectionNav()?.nativeElement;
+      nav?.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+    }, 0);
   }
 
   /** Switches section through the URL so it is shareable and survives reloads. */
@@ -156,6 +165,7 @@ export class FeedComponent implements OnInit, OnDestroy {
         if (next !== this.section()) {
           this.section.set(next);
           if (this.initialised) this.loadPosts();
+          this.revealActiveSection();
         }
         if (params.get('new') !== '1') return;
         if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
@@ -170,6 +180,7 @@ export class FeedComponent implements OnInit, OnDestroy {
         const profile = this.auth.userProfileData();
         if (profile) {
           this.userProfile.set({ ...profile, type: this.auth.userProfileType() });
+          this.newPost.type = this.defaultPostType();
         }
       }
     } catch {
@@ -178,6 +189,7 @@ export class FeedComponent implements OnInit, OnDestroy {
 
     this.initialised = true;
     if (!this.formOnly()) await this.loadPosts();
+    this.revealActiveSection();
   }
 
   /** Post types of the current section, or null for every type. */
@@ -220,9 +232,6 @@ export class FeedComponent implements OnInit, OnDestroy {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  ngOnDestroy() {
   }
 
   async loadMore() {
@@ -274,7 +283,7 @@ export class FeedComponent implements OnInit, OnDestroy {
         this.toast.error('No se pudo publicar. Intenta de nuevo.');
         return;
       }
-      this.newPost = { type: 'musician_seeking_band', text: '', city: 'Madrid', instrument: '', genre: '' };
+      this.newPost = { type: this.defaultPostType(), text: '', city: 'Madrid', instrument: '', genre: '' };
       this.showForm.set(false);
       this.formOnly.set(false);
       this.toast.success('Anuncio publicado.');
@@ -295,7 +304,13 @@ export class FeedComponent implements OnInit, OnDestroy {
   async deletePost(id: string) {
     const user = this.currentUser();
     if (!user) { this.router.navigate(['/auth/login']); return; }
-    if (!confirm('¿Eliminar este anuncio?')) return;
+    const ok = await this.confirm.ask({
+      title: '¿Eliminar este anuncio?',
+      message: 'Dejará de aparecer en Se busca.',
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       const { error } = await this.supabase.client.from('posts').delete().eq('id', id).eq('user_id', user.id);
       if (error) { this.toast.error('No se pudo eliminar.'); return; }
@@ -306,41 +321,13 @@ export class FeedComponent implements OnInit, OnDestroy {
     }
   }
 
-  private readonly postTypeMap = new Map(this.postTypes.map(t => [t.id, t]));
-
-  typeLabel(type: PostType) { return this.postTypeMap.get(type)?.label ?? type; }
-  typeEmoji(type: PostType) { return this.postTypeMap.get(type)?.emoji ?? '📢'; }
-  /** Poster stamp per post type. */
-  typeStamp(type: PostType): string {
-    const map: Record<string, string> = {
-      musician_seeking_band: 'tag-accent',
-      band_seeking_musician: 'tag-red',
-      event_announcement: 'tag !bg-night !text-poster-paper',
-      session_offer: 'tag-green',
-      looking_for_rehearsal: 'tag',
-      collab: 'tag !bg-primary-900',
-    };
-    return map[type] ?? 'tag';
-  }
-
-  typeIcon(type: PostType)  { return this.postTypeMap.get(type)?.icon ?? 'newspaper'; }
-
-  /** What the row is asking for, in plain words: "Busca banda", "Busca guitarra"… */
+  /** What the row asks for ("Busca banda", "Busca guitarra"…) and its stamp: yellow = busca, ink = ofrece. */
   askLabel(item: SeBuscaItem): string {
-    if (item.kind === 'vacancy') return `Busca ${item.vacancy.instrument.toLowerCase()}`;
-    const p = item.post;
-    switch (p.type) {
-      case 'musician_seeking_band': return 'Busca banda';
-      case 'band_seeking_musician': return p.instrument ? `Busca ${p.instrument.toLowerCase()}` : 'Busca músico';
-      case 'session_offer': return 'Ofrece sesiones';
-      case 'looking_for_rehearsal': return 'Busca local';
-      case 'collab': return 'Busca colaboración';
-      default: return this.typeLabel(p.type);
-    }
+    return item.kind === 'vacancy' ? askLabel('vacancy', item.vacancy.instrument) : askLabel(item.post.type, item.post.instrument);
   }
 
   askStamp(item: SeBuscaItem): string {
-    return this.typeStamp(item.kind === 'vacancy' ? 'band_seeking_musician' : item.post.type);
+    return askStampClass(item.kind === 'vacancy' ? 'vacancy' : item.post.type);
   }
 
   /** Who is asking: the band, or the post's author. */
@@ -371,10 +358,5 @@ export class FeedComponent implements OnInit, OnDestroy {
     const seg = map[p.author_profile_type];
     return seg ? [`/${seg}`, p.author_profile_id] : null;
   }
-
-  isRecent(post: Post): boolean {
-    return Date.now() - new Date(post.created_at).getTime() < 86400000;
-  }
-
 }
 

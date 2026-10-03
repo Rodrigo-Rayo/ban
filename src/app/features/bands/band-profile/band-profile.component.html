@@ -42,8 +42,7 @@
       <section aria-label="Cartel">
         <div class="relative overflow-hidden profile-cover border-2 border-ink h-[260px] sm:h-[340px] lg:h-auto lg:aspect-[4/5]">
           @if (band()!.avatar_url && !avatarError()) {
-            <img [src]="band()!.avatar_url" alt="" class="absolute inset-0 w-full h-full object-cover grayscale contrast-125" fetchpriority="high" (error)="avatarError.set(true)"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-night via-night/50 to-transparent" aria-hidden="true"></div>
+            <img [src]="band()!.avatar_url" alt="" class="absolute inset-0 w-full h-full object-cover contrast-105" fetchpriority="high" (error)="avatarError.set(true)"/>
           } @else {
             <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center font-display text-[11rem] sm:text-[14rem] leading-none text-poster-paper/10 select-none">{{ band()!.name.slice(0,1).toUpperCase() }}</span>
           }
@@ -55,25 +54,13 @@
           } @else if (band()!.looking_for) {
           <span class="absolute right-0 top-3 max-w-[75%] bg-poster-yellow text-ink border-2 border-r-0 border-ink font-mono text-xs font-bold uppercase tracking-wide px-3 py-1.5">Busca {{ band()!.looking_for }}</span>
           }
-          <h1 class="absolute inset-x-3 bottom-3 font-display text-[clamp(2.5rem,13vw,4.75rem)] sm:text-7xl leading-[0.9] text-poster-paper [overflow-wrap:anywhere]">{{ band()!.name }}</h1>
+          <h1 class="absolute inset-x-3 bottom-3 font-display text-[clamp(2.5rem,13vw,4.75rem)] sm:text-7xl leading-[1.04] text-poster-paper [overflow-wrap:anywhere]"><span class="bg-ink box-decoration-clone px-2">{{ band()!.name }}</span></h1>
         </div>
         @if (posterLine()) {
           <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>
         }
       </section>
       <dl class="mt-4 border-t border-ink/15" aria-label="Ficha de la banda">
-        @if (band()!.genre) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
-            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Género</dt>
-            <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ band()!.genre }}</dd>
-          </div>
-        }
-        @if (band()!.city) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
-            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Ciudad</dt>
-            <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ band()!.city }}</dd>
-          </div>
-        }
         @if (members().length > 0) {
           <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Miembros</dt>
@@ -86,30 +73,41 @@
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ band()!.members_count }}</dd>
           </div>
         }
-        @if (band()!.looking_for) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
-            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Busca</dt>
-            <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ band()!.looking_for }}</dd>
-          </div>
-        }
       </dl>
-      <div class="hidden sm:grid grid-cols-2 gap-2 mt-5">
-        @if (band()!.user_id) {
-          <button type="button" (click)="sendMessage()" [disabled]="sending()" class="btn-primary col-span-2 min-h-[48px]">{{ sending() ? 'Abriendo...' : 'Enviar mensaje' }}</button>
-          @if (msgError()) {
-            <p role="alert" aria-live="assertive" class="col-span-2 text-xs font-bold text-signal-red">{{ msgError() }}</p>
-          }
+      @if (isOwner()) {
+        <div class="mt-4 [&>app-avatar-upload>label]:w-full">
+          <app-avatar-upload class="block" (uploaded)="onPhotoUploaded($event)"/>
+        </div>
+      } @else if (!band()!.user_id) {
+        <p class="mt-4 border-t border-ink/15 pt-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Este perfil aún no tiene cuenta en BandYou</p>
+      }
+      <!-- One action bar: fixed single row above the bottom nav on mobile, plain block from sm up -->
+      <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink px-3 py-2 sm:static sm:z-auto sm:bg-transparent sm:border-0 sm:p-0 sm:mt-5">
+        @if (msgError()) {
+          <p role="alert" aria-live="assertive" class="pb-1 text-xs font-bold text-signal-red sm:col-span-2">{{ msgError() }}</p>
         }
-        <button type="button" (click)="toggleFav()" [disabled]="favLoading()"
-          class="btn-secondary text-sm min-h-[44px]" [class.bg-poster-yellow]="isFav()">
-          <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-          {{ isFav() ? 'Guardado' : 'Guardar' }}
-        </button>
-        <button type="button" (click)="shareLink()" class="btn-secondary text-sm min-h-[44px]"
-          [class.bg-signal-gBg]="linkShared()" [class.text-signal-green]="linkShared()">
-          <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-          {{ linkShared() ? '¡Enlace copiado!' : 'Compartir' }}
-        </button>
+        <div class="flex gap-2 sm:grid sm:grid-cols-2">
+          @if (isOwner()) {
+            <a routerLink="/onboarding" class="btn-primary min-h-[48px] flex-1 sm:col-span-2">Editar perfil</a>
+          } @else if (band()!.user_id) {
+            <button type="button" (click)="sendMessage()" [disabled]="sending()" class="btn-primary min-h-[48px] flex-1 sm:col-span-2 disabled:opacity-50">{{ sending() ? 'Abriendo…' : 'Escribir mensaje' }}</button>
+          }
+          @if (!isOwner()) {
+            <button type="button" (click)="toggleFav()" [disabled]="favLoading()"
+              [attr.aria-label]="isFav() ? 'Quitar de favoritos' : 'Añadir a favoritos'" [attr.aria-pressed]="isFav()"
+              class="btn-secondary min-h-[48px] min-w-[48px] sm:min-w-0 sm:min-h-[44px] sm:text-sm px-0 sm:px-4" [class.flex-1]="!canMessage()" [class.bg-poster-yellow]="isFav()">
+              <svg aria-hidden="true" class="w-5 h-5 sm:w-4 sm:h-4 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+              <span [class]="canMessage() ? 'hidden sm:inline' : ''">{{ isFav() ? 'En favoritos' : 'Favorito' }}</span>
+            </button>
+          }
+          <button type="button" (click)="shareLink()"
+            [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir perfil'"
+            class="btn-secondary min-h-[48px] min-w-[48px] sm:min-w-0 sm:min-h-[44px] sm:text-sm px-0 sm:px-4" [class.flex-1]="!canMessage() && !isOwner()" [class]="isOwner() ? 'sm:col-span-2' : ''"
+            [class.bg-signal-gBg]="linkShared()" [class.text-signal-green]="linkShared()">
+            <svg aria-hidden="true" class="w-5 h-5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+            <span [class]="canMessage() || isOwner() ? 'hidden sm:inline' : ''">{{ linkShared() ? '¡Enlace copiado!' : 'Compartir' }}</span>
+          </button>
+        </div>
       </div>
       </aside>
 
@@ -119,17 +117,11 @@
         <section>
           <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t-2 border-ink pt-2 mb-3">
             <div class="flex flex-wrap items-center gap-2">
-              <h2 class="font-display text-2xl leading-none">Vacantes</h2>
-              @if (openVacancies().length > 0) {
-                <span class="tag-accent">{{ openVacancies().length }} abierta{{ openVacancies().length > 1 ? 's' : '' }}</span>
-              }
-              @if (isOwner() && applications().length > 0) {
-                <span class="tag">{{ applications().length }} solicitud{{ applications().length > 1 ? 'es' : '' }}</span>
-              }
+              <h2 class="font-display text-2xl leading-none">Buscamos</h2>
             </div>
             @if (isOwner()) {
               <button type="button" (click)="showVacancyForm.set(!showVacancyForm())" class="btn-secondary text-xs min-h-[44px]">
-                {{ showVacancyForm() ? 'Cancelar' : '+ Añadir vacante' }}
+                {{ showVacancyForm() ? 'Cancelar' : 'Añadir vacante' }}
               </button>
             }
           </div>
@@ -141,7 +133,7 @@
                 <div>
                   <label for="vacancy-instrument" class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted block mb-1.5">Instrumento *</label>
                   <select id="vacancy-instrument" [(ngModel)]="newVacancy.instrument" class="input-field text-sm py-2">
-                    <option value="">Seleccionar...</option>
+                    <option value="">Elige instrumento</option>
                     @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
                   </select>
                 </div>
@@ -160,18 +152,21 @@
                 </div>
               </div>
               <button type="button" (click)="createVacancy()" [disabled]="vacancyLoading() || !newVacancy.instrument"
-                class="btn-primary min-h-[44px]">
-                {{ vacancyLoading() ? 'Guardando...' : 'Publicar vacante' }}
+                class="btn-primary min-h-[44px]" aria-describedby="vacancy-hint">
+                {{ vacancyLoading() ? 'Publicando…' : 'Publicar vacante' }}
               </button>
+              @if (!newVacancy.instrument) {
+                <p id="vacancy-hint" class="mt-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Elige un instrumento para poder publicar</p>
+              }
             </div>
           }
 
           @if (openVacancies().length === 0) {
             <div class="border-2 border-dashed border-ink px-5 py-9 text-center">
-              <p class="font-display text-2xl">Sin vacantes abiertas</p>
+              <p class="font-display text-2xl">{{ isOwner() ? 'Ahora no buscáis a nadie' : 'Ahora no busca a nadie' }}</p>
               <p class="text-sm text-ink-muted mt-1">
-                @if (isOwner()) { Añade una vacante para buscar nuevos miembros. }
-                @else { Esta banda no busca miembros actualmente. }
+                @if (isOwner()) { Añade una vacante para que los músicos te encuentren. }
+                @else { Vuelve más adelante o escríbeles. }
               </p>
             </div>
           } @else {
@@ -181,9 +176,8 @@
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
                       <p class="font-display text-2xl uppercase leading-none">{{ v.instrument }}</p>
-                      <span class="tag-accent">Abierta</span>
                       @if (isOwner() && vacancyApplicationCount(v.id) > 0) {
-                        <span class="tag">{{ vacancyApplicationCount(v.id) }} sol.</span>
+                        <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">{{ vacancyApplicationCount(v.id) }} {{ vacancyApplicationCount(v.id) === 1 ? 'interesado' : 'interesados' }}</span>
                       }
                     </div>
                     @if (v.description) {
@@ -196,13 +190,13 @@
                     @if (isOwner()) {
                       <button type="button" (click)="closeVacancy(v.id)" class="btn-secondary text-xs min-h-[44px] w-full sm:w-auto">Cerrar</button>
                     } @else if (applySuccess() === v.id || hasApplied(v.id)) {
-                      <span class="tag-green"><app-icon name="check" [size]="11"/>Solicitud enviada</span>
+                      <span class="meta"><app-icon name="check" [size]="12"/>Interés enviado</span>
                     } @else if (myMusicianId()) {
-                      <button type="button" (click)="openApply(v.id)" class="btn-primary text-xs min-h-[44px] w-full sm:w-auto">Postularme</button>
+                      <button type="button" (click)="openApply(v.id)" class="btn-primary text-xs min-h-[44px] w-full sm:w-auto">Me interesa</button>
                     } @else if (currentUserId()) {
-                      <span class="font-mono text-[11px] font-bold uppercase text-ink-muted">Necesitas perfil músico</span>
+                      <span class="font-mono text-[11px] font-bold uppercase text-ink-muted">Necesitas un perfil de músico</span>
                     } @else {
-                      <a routerLink="/auth/login" class="btn-primary text-xs min-h-[44px] w-full sm:w-auto">Postularme</a>
+                      <button type="button" (click)="goToLogin()" class="btn-primary text-xs min-h-[44px] w-full sm:w-auto">Me interesa</button>
                     }
                   </div>
                 </li>
@@ -217,12 +211,17 @@
                 @for (v of closedVacancies(); track v.id) {
                   <li class="py-2.5 border-b-[1.5px] border-ink/40 flex items-center gap-3">
                     <div class="min-w-0 flex-1">
-                      <p class="font-display text-xl uppercase leading-none text-ink-muted">{{ v.instrument }} <span class="tag align-middle ml-1">Cerrada</span></p>
+                      <p class="font-display text-xl uppercase leading-none text-ink-muted">{{ v.instrument }}</p>
                       @if (v.description) {
                         <p class="text-xs text-ink-muted leading-relaxed line-clamp-1 mt-1">{{ v.description }}</p>
                       }
                     </div>
-                    <button type="button" (click)="reopenVacancy(v.id)" class="btn-secondary text-xs min-h-[44px] flex-shrink-0">Reabrir</button>
+                    <div class="flex gap-2 flex-shrink-0">
+                      <button type="button" (click)="reopenVacancy(v.id)" class="btn-secondary text-xs min-h-[44px]">Reabrir</button>
+                      <button type="button" (click)="deleteVacancy(v)" [disabled]="deletingVacancy() === v.id"
+                        [attr.aria-label]="'Eliminar vacante de ' + v.instrument"
+                        class="btn-ghost text-xs min-h-[44px] text-signal-red">Eliminar</button>
+                    </div>
                   </li>
                 }
               </ul>
@@ -234,21 +233,21 @@
         @if (isOwner() && (applications().length > 0 || applicationsLoading())) {
         <section>
           <div class="flex items-center gap-2 border-t-2 border-ink pt-2 mb-3">
-            <h2 class="font-display text-2xl leading-none">Solicitudes recibidas</h2>
+            <h2 class="font-display text-2xl leading-none">Músicos interesados</h2>
             @if (applications().length > 0) {
               <span class="tag-accent">{{ applications().length }}</span>
             }
           </div>
 
           @if (applicationsLoading()) {
-            <p class="py-6 text-center font-mono text-xs font-bold uppercase text-ink-muted" role="status">Cargando solicitudes...</p>
+            <p class="py-6 text-center font-mono text-xs font-bold uppercase text-ink-muted" role="status">Cargando…</p>
           } @else {
             <ul>
               @for (app of applications(); track app.id) {
                 <li class="py-4 border-b border-ink/15 first:pt-1 flex items-start gap-3">
                   <div class="avatar w-11 h-11 text-xl overflow-hidden border-2 border-ink">
                     @if (app.musician?.avatar_url) {
-                      <img [src]="app.musician!.avatar_url" alt="" class="w-full h-full object-cover grayscale" loading="lazy"/>
+                      <img [src]="app.musician!.avatar_url" alt="" class="w-full h-full object-cover" loading="lazy"/>
                     } @else {
                       {{ (app.musician?.name || 'U').slice(0,1).toUpperCase() }}
                     }
@@ -272,7 +271,7 @@
                     <div class="flex flex-wrap gap-2 mt-3">
                       <button type="button" (click)="contactApplicant(app)" [disabled]="contactingApp() === app.id"
                         class="btn-primary text-xs min-h-[44px]">
-                        {{ contactingApp() === app.id ? '...' : 'Contactar' }}
+                        {{ contactingApp() === app.id ? 'Abriendo…' : 'Escribir mensaje' }}
                       </button>
                       @if (app.musician?.id) {
                         <a [routerLink]="['/musicians', app.musician!.id]" class="btn-secondary text-xs min-h-[44px]">Ver perfil</a>
@@ -337,31 +336,11 @@
         }
       </div>
     </div>
-
-    <!-- Mobile action bar — sits above the global bottom nav -->
-    <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink sm:hidden">
-      @if (msgError()) {
-        <p role="alert" aria-live="assertive" class="px-3 pt-2 text-xs font-bold text-signal-red">{{ msgError() }}</p>
-      }
-      <div class="flex gap-2 px-3 py-2.5">
-        @if (band()!.user_id) {
-        <button type="button" (click)="sendMessage()" [disabled]="sending()" class="btn-night font-display text-xl leading-none min-h-[52px] flex-1 disabled:opacity-50">{{ sending() ? 'Abriendo...' : 'Escribir mensaje' }}</button>
-        }
-        <button type="button" [attr.aria-label]="isFav() ? 'Quitar de guardados' : 'Guardar en favoritos'" (click)="toggleFav()" [disabled]="favLoading()"
-          class="btn-secondary min-h-[52px] min-w-[52px] px-0" [class.bg-poster-yellow]="isFav()">
-          <svg aria-hidden="true" class="w-5 h-5 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-        </button>
-        <button type="button" [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir perfil'" (click)="shareLink()"
-          class="btn-secondary min-h-[52px] min-w-[52px] px-0" [class.bg-signal-gBg]="linkShared()" [class.text-signal-green]="linkShared()">
-          <svg aria-hidden="true" class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-        </button>
-      </div>
-    </div>
   }
 
   <!-- ── APPLY MODAL OVERLAY ── -->
   <!-- Status for screen readers once the application has been sent (modal is gone by then). -->
-  <div class="sr-only" role="status">{{ applySuccess() ? 'Solicitud enviada. La banda recibirá una notificación.' : '' }}</div>
+  <div class="sr-only" role="status">{{ applySuccess() ? 'Enviado. La banda recibirá una notificación.' : '' }}</div>
   @if (applyingTo()) {
     <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-night/70 p-0 sm:p-6"
          (click)="closeApply()">
@@ -373,7 +352,7 @@
 
         <div class="flex items-start justify-between gap-3 px-5 py-4 bg-ink text-poster-paper">
           <div class="min-w-0">
-            <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-poster-yellow mb-1" id="apply-dialog-kicker">Postulación</p>
+            <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-poster-yellow mb-1" id="apply-dialog-kicker">Me interesa</p>
             @for (v of openVacancies(); track v.id) {
               @if (v.id === applyingTo()) {
                 <h2 id="apply-dialog-title" class="text-3xl leading-none [overflow-wrap:anywhere]">
@@ -385,7 +364,7 @@
           </div>
           <button type="button" (click)="closeApply()"
             class="w-11 h-11 flex-shrink-0 border-2 border-poster-paper flex items-center justify-center text-poster-paper hover:bg-poster-paper hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-poster-yellow"
-            aria-label="Cerrar postulación">
+            aria-label="Cerrar">
             <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -399,13 +378,13 @@
           </label>
           <textarea id="apply-message" [(ngModel)]="applyMessage"
             rows="4" aria-describedby="apply-dialog-note"
-            placeholder="Tu experiencia, disponibilidad, qué aportas a la banda..."
+            placeholder="Tu experiencia, disponibilidad, qué aportas a la banda…"
             class="input-field text-sm resize-none mb-4"></textarea>
 
           <div class="flex gap-2">
             <button type="button" (click)="submitApplyFromDialog()" [disabled]="applyLoading()"
               class="btn-primary min-h-[48px] flex-1">
-              {{ applyLoading() ? 'Enviando...' : 'Enviar solicitud' }}
+              {{ applyLoading() ? 'Enviando…' : 'Enviar' }}
             </button>
             <button type="button" (click)="closeApply()" class="btn-secondary min-h-[48px] px-5">
               Cancelar

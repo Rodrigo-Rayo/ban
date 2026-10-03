@@ -8,15 +8,16 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { Teacher, Review } from '../../../core/models';
-import { localToday } from '../../../core/utils/date';
+import { formatLongDate, localToday } from '../../../core/utils/date';
 
 const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avatar_url, hourly_rate, experience_years, level, modality, website_url, youtube_url';
 
 @Component({
     selector: 'app-teacher-profile',
-    imports: [RouterLink, FormsModule, IconComponent],
+    imports: [RouterLink, FormsModule, IconComponent, AvatarUploadComponent],
     templateUrl: './teacher-profile.component.html'
 })
 export class TeacherProfileComponent implements OnInit {
@@ -34,7 +35,7 @@ export class TeacherProfileComponent implements OnInit {
   avatarError = signal(false);
 
   toggleBookingForm() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     this.showBookingForm.set(!this.showBookingForm());
   }
   reviews = signal<Review[]>([]);
@@ -64,6 +65,26 @@ export class TeacherProfileComponent implements OnInit {
     if (!r.length) return null;
     return (r.reduce((s, x) => s + x.rating, 0) / r.length).toFixed(1);
   });
+
+  /** Signed-in user owns this profile. */
+  readonly isOwner = computed(() => {
+    const uid = this.currentUserId();
+    const owner = this.teacher()?.user_id;
+    return !!uid && !!owner && uid === owner;
+  });
+  /** Can write to the owner: someone else's profile that has an account behind it. */
+  readonly canMessage = computed(() => !this.isOwner() && !!this.teacher()?.user_id);
+
+  onPhotoUploaded(url: string) {
+    this.teacher.update(v => (v ? { ...v, avatar_url: url } : v));
+    this.avatarError.set(false);
+  }
+
+  /** Logged-out visitors go to login and come back to this profile afterwards. */
+  goToLogin() {
+    try { sessionStorage.setItem('bandyou_return_url', window.location.pathname); } catch { /* storage blocked */ }
+    this.router.navigate(['/auth/login']);
+  }
 
   async ngOnInit() {
     try {
@@ -106,7 +127,7 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   async toggleFav() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     this.favLoading.set(true);
     try {
       this.isFav.set(await this.favSvc.toggle(this.currentUserId()!, 'teacher', this.teacher()!.id));
@@ -126,7 +147,7 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   async submitReview() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     this.reviewLoading.set(true);
     this.reviewError.set(null);
     try {
@@ -157,11 +178,14 @@ export class TeacherProfileComponent implements OnInit {
   get minDate() { return localToday(); }
 
   async submitBooking() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     if (!this.bookingDate) return;
     this.bookingLoading.set(true);
     try {
-      const text = `📅 Solicitud de clase\n\nFecha: ${this.bookingDate}${this.bookingTime ? '\nHora preferida: ' + this.bookingTime : ''}${this.bookingMessage ? '\n\nMensaje: ' + this.bookingMessage : ''}`;
+      const date = formatLongDate(this.bookingDate);
+      const time = this.bookingTime ? `\nHora preferida: ${this.bookingTime}` : '';
+      const note = this.bookingMessage ? `\n\nMensaje: ${this.bookingMessage}` : '';
+      const text = `Solicitud de clase\n\nFecha: ${date}${time}${note}`;
       const result = await this.messagesService.getOrCreateConversation(this.teacher()!.user_id, this.teacher()!.name);
       if (!result || 'error' in result) {
         this.toast.error(result && 'error' in result ? result.error : 'No se pudo enviar la solicitud. Inténtalo de nuevo.');
@@ -183,7 +207,7 @@ export class TeacherProfileComponent implements OnInit {
 
   async sendMessage() {
     const uid = this.currentUserId();
-    if (!uid) { this.router.navigate(['/auth/login']); return; }
+    if (!uid) { this.goToLogin(); return; }
     if (uid === this.teacher()!.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);
     this.msgError.set(null);

@@ -6,6 +6,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { PushNotificationService } from '../../core/services/push-notification.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { Conversation } from '../../core/models';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -42,9 +43,11 @@ describe('InboxComponent', () => {
   let pushMock: { permission: NotificationPermission | 'unsupported'; isSupported: boolean; requestAndSubscribe: jasmine.Spy };
 
   const defaultConversation = makeConversation();
+  let confirmAsk: jasmine.Spy;
 
   beforeEach(async () => {
     inboxUpdate$ = new Subject<InboxUpdate>();
+    confirmAsk = jasmine.createSpy('ask').and.resolveTo(true);
     pushMock = {
       permission: 'granted',
       isSupported: true,
@@ -97,6 +100,7 @@ describe('InboxComponent', () => {
         { provide: ToastService, useValue: toastSpy },
         { provide: PushNotificationService, useValue: pushMock },
         { provide: AuthService, useValue: { user: () => ({ id: 'user-1' }) } },
+        { provide: ConfirmService, useValue: { ask: confirmAsk } },
       ],
     })
       .overrideComponent(InboxComponent, {
@@ -262,7 +266,6 @@ describe('InboxComponent', () => {
   describe('deleteConversation()', () => {
     beforeEach(async () => {
       await component.ngOnInit();
-      spyOn(window, 'confirm').and.returnValue(true);
     });
 
     it('calls event.preventDefault', async () => {
@@ -278,7 +281,7 @@ describe('InboxComponent', () => {
     });
 
     it('does nothing further when the user cancels the confirm dialog', async () => {
-      (window.confirm as jasmine.Spy).and.returnValue(false);
+      confirmAsk.and.resolveTo(false);
       const event = makeEvent();
       await component.deleteConversation('conv-1', event);
       expect(messagesSpy.deleteConversation).not.toHaveBeenCalled();
@@ -319,7 +322,7 @@ describe('InboxComponent', () => {
       const event = makeEvent();
       await component.deleteConversation('conv-1', event);
       expect(toastSpy.error).toHaveBeenCalledWith(
-        'No se pudo borrar la conversación. Inténtalo de nuevo.'
+        'No se pudo eliminar la conversación. Inténtalo de nuevo.'
       );
     });
 
@@ -339,7 +342,7 @@ describe('InboxComponent', () => {
       const event = makeEvent();
       await component.deleteConversation('conv-1', event);
       expect(toastSpy.error).toHaveBeenCalledWith(
-        'No se pudo borrar la conversación. Inténtalo de nuevo.'
+        'No se pudo eliminar la conversación. Inténtalo de nuevo.'
       );
     });
 
@@ -391,6 +394,43 @@ describe('InboxComponent', () => {
       await component.enablePush();
       expect(component.pushPrompt()).toBe('ask');
       expect(toastSpy.error).toHaveBeenCalled();
+    });
+  });
+
+  // ── avatars and the dismissible push notice ────────────────────────────────
+
+  describe('avatars', () => {
+    it('loads the other participant photo via get_profile_avatar and keeps a letter fallback', async () => {
+      const rpc = jasmine.createSpy('rpc').and.resolveTo({ data: 'https://x.test/bob.jpg' });
+      (TestBed.inject(SupabaseService) as any).client = { rpc };
+      await component.ngOnInit();
+      await new Promise(r => setTimeout(r, 0));
+      expect(rpc).toHaveBeenCalledWith('get_profile_avatar', { p_user_id: 'user-aaa' });
+      expect(component.avatars()['conv-1']).toBe('https://x.test/bob.jpg');
+      expect(component.initialOf('Quique')).toBe('Q');
+    });
+
+    it('survives a failing lookup (no photo, no error)', async () => {
+      await component.ngOnInit();
+      await Promise.resolve();
+      expect(component.avatars()).toEqual({});
+      expect(toastSpy.error).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('push notice dismissal', () => {
+    afterEach(() => localStorage.removeItem('bandyou_push_notice_dismissed'));
+
+    it('remembers the dismissal in localStorage', () => {
+      component.dismissPushNotice();
+      expect(component.pushNoticeDismissed()).toBeTrue();
+      expect(localStorage.getItem('bandyou_push_notice_dismissed')).toBe('1');
+    });
+
+    it('still dismisses for the visit when storage throws', () => {
+      spyOn(Storage.prototype, 'setItem').and.throwError('blocked');
+      expect(() => component.dismissPushNotice()).not.toThrow();
+      expect(component.pushNoticeDismissed()).toBeTrue();
     });
   });
 });

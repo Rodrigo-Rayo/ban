@@ -1,18 +1,18 @@
-﻿import { Component, ElementRef, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
-import { NotificationsService } from '../../core/services/notifications.service';
-import { MessagesService } from '../../core/services/messages.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { SeoService } from '../../core/services/seo.service';
 import { CITIES } from '../../core/constants/cities';
 import { timeAgo } from '../../core/utils/display.utils';
-import { environment } from '../../../environments/environment';
-import { Event as AppEvent, EventGenre, Post, GearListing } from '../../core/models';
-import { localToday } from '../../core/utils/date';
+import { dateParts, formatTime } from '../../core/utils/date';
+import { askLabel as askLabelFor, askStampClass as askStampClassFor } from '../../core/utils/se-busca';
+import { AvatarUploadComponent } from '../../shared/components/avatar-upload/avatar-upload.component';
+import { Event as AppEvent, EventGenre, PostType } from '../../core/models';
 
 interface DashboardProfile {
   id?: string;
@@ -20,19 +20,11 @@ interface DashboardProfile {
   name: string;
   city?: string | null;
   avatar_url?: string | null;
-  genre?: string | null;
-  genres?: string | null;
-  instrument?: string | null;
-  hourly_rate?: number | null;
-  capacity?: number | null;
-  looking_for?: string | null;
-  contact_email?: string | null;
-  description?: string | null;
 }
 
 interface DashboardPost {
   id: string;
-  type: string;
+  type: PostType;
   text: string;
   city: string | null;
   created_at: string;
@@ -49,79 +41,37 @@ interface DashboardListing {
   created_at: string;
 }
 
-interface SpaceBooking {
-  id: string;
-  name: string;
-  phone?: string | null;
-  date: string;
-  start_time: string;
-  end_time: string;
-  message?: string | null;
-  status: string;
-}
-
-interface MyBooking {
-  id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  name: string;
-  status: string;
-  space_id?: string | null;
-  message?: string | null;
-  rehearsal_spaces?: { name: string; city: string } | null;
-}
-
-interface SidebarPost {
-  id: string;
-  type: string;
-  text: string;
-  city: string | null;
-  author_name: string;
-  created_at: string;
-}
-
-interface SidebarEvent {
-  id: string;
-  title: string;
-  venue: string;
-  city: string;
-  date: string;
-  time: string | null;
-  genre: string;
-}
+export type DashboardTab = 'events' | 'posts' | 'gear';
 
 @Component({
     selector: 'app-dashboard',
-    imports: [RouterLink, CommonModule, DatePipe, FormsModule],
+    imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent],
     templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
   readonly timeAgo = timeAgo;
+  readonly askLabel = (type: string) => askLabelFor(type as PostType);
+  readonly askStampClass = (type: string) => askStampClassFor(type as PostType);
+  readonly eventDate = dateParts;
+  readonly eventTime = formatTime;
 
   auth          = inject(AuthService);
   private supabase = inject(SupabaseService);
   private seo   = inject(SeoService);
-  notifSvc      = inject(NotificationsService);
-  messagesService = inject(MessagesService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   profile    = signal<DashboardProfile | null>(null);
   profileType = signal('');
   events     = signal<AppEvent[]>([]);
   myPosts    = signal<DashboardPost[]>([]);
   myListings = signal<DashboardListing[]>([]);
-  bookings      = signal<SpaceBooking[]>([]);
-  myBookings    = signal<MyBooking[]>([]);
-  sidebarPosts  = signal<SidebarPost[]>([]);
-  sidebarEvents = signal<SidebarEvent[]>([]);
   loading    = signal(true);
-  uploadingAvatar = signal(false);
-  activeTab  = signal('events');
+  activeTab  = signal<DashboardTab>('events');
   linkCopied = signal(false);
   /** Inline event edit: title left empty on save attempt. */
   editTitleError = signal(false);
-  private host = inject<ElementRef<HTMLElement>>(ElementRef);
   deletingAccount = signal(false);
   showDeleteConfirm = signal(false);
   deleteConfirmText = signal('');
@@ -146,20 +96,16 @@ export class DashboardComponent implements OnInit {
         { data: musician, error: e1 }, { data: band, error: e2 }, { data: venue, error: e3 },
         { data: teacher, error: e4 }, { data: rehearsal, error: e5 }, { data: evs },
         { data: posts },   { data: listings },
-        { data: sbPosts }, { data: sbEvents },
-        { data: userBookings }, { data: profileRow },
+        { data: profileRow },
       ] = await Promise.all([
-        this.supabase.client.from('musicians').select('id,name,city,avatar_url,genre,instrument,description,user_id').eq('user_id', uid).maybeSingle(),
-        this.supabase.client.from('bands').select('id,name,city,avatar_url,genre,description,looking_for,user_id').eq('user_id', uid).maybeSingle(),
-        this.supabase.client.from('venues').select('id,name,city,avatar_url,genres,description,capacity,user_id').eq('user_id', uid).maybeSingle(),
-        this.supabase.client.from('teachers').select('id,name,city,avatar_url,instrument,hourly_rate,description,modality,user_id').eq('user_id', uid).maybeSingle(),
-        this.supabase.client.from('rehearsal_spaces').select('id,name,city,avatar_url,capacity,hourly_rate,description,user_id').eq('user_id', uid).maybeSingle(),
+        this.supabase.client.from('musicians').select('id,name,city,avatar_url,user_id').eq('user_id', uid).maybeSingle(),
+        this.supabase.client.from('bands').select('id,name,city,avatar_url,user_id').eq('user_id', uid).maybeSingle(),
+        this.supabase.client.from('venues').select('id,name,city,avatar_url,user_id').eq('user_id', uid).maybeSingle(),
+        this.supabase.client.from('teachers').select('id,name,city,avatar_url,user_id').eq('user_id', uid).maybeSingle(),
+        this.supabase.client.from('rehearsal_spaces').select('id,name,city,avatar_url,user_id').eq('user_id', uid).maybeSingle(),
         this.supabase.client.from('events').select('*').eq('user_id', uid).order('date', { ascending: false }).limit(50),
         this.supabase.client.from('posts').select('id, type, text, city, created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(100),
         this.supabase.client.from('gear_listings').select('id, title, price, status, images, condition, category, created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(50),
-        this.supabase.client.from('posts').select('id, type, text, city, author_name, created_at').order('created_at', { ascending: false }).limit(5),
-        this.supabase.client.from('events').select('id, title, venue, city, date, time, genre').gte('date', localToday()).order('date', { ascending: true }).limit(4),
-        this.supabase.client.from('rehearsal_bookings').select('id, date, start_time, end_time, name, status, space_id, rehearsal_spaces(name, city)').eq('user_id', uid).order('date', { ascending: true }).limit(100),
         this.supabase.client.from('profiles').select('role, name').eq('id', uid).maybeSingle(),
       ]);
       if (e1 || e2 || e3 || e4 || e5) {
@@ -178,16 +124,8 @@ export class DashboardComponent implements OnInit {
       }
 
       this.events.set(evs || []);
-      this.myPosts.set(posts || []);
+      this.myPosts.set((posts || []) as DashboardPost[]);
       this.myListings.set(listings || []);
-      this.sidebarPosts.set(sbPosts || []);
-      this.sidebarEvents.set(sbEvents || []);
-      this.myBookings.set((userBookings || []) as unknown as MyBooking[]);
-
-      if (this.profileType() === 'rehearsal' && this.profile()) {
-        this.activeTab.set('bookings');
-        this.loadBookings().catch(err => { if (!environment.production) console.error('[Dashboard] loadBookings failed:', err); });
-      }
     } catch {
       this.toast.error('Error al cargar el panel. Recarga la página.');
     } finally {
@@ -195,82 +133,10 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  private async loadBookings() {
-    const p = this.profile();
-    if (!p) return;
-    const today = localToday();
-    const { data, error } = await this.supabase.client
-      .from('rehearsal_bookings').select('id,user_id,space_id,name,phone,date,start_time,end_time,message,status')
-      .eq('space_id', p.id)
-      .gte('date', today)
-      .order('date', { ascending: true })
-      .limit(100);
-    if (error) { this.toast.error('No se pudieron cargar las reservas.'); return; }
-    this.bookings.set(data || []);
+  /** <app-avatar-upload> already saved the photo; just reflect it here. */
+  onAvatarUploaded(url: string) {
+    this.profile.update(p => p ? { ...p, avatar_url: url } : p);
   }
-
-  async updateBookingStatus(id: string, status: string) {
-    const ALLOWED_STATUSES = ['pending', 'confirmed', 'rejected', 'cancelled'] as const;
-    if (!ALLOWED_STATUSES.includes(status as typeof ALLOWED_STATUSES[number])) {
-      this.toast.error('Estado de reserva no válido.');
-      return;
-    }
-    try {
-      const { error } = await this.supabase.client.from('rehearsal_bookings').update({ status }).eq('id', id);
-      if (error) { this.toast.error('No se pudo actualizar el estado de la reserva.'); return; }
-      this.bookings.update(bs => bs.map(b => b.id === id ? { ...b, status } : b));
-      this.toast.success('Estado de la reserva actualizado.');
-      const booking = this.bookings().find(b => b.id === id) as { user_id?: string; space_id?: string; date?: string } | undefined;
-      if (booking?.user_id && (status === 'confirmed' || status === 'rejected')) {
-        const title = status === 'confirmed' ? 'Reserva confirmada' : 'Reserva rechazada';
-        this.notifSvc.create(booking.user_id, 'booking', title, booking.date ? `Reserva del ${booking.date}` : undefined, 'rehearsal', booking.space_id).catch(() => undefined);
-      }
-    } catch {
-      this.toast.error('No se pudo actualizar el estado de la reserva.');
-    }
-  }
-
-  async uploadAvatar(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!ALLOWED.includes(file.type)) {
-      this.toast.error('Solo se permiten imágenes JPG, PNG o WebP.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      this.toast.error('La imagen no puede superar 5 MB.');
-      return;
-    }
-    const { data: { session } } = await this.supabase.auth.getSession();
-    if (!session) return;
-    this.uploadingAvatar.set(true);
-    try {
-      const path = `${session.user.id}/avatar`;
-      const { error } = await this.supabase.client.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
-      if (error) {
-        this.toast.error('No se pudo subir la imagen. Inténtalo de nuevo.');
-      } else {
-        const { data: urlData } = this.supabase.client.storage.from('avatars').getPublicUrl(path);
-        const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-        const table: Record<string, string> = { musician: 'musicians', band: 'bands', venue: 'venues', teacher: 'teachers', rehearsal: 'rehearsal_spaces' };
-        if (table[this.profileType()]) {
-          const { error: dbErr } = await this.supabase.client.from(table[this.profileType()]).update({ avatar_url: avatarUrl }).eq('user_id', session.user.id);
-          if (dbErr) {
-            this.toast.error('Foto subida pero no se pudo guardar. Inténtalo de nuevo.');
-          } else {
-            this.profile.update(p => p ? { ...p, avatar_url: avatarUrl } : p);
-            this.toast.success('Foto de perfil actualizada.');
-          }
-        }
-      }
-    } catch {
-      this.toast.error('No se pudo subir la imagen. Inténtalo de nuevo.');
-    } finally {
-      this.uploadingAvatar.set(false);
-    }
-  }
-
 
   private sanitizeUrl(value: string | null | undefined): string | null {
     if (!value) return null;
@@ -373,7 +239,11 @@ export class DashboardComponent implements OnInit {
     e.preventDefault(); e.stopPropagation();
     const uid = this.auth.user()?.id;
     if (!uid) return;
-    if (!confirm('¿Eliminar este evento?')) return;
+    if (!(await this.confirm.ask({
+      title: '¿Eliminar este evento?',
+      message: 'Dejará de aparecer en la Agenda. No se puede deshacer.',
+      confirmLabel: 'Eliminar', danger: true,
+    }))) return;
     try {
       const { error } = await this.supabase.client.from('events').delete().eq('id', id).eq('user_id', uid);
       if (error) { this.toast.error('No se pudo eliminar el evento.'); return; }
@@ -388,7 +258,11 @@ export class DashboardComponent implements OnInit {
     e.preventDefault(); e.stopPropagation();
     const uid = this.auth.user()?.id;
     if (!uid) return;
-    if (!confirm('¿Eliminar este anuncio?')) return;
+    if (!(await this.confirm.ask({
+      title: '¿Eliminar este anuncio?',
+      message: 'Dejará de aparecer en Se busca. No se puede deshacer.',
+      confirmLabel: 'Eliminar', danger: true,
+    }))) return;
     try {
       const { error } = await this.supabase.client.from('posts').delete().eq('id', id).eq('user_id', uid);
       if (error) { this.toast.error('No se pudo eliminar el anuncio.'); return; }
@@ -403,14 +277,18 @@ export class DashboardComponent implements OnInit {
     e.preventDefault(); e.stopPropagation();
     const uid = this.auth.user()?.id;
     if (!uid) return;
-    if (!confirm('¿Eliminar este producto?')) return;
+    if (!(await this.confirm.ask({
+      title: '¿Eliminar este artículo?',
+      message: 'Dejará de aparecer en la Tienda. No se puede deshacer.',
+      confirmLabel: 'Eliminar', danger: true,
+    }))) return;
     try {
       const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', id).eq('user_id', uid);
-      if (error) { this.toast.error('No se pudo eliminar el producto.'); return; }
+      if (error) { this.toast.error('No se pudo eliminar el artículo.'); return; }
       this.myListings.update(ls => ls.filter(l => l.id !== id));
-      this.toast.success('Producto eliminado.');
+      this.toast.success('Artículo eliminado.');
     } catch {
-      this.toast.error('No se pudo eliminar el producto.');
+      this.toast.error('No se pudo eliminar el artículo.');
     }
   }
 
@@ -429,7 +307,7 @@ export class DashboardComponent implements OnInit {
   }
 
   readonly profileLabel = computed(() =>
-    ({ musician: 'Músico', band: 'Banda', venue: 'Local', teacher: 'Profesor', rehearsal: 'Ensayo', listener: 'Oyente' } as Record<string, string>)[this.profileType()] ?? ''
+    ({ musician: 'Músico', band: 'Banda', venue: 'Sala', teacher: 'Profesor', rehearsal: 'Local', listener: 'Oyente' } as Record<string, string>)[this.profileType()] ?? ''
   );
 
   readonly publicProfilePath = computed((): string | null => {
@@ -452,22 +330,6 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-
-  readonly postTypeMap: Record<string, { label: string; emoji: string }> = {
-    musician_seeking_band: { label: 'Músico busca banda', emoji: '🎸' },
-    band_seeking_musician: { label: 'Banda busca músico', emoji: '🥁' },
-    event_announcement:    { label: 'Evento',             emoji: '📅' },
-    session_offer:         { label: 'Sesión',             emoji: '🎙️' },
-    gear_sale:             { label: 'Vendo equipo',        emoji: '🎛️' },
-    looking_for_rehearsal: { label: 'Busco local',         emoji: '🏠' },
-    collab:                { label: 'Colaboración',        emoji: '🤝' },
-    other:                 { label: 'Otro',                emoji: '📢' },
-  };
-
-  postInfo(type: string): { label: string; emoji: string } {
-    return this.postTypeMap[type] ?? { label: type, emoji: '📢' };
-  }
-
   conditionLabel(c: string) {
     const map: Record<string, string> = { new: 'Nuevo', like_new: 'Como nuevo', good: 'Bueno', acceptable: 'Aceptable' };
     return map[c] ?? c;
@@ -484,7 +346,7 @@ export class DashboardComponent implements OnInit {
   }
 
   async deleteAccount() {
-    if (this.deleteConfirmText().trim().toUpperCase() !== 'BORRAR') return;
+    if (this.deleteConfirmText().trim().toUpperCase() !== 'ELIMINAR') return;
     this.deletingAccount.set(true);
     this.showDeleteConfirm.set(false);
     try {
@@ -495,30 +357,25 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  async cancelMyBooking(id: string) {
-    const uid = this.auth.user()?.id;
-    if (!uid || !confirm('¿Cancelar esta reserva?')) return;
-    try {
-      const { error } = await this.supabase.client
-        .from('rehearsal_bookings').update({ status: 'cancelled' }).eq('id', id).eq('user_id', uid);
-      if (error) { this.toast.error('No se pudo cancelar la reserva.'); return; }
-      this.myBookings.update(bs => bs.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
-      this.toast.success('Reserva cancelada.');
-    } catch {
-      this.toast.error('No se pudo cancelar la reserva.');
-    }
-  }
+  /** One tab bar; each tab carries its own count. */
+  readonly tabs = computed((): { id: DashboardTab; label: string; count: number }[] => [
+    { id: 'events', label: 'Agenda',   count: this.events().length },
+    { id: 'posts',  label: 'Se busca', count: this.myPosts().length },
+    { id: 'gear',   label: 'Tienda',   count: this.myListings().length },
+  ]);
+
+  readonly activeCount = computed(() => this.tabs().find(t => t.id === this.activeTab())?.count ?? 0);
 
   readonly tabNewRoute = computed(() => {
     // routerLink does not parse query strings: '/feed?new=1' became /feed%3Fnew=1 (404).
-    const map: Record<string, string> = { events: '/events/create', posts: '/feed', gear: '/shop/new', bookings: '', reservas: '' };
-    return map[this.activeTab()] ?? '';
+    const map: Record<DashboardTab, string> = { events: '/events/create', posts: '/feed', gear: '/shop/new' };
+    return map[this.activeTab()];
   });
 
   readonly tabNewQuery = computed(() => (this.activeTab() === 'posts' ? { new: '1' } : null));
 
   readonly tabNewLabel = computed(() => {
-    const map: Record<string, string> = { events: '+ Evento', posts: '+ Anuncio', gear: '+ Vender', bookings: '', reservas: '' };
-    return map[this.activeTab()] ?? '';
+    const map: Record<DashboardTab, string> = { events: 'Publicar evento', posts: 'Publicar anuncio', gear: 'Publicar artículo' };
+    return map[this.activeTab()];
   });
 }

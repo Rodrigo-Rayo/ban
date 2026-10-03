@@ -42,34 +42,18 @@
       <section aria-label="Cartel">
         <div class="relative overflow-hidden profile-cover border-2 border-ink h-[260px] sm:h-[340px] lg:h-auto lg:aspect-[4/5]">
           @if (teacher()!.avatar_url && !avatarError()) {
-            <img [src]="teacher()!.avatar_url" alt="" class="absolute inset-0 w-full h-full object-cover grayscale contrast-125" fetchpriority="high" (error)="avatarError.set(true)"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-night via-night/50 to-transparent" aria-hidden="true"></div>
+            <img [src]="teacher()!.avatar_url" alt="" class="absolute inset-0 w-full h-full object-cover contrast-105" fetchpriority="high" (error)="avatarError.set(true)"/>
           } @else {
             <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center font-display text-[11rem] sm:text-[14rem] leading-none text-poster-paper/10 select-none">{{ teacher()!.name.slice(0,1).toUpperCase() }}</span>
           }
           <span class="absolute left-3 top-3.5 font-mono text-[11px] font-bold uppercase tracking-wide text-poster-paper/80">Profesor</span>
-          @if (teacher()!.hourly_rate) {
-          <span class="absolute right-0 top-3 max-w-[75%] bg-poster-yellow text-ink border-2 border-r-0 border-ink font-mono text-xs font-bold uppercase tracking-wide px-3 py-1.5">{{ teacher()!.hourly_rate }} €/h</span>
-          }
-          <h1 class="absolute inset-x-3 bottom-3 font-display text-[clamp(2.5rem,13vw,4.75rem)] sm:text-7xl leading-[0.9] text-poster-paper [overflow-wrap:anywhere]">{{ teacher()!.name }}</h1>
+          <h1 class="absolute inset-x-3 bottom-3 font-display text-[clamp(2.5rem,13vw,4.75rem)] sm:text-7xl leading-[1.04] text-poster-paper [overflow-wrap:anywhere]"><span class="bg-ink box-decoration-clone px-2">{{ teacher()!.name }}</span></h1>
         </div>
         @if (posterLine()) {
           <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>
         }
       </section>
       <dl class="mt-4 border-t border-ink/15" aria-label="Ficha del profesor">
-        @if (teacher()!.instrument) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
-            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Instrumento</dt>
-            <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ teacher()!.instrument }}</dd>
-          </div>
-        }
-        @if (teacher()!.city) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
-            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Ciudad</dt>
-            <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ teacher()!.city }}</dd>
-          </div>
-        }
         @if (teacher()!.modality) {
           <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Modalidad</dt>
@@ -101,32 +85,49 @@
           </div>
         }
       </dl>
-      <div class="hidden sm:grid grid-cols-2 gap-2 mt-5">
-        @if (teacher()!.user_id) {
-          @if (bookingSuccess()) {
-            <p class="col-span-2 tag-green justify-center min-h-[48px] text-xs" role="status"><app-icon name="check" [size]="14"/>Solicitud enviada</p>
-          } @else {
-            <button type="button" (click)="toggleBookingForm()" class="btn-primary col-span-2 min-h-[48px]">
-              {{ showBookingForm() ? 'Cancelar' : 'Solicitar clase' }}
+      @if (isOwner()) {
+        <div class="mt-4 [&>app-avatar-upload>label]:w-full">
+          <app-avatar-upload class="block" (uploaded)="onPhotoUploaded($event)"/>
+        </div>
+      } @else if (!teacher()!.user_id) {
+        <p class="mt-4 border-t border-ink/15 pt-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Este perfil aún no tiene cuenta en BandYou</p>
+      }
+      @if (canMessage()) {
+        @if (bookingSuccess()) {
+          <p class="mt-3 tag-green justify-center min-h-[44px] text-xs" role="status"><app-icon name="check" [size]="14"/>Solicitud de clase enviada</p>
+        } @else {
+          <button type="button" (click)="toggleBookingForm()" class="btn-secondary mt-3 w-full min-h-[44px] text-sm">
+            {{ showBookingForm() ? 'Cancelar solicitud' : 'Solicitar clase' }}
+          </button>
+        }
+      }
+      <!-- One action bar: fixed single row above the bottom nav on mobile, plain block from sm up -->
+      <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink px-3 py-2 sm:static sm:z-auto sm:bg-transparent sm:border-0 sm:p-0 sm:mt-5">
+        @if (msgError()) {
+          <p role="alert" aria-live="assertive" class="pb-1 text-xs font-bold text-signal-red sm:col-span-2">{{ msgError() }}</p>
+        }
+        <div class="flex gap-2 sm:grid sm:grid-cols-2">
+          @if (isOwner()) {
+            <a routerLink="/onboarding" class="btn-primary min-h-[48px] flex-1 sm:col-span-2">Editar perfil</a>
+          } @else if (teacher()!.user_id) {
+            <button type="button" (click)="sendMessage()" [disabled]="sending()" class="btn-primary min-h-[48px] flex-1 sm:col-span-2 disabled:opacity-50">{{ sending() ? 'Abriendo…' : 'Escribir mensaje' }}</button>
+          }
+          @if (!isOwner()) {
+            <button type="button" (click)="toggleFav()" [disabled]="favLoading()"
+              [attr.aria-label]="isFav() ? 'Quitar de favoritos' : 'Añadir a favoritos'" [attr.aria-pressed]="isFav()"
+              class="btn-secondary min-h-[48px] min-w-[48px] sm:min-w-0 sm:min-h-[44px] sm:text-sm px-0 sm:px-4" [class.flex-1]="!canMessage()" [class.bg-poster-yellow]="isFav()">
+              <svg aria-hidden="true" class="w-5 h-5 sm:w-4 sm:h-4 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+              <span [class]="canMessage() ? 'hidden sm:inline' : ''">{{ isFav() ? 'En favoritos' : 'Favorito' }}</span>
             </button>
           }
-          <button type="button" (click)="sendMessage()" [disabled]="sending()" class="btn-secondary col-span-2 min-h-[44px] text-sm">
-            {{ sending() ? 'Abriendo chat...' : 'Abrir chat' }}
+          <button type="button" (click)="shareLink()"
+            [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir perfil'"
+            class="btn-secondary min-h-[48px] min-w-[48px] sm:min-w-0 sm:min-h-[44px] sm:text-sm px-0 sm:px-4" [class.flex-1]="!canMessage() && !isOwner()" [class]="isOwner() ? 'sm:col-span-2' : ''"
+            [class.bg-signal-gBg]="linkShared()" [class.text-signal-green]="linkShared()">
+            <svg aria-hidden="true" class="w-5 h-5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+            <span [class]="canMessage() || isOwner() ? 'hidden sm:inline' : ''">{{ linkShared() ? '¡Enlace copiado!' : 'Compartir' }}</span>
           </button>
-          @if (msgError()) {
-            <p role="alert" aria-live="assertive" class="col-span-2 text-xs font-bold text-signal-red">{{ msgError() }}</p>
-          }
-        }
-        <button type="button" (click)="toggleFav()" [disabled]="favLoading()"
-          class="btn-secondary text-sm min-h-[44px]" [class.bg-poster-yellow]="isFav()">
-          <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-          {{ isFav() ? 'Guardado' : 'Guardar' }}
-        </button>
-        <button type="button" (click)="shareLink()" class="btn-secondary text-sm min-h-[44px]"
-          [class.bg-signal-gBg]="linkShared()" [class.text-signal-green]="linkShared()">
-          <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-          {{ linkShared() ? '¡Enlace copiado!' : 'Compartir' }}
-        </button>
+        </div>
       </div>
       </aside>
 
@@ -247,33 +248,6 @@
           </div>
         </section>
         }
-      </div>
-    </div>
-
-    <!-- Mobile action bar — sits above the global bottom nav -->
-    <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink sm:hidden">
-      @if (msgError()) {
-        <p role="alert" aria-live="assertive" class="px-3 pt-2 text-xs font-bold text-signal-red">{{ msgError() }}</p>
-      }
-      <div class="flex gap-2 px-3 py-2.5">
-        @if (teacher()!.user_id) {
-          @if (bookingSuccess()) {
-            <p class="tag-green flex-1 justify-center min-h-[52px] text-xs" role="status"><app-icon name="check" [size]="14"/>Solicitud enviada</p>
-          } @else {
-            <button type="button" (click)="showBookingForm.set(!showBookingForm())"
-              class="btn-night font-display text-xl leading-none min-h-[52px] flex-1">
-              {{ showBookingForm() ? 'Cancelar' : 'Solicitar clase' }}
-            </button>
-          }
-        }
-        <button type="button" [attr.aria-label]="isFav() ? 'Quitar de guardados' : 'Guardar en favoritos'" (click)="toggleFav()" [disabled]="favLoading()"
-          class="btn-secondary min-h-[52px] min-w-[52px] px-0" [class.bg-poster-yellow]="isFav()">
-          <svg aria-hidden="true" class="w-5 h-5 flex-shrink-0" [attr.fill]="isFav() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-        </button>
-        <button type="button" [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir perfil'" (click)="shareLink()"
-          class="btn-secondary min-h-[52px] min-w-[52px] px-0" [class.bg-signal-gBg]="linkShared()" [class.text-signal-green]="linkShared()">
-          <svg aria-hidden="true" class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-        </button>
       </div>
     </div>
   }

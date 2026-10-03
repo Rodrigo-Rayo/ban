@@ -6,6 +6,9 @@ import { MessagesService, MAX_MESSAGE_LENGTH } from '../../core/services/message
 import { Message } from '../../core/models';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { ConfirmService } from '../../core/services/confirm.service';
+import { avatarSrc } from '../../core/utils/display.utils';
+import { fetchProfileAvatar, initialOf } from '../inbox/profile-avatar';
 
 /** A message as rendered: server rows plus optimistic, not-yet-confirmed sends. */
 export type ChatMessage = Message & { status?: 'sending' | 'failed' };
@@ -39,6 +42,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private messagesService = inject(MessagesService);
   private supabase = inject(SupabaseService);
+  private confirm = inject(ConfirmService);
+
+  readonly avatarSrc = avatarSrc;
+  readonly initialOf = initialOf;
 
   private readonly MESSAGES_LIMIT = 50;
   readonly maxLength = MAX_MESSAGE_LENGTH;
@@ -46,6 +53,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   messages = signal<ChatMessage[]>([]);
   otherName = signal('');
+  otherAvatar = signal<string | null>(null);
+  /** The conversation no longer exists (the other side deleted it): the composer is disabled. */
+  conversationGone = signal(false);
   newMessage = '';
   currentUserId = signal('');
   loading = signal(true);
@@ -109,12 +119,14 @@ export class ChatComponent implements OnInit, OnDestroy {
       if (conv) {
         this.otherUserId = conv.user1_id === this.currentUserId() ? conv.user2_id : conv.user1_id;
         this.refreshOnline();
+        void fetchProfileAvatar(this.supabase, this.otherUserId).then(url => { if (!this.destroyed) this.otherAvatar.set(url); });
         this.messagesService.getOtherUserProfile(conv).then(resolved => {
           // Keep a name passed via navigation over the generic placeholder.
           if (resolved && (resolved !== FALLBACK_NAME || !this.otherName())) this.otherName.set(resolved);
         }).catch(() => { if (!this.otherName()) this.otherName.set(FALLBACK_NAME); });
-      } else if (!this.otherName()) {
-        this.otherName.set(FALLBACK_NAME);
+      } else {
+        this.conversationGone.set(true);
+        if (!this.otherName()) this.otherName.set(FALLBACK_NAME);
       }
     } catch {
       this.sendError.set('No se pudieron cargar los mensajes. Inténtalo de nuevo.');
@@ -144,7 +156,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async send() {
     const content = this.newMessage.trim();
-    if (!content || this.sending()) return;
+    if (!content || this.sending() || this.conversationGone()) return;
     if (content.length > this.maxLength) {
       this.sendError.set(`El mensaje no puede superar los ${this.maxLength} caracteres.`);
       return;
@@ -187,21 +199,33 @@ export class ChatComponent implements OnInit, OnDestroy {
     try {
       const msg = await this.messagesService.sendMessage(this.conversationId, temp.text);
       if (msg) {
-        this.confirm(temp.id, msg);
+        this.confirmSent(temp.id, msg);
       } else {
-        this.setStatus(temp.id, 'failed');
-        this.sendError.set('Error desconocido al enviar.');
+        await this.failDelivery(temp.id, 'Error desconocido al enviar.');
       }
     } catch {
-      this.setStatus(temp.id, 'failed');
-      this.sendError.set('No se pudo enviar. Inténtalo de nuevo.');
+      await this.failDelivery(temp.id, 'No se pudo enviar. Inténtalo de nuevo.');
     } finally {
       this.sending.set(false);
     }
   }
 
+  /** A send failed: if the thread was deleted meanwhile say so, otherwise offer a retry. */
+  private async failDelivery(tempId: string, fallbackError: string) {
+    let exists = true;
+    try { exists = !!(await this.messagesService.getConversationById(this.conversationId)); } catch { /* assume it still exists */ }
+    if (!exists) {
+      this.messages.update(list => list.filter(m => m.id !== tempId));
+      this.conversationGone.set(true);
+      this.sendError.set('');
+      return;
+    }
+    this.setStatus(tempId, 'failed');
+    this.sendError.set(fallbackError);
+  }
+
   /** Swaps an optimistic message for the stored row (or drops it if Realtime already delivered it). */
-  private confirm(tempId: string, msg: Message) {
+  private confirmSent(tempId: string, msg: Message) {
     this.messages.update(list =>
       list.some(m => m.id === msg.id)
         ? list.filter(m => m.id !== tempId)
@@ -292,7 +316,13 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   async deleteConversation() {
     if (this.isDeleting()) return;
-    if (!confirm('¿Borrar esta conversación? Se eliminarán todos los mensajes.')) return;
+    const ok = await this.confirm.ask({
+      title: '¿Eliminar esta conversación?',
+      message: 'Se borrarán todos los mensajes para ambos participantes.',
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
     this.isDeleting.set(true);
     try {
       const err = await this.messagesService.deleteConversation(this.conversationId);

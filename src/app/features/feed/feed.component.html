@@ -1,96 +1,113 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
   <!-- Header -->
-  <header class="border-b-2 border-ink bg-dark-900 sticky top-16 z-20">
-    <div class="max-w-5xl mx-auto px-5 lg:px-8 py-4">
-      <div class="flex items-end justify-between gap-4">
-        <div>
-          <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-primary-500 mb-1">Bandas, músicos y colaboraciones</p>
-          <h1 class="text-4xl sm:text-5xl leading-[1.05]">Se busca</h1>
-        </div>
-        @if (currentUser()) {
-          <button (click)="cancelOrToggleForm()"
-            class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 flex items-center gap-1.5">
-            <app-icon [name]="showForm() ? 'x' : 'edit'" [size]="14" [strokeWidth]="2.5"/>
-            {{ showForm() ? 'Cancelar' : 'Publicar anuncio' }}
-          </button>
+  <header class="page-head bg-dark-900 sticky top-16 z-20">
+    <div class="page-head-inner">
+      <div>
+        @if (showForm()) {
+          <p class="page-kicker">Publicar</p>
+          <h1 class="page-title">Publicar en Se busca</h1>
         } @else {
-          <a routerLink="/auth/login" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 inline-flex items-center">Publicar anuncio</a>
+          <p class="page-kicker">Bandas, músicos y colaboraciones</p>
+          <h1 class="page-title">Se busca</h1>
         }
       </div>
+      @if (!showForm()) {
+        @if (currentUser()) {
+          <button type="button" (click)="cancelOrToggleForm()" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 flex items-center gap-1.5">
+            <app-icon name="edit" [size]="14" [strokeWidth]="2.5"/>
+            Publicar
+          </button>
+        } @else {
+          <a routerLink="/auth/login" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 inline-flex items-center">Publicar</a>
+        }
+      }
     </div>
   </header>
 
-  <div class="max-w-5xl mx-auto px-5 lg:px-8 py-5">
+  <div class="page-wrap py-5">
 
     <!-- ── NEW POST FORM ── -->
     @if (showForm()) {
-      <div class="card-flat overflow-hidden mb-6 animate-slide-in shadow-[4px_4px_0_0_#141210]">
-        <div class="h-2 bg-poster-yellow border-b-2 border-ink"></div>
-        <div class="p-5">
-          <p class="rule-label mb-4">Nuevo anuncio</p>
+      <section aria-labelledby="new-post-title" class="max-w-2xl">
+        <button type="button" (click)="cancelOrToggleForm()"
+          class="group inline-flex items-center gap-1 min-h-[44px] -ml-1 pr-3 mb-3 font-mono text-xs font-bold uppercase tracking-wide text-ink hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+          <app-icon name="arrow-left" [size]="16" [strokeWidth]="2.2" class="transition-transform group-hover:-translate-x-0.5"/>
+          Se busca
+        </button>
+        <h2 id="new-post-title" class="sr-only">Nuevo anuncio</h2>
 
-          <!-- Type selector -->
-          <div class="flex gap-1.5 mb-4 overflow-x-auto pb-1 no-scrollbar fade-edge-r">
+        <!-- Type selector: a wrapping grid, nothing is cut off -->
+        <fieldset class="mb-5">
+          <legend class="rule-label mb-3 w-full">¿Qué quieres publicar?</legend>
+          <div class="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2">
             @for (t of postTypes; track t.id) {
-              <button (click)="newPost.type = t.id"
-                class="font-mono text-[11px] font-bold uppercase tracking-wide px-3 py-2 border-[1.5px] border-ink transition-colors duration-150 flex items-center gap-1.5 flex-shrink-0 snap-start whitespace-nowrap min-h-[44px]"
+              <button type="button" (click)="newPost.type = t.id"
+                class="text-left px-3 py-2.5 min-h-[56px] border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 [attr.aria-pressed]="newPost.type === t.id"
-                [class.genre-pill-active]="newPost.type === t.id"
-                [class.genre-pill-inactive]="newPost.type !== t.id">
-                <span aria-hidden="true">{{ t.emoji }}</span>
-                {{ t.label }}
+                [class]="newPost.type === t.id ? 'bg-ink text-poster-paper border-ink' : 'bg-dark-800 text-ink border-ink/30 hover:border-ink'">
+                <span class="block font-mono text-xs font-bold uppercase tracking-wide">{{ t.label }}</span>
+                <span class="block text-xs leading-snug mt-0.5" [class.text-poster-paper]="newPost.type === t.id" [class.text-ink-muted]="newPost.type !== t.id">{{ t.hint }}</span>
               </button>
             }
           </div>
+        </fieldset>
 
-          <!-- Textarea + counter -->
-          <div class="relative mb-4">
-            <textarea [(ngModel)]="newPost.text" rows="4" [maxlength]="MAX_POST_LENGTH"
+        <!-- Textarea + counter -->
+        <div class="mb-4">
+          <label for="post-text" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Tu anuncio</label>
+          <div class="relative">
+            <textarea id="post-text" [(ngModel)]="newPost.text" rows="4" [maxlength]="MAX_POST_LENGTH"
               placeholder="Ej: Batería con 5 años de experiencia busca banda de rock en Madrid. Disponible fines de semana."
-              class="input-field resize-none pr-16"
-              aria-label="Texto del anuncio"></textarea>
-            <span class="absolute bottom-3 right-3 font-mono text-[11px] font-bold pointer-events-none"
+              class="input-field resize-none pb-7"></textarea>
+            <span class="absolute bottom-2.5 right-3 font-mono text-[11px] font-bold pointer-events-none"
                  [class.text-ink-muted]="newPost.text.length <= MAX_POST_LENGTH * 0.85"
                  [class.text-signal-amber]="newPost.text.length > MAX_POST_LENGTH * 0.85 && newPost.text.length <= MAX_POST_LENGTH * 0.95"
                  [class.text-signal-red]="newPost.text.length > MAX_POST_LENGTH * 0.95">
               {{ newPost.text.length }}/{{ MAX_POST_LENGTH }}
             </span>
           </div>
+        </div>
 
-          <!-- Meta fields -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-            <select [(ngModel)]="newPost.city" class="input-field text-xs py-2.5 min-h-[44px]" aria-label="Ciudad">
+        <!-- Meta fields -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+          <div>
+            <label for="post-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad</label>
+            <select id="post-city" [(ngModel)]="newPost.city" class="input-field min-h-[44px]">
               @for (c of cities.slice(1); track c) { <option [value]="c">{{ c }}</option> }
             </select>
-            <select [(ngModel)]="newPost.instrument" class="input-field text-xs py-2.5 min-h-[44px]" aria-label="Instrumento">
+          </div>
+          <div>
+            <label for="post-instrument" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Instrumento <span class="text-ink-muted">(opcional)</span></label>
+            <select id="post-instrument" [(ngModel)]="newPost.instrument" class="input-field min-h-[44px]">
               <option value="">Sin instrumento</option>
               @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
             </select>
-            <select [(ngModel)]="newPost.genre" class="input-field text-xs py-2.5 min-h-[44px]" aria-label="Género musical">
+          </div>
+          <div>
+            <label for="post-genre" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Género <span class="text-ink-muted">(opcional)</span></label>
+            <select id="post-genre" [(ngModel)]="newPost.genre" class="input-field min-h-[44px]">
               <option value="">Sin género</option>
               @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
             </select>
           </div>
+        </div>
 
-          @if (error()) {
-            <p role="alert" aria-live="assertive" class="text-xs font-bold text-signal-red mb-3 flex items-center gap-1.5">
-              <svg aria-hidden="true" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              {{ error() }}
-            </p>
-          }
+        @if (error()) {
+          <p role="alert" aria-live="assertive" class="text-xs font-bold text-signal-red mb-3">{{ error() }}</p>
+        }
 
-          <button (click)="submitPost()" [disabled]="submitting() || !newPost.text.trim()"
-            class="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+        <div class="flex flex-col-reverse sm:flex-row gap-2">
+          <button type="button" (click)="cancelOrToggleForm()" class="btn-secondary min-h-[48px] sm:px-6">Cancelar</button>
+          <button type="button" (click)="submitPost()" [disabled]="submitting() || !newPost.text.trim()"
+            class="btn-primary min-h-[48px] flex-1 disabled:opacity-50 disabled:cursor-not-allowed">
             {{ submitting() ? 'Publicando…' : 'Publicar anuncio' }}
           </button>
         </div>
-      </div>
+      </section>
     }
 
-    @if (!formOnly()) {
+    @if (!showForm()) {
 
     <!-- ── FILTERS ── -->
     <div class="mb-5 space-y-2.5">
@@ -110,20 +127,18 @@
           <button (click)="clearFilters()"
             class="btn-ghost flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase px-3 py-2 min-h-[44px]"
             aria-label="Limpiar filtros">
-            <svg aria-hidden="true" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
+            <app-icon name="x" [size]="12" [strokeWidth]="2"/>
             Limpiar
           </button>
         }
       </div>
 
-      <!-- Sections -->
-      <nav aria-label="Secciones de Se busca" class="flex gap-0 overflow-x-auto no-scrollbar fade-edge-r border-2 border-ink w-full sm:w-fit">
+      <!-- Sections: the active tab is scrolled into view; the fade on the right says there are more -->
+      <nav #sectionNav aria-label="Secciones de Se busca" class="flex gap-0 overflow-x-auto no-scrollbar fade-edge-r border-2 border-ink w-full sm:w-fit">
         @for (sec of sections; track sec.id; let last = $last) {
           <button type="button" (click)="setSection(sec.id)"
             [attr.aria-current]="section() === sec.id ? 'page' : null"
-            class="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wide px-4 min-h-[44px] flex-shrink-0 whitespace-nowrap transition-colors"
+            class="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wide px-4 min-h-[44px] flex-shrink-0 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
             [class.border-r-2]="!last" [class.border-ink]="!last"
             [class]="section() === sec.id ? 'bg-ink text-poster-paper' : 'bg-dark-800 hover:bg-dark-700'">
             {{ sec.label }}
@@ -136,7 +151,7 @@
     @if (loading()) {
       <div class="flex flex-col border-t-2 border-ink" role="status" aria-label="Cargando anuncios...">
         @for (i of [1,2,3,4]; track i) {
-          <div class="py-4 border-b border-dark-600 animate-pulse">
+          <div class="py-4 border-b border-ink/15 animate-pulse">
             <div class="h-5 bg-dark-700 w-36 mb-3"></div>
             <div class="h-3.5 bg-dark-700 w-full mb-2"></div>
             <div class="h-3 bg-dark-700 w-5/6 mb-2"></div>
@@ -151,49 +166,31 @@
       @if (items().length === 0) {
         @if (hasActiveFilters()) {
           <div class="empty-state">
-            <div class="empty-state-icon">
-              <svg aria-hidden="true" class="w-7 h-7 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-              </svg>
-            </div>
             <p class="font-display text-2xl uppercase text-ink">Sin resultados</p>
             <p class="text-sm text-ink-muted mb-3 max-w-[260px]">No hay anuncios que coincidan con tus filtros</p>
-            <button (click)="clearFilters()"
-              class="btn-secondary text-sm">
-              Limpiar filtros
-            </button>
+            <button (click)="clearFilters()" class="btn-secondary text-sm">Limpiar filtros</button>
           </div>
         } @else {
           <div class="empty-state">
-            <div class="empty-state-icon">
-              <app-icon name="newspaper" [size]="28" class="text-ink"/>
-            </div>
-            <p class="font-display text-2xl uppercase text-ink">Sin anuncios aún</p>
+            <p class="font-display text-2xl uppercase text-ink">Sin anuncios</p>
             <p class="text-sm text-ink-muted mb-3">Nadie ha publicado aquí todavía. Sé el primero en tu zona.</p>
             @if (currentUser()) {
-              <button (click)="showForm.set(true)" class="btn-primary text-sm px-5 py-2 min-h-[44px]">
-                Publicar anuncio
-              </button>
+              <button (click)="showForm.set(true)" class="btn-primary text-sm px-5 py-2 min-h-[44px]">Publicar</button>
             } @else {
-              <a routerLink="/auth/register" class="btn-primary text-sm px-5 py-2 min-h-[44px] inline-flex items-center">Crear cuenta gratis</a>
+              <a routerLink="/auth/register" class="btn-primary text-sm px-5 py-2 min-h-[44px] inline-flex items-center">Crear cuenta</a>
             }
           </div>
         }
       } @else {
         <ul class="flex flex-col border-t-2 border-ink">
           @for (item of items(); track item.kind + item.id) {
-            <li class="relative border-b border-ink/15 last:border-b-0 hover:bg-dark-800 transition-colors duration-150">
+            <li class="border-b border-ink/15 last:border-b-0 hover:bg-dark-800 transition-colors duration-150">
               <a [routerLink]="item.kind === 'vacancy' ? ['/bands', item.vacancy.bands.id] : ['/posts', item.post.id]"
-                 class="block px-1 sm:px-3 py-4"
-                 [class.pb-14]="item.kind === 'post' && currentUser()?.id === item.post.user_id">
-                <!-- 1 · who -->
+                 class="block px-1 sm:px-3 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
+                <!-- 1 · who + when -->
                 <div class="flex items-baseline justify-between gap-3">
                   <h2 class="text-xl sm:text-2xl leading-tight truncate">{{ whoLabel(item) }}</h2>
-                  <span class="meta flex-shrink-0">
-                    @if (item.kind === 'post' && isRecent(item.post)) { <span class="text-primary-600">Nuevo ·</span> }
-                    {{ timeAgo(item.created_at) }}
-                  </span>
+                  <span class="meta flex-shrink-0">{{ timeAgo(item.created_at) }}</span>
                 </div>
                 <!-- 2 · what + where -->
                 <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1.5">
@@ -204,21 +201,20 @@
                 </div>
                 <!-- 3 · detail -->
                 @if (detailText(item)) {
-                  <p class="text-[15px] text-ink leading-relaxed mt-2 line-clamp-2">{{ detailText(item) }}</p>
+                  <p class="text-[15px] text-ink leading-relaxed mt-2 line-clamp-2 max-w-[70ch]">{{ detailText(item) }}</p>
                 }
                 @if (item.kind === 'vacancy') {
-                  <span class="inline-block mt-2 font-mono text-[11px] font-bold uppercase text-primary-600">Ver banda y postularme →</span>
+                  <span class="inline-block mt-2 font-mono text-[11px] font-bold uppercase text-primary-600">Ver banda →</span>
                 }
               </a>
               @if (item.kind === 'post' && currentUser()?.id === item.post.user_id) {
-                <button type="button" (click)="deletePost(item.post.id)"
-                  class="absolute right-1 sm:right-3 bottom-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-white hover:bg-signal-red transition-colors"
-                  aria-label="Eliminar anuncio">
-                  <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                  </svg>
-                </button>
+                <div class="flex justify-end px-1 sm:px-3 -mt-2">
+                  <button type="button" (click)="deletePost(item.post.id)"
+                    class="min-h-[44px] px-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted hover:text-signal-red transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red"
+                    [attr.aria-label]="'Eliminar anuncio de ' + whoLabel(item)">
+                    Eliminar
+                  </button>
+                </div>
               }
             </li>
           }
@@ -231,31 +227,12 @@
       <div class="flex justify-center py-8">
         <button (click)="loadMore()" [disabled]="loadingMore()"
           class="btn-secondary text-sm px-8 min-h-[44px] disabled:opacity-50 gap-2">
-          @if (loadingMore()) {
-            <svg aria-hidden="true" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            Cargando…
-          } @else {
-            Cargar más
-          }
+          {{ loadingMore() ? 'Cargando…' : 'Cargar más' }}
         </button>
       </div>
     }
 
-    } <!-- end @if (!formOnly()) -->
+    } <!-- end @if (!showForm()) -->
 
   </div>
-
-  <!-- Mobile FAB -->
-  @if (currentUser() && !formOnly() && !showForm()) {
-    <button (click)="cancelOrToggleForm()"
-      class="fixed bottom-above-nav mb-4 right-4 z-50 lg:hidden w-14 h-14 bg-primary-500 hover:bg-primary-600 active:translate-x-0.5 active:translate-y-0.5 text-white border-2 border-ink shadow-[4px_4px_0_0_#141210] flex items-center justify-center transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-      aria-label="Nuevo anuncio">
-      <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-    </button>
-  }
 </div>

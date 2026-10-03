@@ -3,6 +3,9 @@ import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angu
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { ToastService } from '../../core/services/toast.service';
+import { ConfirmService } from '../../core/services/confirm.service';
+import { SeoService } from '../../core/services/seo.service';
 import { RegistrationStateService } from '../../core/services/registration-state.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES } from '../../core/constants/cities';
@@ -30,6 +33,9 @@ export class OnboardingComponent implements OnInit {
   private router = inject(Router);
   private registrationState = inject(RegistrationStateService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
+  private seo = inject(SeoService);
 
   step = signal(0);
   role = signal<Role>('musician');
@@ -62,10 +68,10 @@ export class OnboardingComponent implements OnInit {
   roles: { id: Role; label: string; icon: string; desc: string; separator?: boolean }[] = [
     { id: 'musician',  label: 'Músico',         icon: 'music',      desc: 'Toco solo o busco banda' },
     { id: 'band',      label: 'Banda',           icon: 'mic',        desc: 'Buscamos miembros o bolos' },
-    { id: 'venue',     label: 'Sala / Espacio',  icon: 'building',   desc: 'Programo conciertos' },
+    { id: 'venue',     label: 'Sala',            icon: 'building',   desc: 'Programo conciertos' },
     { id: 'teacher',   label: 'Profesor',        icon: 'book-open',  desc: 'Doy clases de música' },
-    { id: 'rehearsal', label: 'Local de ensayo', icon: 'headphones', desc: 'Alquilo espacio' },
-    { id: 'listener',  label: 'Soy del público', icon: 'radio',      desc: 'Descubro artistas y eventos', separator: true },
+    { id: 'rehearsal', label: 'Local',           icon: 'headphones', desc: 'Alquilo espacio' },
+    { id: 'listener',  label: 'Soy del público', icon: 'heart',      desc: 'Descubro artistas y eventos', separator: true },
   ];
 
   readonly roleIds: readonly Role[] = this.roles.map(r => r.id);
@@ -116,7 +122,9 @@ export class OnboardingComponent implements OnInit {
       default:          return { verb: 'programas', hint: 'Hasta 5 géneros que definen tu espacio.' };
     }
   });
-  hasLevelStep      = computed(() => this.role() === 'musician' || this.role() === 'teacher');
+  /** Final button copy: the account already exists, so we never say "Crear cuenta" here. */
+  submitLabel     = computed(() => (this.isEditing() ? 'Guardar cambios' : 'Crear perfil'));
+  submitBusyLabel = computed(() => (this.isEditing() ? 'Guardando…' : 'Creando perfil…'));
   totalSteps        = computed(() => {
     if (this.isListener()) return 2;
     return this.hasInstrumentStep() ? 6 : 4;
@@ -212,7 +220,16 @@ export class OnboardingComponent implements OnInit {
   }
   back() {
     this.stepError.set('');
+    // Editing starts at the name step: there is nothing before it but leaving.
+    if (this.isEditing() && this.step() <= 1) { this.goToDashboard(); return; }
     this.step.update(s => Math.max(0, s - 1));
+    this.focusStepHeading();
+  }
+
+  /** Explicit, opt-in way back to the role step while editing. */
+  changeRole() {
+    this.stepError.set('');
+    this.step.set(0);
     this.focusStepHeading();
   }
 
@@ -280,9 +297,6 @@ export class OnboardingComponent implements OnInit {
     radios[idx]?.focus();
   }
 
-  canProceedStep1() {
-    return this.nameForm.valid;
-  }
   canProceedStep2() {
     if (this.hasInstrumentStep()) return this.selectedInstruments().length > 0;
     return true;
@@ -380,7 +394,7 @@ export class OnboardingComponent implements OnInit {
       if (profileRow?.role === 'listener') {
         this.role.set('listener');
         this.originalRole.set('listener');
-        this.isEditing.set(true);
+        this.startEditing();
         if (profileRow.name) this.nameForm.patchValue({ name: profileRow.name });
       }
     }
@@ -389,7 +403,7 @@ export class OnboardingComponent implements OnInit {
       const { data, role } = found;
       this.role.set(role);
       this.originalRole.set(role);
-      this.isEditing.set(true);
+      this.startEditing();
       this.nameForm.patchValue({ name: data.name });
       this.zoneForm.patchValue({
         city:           data.city ?? 'Madrid',
@@ -428,6 +442,13 @@ export class OnboardingComponent implements OnInit {
     }
   }
 
+  /** Editing skips the role step (changing type stays one click away). */
+  private startEditing() {
+    this.isEditing.set(true);
+    this.step.set(1);
+    this.seo.set({ title: 'Editar perfil' });
+  }
+
   async onSubmit() {
     if (!this.isEditing() && this.needsConsent() && !this.consentAccepted()) {
       this.consentError.set(true);
@@ -453,8 +474,12 @@ export class OnboardingComponent implements OnInit {
     const prev = this.originalRole();
     const isRoleChange = !!prev && prev !== role && !!roleTableMap[prev];
     if (isRoleChange) {
-      const roleLabels: Record<string, string> = { musician: 'músico', band: 'banda', venue: 'sala', teacher: 'profesor', rehearsal: 'local de ensayo', listener: 'oyente' };
-      if (!confirm(`¿Cambiar tu perfil de ${roleLabels[prev] ?? prev} a ${roleLabels[role] ?? role}? Tu perfil anterior se eliminará permanentemente.`)) {
+      const roleLabels: Record<string, string> = { musician: 'músico', band: 'banda', venue: 'sala', teacher: 'profesor', rehearsal: 'local', listener: 'oyente' };
+      if (!(await this.confirm.ask({
+        title: `¿Cambiar tu perfil de ${roleLabels[prev] ?? prev} a ${roleLabels[role] ?? role}?`,
+        message: 'Tu perfil anterior se eliminará para siempre.',
+        confirmLabel: 'Cambiar perfil', danger: true,
+      }))) {
         return;
       }
     }
@@ -562,7 +587,15 @@ export class OnboardingComponent implements OnInit {
           try { sessionStorage.removeItem('bandyou_consent_pending'); } catch { /* storage blocked */ }
         }
         localStorage.removeItem('bandyou_role');
-        this.router.navigate(['/home']);
+        if (this.isEditing()) {
+          this.toast.success('Perfil actualizado.');
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.toast.success('Perfil creado.');
+          // The photo is saved on the profile row, so the panel (which has "Cambiar foto") is the landing page.
+          // Listeners have no photo to add and go straight to the front page.
+          this.router.navigate([role === 'listener' ? '/home' : '/dashboard']);
+        }
       }
     } finally {
       this.loading.set(false);

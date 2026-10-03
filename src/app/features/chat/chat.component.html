@@ -12,28 +12,28 @@
     </a>
 
     <!-- Avatar + name -->
-    <div class="avatar w-10 h-10 text-base bg-primary-500 !text-white border-[1.5px] border-ink">
-      {{ otherName().slice(0,2).toUpperCase() }}
-    </div>
+    @if (otherAvatar(); as photo) {
+      <img [src]="avatarSrc(photo, 80)" alt="" width="40" height="40" class="w-10 h-10 object-cover flex-shrink-0 border-[1.5px] border-ink"/>
+    } @else {
+      <div class="avatar w-10 h-10 text-base border-[1.5px] border-ink" aria-hidden="true">{{ initialOf(otherName()) }}</div>
+    }
     <div class="flex-1 min-w-0">
-      <p class="font-display text-xl uppercase text-ink leading-tight truncate">{{ otherName() }}</p>
+      <h1 class="font-display text-xl uppercase text-ink leading-tight truncate">{{ otherName() || 'Conversación' }}</h1>
       <p class="font-mono text-[11px] font-bold uppercase tracking-wide" aria-live="polite" data-testid="chat-status"
-         [class.text-primary-500]="otherTyping() || otherOnline()"
+         [class.text-primary-600]="otherTyping() || otherOnline()"
          [class.text-ink-muted]="!otherTyping() && !otherOnline()">
-        {{ otherTyping() ? 'escribiendo…' : otherOnline() ? 'en línea' : 'Mensaje directo' }}
+        {{ conversationGone() ? 'Conversación eliminada' : otherTyping() ? 'escribiendo…' : otherOnline() ? 'en línea' : 'Mensaje directo' }}
       </p>
     </div>
 
-    <!-- Delete button -->
-    <button type="button" (click)="deleteConversation()" [disabled]="isDeleting()"
-      title="Borrar conversación"
-      aria-label="Borrar conversación"
-      class="p-2 text-ink hover:text-white hover:bg-signal-red border-[1.5px] border-ink transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed">
-      <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-      </svg>
-    </button>
+    <!-- Delete (labelled) -->
+    @if (!conversationGone()) {
+      <button type="button" (click)="deleteConversation()" [disabled]="isDeleting()"
+        aria-label="Eliminar conversación"
+        class="px-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted hover:text-signal-red transition-colors min-h-[44px] flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red">
+        Eliminar
+      </button>
+    }
   </div>
 
   <!-- Messages area -->
@@ -64,6 +64,8 @@
         </div>
       </div>
 
+    } @else if (messages().length === 0 && conversationGone()) {
+      <!-- Deleted thread: the notice below the list explains it -->
     } @else if (messages().length === 0) {
       <!-- Empty state -->
       <div class="flex flex-col items-center justify-center flex-1 text-center py-10 px-6">
@@ -181,6 +183,12 @@
     </div>
   }
 
+  @if (conversationGone()) {
+    <div role="status" class="flex items-center justify-between gap-3 px-4 py-3 border-t-2 border-ink bg-dark-800 flex-shrink-0" data-testid="chat-gone">
+      <p class="text-sm text-ink leading-snug">Esta conversación ya no existe: la otra persona la ha eliminado. No se pueden enviar más mensajes.</p>
+      <a routerLink="/inbox" class="btn-secondary text-xs min-h-[44px] flex-shrink-0">Mensajes</a>
+    </div>
+  } @else {
   <!-- Input area -->
   <div class="flex items-end gap-2 px-4 py-3 border-t-2 border-ink bg-dark-800 flex-shrink-0">
     <div class="flex-1 min-w-0 flex flex-col">
@@ -220,4 +228,5 @@
       }
     </button>
   </div>
+  }
 </div>

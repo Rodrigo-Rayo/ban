@@ -1,47 +1,56 @@
 <div class="flex flex-col min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
   <!-- Header — sticky below navbar -->
-  <div class="sticky top-16 z-10 px-5 py-3 border-b-2 border-ink bg-dark-900 flex items-end justify-between">
-    <div class="flex items-end gap-3">
-      <div>
-        <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-primary-500 mb-1">Bandeja</p>
-        <h1 class="text-4xl leading-[0.9] text-ink">Mensajes</h1>
+  <header class="page-head sticky top-16 z-10 bg-dark-900">
+    <div class="page-head-inner !py-3">
+      <div class="flex items-end gap-3">
+        <div>
+          <p class="page-kicker">Bandeja</p>
+          <h1 class="page-title">Mensajes</h1>
+        </div>
+        @if (!loading() && unreadIds().size > 0) {
+          <span class="min-w-[22px] h-[22px] px-1.5 mb-1.5 bg-poster-yellow text-ink border-[1.5px] border-ink font-mono text-[11px] font-bold flex items-center justify-center leading-none"
+                [attr.aria-label]="unreadIds().size + ' sin leer'">
+            {{ unreadIds().size }}
+          </span>
+        }
       </div>
-      @if (!loading() && unreadIds().size > 0) {
-        <span class="min-w-[22px] h-[22px] px-1.5 bg-poster-yellow text-ink border-[1.5px] border-ink font-mono text-[11px] font-bold flex items-center justify-center leading-none mb-1">
-          {{ unreadIds().size }}
-        </span>
-      }
+      <a routerLink="/search"
+         class="text-ink hover:bg-dark-700 border-[1.5px] border-ink transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+         aria-label="Explorar directorio">
+        <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" stroke-width="1.8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="1.8"/>
+        </svg>
+      </a>
     </div>
-    <a routerLink="/search"
-       class="p-2.5 text-ink hover:bg-dark-700 border-[1.5px] border-ink transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-       aria-label="Explorar directorio">
-      <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="8" stroke-width="1.8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="1.8"/>
-      </svg>
-    </a>
-  </div>
+  </header>
 
-  @switch (pushPrompt()) {
-    @case ('ask') {
-      <div class="mx-4 mt-3 px-4 py-3 bg-poster-yellow border-2 border-ink shadow-[3px_3px_0_0_#141210] flex items-center gap-3" data-testid="push-prompt">
-        <p class="flex-1 text-xs text-ink leading-snug"><strong class="font-bold">Activa las notificaciones</strong> para enterarte de cada mensaje aunque tengas BandYou cerrado.</p>
+  @if (pushPrompt() === 'ask') {
+    <div class="page-wrap w-full mt-3">
+      <div class="px-4 py-3 bg-poster-yellow border-2 border-ink flex items-center gap-3" data-testid="push-prompt">
+        <p class="flex-1 text-sm text-ink leading-snug"><strong class="font-bold">Activa las notificaciones</strong> para enterarte de cada mensaje aunque tengas BandYou cerrado.</p>
         <button type="button" (click)="enablePush()" [disabled]="enablingPush()" class="btn-primary text-xs px-3 py-2 min-h-[44px] flex-shrink-0">
           {{ enablingPush() ? 'Activando…' : 'Activar' }}
         </button>
       </div>
-    }
-    @case ('denied') {
-      <p class="mx-4 mt-3 px-4 py-3 bg-dark-800 border-2 border-ink text-xs text-ink leading-snug" data-testid="push-prompt">
-        Las notificaciones están bloqueadas en este navegador. Para recibir avisos de mensajes, permítelas en los ajustes del sitio (icono del candado junto a la dirección).
-      </p>
-    }
-    @case ('ios-install') {
-      <p class="mx-4 mt-3 px-4 py-3 bg-dark-800 border-2 border-ink text-xs text-ink leading-snug" data-testid="push-prompt">
-        En iPhone, para recibir avisos de mensajes añade BandYou a tu pantalla de inicio: botón <strong class="font-bold text-ink">Compartir</strong> → <strong class="font-bold text-ink">Añadir a pantalla de inicio</strong>, y ábrela desde ahí.
-      </p>
-    }
+    </div>
+  } @else if ((pushPrompt() === 'denied' || pushPrompt() === 'ios-install') && !pushNoticeDismissed()) {
+    <div class="page-wrap w-full mt-3">
+      <div class="flex items-center gap-2 pl-3 border border-ink/15 bg-dark-800" data-testid="push-prompt">
+        <p class="flex-1 min-w-0 text-xs text-ink-muted leading-snug py-2">
+          @if (pushPrompt() === 'denied') {
+            Avisos desactivados: permite las notificaciones en los ajustes del sitio (candado junto a la dirección).
+          } @else {
+            Para recibir avisos en iPhone, añade BandYou a la pantalla de inicio desde Compartir.
+          }
+        </p>
+        <button type="button" (click)="dismissPushNotice()" aria-label="Cerrar aviso"
+          class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink-muted hover:text-ink flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+          <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
   }
 
   @if (deleteError()) {
@@ -89,62 +98,50 @@
 
   <!-- ── CONVERSATION LIST ── -->
   } @else {
-    <div class="flex-1 overflow-y-auto divide-y divide-ink/15">
+    <ul class="page-wrap w-full flex-1 flex flex-col mt-1">
       @for (conv of conversations(); track conv.id) {
-        <div [class]="'flex items-center group transition-colors hover:bg-dark-700' + (unreadIds().has(conv.id) ? ' bg-primary-900' : '')">
+        <li class="flex items-center group border-b border-ink/15 transition-colors hover:bg-dark-800">
 
           <!-- Conversation row (link) -->
           <a [routerLink]="['/inbox', conv.id]"
-             class="flex items-center gap-3.5 px-5 py-4 flex-1 min-w-0 cursor-pointer min-h-[72px]">
+             class="flex items-center gap-3.5 py-4 flex-1 min-w-0 cursor-pointer min-h-[72px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
 
-            <!-- Avatar with unread dot -->
-            <div class="relative flex-shrink-0">
-              <div class="avatar w-12 h-12 text-xl">
-                {{ (names()[conv.id] || '?').slice(0,2).toUpperCase() }}
-              </div>
-              @if (unreadIds().has(conv.id)) {
-                <span class="absolute -top-1 -right-1 w-4 h-4 bg-primary-500 border-2 border-ink" aria-hidden="true"></span>
-                <span class="sr-only">Mensajes sin leer.</span>
-              }
-            </div>
+            @if (avatars()[conv.id]; as photo) {
+              <img [src]="avatarSrc(photo, 96)" alt="" width="48" height="48" loading="lazy" class="w-12 h-12 object-cover flex-shrink-0 border-[1.5px] border-ink"/>
+            } @else {
+              <div class="avatar w-12 h-12 text-xl" aria-hidden="true">{{ initialOf(names()[conv.id]) }}</div>
+            }
 
-            <!-- Name + preview -->
+            <!-- Name + preview: unread = bold, nothing else -->
             <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-2 mb-0.5">
-                <span class="font-display text-xl uppercase leading-tight truncate text-ink">
-                  {{ names()[conv.id] || '...' }}
+              <div class="flex items-baseline justify-between gap-2 mb-0.5">
+                <span class="font-display text-xl uppercase leading-tight truncate text-ink"
+                      [class.font-black]="unreadIds().has(conv.id)">
+                  {{ names()[conv.id] || '…' }}
                 </span>
-                <span class="font-mono text-[11px] font-bold uppercase flex-shrink-0"
-                      [class.text-primary-500]="unreadIds().has(conv.id)"
-                      [class.text-ink-muted]="!unreadIds().has(conv.id)">
-                  {{ conv.last_message_at | date:'d MMM' }}
-                </span>
+                <span class="meta flex-shrink-0">{{ conv.last_message_at | date:'d MMM' }}</span>
               </div>
               @if (conv.last_message) {
                 <p class="text-sm truncate"
                    [class.text-ink]="unreadIds().has(conv.id)"
-                   [class.font-semibold]="unreadIds().has(conv.id)"
+                   [class.font-bold]="unreadIds().has(conv.id)"
                    [class.text-ink-muted]="!unreadIds().has(conv.id)">
-                  {{ conv.last_message }}
+                  @if (unreadIds().has(conv.id)) { <span class="sr-only">Sin leer. </span> }{{ conv.last_message }}
                 </p>
               }
             </div>
           </a>
 
-          <!-- Delete button — visible on hover -->
+          <!-- Delete: labelled, always visible -->
           <button type="button" (click)="deleteConversation(conv.id, $event)"
             [disabled]="deletingId() === conv.id"
-            class="disabled:opacity-40 disabled:cursor-not-allowed mr-3 p-2.5 text-ink-muted hover:text-signal-red transition-all flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
-            title="Borrar conversación"
-            [attr.aria-label]="'Borrar conversación con ' + (names()[conv.id] || 'este usuario')">
-            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-            </svg>
+            class="disabled:opacity-40 disabled:cursor-not-allowed px-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted hover:text-signal-red transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red"
+            [attr.aria-label]="'Eliminar conversación con ' + (names()[conv.id] || 'este usuario')">
+            Eliminar
           </button>
 
-        </div>
+        </li>
       }
-    </div>
+    </ul>
   }
 </div>

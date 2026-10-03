@@ -1,5 +1,6 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { bannerWants } from './banner-queue';
 
 /**
  * The app only uses strictly necessary storage (session, login flow, UI
@@ -18,11 +19,20 @@ export const COOKIE_NOTICE_KEY = 'bandyou_cookie_consent';
     imports: [RouterLink],
     templateUrl: './cookie-banner.component.html'
 })
-export class CookieBannerComponent implements OnInit {
+export class CookieBannerComponent implements OnInit, OnDestroy {
   visible = signal(false);
 
   ngOnInit(): void {
-    this.visible.set(!this.readDismissed());
+    this.setVisible(!this.readDismissed());
+  }
+
+  ngOnDestroy(): void {
+    bannerWants.cookie.set(false);
+  }
+
+  private setVisible(v: boolean): void {
+    this.visible.set(v);
+    bannerWants.cookie.set(v);
   }
 
   dismiss(): void {
@@ -31,7 +41,7 @@ export class CookieBannerComponent implements OnInit {
     } catch {
       // Storage blocked (private mode / site data disabled): hide for this page view only.
     }
-    this.visible.set(false);
+    this.setVisible(false);
   }
 
   private readDismissed(): boolean {

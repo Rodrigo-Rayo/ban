@@ -4,6 +4,7 @@ import { ChatComponent } from './chat.component';
 import { MessagesService } from '../../core/services/messages.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { Message } from '../../core/models';
+import { ConfirmService } from '../../core/services/confirm.service';
 
 // ---------------------------------------------------------------------------
 // Supabase query-builder mock — supports full method chaining and awaiting.
@@ -30,6 +31,7 @@ describe('ChatComponent', () => {
   let supabaseSpy: any;
   let routerSpy: jasmine.SpyObj<Router>;
   let routeMock: any;
+  let confirmAsk: jasmine.Spy;
 
   const fakeMsg: Message = {
     id: 'msg-1',
@@ -43,6 +45,7 @@ describe('ChatComponent', () => {
     ...fakeMsg, text: 'hi', read: false, sender_id: 'me', ...over,
   } as Message);
 
+  const existingConv = { id: 'conv-123', user1_id: 'u1', user2_id: 'u2' } as any;
   const fakeChannel: any = { unsubscribe: jasmine.createSpy('unsubscribe') };
 
   beforeEach(async () => {
@@ -70,6 +73,7 @@ describe('ChatComponent', () => {
     };
 
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    confirmAsk = jasmine.createSpy('ask').and.resolveTo(true);
     routeMock = {
       snapshot: { paramMap: { get: jasmine.createSpy('get').and.returnValue('conv-123') } },
     };
@@ -81,6 +85,7 @@ describe('ChatComponent', () => {
         { provide: SupabaseService,  useValue: supabaseSpy },
         { provide: Router,           useValue: routerSpy },
         { provide: ActivatedRoute,   useValue: routeMock },
+        { provide: ConfirmService,   useValue: { ask: confirmAsk } },
       ],
     })
     .overrideComponent(ChatComponent, { set: { imports: [], template: '<div></div>' } })
@@ -192,6 +197,7 @@ describe('ChatComponent', () => {
 
   it('13. send() sets sendError when sendMessage returns null', async () => {
     msgSvc.sendMessage.and.returnValue(Promise.resolve(null));
+    msgSvc.getConversationById.and.resolveTo(existingConv);
     (component as any).conversationId = 'conv-123';
     component.newMessage = 'test';
     await component.send();
@@ -200,6 +206,7 @@ describe('ChatComponent', () => {
 
   it('14. send() sets sendError on thrown exception', async () => {
     msgSvc.sendMessage.and.returnValue(Promise.reject(new Error('network')));
+    msgSvc.getConversationById.and.resolveTo(existingConv);
     (component as any).conversationId = 'conv-123';
     component.newMessage = 'test';
     await component.send();
@@ -208,6 +215,7 @@ describe('ChatComponent', () => {
 
   it('14b. failed send keeps a failed bubble that can be retried', async () => {
     msgSvc.sendMessage.and.returnValue(Promise.reject(new Error('network')));
+    msgSvc.getConversationById.and.resolveTo(existingConv);
     (component as any).conversationId = 'conv-123';
     component.newMessage = 'retry me';
     await component.send();
@@ -245,6 +253,7 @@ describe('ChatComponent', () => {
 
   it('15. send() resets sending to false in finally', async () => {
     msgSvc.sendMessage.and.returnValue(Promise.resolve(null));
+    msgSvc.getConversationById.and.resolveTo(existingConv);
     (component as any).conversationId = 'conv-123';
     component.newMessage = 'test';
     await component.send();
@@ -289,13 +298,13 @@ describe('ChatComponent', () => {
   });
 
   it('20. deleteConversation does nothing when user cancels confirm', async () => {
-    spyOn(window, 'confirm').and.returnValue(false);
+    confirmAsk.and.resolveTo(false);
     await component.deleteConversation();
     expect(msgSvc.deleteConversation).not.toHaveBeenCalled();
   });
 
   it('21. deleteConversation calls service.deleteConversation and navigates to /inbox on success', async () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+    confirmAsk.and.resolveTo(true);
     msgSvc.deleteConversation.and.returnValue(Promise.resolve(null));
     (component as any).conversationId = 'conv-123';
     await component.deleteConversation();
@@ -304,7 +313,7 @@ describe('ChatComponent', () => {
   });
 
   it('22. deleteConversation sets sendError when service returns error string', async () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+    confirmAsk.and.resolveTo(true);
     msgSvc.deleteConversation.and.returnValue(Promise.resolve('Error al borrar'));
     (component as any).conversationId = 'conv-123';
     await component.deleteConversation();
@@ -312,7 +321,7 @@ describe('ChatComponent', () => {
   });
 
   it('23. deleteConversation sets sendError on thrown exception', async () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+    confirmAsk.and.resolveTo(true);
     msgSvc.deleteConversation.and.returnValue(Promise.reject(new Error('network')));
     (component as any).conversationId = 'conv-123';
     await component.deleteConversation();
@@ -320,11 +329,46 @@ describe('ChatComponent', () => {
   });
 
   it('24. deleteConversation resets isDeleting to false in finally', async () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+    confirmAsk.and.resolveTo(true);
     msgSvc.deleteConversation.and.returnValue(Promise.resolve(null));
     (component as any).conversationId = 'conv-123';
     await component.deleteConversation();
     expect(component.isDeleting()).toBeFalse();
+  });
+
+  // -------------------------------------------------------------------------
+  // Deleted by the other side / avatar
+  // -------------------------------------------------------------------------
+
+  it('24b. a failed send on a conversation that no longer exists disables the composer', async () => {
+    msgSvc.sendMessage.and.returnValue(Promise.reject(new Error('violates foreign key')));
+    msgSvc.getConversationById.and.resolveTo(null);
+    (component as any).conversationId = 'conv-123';
+    component.newMessage = 'hola?';
+    await component.send();
+    expect(component.conversationGone()).toBeTrue();
+    expect(component.sendError()).toBe('');
+    expect(component.messages().length).toBe(0);
+    // and nothing more can be sent
+    component.newMessage = 'otra vez';
+    await component.send();
+    expect(msgSvc.sendMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('24c. opening a conversation that does not exist marks it as gone', async () => {
+    msgSvc.getConversationById.and.resolveTo(null);
+    await component.ngOnInit();
+    expect(component.conversationGone()).toBeTrue();
+  });
+
+  it('24d. loads the other side avatar and keeps a one-letter fallback helper', async () => {
+    msgSvc.getConversationById.and.resolveTo(existingConv);
+    supabaseSpy.client.rpc = jasmine.createSpy('rpc').and.resolveTo({ data: 'https://x.test/a.jpg' });
+    await component.ngOnInit();
+    await Promise.resolve();
+    expect(supabaseSpy.client.rpc).toHaveBeenCalledWith('get_profile_avatar', { p_user_id: 'u2' });
+    expect(component.otherAvatar()).toBe('https://x.test/a.jpg');
+    expect(component.initialOf('Quique Ayala')).toBe('Q');
   });
 
   // -------------------------------------------------------------------------

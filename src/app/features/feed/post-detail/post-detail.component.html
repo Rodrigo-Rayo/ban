@@ -12,8 +12,8 @@
   @if (loading()) {
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-5 lg:py-8 grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-10 gap-y-8 animate-pulse" role="status" aria-busy="true" aria-label="Cargando anuncio">
       <div>
-        <div class="h-[240px] sm:h-[300px] lg:h-[380px] bg-night border-2 border-ink"></div>
-        <div class="h-12 bg-primary-500/70 border-2 border-t-0 border-ink"></div>
+        <div class="h-[132px] sm:h-[300px] lg:h-[380px] bg-night border-2 border-ink"></div>
+        <div class="h-12 bg-primary-500 border-2 border-t-0 border-ink"></div>
         <div class="mt-4 space-y-3">
           <div class="h-6 border-b border-ink/15"></div>
           <div class="h-6 border-b border-ink/15"></div>
@@ -45,13 +45,13 @@
       <!-- Poster column -->
       <aside class="min-w-0">
         <section aria-label="Cartel del anuncio">
-          <div class="relative overflow-hidden profile-cover border-2 border-ink min-h-[260px] sm:min-h-[320px] lg:min-h-[400px] flex flex-col justify-between p-3">
-            <span aria-hidden="true" class="absolute -right-4 -top-6 font-display text-[16rem] leading-none text-poster-paper/10 select-none">{{ (post()!.author_name || 'U').slice(0,1).toUpperCase() }}</span>
+          <div class="relative overflow-hidden profile-cover border-2 border-ink min-h-[132px] sm:min-h-[260px] lg:min-h-[400px] flex flex-col justify-between p-3">
+            <span aria-hidden="true" class="absolute -right-4 -top-6 font-display text-[9rem] sm:text-[16rem] leading-none text-poster-paper/10 select-none">{{ (post()!.author_name || 'U').slice(0,1).toUpperCase() }}</span>
             <div class="relative flex items-start justify-between gap-3">
               <span [class]="heroStampFor(post()!.type)" class="!text-xs !px-2.5 !py-1">{{ askLabel() }}</span>
               <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-poster-paper/80 pt-1">{{ timeAgo(post()!.created_at) }}</span>
             </div>
-            <h1 class="relative mt-10 font-display text-[clamp(2.75rem,14vw,5rem)] sm:text-7xl leading-[0.9] text-poster-paper [overflow-wrap:anywhere]">{{ post()!.author_name || 'Un usuario' }}</h1>
+            <h1 class="relative mt-4 sm:mt-10 font-display text-[clamp(2.25rem,11vw,4rem)] sm:text-7xl leading-[0.9] text-poster-paper [overflow-wrap:anywhere]">{{ post()!.author_name || 'Un usuario' }}</h1>
           </div>
           @if (posterLine()) {
             <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>
@@ -59,7 +59,7 @@
         </section>
 
         @if (sheet().length) {
-          <dl class="mt-4 border-t border-ink/15" aria-label="Ficha del anuncio">
+          <dl class="hidden lg:block mt-4 border-t border-ink/15" aria-label="Ficha del anuncio">
             @for (row of sheet(); track row.label) {
               <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
                 <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">{{ row.label }}</dt>
@@ -82,7 +82,11 @@
         <!-- Author -->
         <section aria-label="Autor del anuncio" class="border-t border-ink/15 pt-4">
           <div class="flex items-center gap-3">
-            <div class="avatar w-12 h-12 text-2xl" aria-hidden="true">{{ (post()!.author_name || 'U').slice(0,1).toUpperCase() }}</div>
+            @if (authorAvatar(); as photo) {
+              <img [src]="avatarSrc(photo, 96)" alt="" width="48" height="48" class="w-12 h-12 object-cover flex-shrink-0 border-[1.5px] border-ink"/>
+            } @else {
+              <div class="avatar w-12 h-12 text-2xl" aria-hidden="true">{{ initialOf(post()!.author_name) }}</div>
+            }
             <div class="flex-1 min-w-0">
               <p class="meta mb-0.5">Publicado por</p>
               <p class="font-display text-xl uppercase text-ink truncate">{{ post()!.author_name }}</p>
@@ -94,32 +98,25 @@
         </section>
 
         <!-- Actions (tablet and desktop; phones use the bottom bar) -->
-        <section aria-label="Acciones" class="hidden sm:flex flex-col gap-2">
-          <div class="flex gap-2">
-            @if (isOwner()) {
-              <p class="meta flex-1 min-h-[48px]">Este es tu anuncio</p>
-            } @else if (auth.isLoggedIn()) {
-              <button type="button" (click)="contactAuthor()" [disabled]="contacting()"
-                class="btn-primary flex-1 min-h-[48px] disabled:opacity-60">
-                {{ contacting() ? 'Abriendo chat…' : 'Contactar' }}
-              </button>
-            } @else {
-              <a routerLink="/auth/login" class="btn-primary flex-1 min-h-[48px]">Inicia sesión para contactar</a>
-            }
-            <button type="button" (click)="sharePost()" class="btn-secondary min-h-[48px] px-5"
-              [class.bg-signal-gBg]="linkCopied()" [class.text-signal-green]="linkCopied()">
-              <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-              {{ linkCopied() ? '¡Enlace copiado!' : 'Compartir' }}
+        <section aria-label="Acciones" class="hidden sm:flex gap-2">
+          @if (isOwner()) {
+            <button type="button" (click)="deletePost()" [disabled]="deleting()"
+              class="flex-1 min-h-[48px] px-4 font-mono text-xs font-bold uppercase tracking-wide text-signal-red hover:bg-signal-red hover:text-white transition-colors border-2 border-signal-red disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2">
+              {{ deleting() ? 'Eliminando…' : 'Eliminar' }}
             </button>
-          </div>
-        </section>
-
-        @if (isOwner()) {
-          <button type="button" (click)="deletePost()" [disabled]="deleting()"
-            class="self-start px-4 min-h-[44px] font-mono text-xs font-bold uppercase tracking-wide text-signal-red hover:bg-signal-red hover:text-white transition-colors border-2 border-signal-red disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red focus-visible:ring-offset-2">
-            {{ deleting() ? 'Eliminando…' : 'Eliminar anuncio' }}
+          } @else if (auth.isLoggedIn()) {
+            <button type="button" (click)="contactAuthor()" [disabled]="contacting()"
+              class="btn-primary flex-1 min-h-[48px] disabled:opacity-60">
+              {{ contacting() ? 'Abriendo chat…' : 'Escribir mensaje' }}
+            </button>
+          } @else {
+            <a routerLink="/auth/login" class="btn-primary flex-1 min-h-[48px]">Entra para escribir</a>
+          }
+          <button type="button" (click)="sharePost()" class="btn-secondary min-h-[48px] px-5">
+            <app-icon name="share" [size]="16"/>
+            {{ linkCopied() ? 'Enlace copiado' : 'Compartir' }}
           </button>
-        }
+        </section>
       </article>
     </div>
 
@@ -159,14 +156,17 @@
     <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink sm:hidden">
       <div class="flex gap-2 px-3 py-2.5">
         @if (isOwner()) {
-          <p class="meta flex-1 min-h-[52px] justify-center">Este es tu anuncio</p>
+          <button type="button" (click)="deletePost()" [disabled]="deleting()"
+            class="flex-1 min-h-[52px] px-4 font-mono text-xs font-bold uppercase tracking-wide text-signal-red border-2 border-signal-red active:bg-signal-red active:text-white disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-red">
+            {{ deleting() ? 'Eliminando…' : 'Eliminar' }}
+          </button>
         } @else if (auth.isLoggedIn()) {
           <button type="button" (click)="contactAuthor()" [disabled]="contacting()"
             class="btn-night font-display text-xl leading-none min-h-[52px] flex-1 disabled:opacity-50">
-            {{ contacting() ? 'Abriendo…' : 'Contactar' }}
+            {{ contacting() ? 'Abriendo…' : 'Escribir mensaje' }}
           </button>
         } @else {
-          <a routerLink="/auth/login" class="btn-night font-display text-xl leading-none min-h-[52px] flex-1">Inicia sesión para contactar</a>
+          <a routerLink="/auth/login" class="btn-night font-display text-xl leading-none min-h-[52px] flex-1">Entra para escribir</a>
         }
         <button type="button" [attr.aria-label]="linkCopied() ? 'Enlace copiado' : 'Compartir anuncio'" (click)="sharePost()"
           class="btn-secondary min-h-[52px] min-w-[52px] px-0" [class.bg-signal-gBg]="linkCopied()" [class.text-signal-green]="linkCopied()">

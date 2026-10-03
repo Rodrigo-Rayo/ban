@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
-import { PostDetailComponent, askLabelFor, stampFor } from './post-detail.component';
+import { PostDetailComponent, heroStampFor } from './post-detail.component';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { MessagesService } from '../../../core/services/messages.service';
@@ -33,6 +34,8 @@ describe('PostDetailComponent', () => {
   let component: PostDetailComponent;
   let supabaseSpy: any;
   let toastSpy: jasmine.SpyObj<ToastService>;
+  let confirmAsk: jasmine.Spy;
+  let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
     supabaseSpy = {
@@ -40,6 +43,8 @@ describe('PostDetailComponent', () => {
       client: { from: jasmine.createSpy('from').and.returnValue(mockBuilder({ data: [], error: null })) },
     };
     toastSpy = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']);
+    confirmAsk = jasmine.createSpy('ask').and.resolveTo(true);
+    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [PostDetailComponent],
@@ -49,7 +54,8 @@ describe('PostDetailComponent', () => {
         { provide: MessagesService, useValue: {} },
         { provide: ToastService, useValue: toastSpy },
         { provide: SeoService, useValue: jasmine.createSpyObj('SeoService', ['set', 'setNotFound']) },
-        { provide: Router, useValue: jasmine.createSpyObj('Router', ['navigate']) },
+        { provide: Router, useValue: routerSpy },
+        { provide: ConfirmService, useValue: { ask: confirmAsk } },
         { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => 'post-1' }) } },
       ],
     })
@@ -60,18 +66,36 @@ describe('PostDetailComponent', () => {
   });
 
   describe('wording and stamps', () => {
-    it('askLabelFor names what the post looks for', () => {
-      expect(askLabelFor({ type: 'musician_seeking_band', instrument: 'Guitarra' })).toBe('Busca banda');
-      expect(askLabelFor({ type: 'band_seeking_musician', instrument: 'Bajo' })).toBe('Busca bajo');
-      expect(askLabelFor({ type: 'band_seeking_musician', instrument: null })).toBe('Busca músico');
-      expect(askLabelFor({ type: 'session_offer', instrument: null })).toBe('Ofrece sesiones');
+    it('uses the shared wording and stamp colours', () => {
+      const p = makePost({ type: 'band_seeking_musician', instrument: 'Bajo' });
+      expect(component.askLabelFor(p)).toBe('Busca bajo');
+      expect(component.stampFor('musician_seeking_band')).toBe('tag-accent');
+      expect(component.stampFor('session_offer')).toBe('tag-night');
     });
 
-    it('stampFor maps the type to its colour', () => {
-      expect(stampFor('musician_seeking_band')).toBe('tag-accent');
-      expect(stampFor('band_seeking_musician')).toBe('tag-red');
-      expect(stampFor('session_offer')).toBe('tag-green');
-      expect(stampFor('other')).toBe('tag');
+    it('hero stamp stays legible on the ink poster', () => {
+      expect(heroStampFor('collab')).toBe('tag-accent');
+      expect(heroStampFor('session_offer')).toBe('tag');
+    });
+  });
+
+  describe('deletePost', () => {
+    beforeEach(() => {
+      component.currentUser.set({ id: 'u1' });
+      component.post.set(makePost());
+    });
+
+    it('asks through ConfirmService and does nothing when declined', async () => {
+      confirmAsk.and.resolveTo(false);
+      await component.deletePost();
+      expect(confirmAsk).toHaveBeenCalled();
+      expect(supabaseSpy.client.from).not.toHaveBeenCalled();
+    });
+
+    it('deletes and goes back to the list when confirmed', async () => {
+      await component.deletePost();
+      expect(toastSpy.success).toHaveBeenCalledWith('Anuncio eliminado.');
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/feed']);
     });
   });
 

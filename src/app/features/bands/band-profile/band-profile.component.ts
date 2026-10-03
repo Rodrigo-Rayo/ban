@@ -9,7 +9,11 @@ import { MessagesService } from '../../../core/services/messages.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { avatarColor } from '../../../core/utils/display.utils';
+import { GENRES, INSTRUMENTS } from '../../../core/constants/music.constants';
+import { applicationNoticeBody } from './application-notice';
 import { Band, BandVacancy, BandMember } from '../../../core/models';
 import { environment } from '../../../../environments/environment';
 
@@ -30,7 +34,7 @@ const MAX_MEMBERS = 50;
 
 @Component({
     selector: 'app-band-profile',
-    imports: [RouterLink, FormsModule, IconComponent],
+    imports: [RouterLink, FormsModule, IconComponent, AvatarUploadComponent],
     templateUrl: './band-profile.component.html'
 })
 export class BandProfileComponent implements OnInit {
@@ -44,6 +48,7 @@ export class BandProfileComponent implements OnInit {
   private favSvc = inject(FavoritesService);
   private notifSvc = inject(NotificationsService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
 
   band = signal<Band | null>(null);
   vacancies = signal<BandVacancy[]>([]);
@@ -52,6 +57,8 @@ export class BandProfileComponent implements OnInit {
   currentUserId = signal<string | null>(null);
   myMusicianId = signal<string | null>(null);
   myMusicianUserId = signal<string | null>(null);
+  myMusicianName = signal<string | null>(null);
+  deletingVacancy = signal<string | null>(null);
   appliedVacancies = signal<string[]>([]);
   isFav = signal(false);
   favLoading = signal(false);
@@ -68,11 +75,31 @@ export class BandProfileComponent implements OnInit {
   showVacancyForm = signal(false);
   vacancyLoading = signal(false);
   newVacancy = { instrument: '', description: '', genre: '' };
-  readonly instruments = ['Guitarra', 'Bajo', 'Batería', 'Teclados', 'Voz', 'Violín', 'Trompeta', 'Saxofón', 'Piano', 'Percusión', 'Otro'];
-  readonly genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Cualquiera'];
+  readonly instruments = INSTRUMENTS;
+  readonly genres = GENRES;
 
   applications = signal<VacancyApplication[]>([]);
   applicationsLoading = signal(false);
+
+  /** Signed-in user owns this profile. */
+  readonly isOwner = computed(() => {
+    const uid = this.currentUserId();
+    const owner = this.band()?.user_id;
+    return !!uid && !!owner && uid === owner;
+  });
+  /** Can write to the owner: someone else's profile that has an account behind it. */
+  readonly canMessage = computed(() => !this.isOwner() && !!this.band()?.user_id);
+
+  onPhotoUploaded(url: string) {
+    this.band.update(v => (v ? { ...v, avatar_url: url } : v));
+    this.avatarError.set(false);
+  }
+
+  /** Logged-out visitors go to login and come back to this profile afterwards. */
+  goToLogin() {
+    try { sessionStorage.setItem('bandyou_return_url', window.location.pathname); } catch { /* storage blocked */ }
+    this.router.navigate(['/auth/login']);
+  }
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -117,13 +144,14 @@ export class BandProfileComponent implements OnInit {
 
       // Round 2: musician lookup and isFav in parallel
       const [{ data: musician }] = await Promise.all([
-        this.supabase.client.from('musicians').select('id, user_id').eq('user_id', session.user.id).maybeSingle(),
+        this.supabase.client.from('musicians').select('id, user_id, name').eq('user_id', session.user.id).maybeSingle(),
         band ? this.favSvc.isFavorite(session.user.id, 'band', band.id).then(v => this.isFav.set(v)) : Promise.resolve(),
       ]);
 
       if (musician) {
         this.myMusicianId.set(musician.id);
         this.myMusicianUserId.set(musician.user_id);
+        this.myMusicianName.set(musician.name ?? null);
         const { data: apps } = await this.supabase.client
           .from('vacancy_applications').select('vacancy_id').eq('musician_id', musician.id);
         this.appliedVacancies.set((apps || []).map(a => a.vacancy_id));
@@ -132,7 +160,7 @@ export class BandProfileComponent implements OnInit {
       if (band && session.user.id === band.user_id) {
         this.loadApplications().catch(err => {
           if (!environment.production) console.error('[BandProfile] loadApplications failed:', err);
-          this.toast.error('No se pudieron cargar las solicitudes.');
+          this.toast.error('No se pudieron cargar los interesados.');
         });
       }
     } catch {
@@ -146,12 +174,11 @@ export class BandProfileComponent implements OnInit {
     const b = this.band();
     return !!(b && (b.spotify_url || b.youtube_url || b.soundcloud_url || b.instagram_url || b.website_url));
   });
-  readonly isOwner = computed(() => !!(this.currentUserId() && this.band()?.user_id === this.currentUserId()));
   readonly openVacancies = computed(() => this.vacancies().filter(v => v.open));
   readonly closedVacancies = computed(() => this.vacancies().filter(v => !v.open));
 
   async createVacancy() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     if (!this.band() || !this.newVacancy.instrument) return;
     this.vacancyLoading.set(true);
     const { data, error } = await this.supabase.client.from('band_vacancies').insert({
@@ -162,12 +189,12 @@ export class BandProfileComponent implements OnInit {
       open: true,
     }).select().single();
     this.vacancyLoading.set(false);
-    if (error) { this.toast.error('No se pudo crear la vacante.'); return; }
+    if (error) { this.toast.error('No se pudo publicar la vacante.'); return; }
     if (data) {
       this.vacancies.update(v => [...v, data]);
       this.newVacancy = { instrument: '', description: '', genre: '' };
       this.showVacancyForm.set(false);
-      this.toast.success('Vacante creada correctamente.');
+      this.toast.success('Vacante publicada.');
     }
   }
 
@@ -184,7 +211,7 @@ export class BandProfileComponent implements OnInit {
         .in('vacancy_id', vacancyIds)
         .order('created_at', { ascending: false })
         .limit(200);
-      if (error) { this.toast.error('No se pudieron cargar las solicitudes.'); return; }
+      if (error) { this.toast.error('No se pudieron cargar los interesados.'); return; }
       const musicianIds = [...new Set((apps || []).map(a => a.musician_id).filter(Boolean))] as string[];
       const { data: musicians } = musicianIds.length
         ? await this.supabase.client.from('musicians').select('id, name, city, genre, avatar_url').in('id', musicianIds)
@@ -202,8 +229,13 @@ export class BandProfileComponent implements OnInit {
   }
 
   async closeVacancy(id: string) {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
-    if (!confirm('¿Cerrar esta vacante?')) return;
+    if (!this.currentUserId()) { this.goToLogin(); return; }
+    const ok = await this.confirm.ask({
+      title: '¿Cerrar esta vacante?',
+      message: 'Dejará de aparecer en Se busca. Podrás reabrirla cuando quieras.',
+      confirmLabel: 'Cerrar vacante',
+    });
+    if (!ok) return;
     try {
       const { error } = await this.supabase.client.from('band_vacancies').update({ open: false }).eq('id', id);
       if (error) { this.toast.error('No se pudo cerrar la vacante.'); return; }
@@ -213,8 +245,36 @@ export class BandProfileComponent implements OnInit {
     }
   }
 
+  /** Deletes a closed vacancy (and, by cascade, its applications). RLS: band owner has ALL on band_vacancies. */
+  async deleteVacancy(vacancy: BandVacancy) {
+    if (!this.currentUserId()) { this.goToLogin(); return; }
+    const ok = await this.confirm.ask({
+      title: `¿Eliminar la vacante de ${vacancy.instrument}?`,
+      message: 'Se borra para siempre, junto con los interesados que haya recibido.',
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
+    this.deletingVacancy.set(vacancy.id);
+    try {
+      // .select() returns the deleted rows: RLS can silently delete nothing without an error.
+      const { data, error } = await this.supabase.client.from('band_vacancies').delete().eq('id', vacancy.id).select('id');
+      if (error || !data || data.length === 0) {
+        this.toast.error('No se pudo eliminar la vacante.');
+        return;
+      }
+      this.vacancies.update(v => v.filter(x => x.id !== vacancy.id));
+      this.applications.update(a => a.filter(x => x.vacancy_id !== vacancy.id));
+      this.toast.success('Vacante eliminada.');
+    } catch {
+      this.toast.error('No se pudo eliminar la vacante.');
+    } finally {
+      this.deletingVacancy.set(null);
+    }
+  }
+
   async reopenVacancy(id: string) {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     try {
       const { error } = await this.supabase.client.from('band_vacancies').update({ open: true }).eq('id', id);
       if (error) { this.toast.error('No se pudo reabrir la vacante.'); return; }
@@ -229,13 +289,13 @@ export class BandProfileComponent implements OnInit {
   }
 
   openApply(vacancyId: string) {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     if (this.currentUserId() === this.band()?.user_id) {
-      this.toast.error('No puedes postularte a las vacantes de tu propia banda.');
+      this.toast.error('No puedes apuntarte a las vacantes de tu propia banda.');
       return;
     }
     if (!this.myMusicianId()) {
-      this.toast.error('Solo los músicos pueden postularse a vacantes. Crea un perfil de músico en tu panel.');
+      this.toast.error('Solo los músicos pueden mostrar interés. Crea tu perfil de músico en tu panel.');
       return;
     }
     // Remember the trigger so focus can return to it when the dialog closes (WCAG 2.4.3).
@@ -260,7 +320,7 @@ export class BandProfileComponent implements OnInit {
     await this.submitApply();
     if (!this.applyingTo()) {
       this.applyReturnFocus = null;
-      // The "Postularme" button is replaced by a status tag on success; only refocus if it still exists.
+      // The "Me interesa" button is replaced by a status tag on success; only refocus if it still exists.
       if (trigger?.isConnected) trigger.focus();
     }
   }
@@ -281,7 +341,7 @@ export class BandProfileComponent implements OnInit {
   }
 
   async submitApply() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     const vacancyId = this.applyingTo();
     if (!vacancyId || !this.myMusicianId()) return;
     this.applyLoading.set(true);
@@ -293,7 +353,7 @@ export class BandProfileComponent implements OnInit {
         message: this.applyMessage,
       });
       if (error) {
-        this.toast.error('No se pudo enviar la solicitud. Inténtalo de nuevo.');
+        this.toast.error('No se pudo enviar. Inténtalo de nuevo.');
         return;
       }
       this.appliedVacancies.update(arr => [...arr, vacancyId]);
@@ -306,20 +366,20 @@ export class BandProfileComponent implements OnInit {
         // (e.g. rate limit) must not report the whole action as failed.
         this.notifSvc.create(
           this.band()!.user_id, 'application',
-          'Nueva solicitud para tu banda',
-          `Alguien se ha postulado para la vacante de ${vacancy?.instrument || 'músico'}.`,
+          'Alguien quiere tocar en tu banda',
+          applicationNoticeBody(this.myMusicianName(), vacancy?.instrument),
           'band', this.band()!.id
         ).catch(() => undefined);
       }
     } catch {
-      this.toast.error('No se pudo enviar la solicitud. Inténtalo de nuevo.');
+      this.toast.error('No se pudo enviar. Inténtalo de nuevo.');
     } finally {
       this.applyLoading.set(false);
     }
   }
 
   async toggleFav() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     this.favLoading.set(true);
     try {
       const result = await this.favSvc.toggle(this.currentUserId()!, 'band', this.band()!.id);
@@ -334,7 +394,7 @@ export class BandProfileComponent implements OnInit {
   async sendMessage() {
     const uid = this.currentUserId();
     const band = this.band();
-    if (!uid) { this.router.navigate(['/auth/login']); return; }
+    if (!uid) { this.goToLogin(); return; }
     if (!band) return;
     if (uid === band.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);

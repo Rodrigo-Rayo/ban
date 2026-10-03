@@ -8,8 +8,8 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { avatarColor } from '../../../core/utils/display.utils';
-import { parseList } from '../../../core/utils/list';
 import { Venue, Review } from '../../../core/models';
 import { ListPipe } from '../../../shared/pipes/list.pipe';
 
@@ -17,7 +17,7 @@ const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url
 
 @Component({
     selector: 'app-venue-profile',
-    imports: [RouterLink, FormsModule, IconComponent, ListPipe],
+    imports: [RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent],
     templateUrl: './venue-profile.component.html'
 })
 export class VenueProfileComponent implements OnInit {
@@ -49,12 +49,32 @@ export class VenueProfileComponent implements OnInit {
   msgError = signal<string | null>(null);
   linkShared = signal(false);
 
-  readonly posterLine = computed(() => [this.venue()?.city, ...parseList(this.venue()?.genres).slice(0, 2)].filter(Boolean).join(' · '));
+  readonly posterLine = computed(() => ['Sala', this.venue()?.city].filter(Boolean).join(' · '));
   readonly avgRating = computed(() => {
     const r = this.reviews();
     if (!r.length) return null;
     return (r.reduce((s, x) => s + x.rating, 0) / r.length).toFixed(1);
   });
+
+  /** Signed-in user owns this profile. */
+  readonly isOwner = computed(() => {
+    const uid = this.currentUserId();
+    const owner = this.venue()?.user_id;
+    return !!uid && !!owner && uid === owner;
+  });
+  /** Can write to the owner: someone else's profile that has an account behind it. */
+  readonly canMessage = computed(() => !this.isOwner() && !!this.venue()?.user_id);
+
+  onPhotoUploaded(url: string) {
+    this.venue.update(v => (v ? { ...v, avatar_url: url } : v));
+    this.avatarError.set(false);
+  }
+
+  /** Logged-out visitors go to login and come back to this profile afterwards. */
+  goToLogin() {
+    try { sessionStorage.setItem('bandyou_return_url', window.location.pathname); } catch { /* storage blocked */ }
+    this.router.navigate(['/auth/login']);
+  }
 
   async ngOnInit() {
     try {
@@ -94,7 +114,7 @@ export class VenueProfileComponent implements OnInit {
   }
 
   async toggleFav() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     this.favLoading.set(true);
     try {
       this.isFav.set(await this.favSvc.toggle(this.currentUserId()!, 'venue', this.venue()!.id));
@@ -114,7 +134,7 @@ export class VenueProfileComponent implements OnInit {
   }
 
   async submitReview() {
-    if (!this.currentUserId()) { this.router.navigate(['/auth/login']); return; }
+    if (!this.currentUserId()) { this.goToLogin(); return; }
     this.reviewLoading.set(true);
     this.reviewError.set(null);
     try {
@@ -144,7 +164,7 @@ export class VenueProfileComponent implements OnInit {
 
   async sendMessage() {
     const uid = this.currentUserId();
-    if (!uid) { this.router.navigate(['/auth/login']); return; }
+    if (!uid) { this.goToLogin(); return; }
     if (uid === this.venue()!.user_id) { this.router.navigate(['/inbox']); return; }
     this.sending.set(true);
     this.msgError.set(null);

@@ -26,7 +26,11 @@
       <section aria-label="Tu siguiente paso" class="mb-6 flex items-center gap-3 sm:gap-4 bg-poster-yellow border-2 border-ink px-4 py-3">
         <span class="hidden sm:inline font-mono text-xs font-bold uppercase tracking-wide shrink-0">Tu siguiente paso</span>
         <p class="flex-1 font-bold text-sm sm:text-base text-ink leading-snug">{{ step.text }}</p>
-        <a [routerLink]="step.link" class="btn-night min-h-[44px] shrink-0">{{ step.cta }}</a>
+        @if (step.upload) {
+          <app-avatar-upload [label]="step.cta" variant="night" class="shrink-0"/>
+        } @else {
+          <a [routerLink]="step.link" class="btn-night min-h-[44px] shrink-0">{{ step.cta }}</a>
+        }
       </section>
     }
 
@@ -54,7 +58,7 @@
                   <span class="font-bold text-base sm:text-lg truncate">{{ ev.venue || 'Sala por confirmar' }}@if (ev.city) {, {{ ev.city }}}</span>
                   @if (ev.genre) { <span class="font-mono text-xs font-bold uppercase text-poster-yellow">{{ ev.genre }}</span> }
                 </div>
-                <span aria-hidden="true" class="hidden sm:flex items-center px-5 font-display text-3xl group-hover:translate-x-1 transition-transform">→</span>
+                <span aria-hidden="true" class="hidden sm:flex items-center px-5 group-hover:translate-x-1 transition-transform"><app-icon name="arrow-right" [size]="28"/></span>
               </div>
             </a>
 
@@ -78,20 +82,14 @@
               </div>
             }
           } @else {
-            <!-- No upcoming gigs: poster-styled call to action -->
-            <a routerLink="/events/create"
-               class="group flex flex-col bg-ink text-poster-paper border-2 border-ink shadow-[4px_4px_0_0_#c23a1f] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#c23a1f] transition-[transform,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-              <div class="p-4 sm:p-6 lg:min-h-[19rem] flex flex-col justify-between gap-6">
-                <span class="font-mono text-xs font-bold uppercase tracking-wide text-poster-yellow">La agenda está libre</span>
-                <h2 id="poster-title" class="text-[2.5rem] sm:text-6xl lg:text-7xl leading-[0.95]">
-                  ¿Tocas pronto?<br><span class="text-poster-yellow">Publica tu concierto</span>
-                </h2>
+            <!-- No upcoming gigs: a quiet nudge, not a poster -->
+            <div class="card-flat p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+              <div class="flex-1 min-w-0">
+                <h2 id="poster-title" class="text-3xl leading-[1.05]">La agenda está libre</h2>
+                <p class="text-sm text-ink-muted mt-1">¿Tocas pronto? Que la escena de {{ displayCity() }} se entere.</p>
               </div>
-              <div class="flex items-center justify-between gap-3 border-t-2 border-poster-paper px-4 sm:px-6 py-4">
-                <span class="text-sm sm:text-base">Que toda la escena de {{ displayCity() }} se entere.</span>
-                <span class="btn-primary shrink-0 min-h-[44px]">Publicar</span>
-              </div>
-            </a>
+              <a routerLink="/events/create" class="btn-secondary min-h-[44px] shrink-0">Publicar evento</a>
+            </div>
           }
         </section>
       </div>
@@ -102,47 +100,50 @@
         <section aria-labelledby="busca-title">
           <div class="rule-label">
             <span>Se busca</span>
-            <a routerLink="/feed" [queryParams]="{ver:'bandas'}" class="underline min-h-[44px] inline-flex items-center">Todas las vacantes</a>
+            <a routerLink="/feed" [queryParams]="{ver:'bandas'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
           </div>
           <h2 id="busca-title" class="text-4xl lg:text-[2.5rem] leading-[1.02] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
 
           @if (loading()) {
             @for (i of [1,2,3]; track i) { <div class="h-14 border-b-[1.5px] border-ink/30 animate-pulse" aria-hidden="true"></div> }
           } @else {
-            @for (v of vacanciesSorted(); track v.id; let i = $index) {
+            @for (v of vacanciesSorted(); track v.id) {
               @if (v.bands; as b) {
-                <a [routerLink]="['/bands', b.id]" class="flex items-center gap-3 py-3 border-b border-ink/15 min-h-[56px] group">
-                  <span class="font-mono text-xs font-bold text-ink-muted w-5 shrink-0">{{ i + 1 < 10 ? '0' + (i + 1) : i + 1 }}</span>
-                  <span class="flex-1 min-w-0">
-                    <span class="block font-display text-xl lg:text-[1.375rem] uppercase leading-tight group-hover:text-primary-500 transition-colors truncate">{{ b.name }}</span>
-                    <span class="block text-sm text-ink-muted truncate">{{ v.genre || b.genre }}@if (b.city) { · {{ b.city }}}</span>
+                <a [routerLink]="['/bands', b.id]" class="block py-3 border-b border-ink/15 min-h-[56px] group">
+                  <span class="block font-display text-xl lg:text-[1.375rem] uppercase leading-tight group-hover:text-primary-500 transition-colors truncate">{{ b.name }}</span>
+                  <span class="flex items-center gap-2 mt-1 min-w-0">
+                    <span [class]="askStampClass('vacancy') + ' shrink-0'">{{ askLabel('vacancy', v.instrument) }}</span>
+                    <span class="meta truncate min-w-0">{{ v.genre || b.genre }}@if (b.city) { · {{ b.city }}}</span>
                   </span>
-                  <span class="tag-accent shrink-0">Busca {{ v.instrument }}</span>
                 </a>
               }
             } @empty {
               <div class="py-6">
-                <p class="text-sm text-ink-muted mb-3">Ahora mismo ninguna banda tiene vacantes abiertas.</p>
+                <p class="text-sm text-ink-muted mb-3">Ninguna banda busca gente ahora.</p>
                 <a routerLink="/search" [queryParams]="{tab:'bands'}" class="btn-secondary min-h-[44px]">Ver bandas</a>
               </div>
             }
           }
         </section>
 
-        @if (!loading() && recentPosts().length > 0) {
+        @if (loading()) {
+          <section aria-hidden="true">
+            @for (i of [1,2,3]; track i) { <div class="h-16 border-b-[1.5px] border-ink/30 animate-pulse"></div> }
+          </section>
+        } @else if (recentPosts().length > 0) {
           <section aria-labelledby="tablon-title">
             <div class="rule-label">
-              <span id="tablon-title">Tablón</span>
-              <a routerLink="/feed" class="underline min-h-[44px] inline-flex items-center">Ver todos</a>
+              <span id="tablon-title">Últimos anuncios</span>
+              <a routerLink="/feed" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
             </div>
             @for (post of recentPosts(); track post.id) {
               <a [routerLink]="['/posts', post.id]" class="block py-3 border-b border-ink/15 group">
-                <span class="flex flex-wrap items-center gap-x-2 font-mono text-[11px] font-bold uppercase text-primary-500">
-                  {{ postInfo(post.type).label }}
-                  @if (post.city) { <span class="text-ink-muted">· {{ post.city }}</span> }
+                <span class="block font-bold text-sm truncate group-hover:text-primary-500 transition-colors">{{ post.author_name }}</span>
+                <span class="flex items-center gap-2 mt-1 min-w-0">
+                  <span [class]="askStampClass($any(post.type)) + ' shrink-0'">{{ askLabel($any(post.type), post.instrument) }}</span>
+                  <span class="meta truncate min-w-0">@if (post.city) { {{ post.city }} · }{{ timeAgo(post.created_at) }}</span>
                 </span>
-                <span class="block text-sm text-ink leading-snug line-clamp-2 mt-0.5 group-hover:text-primary-500 transition-colors">{{ post.text }}</span>
-                <span class="block text-xs text-ink-muted mt-1">{{ post.author_name }} · {{ timeAgo(post.created_at) }}</span>
+                <span class="block text-sm text-ink-muted leading-snug truncate mt-1">{{ post.text }}</span>
               </a>
             }
           </section>
@@ -153,19 +154,21 @@
       <div class="flex flex-col gap-8 min-w-0">
 
         <!-- Local de la semana -->
-        @if (featuredRehearsal(); as r) {
+        @if (loading()) {
+          <div class="bg-dark-750 border-2 border-ink h-40 animate-pulse" aria-hidden="true"></div>
+        } @else if (featuredRehearsal(); as r) {
           <section aria-labelledby="local-title" class="bg-poster-yellow border-2 border-ink p-4 flex flex-col gap-1.5">
             <span id="local-title" class="font-mono text-xs font-bold uppercase tracking-wide">Local de la semana</span>
             <h2 class="text-3xl leading-[1] break-words">{{ r.name }}</h2>
-            <p class="text-sm">{{ r.city }}@if (r.hourly_rate) { · <strong>{{ r.hourly_rate }} €/h</strong>}@if (r.capacity) { · {{ r.capacity }} pers.}</p>
-            <a [routerLink]="['/rehearsal', r.id]" class="btn-night self-start mt-2 min-h-[44px]">Ver local →</a>
+            <p class="text-sm">{{ r.city }}@if (r.hourly_rate) { · <strong>{{ r.hourly_rate }} €/h</strong>}@if (r.capacity) { · {{ r.capacity }} personas}</p>
+            <a [routerLink]="['/rehearsal', r.id]" class="btn-night self-start mt-2 min-h-[44px]">Ver local <app-icon name="arrow-right" [size]="16"/></a>
           </section>
 
           @if (otherRehearsals().length > 0) {
             <section aria-labelledby="locales-title">
               <div class="rule-label">
-                <span id="locales-title">Locales de ensayo</span>
-                <a routerLink="/search" [queryParams]="userCity() ? {tab:'rehearsal', city: userCity()} : {tab:'rehearsal'}" class="underline min-h-[44px] inline-flex items-center">Ver todos</a>
+                <span id="locales-title">Locales</span>
+                <a routerLink="/search" [queryParams]="userCity() ? {tab:'rehearsal', city: userCity()} : {tab:'rehearsal'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
               </div>
               @for (o of otherRehearsals(); track o.id) {
                 <a [routerLink]="['/rehearsal', o.id]" class="flex items-center justify-between gap-3 py-3 border-b border-ink/15 min-h-[56px] hover:text-primary-500 transition-colors">
@@ -182,7 +185,7 @@
           <section aria-labelledby="salas-title">
             <div class="rule-label">
               <span id="salas-title">Salas</span>
-              <a routerLink="/search" [queryParams]="userCity() ? {tab:'venues', city: userCity()} : {tab:'venues'}" class="underline min-h-[44px] inline-flex items-center">Ver todas</a>
+              <a routerLink="/search" [queryParams]="userCity() ? {tab:'venues', city: userCity()} : {tab:'venues'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
             </div>
             @for (venue of recentVenues().slice(0,3); track venue.id) {
               <a [routerLink]="['/venues', venue.id]" class="flex items-center justify-between gap-3 py-3 border-b border-ink/15 min-h-[56px] hover:text-primary-500 transition-colors">
@@ -190,7 +193,7 @@
                   <span class="block font-bold text-sm truncate">{{ venue.name }}</span>
                   <span class="block text-sm text-ink-muted truncate">{{ venue.city }}</span>
                 </span>
-                @if (venue.capacity) { <span class="font-mono text-xs font-bold shrink-0">{{ venue.capacity }} pers.</span> }
+                @if (venue.capacity) { <span class="font-mono text-xs font-bold shrink-0">{{ venue.capacity }} personas</span> }
               </a>
             }
           </section>
@@ -200,14 +203,14 @@
         <section aria-labelledby="gente-title">
           <div class="rule-label">
             <span id="gente-title">Gente nueva{{ userCity() ? ' en ' + userCity() : '' }}</span>
-            <a routerLink="/search" [queryParams]="userCity() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}" class="underline min-h-[44px] inline-flex items-center">Ver todos</a>
+            <a routerLink="/search" [queryParams]="userCity() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
           </div>
           @if (loading()) {
             @for (i of [1,2,3]; track i) { <div class="h-14 border-b-[1.5px] border-ink/30 animate-pulse" aria-hidden="true"></div> }
           } @else {
-            @for (m of recentMusicians().slice(0,4); track m.id) {
+            @for (m of newPeople(); track m.id) {
               <a [routerLink]="['/musicians', m.id]" class="flex items-center gap-3 py-2.5 border-b border-ink/15 min-h-[56px] group">
-                <span class="avatar w-11 h-11 text-lg overflow-hidden" [style.background]="m.avatar_url ? null : avatarColor(m.name)">
+                <span class="avatar w-11 h-11 text-lg overflow-hidden">
                   @if (m.avatar_url) {
                     <img [src]="m.avatar_url" [alt]="''" class="w-full h-full object-cover" loading="lazy"/>
                   } @else {
@@ -229,7 +232,11 @@
         </section>
 
         <!-- Tienda -->
-        @if (!loading() && recentListings().length > 0) {
+        @if (loading()) {
+          <div class="grid grid-cols-3 gap-2.5" aria-hidden="true">
+            @for (i of [1,2,3]; track i) { <div class="h-24 bg-dark-750 border-2 border-ink animate-pulse"></div> }
+          </div>
+        } @else if (recentListings().length > 0) {
           <section aria-labelledby="tienda-title">
             <div class="rule-label">
               <span id="tienda-title">Tienda</span>
@@ -242,7 +249,7 @@
                     @if ((item.images?.length ?? 0) > 0) {
                       <img [src]="item.images![0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
                     } @else {
-                      <span class="flex h-full items-center justify-center font-mono text-[11px] font-bold uppercase text-poster-paper">Sin foto</span>
+                      <span class="flex h-full items-center justify-center p-2 text-center font-display text-xl uppercase leading-none text-poster-paper break-words">{{ item.category || 'Equipo' }}</span>
                     }
                   </span>
                   <span class="font-bold text-sm leading-tight line-clamp-2">{{ item.title }}</span>
