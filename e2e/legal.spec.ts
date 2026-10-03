@@ -17,7 +17,7 @@ test.describe('Legal pages', () => {
   test('aviso legal renders with LSSI identification block', async ({ page }) => {
     await page.goto('/legal/aviso-legal');
     await expect(page.getByRole('heading', { level: 1, name: /aviso legal/i })).toBeVisible();
-    await expect(page.getByText(/NIF/).first()).toBeVisible();
+    await expect(page.getByText(/Titular/).first()).toBeVisible();
   });
 
   test('cookies policy renders', async ({ page }) => {
