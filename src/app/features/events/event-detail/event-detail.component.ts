@@ -1,3 +1,4 @@
+import { MediaUploadService } from '../../../core/services/media-upload.service';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -26,6 +27,7 @@ export class EventDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
+  private media = inject(MediaUploadService);
   private favSvc = inject(FavoritesService);
   private seo = inject(SeoService);
   private toast = inject(ToastService);
@@ -164,6 +166,7 @@ export class EventDetailComponent implements OnInit {
     try {
       const { error } = await this.supabase.client.from('events').delete().eq('id', ev.id).eq('user_id', uid);
       if (error) { this.toast.error('No se pudo eliminar el evento.'); return; }
+      this.media.removeFiles([(ev as { image_url?: string | null }).image_url]);
       this.toast.success('Evento eliminado.');
       this.router.navigate(['/search'], { queryParams: { tab: 'events' } });
     } catch {

@@ -39,7 +39,7 @@ test.describe('SEO', () => {
   test('canonical ignores query strings and uses the primary host', async ({ page }) => {
     await page.goto('/shop?utm_source=test');
     await expect(page).toHaveTitle(/Tienda/);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://bandyou.es/shop');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://www.bandyou.es/shop');
   });
 });
 

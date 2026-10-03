@@ -14,6 +14,16 @@ const EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', '
 export type MediaKind = 'events' | 'spaces';
 
 /** Friendly Spanish error for a file that cannot be uploaded, or null when it is fine. */
+/**
+ * Check when a file is picked (before it is shrunk): phone photos are accepted up
+ * to 20 MB because upload() re-encodes them; mediaFileError() then checks the result.
+ */
+export function mediaPickError(file: File): string | null {
+  if (!ALLOWED.includes(file.type)) return 'Usa una imagen JPG, PNG o WebP.';
+  if (file.size > RAW_IMAGE_MAX_BYTES) return 'La imagen es demasiado grande (máx. 20 MB).';
+  return null;
+}
+
 export function mediaFileError(file: File): string | null {
   if (!ALLOWED.includes(file.type)) return 'Usa una imagen JPG, PNG o WebP.';
   if (file.size > MAX_BYTES) return 'La imagen no puede superar 5 MB.';
@@ -54,6 +64,22 @@ export class MediaUploadService {
   }
 
   /** Best-effort removal of a photo previously uploaded by this user. Never throws. */
+  /**
+   * Best-effort removal of the files behind public storage URLs from any bucket
+   * (posters in 'media', shop photos in 'gear-images'), e.g. after deleting the
+   * event or listing that used them. Never throws.
+   */
+  async removeFiles(urls: readonly (string | null | undefined)[]): Promise<void> {
+    const byBucket = new Map<string, string[]>();
+    for (const url of urls) {
+      const m = /\/object\/public\/([^/]+)\/([^?]+)/.exec(url ?? '');
+      if (!m) continue;
+      byBucket.set(m[1], [...(byBucket.get(m[1]) ?? []), decodeURIComponent(m[2])]);
+    }
+    await Promise.all([...byBucket].map(([bucket, paths]) =>
+      this.supabase.client.storage.from(bucket).remove(paths).catch(() => undefined)));
+  }
+
   async remove(publicUrl: string): Promise<void> {
     const marker = `/object/public/${BUCKET}/`;
     const at = publicUrl.indexOf(marker);

@@ -1,3 +1,4 @@
+import { MediaUploadService } from '../../../core/services/media-upload.service';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { ChangeDetectionStrategy, Component, signal, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -28,6 +29,7 @@ const RELATED_LIMIT = 3;
 })
 export class GearDetailComponent implements OnInit {
   private supabase = inject(SupabaseService);
+  private media = inject(MediaUploadService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private toast = inject(ToastService);
@@ -199,6 +201,7 @@ export class GearDetailComponent implements OnInit {
     try {
       const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', this.listing()!.id).eq('user_id', this.currentUser()!.id);
       if (error) { this.toast.error('No se pudo eliminar el anuncio.'); return; }
+      this.media.removeFiles(this.listing()?.images ?? []);
       this.toast.success('Anuncio eliminado.');
       this.router.navigate(['/shop']);
     } catch {

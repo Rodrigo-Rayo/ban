@@ -9,7 +9,7 @@ import { CITIES } from '../../../core/constants/cities';
 import { GENRES } from '../../../core/constants/music.constants';
 import { localToday } from '../../../core/utils/date';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
-import { MediaUploadService, MEDIA_ACCEPT, mediaFileError } from '../../../core/services/media-upload.service';
+import { MediaUploadService, MEDIA_ACCEPT, mediaPickError } from '../../../core/services/media-upload.service';
 
 export function futureDate(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
@@ -46,7 +46,7 @@ export class EventFormComponent implements OnDestroy {
     const file = input.files?.[0];
     input.value = ''; // allow picking the same file again
     if (!file) return;
-    const invalid = mediaFileError(file);
+    const invalid = mediaPickError(file);
     if (invalid) { this.posterError.set(invalid); return; }
     this.posterError.set('');
     this.setPoster(file);

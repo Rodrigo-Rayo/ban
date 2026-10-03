@@ -14,7 +14,7 @@ import { askLabel as askLabelFor, askStampClass as askStampClassFor } from '../.
 import { AvatarUploadComponent } from '../../shared/components/avatar-upload/avatar-upload.component';
 import { Event as AppEvent, EventGenre, PostType } from '../../core/models';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
-import { MediaUploadService, MEDIA_ACCEPT, mediaFileError } from '../../core/services/media-upload.service';
+import { MediaUploadService, MEDIA_ACCEPT, mediaPickError } from '../../core/services/media-upload.service';
 
 interface DashboardProfile {
   id?: string;
@@ -200,7 +200,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    const invalid = mediaFileError(file);
+    const invalid = mediaPickError(file);
     if (invalid) { this.editPosterError.set(invalid); return; }
     this.editPosterError.set('');
     this.setEditPosterFile(file);
@@ -326,8 +326,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
       confirmLabel: 'Eliminar', danger: true,
     }))) return;
     try {
+      const poster = (this.events().find(ev => ev.id === id) as { image_url?: string | null } | undefined)?.image_url;
       const { error } = await this.supabase.client.from('events').delete().eq('id', id).eq('user_id', uid);
       if (error) { this.toast.error('No se pudo eliminar el evento.'); return; }
+      this.media.removeFiles([poster]);
       this.events.update(evs => evs.filter(ev => ev.id !== id));
       this.toast.success('Evento eliminado.');
     } catch {
@@ -364,8 +366,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
       confirmLabel: 'Eliminar', danger: true,
     }))) return;
     try {
+      const photos = (this.myListings().find(l => l.id === id) as { images?: string[] | null } | undefined)?.images ?? [];
       const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', id).eq('user_id', uid);
       if (error) { this.toast.error('No se pudo eliminar el anuncio.'); return; }
+      this.media.removeFiles(photos);
       this.myListings.update(ls => ls.filter(l => l.id !== id));
       this.toast.success('Anuncio eliminado.');
     } catch {
