@@ -8,6 +8,7 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
+import { SpaceGalleryComponent } from '../../../shared/components/space-gallery/space-gallery.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { RehearsalSpace, Review } from '../../../core/models';
@@ -16,7 +17,7 @@ const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar
 
 @Component({
     selector: 'app-rehearsal-profile',
-    imports: [RouterLink, FormsModule, IconComponent, AvatarUploadComponent],
+    imports: [RouterLink, FormsModule, IconComponent, AvatarUploadComponent, SpaceGalleryComponent],
     templateUrl: './rehearsal-profile.component.html'
 })
 export class RehearsalProfileComponent implements OnInit {

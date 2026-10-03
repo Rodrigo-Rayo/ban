@@ -111,6 +111,37 @@
           </div>
         </section>
 
+        <!-- Section: Cartel (only once events.image_url exists) -->
+        @if (canAddPoster()) {
+          <section aria-labelledby="event-poster-heading">
+            <h2 id="event-poster-heading" class="rule-label mb-4"><span>Cartel <span class="normal-case">(opcional)</span></span></h2>
+            <div class="flex flex-col min-[380px]:flex-row gap-4 items-start">
+              <div class="w-32 flex-shrink-0 aspect-[4/5] border-2 border-ink overflow-hidden bg-dark-800 flex items-center justify-center"
+                   [class.shadow-card]="posterPreview()" [class.border-dashed]="!posterPreview()">
+                @if (posterPreview()) {
+                  <img [src]="posterPreview()" [alt]="'Cartel de ' + (form.value.title || 'tu evento')" class="w-full h-full object-cover"/>
+                } @else {
+                  <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted text-center px-2">Sin cartel</span>
+                }
+              </div>
+              <div class="flex flex-col gap-2 min-w-0">
+                <p class="text-sm text-ink-muted">Sube el cartel del concierto. JPG, PNG o WebP, hasta 5 MB. Mejor en vertical.</p>
+                <div class="flex flex-wrap gap-2">
+                  <label class="btn-secondary text-sm min-h-[44px] cursor-pointer focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2">
+                    {{ posterPreview() ? 'Cambiar imagen' : 'Elegir imagen' }}
+                    <input type="file" class="sr-only" [accept]="posterAccept" (change)="onPosterChange($event)"
+                      aria-describedby="event-poster-error"/>
+                  </label>
+                  @if (posterPreview()) {
+                    <button type="button" (click)="removePoster()" class="btn-ghost text-sm min-h-[44px]">Quitar</button>
+                  }
+                </div>
+                <p id="event-poster-error" class="text-xs font-bold text-signal-red" aria-live="polite">{{ posterError() }}</p>
+              </div>
+            </div>
+          </section>
+        }
+
         <!-- Section: Contacto -->
         <section>
           <h2 class="rule-label mb-4"><span>Entradas y contacto</span></h2>

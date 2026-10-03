@@ -56,6 +56,8 @@ export interface Venue {
   phone: string | null;
   lat: number | null;
   lng: number | null;
+  /** Space gallery, max 6 (supabase/audit_2026_10_photos.sql); absent until that SQL is run. */
+  photos?: string[] | null;
   created_at: string;
 }
 
@@ -98,6 +100,8 @@ export interface RehearsalSpace {
   phone: string | null;
   lat: number | null;
   lng: number | null;
+  /** Space gallery, max 6 (supabase/audit_2026_10_photos.sql); absent until that SQL is run. */
+  photos?: string[] | null;
   created_at: string;
 }
 
@@ -134,6 +138,8 @@ export interface Event {
   description: string | null;
   contact_email: string | null;
   ticket_url: string | null;
+  /** Poster (supabase/audit_2026_10_photos.sql); absent until that SQL is run. */
+  image_url?: string | null;
   created_at: string;
 }
 

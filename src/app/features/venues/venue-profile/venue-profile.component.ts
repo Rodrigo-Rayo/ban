@@ -9,6 +9,7 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
+import { SpaceGalleryComponent } from '../../../shared/components/space-gallery/space-gallery.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { Venue, Review } from '../../../core/models';
 import { ListPipe } from '../../../shared/pipes/list.pipe';
@@ -17,7 +18,7 @@ const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url
 
 @Component({
     selector: 'app-venue-profile',
-    imports: [RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent],
+    imports: [RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent, SpaceGalleryComponent],
     templateUrl: './venue-profile.component.html'
 })
 export class VenueProfileComponent implements OnInit {

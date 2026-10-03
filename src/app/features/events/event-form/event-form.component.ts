@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -7,6 +7,8 @@ import { optionalUrl } from '../../../core/utils/form-validators';
 import { CITIES } from '../../../core/constants/cities';
 import { GENRES } from '../../../core/constants/music.constants';
 import { localToday } from '../../../core/utils/date';
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
+import { MediaUploadService, MEDIA_ACCEPT, mediaFileError } from '../../../core/services/media-upload.service';
 
 export function futureDate(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
@@ -18,12 +20,53 @@ export function futureDate(control: AbstractControl): ValidationErrors | null {
     imports: [ReactiveFormsModule, RouterLink],
     templateUrl: './event-form.component.html'
 })
-export class EventFormComponent {
+export class EventFormComponent implements OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private media = inject(MediaUploadService);
+  private features = inject(MediaFeaturesService);
+
+  /** Poster upload is offered only once events.image_url exists (see MediaFeaturesService). */
+  readonly canAddPoster = this.features.state('eventImage');
+  readonly posterAccept = MEDIA_ACCEPT;
+  posterFile = signal<File | null>(null);
+  posterPreview = signal<string | null>(null);
+  posterError = signal('');
+
+  constructor() {
+    void this.features.has('eventImage');
+  }
+
+  onPosterChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // allow picking the same file again
+    if (!file) return;
+    const invalid = mediaFileError(file);
+    if (invalid) { this.posterError.set(invalid); return; }
+    this.posterError.set('');
+    this.setPoster(file);
+  }
+
+  removePoster() {
+    this.posterError.set('');
+    this.setPoster(null);
+  }
+
+  private setPoster(file: File | null) {
+    const old = this.posterPreview();
+    if (old) URL.revokeObjectURL(old);
+    this.posterFile.set(file);
+    this.posterPreview.set(file ? URL.createObjectURL(file) : null);
+  }
+
+  ngOnDestroy() {
+    const url = this.posterPreview();
+    if (url) URL.revokeObjectURL(url);
+  }
 
   /** True when a control should expose its error (touched + invalid). */
   isInvalid(name: string): boolean {
@@ -75,6 +118,17 @@ export class EventFormComponent {
       const { data: { user } } = await this.supabase.auth.getUser();
       if (!user) { this.router.navigate(['/auth/login']); return; }
 
+      // Upload the poster first; never name image_url unless the column exists.
+      let imageUrl: string | null = null;
+      const poster = this.posterFile();
+      if (poster && this.canAddPoster()) {
+        imageUrl = await this.media.upload(poster, 'events');
+        if (!imageUrl) {
+          this.error.set('No se pudo subir el cartel. Inténtalo de nuevo o quítalo para publicar sin imagen.');
+          return;
+        }
+      }
+
       const v = this.form.value;
       const { error, data } = await this.supabase.client
         .from('events')
@@ -91,6 +145,7 @@ export class EventFormComponent {
           description: v.description,
           contact_email: v.contactEmail,
           ticket_url: v.ticketUrl,
+          ...(imageUrl ? { image_url: imageUrl } : {}),
         })
         .select('id')
         .single();

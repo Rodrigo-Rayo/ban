@@ -7,6 +7,8 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { Event as AppEvent } from '../../core/models';
+import { MediaFeaturesService } from '../../core/services/media-features.service';
+import { MediaUploadService } from '../../core/services/media-upload.service';
 
 function makeEvent(id: string): AppEvent {
   return { id, title: `Evento ${id}`, venue: 'Sala', city: 'Madrid', date: '2026-12-01', genre: 'Rock' } as unknown as AppEvent;
@@ -93,5 +95,55 @@ describe('DashboardComponent', () => {
     component.deleteConfirmText.set('BORRAR');
     await component.deleteAccount();
     expect(component.deletingAccount()).toBeFalse();
+  });
+
+  describe('event poster in the inline editor', () => {
+    function setupUpdate(available: boolean) {
+      const update = jasmine.createSpy('update').and.callFake(() => {
+        const chain = { eq: () => chain, then: (res: (v: unknown) => unknown) => Promise.resolve({ error: null }).then(res) };
+        return chain;
+      });
+      const supabase = TestBed.inject(SupabaseService) as unknown as { client: { from: () => unknown } };
+      supabase.client.from = () => ({ update });
+      const features = TestBed.inject(MediaFeaturesService);
+      spyOn(features, 'state').and.returnValue(signal(available).asReadonly());
+      return update;
+    }
+
+    it('never sends image_url while the column does not exist', async () => {
+      const update = setupUpdate(false);
+      const fresh = TestBed.createComponent(DashboardComponent).componentInstance;
+      fresh.events.set([makeEvent('a')]);
+      fresh.startEditEvent(makeEvent('a'), domEvent());
+      await fresh.saveEditEvent('a');
+      expect(update).toHaveBeenCalled();
+      expect('image_url' in update.calls.mostRecent().args[0]).toBeFalse();
+    });
+
+    it('uploads a new poster and saves its URL once available', async () => {
+      const update = setupUpdate(true);
+      const upload = spyOn(TestBed.inject(MediaUploadService), 'upload').and.resolveTo('https://cdn.test/media/u1/events/n.jpg');
+      const fresh = TestBed.createComponent(DashboardComponent).componentInstance;
+      fresh.events.set([makeEvent('a')]);
+      fresh.startEditEvent(makeEvent('a'), domEvent());
+      fresh.onEditPosterChange({ target: { files: [new File(['x'], 'c.jpg', { type: 'image/jpeg' })], value: 'x' } } as unknown as Event);
+      await fresh.saveEditEvent('a');
+      expect(upload).toHaveBeenCalled();
+      expect(update.calls.mostRecent().args[0].image_url).toBe('https://cdn.test/media/u1/events/n.jpg');
+      expect(fresh.events()[0].image_url).toBe('https://cdn.test/media/u1/events/n.jpg');
+    });
+
+    it('clears the poster when removed', async () => {
+      const update = setupUpdate(true);
+      spyOn(TestBed.inject(MediaUploadService), 'remove').and.resolveTo();
+      const fresh = TestBed.createComponent(DashboardComponent).componentInstance;
+      const ev = { ...makeEvent('a'), image_url: 'https://cdn.test/media/u1/events/old.jpg' } as AppEvent;
+      fresh.events.set([ev]);
+      fresh.startEditEvent(ev, domEvent());
+      fresh.removeEditPoster();
+      expect(fresh.editPosterShown()).toBeNull();
+      await fresh.saveEditEvent('a');
+      expect(update.calls.mostRecent().args[0].image_url).toBeNull();
+    });
   });
 });

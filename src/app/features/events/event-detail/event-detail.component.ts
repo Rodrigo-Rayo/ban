@@ -8,6 +8,8 @@ import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { formatLongDate, formatTime, localToday } from '../../../core/utils/date';
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
+import { Event as AppEvent } from '../../../core/models';
 
 const RELATED_COLUMNS = 'id, title, venue, city, date, time, genre, price';
 const RELATED_LIMIT = 3;
@@ -27,6 +29,7 @@ export class EventDetailComponent implements OnInit {
   private seo = inject(SeoService);
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
+  private features = inject(MediaFeaturesService);
 
   event = signal<any>(null);
   loading = signal(true);
@@ -36,6 +39,10 @@ export class EventDetailComponent implements OnInit {
   linkShared = signal(false);
   related = signal<any[]>([]);
   deleting = signal(false);
+  /** The poster failed to load: fall back to the text-only cartel. */
+  posterError = signal(false);
+
+  readonly posterUrl = computed(() => (this.posterError() ? null : (this.event()?.image_url as string | null | undefined) || null));
 
   readonly longDate = formatLongDate;
   readonly time = formatTime;
@@ -74,14 +81,16 @@ export class EventDetailComponent implements OnInit {
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     try {
+      // image_url is only requested once the column exists (cached per session).
+      const columns: string = (await this.features.has('eventImage')) ? `${EVENT_COLUMNS}, image_url` : EVENT_COLUMNS;
       const [{ data }, { data: { session } }] = await Promise.all([
-        this.supabase.client.from('events').select(EVENT_COLUMNS).eq('id', id!).maybeSingle(),
+        this.supabase.client.from('events').select(columns).eq('id', id!).maybeSingle<AppEvent>(),
         this.supabase.auth.getSession(),
       ]);
       this.event.set(data);
       if (data) {
         void this.loadRelated(data);
-        this.seo.setEvent(data.title, data.date, data.city, data.description);
+        this.seo.setEvent(data.title, data.date, data.city, data.description ?? undefined);
         this.seo.injectJsonLd({
           '@context': 'https://schema.org',
           '@type': 'Event',
@@ -91,6 +100,7 @@ export class EventDetailComponent implements OnInit {
           endDate: data.time ? `${data.date}T${data.time}` : data.date,
           eventStatus: 'https://schema.org/EventScheduled',
           eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+          ...(data.image_url ? { image: data.image_url } : {}),
           url: `https://bandyou.es/events/${data.id}`,
           location: {
             '@type': 'Place',

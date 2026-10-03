@@ -12,13 +12,14 @@ import { environment } from '../../../environments/environment';
 import { localToday } from '../../core/utils/date';
 import { parseList } from '../../core/utils/list';
 import { ListPipe } from '../../shared/pipes/list.pipe';
+import { MediaFeaturesService } from '../../core/services/media-features.service';
 
 type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal';
 
 interface MusicianResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; genre: string; availability_days?: string | null; created_at: string; user_id: string; }
 interface BandResult { id: string; name: string; city: string; avatar_url: string | null; genre: string; looking_for?: string | null; created_at: string; user_id: string; }
 interface VenueResult { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; genres: string | null; created_at: string; user_id: string; }
-interface EventResult { id: string; title: string; venue: string; city: string; date: string; time: string | null; genre: string; description: string | null; price?: string | null; created_at: string; user_id: string; }
+interface EventResult { id: string; title: string; venue: string; city: string; date: string; time: string | null; genre: string; description: string | null; price?: string | null; image_url?: string | null; created_at: string; user_id: string; }
 interface TeacherResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; hourly_rate: number | null; modality?: string | null; created_at: string; user_id: string; }
 interface RehearsalResult { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate: number | null; rooms_count?: number | null; created_at: string; user_id: string; }
 
@@ -35,6 +36,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private supabase = inject(SupabaseService);
   private seo = inject(SeoService);
+  private features = inject(MediaFeaturesService);
 
   activeTab = signal<SearchType>('musicians');
   searchQuery = signal('');
@@ -331,7 +333,10 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
 
     if (tab === 'events') {
-      let q = this.supabase.client.from('events').select(SearchComponent.SEARCH_COLS.events).gte('date', localToday());
+      // Poster thumbnails only once events.image_url exists (cached per session).
+      const cols: string = (await this.features.has('eventImage'))
+        ? `${SearchComponent.SEARCH_COLS.events},image_url` : SearchComponent.SEARCH_COLS.events;
+      let q = this.supabase.client.from('events').select(cols).gte('date', localToday());
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.eq('genre', genre);
       if (query) q = q.ilike('title', `%${query}%`);

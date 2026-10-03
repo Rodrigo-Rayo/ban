@@ -160,6 +160,32 @@
                         <input id="edit-event-ticket" [(ngModel)]="editEventData.ticket_url" type="url" inputmode="url"
                           placeholder="Enlace de entradas" class="input-field text-sm col-span-2"/>
                       </div>
+                      @if (canEditPoster()) {
+                        <div class="flex gap-3 items-start" role="group" aria-labelledby="edit-event-poster-label">
+                          <div class="w-20 flex-shrink-0 aspect-[4/5] border-2 border-ink overflow-hidden bg-dark-800 flex items-center justify-center"
+                               [class.border-dashed]="!editPosterShown()">
+                            @if (editPosterShown()) {
+                              <img [src]="editPosterShown()" [alt]="'Cartel de ' + (editEventData.title || 'tu evento')" class="w-full h-full object-cover"/>
+                            } @else {
+                              <span class="font-mono text-[10px] font-bold uppercase tracking-wide text-ink-muted text-center px-1">Sin cartel</span>
+                            }
+                          </div>
+                          <div class="flex flex-col gap-2 min-w-0">
+                            <p id="edit-event-poster-label" class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Cartel (opcional)</p>
+                            <div class="flex flex-wrap gap-2">
+                              <label class="btn-secondary text-xs min-h-[44px] px-3 cursor-pointer focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2">
+                                {{ editPosterShown() ? 'Cambiar' : 'Añadir cartel' }}
+                                <input type="file" class="sr-only" [accept]="posterAccept" (change)="onEditPosterChange($event)"
+                                  aria-describedby="edit-event-poster-error"/>
+                              </label>
+                              @if (editPosterShown()) {
+                                <button type="button" (click)="removeEditPoster()" class="btn-ghost text-xs min-h-[44px] px-3">Quitar</button>
+                              }
+                            </div>
+                            <p id="edit-event-poster-error" class="text-xs font-bold text-signal-red" aria-live="polite">{{ editPosterError() }}</p>
+                          </div>
+                        </div>
+                      }
                       <div class="flex gap-2 pt-1">
                         <button type="button" (click)="saveEditEvent(event.id)"
                           [disabled]="editSaving()"

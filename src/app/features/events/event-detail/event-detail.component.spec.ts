@@ -6,6 +6,7 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
 
 function mockBuilder(resolveValue: any = {}) {
   const b: any = {
@@ -30,8 +31,10 @@ describe('EventDetailComponent', () => {
   let favSvcSpy: jasmine.SpyObj<FavoritesService>;
   let toastSpy: jasmine.SpyObj<ToastService>;
   let confirmSpy: jasmine.SpyObj<ConfirmService>;
+  let eventImageAvailable: boolean;
 
   beforeEach(() => {
+    eventImageAvailable = false;
     supabaseSpy = {
       auth: {
         getSession: jasmine.createSpy('getSession').and.returnValue(
@@ -61,6 +64,7 @@ describe('EventDetailComponent', () => {
         { provide: ConfirmService, useValue: confirmSpy },
         { provide: SeoService, useValue: { setEvent: () => {}, injectJsonLd: () => {} } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'ev1' } } } },
+        { provide: MediaFeaturesService, useValue: { has: () => Promise.resolve(eventImageAvailable) } },
       ],
     });
 
@@ -196,6 +200,25 @@ describe('EventDetailComponent', () => {
       expect(component.event()).toEqual(EVENT as any);
       expect(component.currentUserId()).toBe('u1');
       expect(component.loading()).toBeFalse();
+    });
+
+    it('does not request image_url while the column does not exist (SQL not run)', async () => {
+      const builder = mockBuilder({ data: EVENT });
+      supabaseSpy.client.from.and.returnValue(builder);
+      await component.ngOnInit();
+      expect(builder.select.calls.first().args[0]).not.toContain('image_url');
+      expect(component.posterUrl()).toBeNull();
+    });
+
+    it('requests image_url once available and shows the poster', async () => {
+      eventImageAvailable = true;
+      const builder = mockBuilder({ data: { ...EVENT, image_url: 'https://cdn.test/media/u1/events/p.jpg' } });
+      supabaseSpy.client.from.and.returnValue(builder);
+      await component.ngOnInit();
+      expect(builder.select.calls.first().args[0]).toContain('image_url');
+      expect(component.posterUrl()).toBe('https://cdn.test/media/u1/events/p.jpg');
+      component.posterError.set(true);
+      expect(component.posterUrl()).toBeNull();
     });
 
     it('shows error toast on exception', async () => {

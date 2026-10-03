@@ -363,6 +363,11 @@
                   </div>
                 }
               </div>
+              @if (event.image_url) {
+                <div class="flex-shrink-0 w-16 sm:w-20 self-stretch border-l-2 border-ink overflow-hidden bg-night">
+                  <img [src]="event.image_url" alt="" loading="lazy" width="80" height="100" class="w-full h-full object-cover"/>
+                </div>
+              }
             </a>
           }
         </div>

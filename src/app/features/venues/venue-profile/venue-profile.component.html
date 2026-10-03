@@ -124,6 +124,7 @@
 
       <!-- Info column -->
       <div class="min-w-0 flex flex-col gap-8">
+        <app-space-gallery class="empty:hidden" kind="venue" [profileId]="venue()!.id" [name]="venue()!.name" [isOwner]="isOwner()"/>
         @if (venue()!.description) {
         <section>
           <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">

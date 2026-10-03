@@ -72,6 +72,14 @@
 
       <!-- Meta + actions column -->
       <aside class="min-w-0">
+        @if (posterUrl()) {
+          <figure class="mb-6 w-full max-w-sm mx-auto lg:max-w-none">
+            <div class="aspect-[4/5] border-2 border-ink shadow-card-lg overflow-hidden bg-night">
+              <img [src]="posterUrl()" [alt]="event()!.title" class="w-full h-full object-cover" (error)="posterError.set(true)"/>
+            </div>
+            <figcaption class="mt-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Cartel del evento</figcaption>
+          </figure>
+        }
         <dl class="border-t-2 border-ink" aria-label="Ficha del evento">
           <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Fecha</dt>

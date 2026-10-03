@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,6 +13,8 @@ import { dateParts, formatTime } from '../../core/utils/date';
 import { askLabel as askLabelFor, askStampClass as askStampClassFor } from '../../core/utils/se-busca';
 import { AvatarUploadComponent } from '../../shared/components/avatar-upload/avatar-upload.component';
 import { Event as AppEvent, EventGenre, PostType } from '../../core/models';
+import { MediaFeaturesService } from '../../core/services/media-features.service';
+import { MediaUploadService, MEDIA_ACCEPT, mediaFileError } from '../../core/services/media-upload.service';
 
 interface DashboardProfile {
   id?: string;
@@ -48,7 +50,7 @@ export type DashboardTab = 'events' | 'posts' | 'gear';
     imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent],
     templateUrl: './dashboard.component.html'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   readonly timeAgo = timeAgo;
   readonly askLabel = (type: string) => askLabelFor(type as PostType);
   readonly askStampClass = (type: string) => askStampClassFor(type as PostType);
@@ -61,6 +63,8 @@ export class DashboardComponent implements OnInit {
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private features = inject(MediaFeaturesService);
+  private media = inject(MediaUploadService);
 
   profile    = signal<DashboardProfile | null>(null);
   profileType = signal('');
@@ -82,11 +86,24 @@ export class DashboardComponent implements OnInit {
     description: string; contact_email: string; ticket_url: string;
   } = { title: '', venue: '', city: '', date: '', time: '', genre: '', price: null, description: '', contact_email: '', ticket_url: '' };
   editSaving = signal(false);
+  /** Poster editing appears only once events.image_url exists. */
+  readonly canEditPoster = this.features.state('eventImage');
+  readonly posterAccept = MEDIA_ACCEPT;
+  /** Poster stored on the event being edited. */
+  editPosterCurrent = signal<string | null>(null);
+  /** New poster picked in the inline editor (uploaded on save). */
+  editPosterFile = signal<File | null>(null);
+  editPosterPreview = signal<string | null>(null);
+  editPosterRemoved = signal(false);
+  editPosterError = signal('');
+  readonly editPosterShown = computed(() =>
+    this.editPosterPreview() ?? (this.editPosterRemoved() ? null : this.editPosterCurrent()));
   readonly genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Otro'];
   readonly cities = CITIES;
 
   async ngOnInit() {
     this.seo.set({ title: 'Mi panel' });
+    void this.features.has('eventImage');
     try {
       const { data: { session } } = await this.supabase.auth.getSession();
       if (!session) return;
@@ -162,6 +179,7 @@ export class DashboardComponent implements OnInit {
     e.preventDefault(); e.stopPropagation();
     this.editTitleError.set(false);
     this.editingEventId.set(event.id);
+    this.resetEditPoster(event.image_url ?? null);
     this.focusSoon('#edit-event-title');
     this.editEventData = {
       title: event.title,
@@ -177,9 +195,61 @@ export class DashboardComponent implements OnInit {
     };
   }
 
+  onEditPosterChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const invalid = mediaFileError(file);
+    if (invalid) { this.editPosterError.set(invalid); return; }
+    this.editPosterError.set('');
+    this.setEditPosterFile(file);
+  }
+
+  removeEditPoster() {
+    this.editPosterError.set('');
+    this.setEditPosterFile(null);
+    this.editPosterRemoved.set(true);
+  }
+
+  private setEditPosterFile(file: File | null) {
+    const old = this.editPosterPreview();
+    if (old) URL.revokeObjectURL(old);
+    this.editPosterFile.set(file);
+    this.editPosterPreview.set(file ? URL.createObjectURL(file) : null);
+    if (file) this.editPosterRemoved.set(false);
+  }
+
+  private resetEditPoster(current: string | null) {
+    this.setEditPosterFile(null);
+    this.editPosterCurrent.set(current);
+    this.editPosterRemoved.set(false);
+    this.editPosterError.set('');
+  }
+
+  /**
+   * image_url patch for the save: {} when unchanged or the column does not exist,
+   * null when the upload failed (already toasted).
+   */
+  private async editPosterPatch(): Promise<{ image_url?: string | null } | null> {
+    if (!this.canEditPoster()) return {};
+    const file = this.editPosterFile();
+    if (file) {
+      const url = await this.media.upload(file, 'events');
+      return url ? { image_url: url } : null;
+    }
+    return this.editPosterRemoved() && this.editPosterCurrent() ? { image_url: null } : {};
+  }
+
+  ngOnDestroy() {
+    const url = this.editPosterPreview();
+    if (url) URL.revokeObjectURL(url);
+  }
+
   cancelEditEvent() {
     const id = this.editingEventId();
     this.editingEventId.set(null);
+    this.resetEditPoster(null);
     // Return focus to the edit button of the row we came from.
     if (id) this.focusSoon(`[data-edit-event="${id}"]`);
   }
@@ -195,6 +265,8 @@ export class DashboardComponent implements OnInit {
     if (!uid) return;
     this.editSaving.set(true);
     try {
+      const posterPatch = await this.editPosterPatch();
+      if (!posterPatch) return;
       const { error } = await this.supabase.client.from('events').update({
         title: this.editEventData.title,
         venue: this.editEventData.venue,
@@ -207,8 +279,13 @@ export class DashboardComponent implements OnInit {
         description: this.editEventData.description || null,
         contact_email: this.editEventData.contact_email || null,
         ticket_url: this.sanitizeUrl(this.editEventData.ticket_url),
+        ...posterPatch,
       }).eq('id', id).eq('user_id', uid);
-      if (error) { this.toast.error('No se pudo guardar el evento.'); return; }
+      if (error) {
+        if (posterPatch.image_url) void this.media.remove(posterPatch.image_url);
+        this.toast.error('No se pudo guardar el evento.');
+        return;
+      }
       this.events.update(evs => evs.map(ev => {
         if (ev.id !== id) return ev;
         return {
@@ -223,9 +300,13 @@ export class DashboardComponent implements OnInit {
           description: this.editEventData.description || null,
           contact_email: this.editEventData.contact_email || null,
           ticket_url: this.editEventData.ticket_url || null,
+          ...posterPatch,
         };
       }));
+      const replaced = this.editPosterCurrent();
+      if (replaced && 'image_url' in posterPatch) void this.media.remove(replaced);
       this.editingEventId.set(null);
+      this.resetEditPoster(null);
       this.focusSoon(`[data-edit-event="${id}"]`);
       this.toast.success('Evento actualizado.');
     } catch {
