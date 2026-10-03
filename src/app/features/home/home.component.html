@@ -58,67 +58,13 @@
 
 
   <!-- ══ CONTENIDO ══ -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-6 lg:pt-10 pb-10 grid gap-9 lg:gap-12 lg:grid-cols-[1.45fr_1fr] items-start">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-5 lg:pt-10 pb-10 grid gap-9 lg:gap-12 lg:grid-cols-[1.45fr_1fr] items-start">
 
     <!-- ── COLUMNA PRINCIPAL ── -->
     <div class="flex flex-col gap-9 min-w-0">
 
-      <!-- Destacado: carrusel (el hueco reservado para promoción de pago más adelante) -->
-      <section aria-labelledby="destacado-title" aria-roledescription="carrusel">
-        <h2 id="destacado-title" class="sr-only">Destacado</h2>
-        @if (loading()) {
-          <div class="bg-ink h-52 sm:h-64 animate-pulse" aria-hidden="true"></div>
-        } @else if (featuredSlides().length > 0) {
-          <div #carousel (scroll)="onCarouselScroll(carousel)"
-               class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 sm:scroll-px-0 pb-2 pr-6">
-            @for (slide of featuredSlides(); track slide.key; let i = $index) {
-              <a [routerLink]="slide.link" [style.--i]="i"
-                 class="pop-in press snap-start snap-always shrink-0 w-[86%] sm:w-[72%] lg:w-[calc(50%-6px)] flex flex-col justify-between min-h-[11.5rem] sm:min-h-[13rem] lg:min-h-[12rem] border-2 border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                 [class]="slide.tone === 'ink' ? 'bg-ink text-poster-paper shadow-[4px_4px_0_0_#c23a1f]'
-                        : slide.tone === 'yellow' ? 'bg-poster-yellow text-ink shadow-[4px_4px_0_0_#141210]'
-                        : 'bg-primary-500 text-white shadow-[4px_4px_0_0_#141210]'">
-                <div class="p-4 sm:p-6 flex flex-col gap-3">
-                  <span class="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wide"
-                        [class.text-poster-yellow]="slide.tone === 'ink'">
-                    {{ slide.kicker }}
-                    @if (slide.sponsored) { <span class="border border-current px-1 text-[11px]">Promo</span> }
-                  </span>
-                  <span class="font-display uppercase text-[2rem] sm:text-5xl lg:text-4xl leading-[1.08] line-clamp-3 break-words">{{ slide.title }}</span>
-                </div>
-                <div class="flex items-stretch border-t-2"
-                     [class.border-poster-paper]="slide.tone === 'ink'" [class.border-ink]="slide.tone !== 'ink'">
-                  @if (slide.date; as d) {
-                    <span class="bg-primary-500 text-white px-3 py-2 flex flex-col items-center justify-center min-w-[4.25rem] border-r-2 border-poster-paper">
-                      <span class="font-mono text-[11px] font-bold uppercase">{{ d.weekday }}</span>
-                      <span class="font-display text-3xl leading-none">{{ d.day }}</span>
-                      <span class="font-mono text-[11px] font-bold uppercase">{{ d.month }}</span>
-                    </span>
-                  }
-                  <span class="flex-1 min-w-0 px-4 py-3 text-sm font-bold truncate self-center">{{ slide.meta }}</span>
-                  <span class="hidden sm:flex lg:hidden xl:flex items-center gap-2 px-4 font-mono text-xs font-bold uppercase whitespace-nowrap">{{ slide.cta }} <app-icon name="arrow-right" [size]="16"/></span>
-                  <span class="sm:hidden lg:flex xl:hidden flex items-center px-4" aria-hidden="true"><app-icon name="arrow-right" [size]="20"/></span>
-                </div>
-              </a>
-            }
-          </div>
-          @if (featuredSlides().length > 1) {
-            <div class="flex justify-center -mt-1">
-              @for (slide of featuredSlides(); track slide.key; let i = $index) {
-                <button type="button" (click)="goToSlide(carousel, i)"
-                        [attr.aria-label]="'Ver destacado ' + (i + 1) + ' de ' + featuredSlides().length"
-                        [attr.aria-current]="activeSlide() === i ? 'true' : null"
-                        class="h-11 min-w-[36px] px-1 flex items-center justify-center">
-                  <span class="block h-1.5 w-7 border border-ink origin-center transition-transform duration-300"
-                        [class]="activeSlide() === i ? 'scale-x-100 bg-ink' : 'scale-x-[0.45] bg-transparent'"></span>
-                </button>
-              }
-            </div>
-          }
-        }
-      </section>
-
       <!-- Se busca -->
-      <section aria-labelledby="busca-title" class="reveal">
+      <section aria-labelledby="busca-title">
         <div class="flex items-end justify-between gap-3 mb-1">
           <h2 id="busca-title" class="text-3xl lg:text-4xl leading-[1.15]">Se busca
             <span class="block font-mono text-xs font-bold tracking-wide normal-case text-ink-muted mt-1">{{ seBuscaNationwide() || !userCity() ? 'En toda España' : 'En ' + userCity() }}</span>
@@ -145,6 +91,56 @@
           <a routerLink="/feed" [queryParams]="{ new: '1' }" class="btn-secondary mt-4 min-h-[44px] w-full sm:w-auto">
             <app-icon name="plus" [size]="16"/> Publicar en Se busca
           </a>
+        }
+      </section>
+
+      <!-- Destacado: carrusel compacto (el hueco reservado para promoción de pago más adelante) -->
+      <section aria-labelledby="destacado-title" aria-roledescription="carrusel" class="reveal">
+        <h2 id="destacado-title" class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted mb-2">Destacado</h2>
+        @if (loading()) {
+          <div class="h-24 bg-dark-800/40 animate-pulse" aria-hidden="true"></div>
+        } @else if (featuredSlides().length > 0) {
+          <div #carousel (scroll)="onCarouselScroll(carousel)"
+               class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 sm:scroll-px-0 pt-0.5 pb-2 pr-6">
+            @for (slide of featuredSlides(); track slide.key) {
+              <a [routerLink]="slide.link"
+                 class="press group snap-start snap-always shrink-0 w-[84%] sm:w-[60%] lg:w-[calc(50%-6px)] flex items-stretch bg-dark-900 border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                 [class]="slide.tone === 'red' ? 'border-primary-500 shadow-[3px_3px_0_0_#c23a1f]'
+                        : slide.tone === 'yellow' ? 'border-poster-yellow shadow-[3px_3px_0_0_#e8b931]'
+                        : 'border-ink shadow-[3px_3px_0_0_#141210]'">
+                @if (slide.date; as d) {
+                  <span class="w-14 shrink-0 flex flex-col items-center justify-center leading-none border-r-2 border-primary-500 text-primary-600">
+                    <span class="font-mono text-[11px] font-bold uppercase">{{ d.weekday }}</span>
+                    <span class="font-display text-2xl">{{ d.day }}</span>
+                    <span class="font-mono text-[11px] font-bold uppercase">{{ d.month }}</span>
+                  </span>
+                }
+                <span class="flex-1 min-w-0 px-3.5 py-3 flex flex-col justify-center gap-1">
+                  <span class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide"
+                        [class.text-primary-600]="slide.tone === 'red'" [class.text-ink-muted]="slide.tone !== 'red'">
+                    {{ slide.kicker }}
+                    @if (slide.sponsored) { <span class="border border-current px-1">Promo</span> }
+                  </span>
+                  <span class="font-display text-xl uppercase leading-tight truncate group-hover:text-primary-500 transition-colors">{{ slide.title }}</span>
+                  <span class="text-xs text-ink-muted truncate">{{ slide.meta }}</span>
+                </span>
+                <span class="flex items-center pr-3 text-ink-muted group-hover:text-primary-500" aria-hidden="true"><app-icon name="arrow-right" [size]="18"/></span>
+              </a>
+            }
+          </div>
+          @if (featuredSlides().length > 1) {
+            <div class="flex justify-center -mt-2">
+              @for (slide of featuredSlides(); track slide.key; let i = $index) {
+                <button type="button" (click)="goToSlide(carousel, i)"
+                        [attr.aria-label]="'Ver destacado ' + (i + 1) + ' de ' + featuredSlides().length"
+                        [attr.aria-current]="activeSlide() === i ? 'true' : null"
+                        class="h-9 min-w-[32px] px-1 flex items-center justify-center">
+                  <span class="block h-1 w-6 origin-center transition-transform duration-300"
+                        [class]="activeSlide() === i ? 'scale-x-100 bg-ink' : 'scale-x-[0.4] bg-ink/30'"></span>
+                </button>
+              }
+            </div>
+          }
         }
       </section>
 
