@@ -34,7 +34,7 @@
 
   <!-- Progress bar -->
   @if (!pendingConfirmation() && step() < totalSteps()) {
-    <div class="h-1.5 bg-dark-700 border-b-2 border-ink sticky top-16 z-10 overflow-hidden">
+    <div class="h-1.5 bg-dark-700 border-ink sticky top-16 z-10 overflow-hidden" [class.border-b-2]="!isEditing()">
       <div class="h-full w-full origin-left bg-primary-500 transition-transform duration-500"
            [style.transform]="'scaleX(' + (step() / totalSteps()) + ')'"></div>
     </div>
@@ -151,7 +151,7 @@
                 <input id="onb-consent" type="checkbox" class="mt-0.5 w-5 h-5 accent-primary-500 flex-shrink-0"
                        [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
                        [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
-                <span>Confirmo que tengo 14 años o más, acepto los
+                <span>Confirmo que tengo {{ minAge }} años o más, acepto los
                   <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
                   y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
                   Tu perfil será público.</span>
@@ -222,7 +222,7 @@
                 <input id="onb-consent" type="checkbox" class="mt-0.5 w-5 h-5 accent-primary-500 flex-shrink-0"
                        [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
                        [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
-                <span>Confirmo que tengo 14 años o más, acepto los
+                <span>Confirmo que tengo {{ minAge }} años o más, acepto los
                   <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
                   y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
                   Tu perfil será público.</span>
@@ -567,7 +567,7 @@
                 <input id="onb-consent" type="checkbox" class="mt-0.5 w-5 h-5 accent-primary-500 flex-shrink-0"
                        [checked]="consentAccepted()" (change)="consentAccepted.set($any($event.target).checked); consentError.set(false)"
                        [attr.aria-invalid]="consentError()" [attr.aria-describedby]="consentError() ? 'onb-consent-error' : null"/>
-                <span>Confirmo que tengo 14 años o más, acepto los
+                <span>Confirmo que tengo {{ minAge }} años o más, acepto los
                   <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline">Términos de Uso</a>
                   y he leído la <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline">Política de Privacidad</a>.
                   Tu perfil será público.</span>

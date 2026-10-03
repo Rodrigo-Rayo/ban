@@ -111,7 +111,10 @@
         <a [routerLink]="cat.link" [queryParams]="cat.query"
            class="flex items-center gap-4 py-4 border-b border-ink/15 min-h-[64px] group hover:bg-poster-yellow transition-colors px-1">
           <span class="font-mono text-xs font-bold text-ink-muted w-6 shrink-0">0{{ i + 1 }}</span>
-          <span class="font-display text-3xl lg:text-4xl uppercase leading-none flex-1 group-hover:translate-x-1 transition-transform">{{ cat.label }}</span>
+          <span class="flex-1 min-w-0 group-hover:translate-x-1 transition-transform">
+            <span class="block font-display text-3xl lg:text-4xl uppercase leading-none">{{ cat.label }}</span>
+            <span class="block sm:hidden mt-1 text-xs text-ink-muted">{{ cat.short }}</span>
+          </span>
           <span class="hidden sm:block text-sm text-ink-muted">{{ cat.desc }}</span>
           <span aria-hidden="true" class="font-display text-2xl">→</span>
         </a>

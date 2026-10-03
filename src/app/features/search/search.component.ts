@@ -116,6 +116,14 @@ export class SearchComponent implements OnInit, OnDestroy {
       teachers: 'Clases de música',
       rehearsal: 'Locales de ensayo',
     };
+    const tabDescriptions: Record<SearchType, string> = {
+      musicians: 'Encuentra músicos en tu ciudad por instrumento, estilo y nivel, y escríbeles directamente. Gratis en BandYou.',
+      bands: 'Bandas de toda España que buscan miembros, bolos o colaboraciones. Contacta directamente en BandYou.',
+      venues: 'Salas de conciertos de España: aforo, estilos que programan y contacto directo para tocar.',
+      events: 'Conciertos, jams y open stages cerca de ti. La agenda de la escena musical en BandYou.',
+      teachers: 'Profesores de música por instrumento y ciudad, presenciales u online. Pide tu clase en BandYou.',
+      rehearsal: 'Locales de ensayo por horas en tu ciudad: precio, capacidad y contacto directo.',
+    };
 
     this.paramsSub = this.route.queryParams.subscribe(params => {
       const rawTab = (params['tab'] as string) || 'musicians';
@@ -129,8 +137,8 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.revealActiveTab();
       this.seo.set({
         title: tabTitles[tab] || 'Buscar',
-        description: `Encuentra ${(tabTitles[tab] || 'músicos, bandas y salas').toLowerCase()} — BandYou`,
-        url: 'https://bandyou.es/search',
+        description: tabDescriptions[tab],
+        url: 'https://www.bandyou.es/search',
       });
       if (params['city']) {
         this.selectedCity.set(params['city']);
@@ -157,7 +165,12 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   /** Mobile tabs scroll horizontally: keep the active one in view. */
   private revealActiveTab() {
-    setTimeout(() => document.getElementById('tab-' + this.activeTab())?.scrollIntoView({ block: 'nearest', inline: 'center' }), 0);
+    setTimeout(() => {
+      const el = document.getElementById('tab-' + this.activeTab());
+      const strip = el?.parentElement;
+      // Scroll the strip itself: scrollIntoView would move the sequential-focus start point past the skip link.
+      if (el && strip) strip.scrollLeft += el.getBoundingClientRect().left - strip.getBoundingClientRect().left - (strip.clientWidth - el.offsetWidth) / 2;
+    }, 0);
   }
 
   readonly tabLabel = computed(() => this.tabLabelMap.get(this.activeTab()) ?? 'Resultados');

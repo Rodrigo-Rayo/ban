@@ -213,6 +213,9 @@
       }
     </div>
 
+    <p class="mt-6 text-xs text-ink-muted leading-relaxed max-w-prose">La venta es entre particulares: BandYou no gestiona pagos, envíos ni garantías. Queda en persona y revisa el artículo antes de pagar.</p>
+    @if (!isOwner) { <div class="mt-2"><app-report-link what="este anuncio"/></div> }
+
     <!-- Mobile sticky CTA bar — above the global bottom nav -->
     <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink sm:hidden">
       <div class="flex gap-2 px-3 py-2.5">

@@ -1,8 +1,19 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 /** Private, transactional and auth pages must never be indexed. */
 const NOINDEX = { noindex: true };
+
+/**
+ * Section paths without an id (/musicians, /events…), shared or typed by hand,
+ * open that tab of the directory instead of a 404.
+ */
+const SECTION_TABS = ['musicians', 'bands', 'venues', 'teachers', 'rehearsal', 'events'] as const;
+const sectionRedirects: Routes = SECTION_TABS.map(tab => ({
+  path: tab, pathMatch: 'full' as const,
+  redirectTo: () => inject(Router).createUrlTree(['/search'], { queryParams: { tab } }),
+}));
 
 export const routes: Routes = [
   {
@@ -28,6 +39,7 @@ export const routes: Routes = [
     path: 'search',
     loadComponent: () => import('./features/search/search.component').then(m => m.SearchComponent),
   },
+  ...sectionRedirects,
   {
     path: 'musicians/:id',
     loadComponent: () => import('./features/musicians/musician-profile/musician-profile.component').then(m => m.MusicianProfileComponent),

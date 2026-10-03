@@ -53,3 +53,6 @@ src/environments/environment.prod.ts
 
 # Playwright authenticated sessions (contain real tokens)
 /e2e/.auth/
+
+# Local Claude Code tooling (not part of the app)
+/everything-claude-code/

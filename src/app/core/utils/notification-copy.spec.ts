@@ -1,10 +1,8 @@
-import { favoriteNoticeTitle, lessonRequestBody, LESSON_REQUEST_TITLE } from './notification-copy';
+import { FAVORITE_NOTICE_TITLE, lessonRequestBody, LESSON_REQUEST_TITLE } from './notification-copy';
 
 describe('notification copy', () => {
-  it('uses the first name for favorites, with a neutral fallback', () => {
-    expect(favoriteNoticeTitle('Lola García')).toBe('A Lola le gusta tu perfil');
-    expect(favoriteNoticeTitle('  ')).toBe('Alguien ha guardado tu perfil');
-    expect(favoriteNoticeTitle(null)).toBe('Alguien ha guardado tu perfil');
+  it('never names who saved a profile', () => {
+    expect(FAVORITE_NOTICE_TITLE).toBe('Alguien ha guardado tu perfil');
   });
 
   it('describes a lesson request with the date and points to the messages', () => {

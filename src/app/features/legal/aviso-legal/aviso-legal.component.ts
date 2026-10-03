@@ -17,7 +17,7 @@ export class AvisoLegalComponent implements OnInit {
     this.seo.set({
       title: 'Aviso Legal',
       description: 'Aviso legal de BandYou: datos identificativos del titular conforme a la LSSI-CE.',
-      url: 'https://bandyou.es/legal/aviso-legal',
+      url: 'https://www.bandyou.es/legal/aviso-legal',
     });
   }
 }

@@ -27,22 +27,22 @@ export class LandingComponent implements OnInit {
   vacancies = signal<LandingVacancy[]>([]);
   people = signal<LandingPerson[]>([]);
 
-  catalog: { label: string; desc: string; link: string; query?: Record<string, string> }[] = [
-    { label: 'Se busca',  desc: 'Bandas que necesitan gente y músicos que buscan banda', link: '/feed' },
-    { label: 'Músicos',   desc: 'Guitarras, bajos, voces y más',      link: '/search', query: { tab: 'musicians' } },
-    { label: 'Bandas',    desc: 'Buscan miembros o proyectos',        link: '/search', query: { tab: 'bands' } },
-    { label: 'Locales',   desc: 'Locales de ensayo por horas',        link: '/search', query: { tab: 'rehearsal' } },
-    { label: 'Clases',    desc: 'Profesores y talleres',              link: '/search', query: { tab: 'teachers' } },
-    { label: 'Agenda',    desc: 'Bolos, jams, open stages',           link: '/search', query: { tab: 'events' } },
-    { label: 'Salas',     desc: 'Conciertos y eventos en directo',    link: '/search', query: { tab: 'venues' } },
-    { label: 'Tienda',    desc: 'Instrumentos y equipo de segunda mano', link: '/shop' },
+  catalog: { label: string; desc: string; short: string; link: string; query?: Record<string, string> }[] = [
+    { label: 'Se busca',  short: 'Vacantes y músicos', desc: 'Bandas que necesitan gente y músicos que buscan banda', link: '/feed' },
+    { label: 'Músicos',   short: 'Guitarras, bajos, voces', desc: 'Guitarras, bajos, voces y más',      link: '/search', query: { tab: 'musicians' } },
+    { label: 'Bandas',    short: 'Buscan miembros', desc: 'Buscan miembros o proyectos',        link: '/search', query: { tab: 'bands' } },
+    { label: 'Locales',   short: 'Ensayo por horas', desc: 'Locales de ensayo por horas',        link: '/search', query: { tab: 'rehearsal' } },
+    { label: 'Clases',    short: 'Profes y talleres', desc: 'Profesores y talleres',              link: '/search', query: { tab: 'teachers' } },
+    { label: 'Agenda',    short: 'Bolos y jams', desc: 'Bolos, jams, open stages',           link: '/search', query: { tab: 'events' } },
+    { label: 'Salas',     short: 'Música en directo', desc: 'Conciertos y eventos en directo',    link: '/search', query: { tab: 'venues' } },
+    { label: 'Tienda',    short: 'Segunda mano', desc: 'Instrumentos y equipo de segunda mano', link: '/shop' },
   ];
 
   steps = [
     { n: '01', title: 'Crea tu perfil',        desc: 'Instrumento, estilos, zona y disponibilidad. Cinco minutos.' },
     { n: '02', title: 'Explora el directorio', desc: 'Filtra por ciudad, género, instrumento y nivel.' },
     { n: '03', title: 'Escribe directamente',  desc: 'Sin matches, sin swipes. Ves un perfil y escribes.' },
-    { n: '04', title: 'Toca',                  desc: 'Sala de ensayo, estudio, concierto — todo coordinado.' },
+    { n: '04', title: 'Toca',                  desc: 'Local de ensayo, estudio, concierto — todo coordinado.' },
   ];
 
   roles = [
@@ -72,20 +72,27 @@ export class LandingComponent implements OnInit {
 
     this.seo.set({
       description: 'BandYou — La red musical de España. Conecta con músicos, bandas, salas, profesores y locales de ensayo. Mensajes directos, agenda de eventos.',
-      url: 'https://bandyou.es/',
+      url: 'https://www.bandyou.es/',
     });
 
     this.seo.injectJsonLd({
       '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: 'BandYou',
-      url: 'https://bandyou.es',
-      logo: 'https://bandyou.es/og-default.jpg',
-      description: 'La red musical de España. Conecta con músicos, bandas, salas de conciertos, profesores y locales de ensayo sin algoritmos ni intermediarios.',
-      address: {
-        '@type': 'PostalAddress',
-        addressCountry: 'ES',
-      },
+      '@graph': [
+        {
+          '@type': 'Organization',
+          name: 'BandYou',
+          url: 'https://www.bandyou.es',
+          logo: 'https://www.bandyou.es/icon-512.png',
+          description: 'La red musical de España. Conecta con músicos, bandas, salas de conciertos, profesores y locales de ensayo sin algoritmos ni intermediarios.',
+          address: { '@type': 'PostalAddress', addressCountry: 'ES' },
+        },
+        {
+          '@type': 'WebSite',
+          name: 'BandYou',
+          url: 'https://www.bandyou.es/',
+          inLanguage: 'es-ES',
+        },
+      ],
     });
 
     try {

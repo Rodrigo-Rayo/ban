@@ -1,3 +1,4 @@
+import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -18,7 +19,7 @@ const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url
 
 @Component({
     selector: 'app-venue-profile',
-    imports: [RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent, SpaceGalleryComponent],
+    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent, SpaceGalleryComponent],
     templateUrl: './venue-profile.component.html'
 })
 export class VenueProfileComponent implements OnInit {
@@ -94,7 +95,7 @@ export class VenueProfileComponent implements OnInit {
           name: venue.name,
           description: venue.description || '',
           image: venue.avatar_url || '',
-          url: `https://bandyou.es/venues/${venue.id}`,
+          url: `https://www.bandyou.es/venues/${venue.id}`,
           address: { '@type': 'PostalAddress', addressLocality: venue.city || '', addressCountry: 'ES' },
         });
       } else {

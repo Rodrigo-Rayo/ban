@@ -111,9 +111,9 @@
 
     <!-- ── FILTERS ── -->
     <div class="mb-5 space-y-2.5">
-      <div class="grid grid-cols-3 sm:flex sm:flex-wrap items-center gap-2 pb-1">
+      <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 pb-1">
         <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadPosts()"
-          class="input-field sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
+          class="input-field col-span-2 sm:col-auto sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
           aria-label="Filtrar por ciudad">
           @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
         </select>

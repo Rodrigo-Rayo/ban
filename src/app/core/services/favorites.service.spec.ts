@@ -118,14 +118,14 @@ describe('FavoritesService', () => {
     }
     const settle = () => new Promise(r => setTimeout(r));
 
-    it('notifies the profile owner by first name when a profile is added', async () => {
+    it('notifies the profile owner anonymously when a profile is added', async () => {
       wire('owner-1');
       await service.toggle('user-1', 'musician', 'entity-1');
       await settle();
       expect(mockClient.from).toHaveBeenCalledWith('musicians');
-      expect(mockClient.rpc).toHaveBeenCalledWith('get_profile_name', { p_user_id: 'user-1' });
+      expect(mockClient.rpc).not.toHaveBeenCalledWith('get_profile_name', jasmine.anything());
       expect(notifSpy.create).toHaveBeenCalledOnceWith(
-        'owner-1', 'favorite', 'A Lola le gusta tu perfil', undefined, 'musician', 'entity-1');
+        'owner-1', 'favorite', 'Alguien ha guardado tu perfil', undefined, 'musician', 'entity-1');
     });
 
     it('resolves the owner from the right table for each profile kind', async () => {

@@ -1,3 +1,4 @@
+import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -19,7 +20,7 @@ const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avata
 
 @Component({
     selector: 'app-teacher-profile',
-    imports: [RouterLink, FormsModule, IconComponent, AvatarUploadComponent],
+    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent],
     templateUrl: './teacher-profile.component.html'
 })
 export class TeacherProfileComponent implements OnInit {
@@ -106,7 +107,7 @@ export class TeacherProfileComponent implements OnInit {
           name: teacher.name,
           description: teacher.description || '',
           image: teacher.avatar_url || '',
-          url: `https://bandyou.es/teachers/${teacher.id}`,
+          url: `https://www.bandyou.es/teachers/${teacher.id}`,
           hasOccupation: {
             '@type': 'Occupation',
             name: teacher.instrument ? ('Profesor de ' + teacher.instrument) : 'Profesor de música',

@@ -359,17 +359,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const uid = this.auth.user()?.id;
     if (!uid) return;
     if (!(await this.confirm.ask({
-      title: '¿Eliminar este artículo?',
+      title: '¿Eliminar este anuncio?',
       message: 'Dejará de aparecer en la Tienda. No se puede deshacer.',
       confirmLabel: 'Eliminar', danger: true,
     }))) return;
     try {
       const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', id).eq('user_id', uid);
-      if (error) { this.toast.error('No se pudo eliminar el artículo.'); return; }
+      if (error) { this.toast.error('No se pudo eliminar el anuncio.'); return; }
       this.myListings.update(ls => ls.filter(l => l.id !== id));
-      this.toast.success('Artículo eliminado.');
+      this.toast.success('Anuncio eliminado.');
     } catch {
-      this.toast.error('No se pudo eliminar el artículo.');
+      this.toast.error('No se pudo eliminar el anuncio.');
     }
   }
 
@@ -389,7 +389,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     e.preventDefault(); e.stopPropagation();
     const uid = this.auth.user()?.id;
     if (!uid) return;
-    await this.setListingStatus(id, uid, 'active', 'Artículo de nuevo en venta.', 'No se pudo volver a poner en venta.');
+    await this.setListingStatus(id, uid, 'active', 'Anuncio de nuevo en venta.', 'No se pudo volver a poner en venta.');
   }
 
   private async setListingStatus(id: string, uid: string, status: 'sold' | 'active', okMsg: string, errMsg: string) {
@@ -472,7 +472,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly tabNewQuery = computed(() => (this.activeTab() === 'posts' ? { new: '1' } : null));
 
   readonly tabNewLabel = computed(() => {
-    const map: Record<DashboardTab, string> = { events: 'Publicar evento', posts: 'Publicar anuncio', gear: 'Publicar artículo' };
+    const map: Record<DashboardTab, string> = { events: 'Publicar evento', posts: 'Publicar anuncio', gear: 'Publicar anuncio' };
     return map[this.activeTab()];
   });
 }

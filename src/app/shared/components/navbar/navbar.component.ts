@@ -45,7 +45,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
 /** Content to publish (first group of the sheet). */
 export const PUBLISH_CONTENT: readonly PublishOption[] = [
   { label: 'Anuncio en Se busca', hint: 'Busco banda, músicos, colaboración…', icon: 'newspaper',      link: '/feed', query: { new: '1' } },
-  { label: 'Concierto',           hint: 'Bolo, jam session, festival',          icon: 'calendar',      link: '/events/create' },
+  { label: 'Evento',              hint: 'Bolo, jam session, festival',          icon: 'calendar',      link: '/events/create' },
   { label: 'Vender equipo',       hint: 'Instrumentos, amplis, efectos',        icon: 'shopping-cart', link: '/shop/new' },
 ];
 
@@ -88,7 +88,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
-  menuOpen = false;
+  private _menuOpen = false;
+  /** While the mobile menu is open the page behind it is inert, so Tab can't wander under the panel. */
+  get menuOpen(): boolean { return this._menuOpen; }
+  set menuOpen(open: boolean) {
+    this._menuOpen = open;
+    this.host.nativeElement.ownerDocument.getElementById('main-content')?.toggleAttribute('inert', open);
+  }
   publishOpen = false;
   accountOpen = false;
   readonly sections = NAV_SECTIONS;
@@ -171,7 +177,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
       case 'ArrowUp': go(i - 1); break;
       case 'Home': go(0); break;
       case 'End': go(items.length - 1); break;
-      case 'Tab': this.accountOpen = false; this.publishOpen = false; break;
+      case 'Tab': {
+        const trigger = this.publishOpen ? '[data-publish-trigger]' : '[data-account-trigger]';
+        event.preventDefault();
+        this.accountOpen = false;
+        this.publishOpen = false;
+        this.focusTrigger(trigger);
+        break;
+      }
     }
   }
 

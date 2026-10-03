@@ -1,3 +1,4 @@
+import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -18,7 +19,7 @@ const EVENT_COLUMNS = 'id, user_id, title, venue, city, date, time, genre, price
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-event-detail',
-    imports: [RouterLink, CommonModule, DatePipe, IconComponent],
+    imports: [ReportLinkComponent, RouterLink, CommonModule, DatePipe, IconComponent],
     templateUrl: './event-detail.component.html'
 })
 export class EventDetailComponent implements OnInit {
@@ -101,7 +102,7 @@ export class EventDetailComponent implements OnInit {
           eventStatus: 'https://schema.org/EventScheduled',
           eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
           ...(data.image_url ? { image: data.image_url } : {}),
-          url: `https://bandyou.es/events/${data.id}`,
+          url: `https://www.bandyou.es/events/${data.id}`,
           location: {
             '@type': 'Place',
             name: data.venue || data.city || 'España',
@@ -170,6 +171,11 @@ export class EventDetailComponent implements OnInit {
     } finally {
       this.deleting.set(false);
     }
+  }
+
+  /** Logged-out visitors go to login and come back to this event afterwards. */
+  rememberReturn() {
+    try { sessionStorage.setItem('bandyou_return_url', window.location.pathname); } catch { /* storage blocked */ }
   }
 
   async toggleFav() {

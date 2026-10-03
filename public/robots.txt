@@ -17,4 +17,4 @@ Disallow: /notifications
 Disallow: /favorites
 Disallow: /search?*
 
-Sitemap: https://bandyou.es/sitemap.xml
+Sitemap: https://www.bandyou.es/sitemap.xml

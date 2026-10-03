@@ -1,3 +1,4 @@
+import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -40,7 +41,7 @@ export function joinWeekdays(listed: string[]): string {
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-musician-profile',
-    imports: [RouterLink, IconComponent, AvatarUploadComponent],
+    imports: [ReportLinkComponent, RouterLink, IconComponent, AvatarUploadComponent],
     templateUrl: './musician-profile.component.html'
 })
 export class MusicianProfileComponent implements OnInit {
@@ -110,7 +111,7 @@ export class MusicianProfileComponent implements OnInit {
           name: data.name,
           description: data.description || '',
           image: data.avatar_url || '',
-          url: `https://bandyou.es/musicians/${data.id}`,
+          url: `https://www.bandyou.es/musicians/${data.id}`,
           address: { '@type': 'PostalAddress', addressLocality: data.city || '', addressCountry: 'ES' },
         });
       } else {

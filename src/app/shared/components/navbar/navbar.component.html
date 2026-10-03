@@ -151,7 +151,7 @@
 <!-- PUBLICAR: one sheet, two groups (bottom sheet on mobile, dropdown on desktop) -->
 @if (publishOpen) {
   <div class="fixed inset-0 z-[55] bg-ink/40 lg:bg-transparent" (click)="publishOpen = false" aria-hidden="true"></div>
-  <div id="publish-menu" role="menu" aria-label="Publicar" data-publish-dropdown (keydown)="onMenuKeydown($event)"
+  <div data-publish-dropdown (keydown)="onMenuKeydown($event)"
        class="fixed z-[60] inset-x-0 bottom-16 lg:bottom-auto lg:top-[60px] lg:left-auto lg:right-6 lg:w-[380px]
               max-h-[calc(100vh-8rem)] lg:max-h-[calc(100vh-5rem)] overflow-y-auto
               bg-dark-900 border-t-2 lg:border-2 border-ink lg:shadow-[6px_6px_0_0_#141210] animate-slide-in safe-area-pb">
@@ -163,6 +163,7 @@
       </button>
     </div>
 
+    <div id="publish-menu" role="menu" aria-label="Publicar">
     @if (auth.isLoggedIn()) {
       <div role="group" aria-labelledby="publish-group-content">
         <p id="publish-group-content" class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted px-4 pt-3 pb-1">Publicar</p>
@@ -192,10 +193,12 @@
       </div>
     } @else {
       <div class="px-4 py-5 flex flex-col gap-3">
-        <p class="text-sm text-ink">Inicia sesión para publicar.</p>
+        <p class="text-sm text-ink">Publica en Se busca, Agenda o Tienda con tu perfil gratis.</p>
         <a role="menuitem" routerLink="/auth/login" (click)="publishOpen = false" class="btn-primary justify-center">Entrar</a>
+        <a role="menuitem" routerLink="/auth/register" (click)="publishOpen = false" class="btn-secondary justify-center">Crear perfil gratis</a>
       </div>
     }
+    </div>
   </div>
 }
 
@@ -214,9 +217,8 @@
     <button type="button" (click)="togglePublish()" data-publish-dropdown data-publish-trigger
             [attr.aria-expanded]="publishOpen" aria-haspopup="menu" aria-controls="publish-menu" aria-label="Publicar"
             class="flex-1 flex flex-col items-center justify-center gap-1 text-[11px] font-semibold leading-none text-ink-muted focus-visible:outline-none group">
-      <span class="w-8 h-8 flex items-center justify-center bg-primary-500 text-white shadow-[2px_2px_0_0_#141210] transition-transform group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-none group-focus-visible:ring-2 group-focus-visible:ring-primary-500 group-focus-visible:ring-offset-2"
-            [class.rotate-45]="publishOpen">
-        <app-icon name="plus" [size]="18"/>
+      <span class="w-8 h-8 flex items-center justify-center bg-primary-500 text-white shadow-[2px_2px_0_0_#141210] transition-transform group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-none group-focus-visible:ring-2 group-focus-visible:ring-primary-500 group-focus-visible:ring-offset-2">
+        <span class="inline-flex transition-transform duration-150" [class.rotate-45]="publishOpen"><app-icon name="plus" [size]="18"/></span>
       </span>
       <span aria-hidden="true">Publicar</span>
     </button>

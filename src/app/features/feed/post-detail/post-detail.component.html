@@ -154,6 +154,8 @@
       </section>
     }
 
+    @if (!isOwner()) { <div class="mt-6"><app-report-link what="este anuncio"/></div> }
+
     <!-- Mobile action bar — sits above the global bottom nav -->
     <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink sm:hidden">
       <div class="flex gap-2 px-3 py-2.5">

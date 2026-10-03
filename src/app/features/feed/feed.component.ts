@@ -1,3 +1,4 @@
+import { publishErrorMessage } from '../../core/utils/publish-error';
 import { Component, signal, inject, OnInit, DestroyRef, computed, ElementRef, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -172,7 +173,9 @@ export class FeedComponent implements OnInit {
   private revealActiveSection() {
     setTimeout(() => {
       const nav = this.sectionNav()?.nativeElement;
-      nav?.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+      const el = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+      // Scroll the strip itself: scrollIntoView would move the sequential-focus start point past the skip link.
+      if (nav && el) nav.scrollLeft += el.getBoundingClientRect().left - nav.getBoundingClientRect().left - (nav.clientWidth - el.offsetWidth) / 2;
     }, 0);
   }
 
@@ -334,7 +337,7 @@ export class FeedComponent implements OnInit {
       });
 
       if (error) {
-        this.toast.error('No se pudo publicar. Intenta de nuevo.');
+        this.toast.error(publishErrorMessage(error, 'No se pudo publicar. Intenta de nuevo.'));
         return;
       }
       this.newPost = { type: this.defaultPostType(), text: '', city: 'Madrid', instrument: '', genre: '' };

@@ -41,7 +41,7 @@
           {{ busy() ? 'Subiendo…' : 'Añadir fotos' }}
           <input type="file" class="sr-only" multiple [accept]="accept" [disabled]="busy()" (change)="onFiles($event)"/>
         </label>
-        <p class="text-xs text-ink-muted">Hasta {{ max }} fotos. JPG, PNG o WebP, máx. 5 MB cada una.</p>
+        <p class="text-xs text-ink-muted">Hasta {{ max }} fotos. JPG, PNG o WebP, máx. 5 MB cada una. Sube solo fotos tuyas o con permiso de su autor.</p>
       </div>
     }
   </section>

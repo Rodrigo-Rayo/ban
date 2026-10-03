@@ -17,7 +17,7 @@ import { ConfirmService } from '../../../core/services/confirm.service';
             <p id="confirm-msg" class="text-sm text-ink-muted mt-2 leading-relaxed">{{ p.message }}</p>
           }
           <div class="mt-6 grid grid-cols-2 gap-2">
-            <button type="button" class="btn-secondary" (click)="svc.settle(false)">{{ p.cancelLabel }}</button>
+            <button #cancelBtn type="button" class="btn-secondary" (click)="svc.settle(false)">{{ p.cancelLabel }}</button>
             <button #confirmBtn type="button" [class]="p.danger ? 'btn-primary' : 'btn-night'" (click)="svc.settle(true)">
               {{ p.confirmLabel }}
             </button>
@@ -29,18 +29,20 @@ import { ConfirmService } from '../../../core/services/confirm.service';
 })
 export class ConfirmDialogComponent {
   readonly svc = inject(ConfirmService);
+  private cancelBtn = viewChild<ElementRef<HTMLButtonElement>>('cancelBtn');
   private confirmBtn = viewChild<ElementRef<HTMLButtonElement>>('confirmBtn');
   private returnFocus: HTMLElement | null = null;
 
   constructor() {
-    // Focus the dialog's action when it opens; give focus back when it closes.
+    // Focus goes into the dialog when it opens — on "Cancelar" for destructive
+    // actions, so a double Enter never deletes anything — and back when it closes.
     effect(() => {
-      const open = !!this.svc.pending();
-      const btn = this.confirmBtn();
-      if (open && btn) {
+      const p = this.svc.pending();
+      const target = p?.danger ? this.cancelBtn() : this.confirmBtn();
+      if (p && target) {
         this.returnFocus ??= document.activeElement as HTMLElement | null;
-        queueMicrotask(() => btn.nativeElement.focus());
-      } else if (!open && this.returnFocus) {
+        queueMicrotask(() => target.nativeElement.focus());
+      } else if (!p && this.returnFocus) {
         this.returnFocus.focus?.();
         this.returnFocus = null;
       }
@@ -48,5 +50,20 @@ export class ConfirmDialogComponent {
   }
 
   @HostListener('document:keydown.escape')
-  onEscape() { this.svc.settle(false); }
+  onEscape() {
+    if (this.svc.pending()) this.svc.settle(false);
+  }
+
+  /** Keeps Tab / Shift+Tab cycling between the two buttons while the dialog is open. */
+  @HostListener('document:keydown.tab', ['$event'])
+  @HostListener('document:keydown.shift.tab', ['$event'])
+  onTab(event: Event) {
+    if (!this.svc.pending()) return;
+    const buttons = [this.cancelBtn()?.nativeElement, this.confirmBtn()?.nativeElement].filter(Boolean) as HTMLElement[];
+    if (!buttons.length) return;
+    event.preventDefault();
+    const i = buttons.indexOf(document.activeElement as HTMLElement);
+    const back = (event as KeyboardEvent).shiftKey;
+    buttons[(i + (back ? -1 : 1) + buttons.length) % buttons.length].focus();
+  }
 }

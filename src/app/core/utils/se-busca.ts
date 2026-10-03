@@ -24,7 +24,7 @@ export function askLabel(type: PostType | 'vacancy', instrument?: string | null)
     case 'looking_for_rehearsal': return 'Busca local';
     case 'collab': return 'Busca colaboración';
     case 'session_offer': return 'Ofrece sesiones';
-    case 'event_announcement': return 'Concierto';
+    case 'event_announcement': return 'Evento';
     case 'gear_sale': return 'Vende equipo';
     default: return 'Otro';
   }

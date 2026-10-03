@@ -184,10 +184,11 @@ describe('GearFormComponent', () => {
     expect(component.imageFiles.length).toBe(0);
   });
 
-  it('8. onFilesChange rejects files exceeding 8 MB', () => {
-    const bigFile = createFile('large.jpg', 'image/jpeg', 9 * 1024 * 1024);
-    component.onFilesChange(createFileEvent([bigFile]));
-    expect(component.imageFiles.length).toBe(0);
+  it('8. onFilesChange accepts big phone photos (shrunk before upload) but rejects over 20 MB', () => {
+    component.onFilesChange(createFileEvent([createFile('phone.jpg', 'image/jpeg', 9 * 1024 * 1024)]));
+    expect(component.imageFiles.length).toBe(1);
+    component.onFilesChange(createFileEvent([createFile('huge.jpg', 'image/jpeg', 21 * 1024 * 1024)]));
+    expect(component.imageFiles.length).toBe(1);
   });
 
   it('9. onFilesChange sets error message describing the number of rejected files', () => {

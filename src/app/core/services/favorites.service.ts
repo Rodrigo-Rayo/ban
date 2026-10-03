@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { NotificationsService } from './notifications.service';
 import { Favorite } from '../models';
-import { favoriteNoticeTitle } from '../utils/notification-copy';
+import { FAVORITE_NOTICE_TITLE } from '../utils/notification-copy';
 
 /** Profile kinds whose owner hears about a new favorite, and the table that holds the owner. */
 const OWNER_TABLES: Readonly<Record<string, string>> = {
@@ -49,8 +49,8 @@ export class FavoritesService {
       .from(OWNER_TABLES[entityType]).select('user_id').eq('id', entityId).maybeSingle();
     const ownerId = (owner as { user_id?: string | null } | null)?.user_id;
     if (!ownerId || ownerId === userId) return;
-    const { data: name } = await this.supabase.client.rpc('get_profile_name', { p_user_id: userId });
-    await this.notifSvc.create(ownerId, 'favorite', favoriteNoticeTitle(name as string | null), undefined, entityType, entityId);
+    // Anonymous on purpose: saving a profile is private, so the owner is not told who it was.
+    await this.notifSvc.create(ownerId, 'favorite', FAVORITE_NOTICE_TITLE, undefined, entityType, entityId);
   }
 
   async getByUser(userId: string): Promise<Favorite[]> {

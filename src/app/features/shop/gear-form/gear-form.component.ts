@@ -1,3 +1,5 @@
+import { publishErrorMessage } from '../../../core/utils/publish-error';
+import { IMAGE_MAX_SIDE, RAW_IMAGE_MAX_BYTES, shrinkImage } from '../../../core/utils/image-resize';
 import { Component, ElementRef, HostListener, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -109,7 +111,8 @@ export class GearFormComponent implements OnInit, OnDestroy {
   }
 
   private readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  private readonly MAX_FILE_SIZE = 8 * 1024 * 1024; // 8 MB
+  /** Phone photos are accepted large and shrunk before upload. */
+  private readonly MAX_FILE_SIZE = RAW_IMAGE_MAX_BYTES;
 
   onFilesChange(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -118,7 +121,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
       this.ALLOWED_TYPES.includes(f.type) && f.size <= this.MAX_FILE_SIZE
     );
     const rejected = Array.from(input.files).length - valid.length;
-    if (rejected > 0) this.error.set(`${rejected} archivo(s) rechazado(s): solo imágenes hasta 8 MB.`);
+    if (rejected > 0) this.error.set(`${rejected} archivo(s) rechazado(s): solo imágenes JPG, PNG o WebP hasta 20 MB.`);
     const added = valid.slice(0, 4 - this.imageFiles.length);
     this.imageFiles = [...this.imageFiles, ...added].slice(0, 4);
     this.refreshPreviews();
@@ -180,11 +183,13 @@ export class GearFormComponent implements OnInit, OnDestroy {
     try {
 
     const newImageUrls = (await Promise.all(
-      this.imageFiles.map(async (file) => {
+      this.imageFiles.map(async (raw) => {
+        // Shrunk in the browser first (longest side 1600 px, WebP): visitors download exactly what is uploaded.
+        const file = await shrinkImage(raw, IMAGE_MAX_SIDE.photo);
         const ext  = file.type.split('/')[1] ?? 'jpg';
         const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await this.supabase.client.storage
-          .from('gear-images').upload(path, file, { upsert: false });
+          .from('gear-images').upload(path, file, { upsert: false, contentType: file.type, cacheControl: '31536000' });
         if (uploadError) return null;
         return this.supabase.client.storage.from('gear-images').getPublicUrl(path).data.publicUrl;
       })
@@ -231,7 +236,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
       seller_profile_id:   profile?.id ?? null,
     }).select().single();
 
-      if (error) { this.toast.error('No se pudo publicar el anuncio. Inténtalo de nuevo.'); return; }
+      if (error) { this.toast.error(publishErrorMessage(error, 'No se pudo publicar el anuncio. Inténtalo de nuevo.')); return; }
       this.toast.success('Anuncio publicado.');
       this._submitted = true;
       this.router.navigate(['/shop', data.id]);

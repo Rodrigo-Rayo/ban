@@ -17,7 +17,7 @@ export class TermsComponent implements OnInit {
     this.seo.set({
       title: 'Términos de Uso',
       description: 'Términos y condiciones de uso de BandYou, la red musical de España.',
-      url: 'https://bandyou.es/legal/terminos',
+      url: 'https://www.bandyou.es/legal/terminos',
     });
   }
 }

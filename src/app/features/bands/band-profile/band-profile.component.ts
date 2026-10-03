@@ -1,3 +1,4 @@
+import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -36,7 +37,7 @@ const MAX_MEMBERS = 50;
 
 @Component({
     selector: 'app-band-profile',
-    imports: [RouterLink, FormsModule, IconComponent, AvatarUploadComponent],
+    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent],
     templateUrl: './band-profile.component.html'
 })
 export class BandProfileComponent implements OnInit {

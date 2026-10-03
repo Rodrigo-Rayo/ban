@@ -1,3 +1,4 @@
+import { IMAGE_MAX_SIDE, RAW_IMAGE_MAX_BYTES, shrinkImage } from '../utils/image-resize';
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
@@ -30,8 +31,11 @@ export class MediaUploadService {
   private toast = inject(ToastService);
 
   /** Validates and uploads one file. Returns its public URL, or null (already toasted). */
-  async upload(file: File | null | undefined, kind: MediaKind): Promise<string | null> {
-    if (!file) return null;
+  async upload(raw: File | null | undefined, kind: MediaKind): Promise<string | null> {
+    if (!raw) return null;
+    if (ALLOWED.includes(raw.type) && raw.size > RAW_IMAGE_MAX_BYTES) { this.toast.error('La imagen es demasiado grande (máx. 20 MB).'); return null; }
+    // Shrunk in the browser first (longest side 1600 px, WebP): visitors download exactly what is uploaded.
+    const file = ALLOWED.includes(raw.type) ? await shrinkImage(raw, IMAGE_MAX_SIDE.photo) : raw;
     const invalid = mediaFileError(file);
     if (invalid) { this.toast.error(invalid); return null; }
     try {
@@ -40,7 +44,7 @@ export class MediaUploadService {
       const rand = Math.random().toString(36).slice(2, 8);
       const path = `${session.user.id}/${kind}/${Date.now()}-${rand}.${EXT[file.type]}`;
       const storage = this.supabase.client.storage.from(BUCKET);
-      const { error } = await storage.upload(path, file, { contentType: file.type, upsert: false });
+      const { error } = await storage.upload(path, file, { contentType: file.type, upsert: false, cacheControl: '31536000' });
       if (error) { this.toast.error('No se pudo subir la imagen. Inténtalo de nuevo.'); return null; }
       return storage.getPublicUrl(path).data.publicUrl;
     } catch {

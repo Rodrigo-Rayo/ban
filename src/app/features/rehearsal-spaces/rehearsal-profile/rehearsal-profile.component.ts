@@ -1,3 +1,4 @@
+import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -17,7 +18,7 @@ const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar
 
 @Component({
     selector: 'app-rehearsal-profile',
-    imports: [RouterLink, FormsModule, IconComponent, AvatarUploadComponent, SpaceGalleryComponent],
+    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, SpaceGalleryComponent],
     templateUrl: './rehearsal-profile.component.html'
 })
 export class RehearsalProfileComponent implements OnInit {
@@ -94,7 +95,7 @@ export class RehearsalProfileComponent implements OnInit {
           name: space.name,
           description: space.description || '',
           image: space.avatar_url || '',
-          url: `https://bandyou.es/rehearsal/${space.id}`,
+          url: `https://www.bandyou.es/rehearsal/${space.id}`,
           address: { '@type': 'PostalAddress', addressLocality: space.city || '', addressCountry: 'ES' },
         });
       } else {

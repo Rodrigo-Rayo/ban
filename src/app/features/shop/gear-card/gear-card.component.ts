@@ -42,7 +42,7 @@ export interface GearCardItem {
       </div>
       <div class="p-3 flex flex-col gap-1 flex-1">
         <p class="font-display text-2xl leading-none text-ink">{{ item().price | number:'1.0-0' }} €</p>
-        <p class="text-sm font-semibold text-ink line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors">{{ item().title }}</p>
+        <p class="text-sm font-semibold text-ink line-clamp-2 min-h-[2.5rem] leading-snug group-hover:text-primary-600 transition-colors">{{ item().title }}</p>
         <p class="meta min-w-0">
           <span class="truncate">{{ metaLine() }}</span>
         </p>

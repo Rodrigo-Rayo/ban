@@ -28,6 +28,7 @@ function toNumberOrNull(value: unknown): number | null {
     templateUrl: './onboarding.component.html'
 })
 export class OnboardingComponent implements OnInit {
+  readonly minAge = LEGAL_INFO.minAge;
   private fb = inject(FormBuilder);
   private supabase = inject(SupabaseService);
   private router = inject(Router);

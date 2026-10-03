@@ -8,6 +8,17 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/:type(musicians|bands|venues|teachers|rehearsal|events|shop|posts)/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|facebookexternalhit|Facebot|WhatsApp|SkypeUriPreview|Embedly|vkShare|Iframely|Google-InspectionTool|Mastodon|Pleroma).*"
+        }
+      ],
+      "destination": "/api/share?type=:type&id=:id"
+    },
+    {
       "source": "/((?!api/)(?!.*\\.[a-z0-9]+$).*)",
       "destination": "/index.html"
     }

@@ -53,7 +53,7 @@
           </a>
         }
         <span class="absolute left-4 sm:left-8 top-3.5 z-10 font-mono text-[11px] font-bold uppercase tracking-wide text-poster-paper/80">
-          Concierto@if (event()!.genre) { · {{ event()!.genre }} }
+          Evento@if (event()!.genre) { · {{ event()!.genre }} }
         </span>
 
 
@@ -138,8 +138,8 @@
                 {{ isFav() ? 'En favoritos' : 'Favorito' }}
               </button>
             } @else {
-              <a routerLink="/auth/login" class="btn-secondary text-sm min-h-[44px] text-center">
-                Entra para guardar
+              <a routerLink="/auth/login" (click)="rememberReturn()" class="btn-secondary text-sm min-h-[44px] text-center">
+                Guardar evento
               </a>
             }
             <button type="button" (click)="shareLink()" class="btn-secondary text-sm min-h-[44px]"
@@ -197,6 +197,8 @@
     </div>
   </div>
 
+  @if (!isOwner()) { <div class="mt-6"><app-report-link what="este evento"/></div> }
+
   <!-- Mobile action bar — sits above the global bottom nav -->
   <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink sm:hidden">
     <div class="flex gap-2 px-3 py-2.5">
@@ -222,7 +224,7 @@
           @if (!(event()!.ticket_url)) { <span class="text-sm">{{ isFav() ? 'En favoritos' : 'Favorito' }}</span> }
         </button>
       } @else {
-        <a routerLink="/auth/login" class="btn-secondary min-h-[52px] flex-1 text-center text-sm">Entra para guardar</a>
+        <a routerLink="/auth/login" (click)="rememberReturn()" class="btn-secondary min-h-[52px] flex-1 text-center text-sm">Guardar evento</a>
       }
       <button type="button" (click)="shareLink()"
         [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir evento'"

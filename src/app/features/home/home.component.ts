@@ -328,20 +328,22 @@ export class HomeComponent implements OnInit {
       const since = sinceISO(SE_BUSCA_MAX_DAYS);
       // Each list is asked twice in parallel — the user's city and all of Spain —
       // and merged city-first, so local content always leads and gaps get filled.
-      const both = <T>(build: (local: boolean) => PromiseLike<{ data: unknown }>): Promise<[T[], T[]]> => Promise.all([
-        // A failed list just stays empty; it never takes the whole home down.
-        city ? build(true).then(r => (r.data ?? []) as T[], () => [] as T[]) : Promise.resolve([] as T[]),
-        build(false).then(r => (r.data ?? []) as T[], () => [] as T[]),
-      ]);
+      // The user's city first; all of Spain only when the city alone cannot fill
+      // `limit` rows. A failed list just stays empty; it never takes the home down.
+      const both = async <T>(limit: number, build: (local: boolean) => PromiseLike<{ data: unknown }>): Promise<[T[], T[]]> => {
+        const run = (local: boolean) => Promise.resolve(build(local)).then(r => (r.data ?? []) as T[], () => [] as T[]);
+        const local = city ? await run(true) : [];
+        return [local, local.length >= limit ? [] : await run(false)];
+      };
       // `any`: Supabase's PostgrestFilterBuilder generics are too deep to thread through a helper.
       const inCity = (q: any, local: boolean) => local ? q.eq('city', city) : q; // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const [musicians, events, venues, rehearsals, listings, posts, vacancies] = await Promise.all([
-        both<HomeMusician>(l => inCity(db.from('musicians').select(musicianCols), l).order('created_at', { ascending: false }).limit(12)),
-        both<HomeEvent>(l => inCity(db.from('events').select(eventCols), l).gte('date', todayStr).order('date', { ascending: true }).limit(5)),
-        both<HomeVenue>(l => inCity(db.from('venues').select(venueCols), l).order('created_at', { ascending: false }).limit(5)),
-        both<HomeRehearsal>(l => inCity(db.from('rehearsal_spaces').select(rehearsalCols), l).order('created_at', { ascending: false }).limit(5)),
-        both<HomeListing>(l => inCity(db.from('gear_listings').select(listingCols).eq('status', 'active'), l).order('created_at', { ascending: false }).limit(6)),
+        both<HomeMusician>(NEW_PEOPLE_LIMIT + 1, l => inCity(db.from('musicians').select(musicianCols), l).order('created_at', { ascending: false }).limit(12)),
+        both<HomeEvent>(5, l => inCity(db.from('events').select(eventCols), l).gte('date', todayStr).order('date', { ascending: true }).limit(5)),
+        both<HomeVenue>(5, l => inCity(db.from('venues').select(venueCols), l).order('created_at', { ascending: false }).limit(5)),
+        both<HomeRehearsal>(5, l => inCity(db.from('rehearsal_spaces').select(rehearsalCols), l).order('created_at', { ascending: false }).limit(5)),
+        both<HomeListing>(6, l => inCity(db.from('gear_listings').select(listingCols).eq('status', 'active'), l).order('created_at', { ascending: false }).limit(6)),
         this.seBuscaPostsQuery(postCols, city, since).then(r => r, () => ({ data: [] })),
         // Non-critical module: a failure just hides those rows.
         this.vacanciesSvc.listOpen({ city: city || null, since, limit: 6 }).catch(() => []),

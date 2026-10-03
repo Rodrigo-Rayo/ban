@@ -11,8 +11,13 @@ export class GlobalErrorHandler implements ErrorHandler {
 
     const message = this.extractMessage(error);
 
-    // Ignore chunk load errors from lazy routes (network blip, user retries naturally)
-    if (message.includes('ChunkLoadError') || message.includes('Loading chunk')) return;
+    // A lazy route failed to load — usually a new version was deployed while this
+    // tab was open, so its old file names no longer exist. Reload once to pick up
+    // the new version (guarded so a real outage cannot cause a reload loop).
+    if (isChunkLoadError(message)) {
+      reloadOnce();
+      return;
+    }
 
     this.zone.run(() => {
       this.toast.error('Algo ha salido mal. Por favor, recarga la página.');
@@ -24,4 +29,20 @@ export class GlobalErrorHandler implements ErrorHandler {
     if (typeof error === 'string') return error;
     return '';
   }
+}
+
+const CHUNK_ERROR = /ChunkLoadError|Loading chunk|dynamically imported module|Importing a module script failed/i;
+const RELOAD_KEY = 'bandyou_chunk_reload_at';
+
+export function isChunkLoadError(message: string): boolean {
+  return CHUNK_ERROR.test(message);
+}
+
+function reloadOnce(): void {
+  try {
+    const last = Number(sessionStorage.getItem(RELOAD_KEY) || 0);
+    if (Date.now() - last < 60_000) return;
+    sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+  } catch { /* storage blocked: still try once */ }
+  location.reload();
 }

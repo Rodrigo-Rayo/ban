@@ -47,7 +47,7 @@
             <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center font-display text-[11rem] sm:text-[14rem] leading-none text-poster-paper/10 select-none">{{ teacher()!.name.slice(0,1).toUpperCase() }}</span>
           }
           <span class="absolute left-3 top-3.5 font-mono text-[11px] font-bold uppercase tracking-wide text-poster-paper/80">Profesor</span>
-          <div class="absolute inset-x-3 bottom-3"><h1 class="w-fit max-w-full bg-ink px-3 py-1.5 font-display text-[clamp(2.25rem,11vw,4.75rem)] sm:text-7xl leading-[1.1] text-poster-paper [overflow-wrap:anywhere]">{{ teacher()!.name }}</h1></div>
+          <div class="absolute inset-x-3 bottom-3"><h1 class="w-fit max-w-full bg-ink px-3 py-1.5 font-display text-[clamp(2.25rem,11vw,4.75rem)] sm:text-7xl lg:text-5xl leading-[1.1] text-poster-paper [overflow-wrap:break-word] hyphens-auto [hyphenate-limit-chars:8_4_4]">{{ teacher()!.name }}</h1></div>
         </div>
         @if (posterLine()) {
           <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>
@@ -129,10 +129,20 @@
           </button>
         </div>
       </div>
+      @if (!isOwner()) { <div class="mt-4"><app-report-link what="este perfil"/></div> }
       </aside>
 
       <!-- Info column -->
       <div class="min-w-0 flex flex-col gap-8">
+        @if (isOwner() && !teacher()!.description) {
+          <a routerLink="/onboarding" class="press group flex items-center justify-between gap-3 border-2 border-dashed border-ink bg-poster-yellow/40 px-4 py-3 min-h-[44px]">
+            <span>
+              <span class="block font-display text-xl leading-none">Añade tu bio</span>
+              <span class="block text-sm text-ink mt-1">Explica cómo das tus clases: los perfiles con bio reciben más mensajes.</span>
+            </span>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-wide underline whitespace-nowrap">Completar</span>
+          </a>
+        }
         @if (showBookingForm()) {
         <section class="card-flat p-4 sm:p-5 shadow-[4px_4px_0_0_#141210] animate-slide-in" aria-labelledby="booking-title">
           <h2 id="booking-title" class="font-display text-3xl leading-none">Solicitar clase</h2>

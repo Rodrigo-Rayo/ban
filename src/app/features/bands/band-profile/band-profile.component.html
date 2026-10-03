@@ -54,7 +54,7 @@
           } @else if (band()!.looking_for) {
           <span class="absolute right-0 top-3 max-w-[75%] bg-poster-yellow text-ink border-2 border-r-0 border-ink font-mono text-xs font-bold uppercase tracking-wide px-3 py-1.5">Busca {{ band()!.looking_for }}</span>
           }
-          <div class="absolute inset-x-3 bottom-3"><h1 class="w-fit max-w-full bg-ink px-3 py-1.5 font-display text-[clamp(2.25rem,11vw,4.75rem)] sm:text-7xl leading-[1.1] text-poster-paper [overflow-wrap:anywhere]">{{ band()!.name }}</h1></div>
+          <div class="absolute inset-x-3 bottom-3"><h1 class="w-fit max-w-full bg-ink px-3 py-1.5 font-display text-[clamp(2.25rem,11vw,4.75rem)] sm:text-7xl lg:text-5xl leading-[1.1] text-poster-paper [overflow-wrap:break-word] hyphens-auto [hyphenate-limit-chars:8_4_4]">{{ band()!.name }}</h1></div>
         </div>
         @if (posterLine()) {
           <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>
@@ -109,10 +109,20 @@
           </button>
         </div>
       </div>
+      @if (!isOwner()) { <div class="mt-4"><app-report-link what="este perfil"/></div> }
       </aside>
 
       <!-- Info column -->
       <div class="min-w-0 flex flex-col gap-8">
+        @if (isOwner() && !band()!.description && (members().length > 0 || openVacancies().length > 0)) {
+          <a routerLink="/onboarding" class="press group flex items-center justify-between gap-3 border-2 border-dashed border-ink bg-poster-yellow/40 px-4 py-3 min-h-[44px]">
+            <span>
+              <span class="block font-display text-xl leading-none">Añade la bio de la banda</span>
+              <span class="block text-sm text-ink mt-1">Cuenta quiénes sois y qué buscáis: los perfiles con bio reciben más mensajes.</span>
+            </span>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-wide underline whitespace-nowrap">Completar</span>
+          </a>
+        }
         @if (openVacancies().length > 0 || isOwner()) {
         <section>
           <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-dark-600 pt-3 mb-3">

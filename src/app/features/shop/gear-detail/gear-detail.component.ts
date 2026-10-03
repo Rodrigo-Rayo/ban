@@ -1,3 +1,4 @@
+import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { ChangeDetectionStrategy, Component, signal, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -22,7 +23,7 @@ const RELATED_LIMIT = 3;
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-gear-detail',
-    imports: [RouterLink, CommonModule, IconComponent, GearCardComponent],
+    imports: [ReportLinkComponent, RouterLink, CommonModule, IconComponent, GearCardComponent],
     templateUrl: './gear-detail.component.html'
 })
 export class GearDetailComponent implements OnInit {
@@ -80,7 +81,7 @@ export class GearDetailComponent implements OnInit {
           name: data.title,
           description: data.description || '',
           image: data.images?.[0] || '',
-          url: `https://bandyou.es/shop/${data.id}`,
+          url: `https://www.bandyou.es/shop/${data.id}`,
           offers: {
             '@type': 'Offer',
             price: data.price,
@@ -166,12 +167,12 @@ export class GearDetailComponent implements OnInit {
       confirmLabel: 'Marcar como vendido',
     });
     if (!ok) return;
-    await this.setStatus('sold', 'Artículo marcado como vendido.');
+    await this.setStatus('sold', 'Anuncio marcado como vendido.');
   }
 
   async relist() {
     if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
-    await this.setStatus('active', 'Artículo de nuevo en venta.');
+    await this.setStatus('active', 'Anuncio de nuevo en venta.');
   }
 
   private async setStatus(status: 'sold' | 'active', successMsg: string) {
@@ -188,7 +189,7 @@ export class GearDetailComponent implements OnInit {
   async deleteListing() {
     if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     const ok = await this.confirm.ask({
-      title: '¿Eliminar este artículo?',
+      title: '¿Eliminar este anuncio?',
       message: 'Se borra para siempre y no se puede deshacer.',
       confirmLabel: 'Eliminar',
       danger: true,

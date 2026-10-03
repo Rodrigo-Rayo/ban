@@ -65,6 +65,7 @@
             <input type="file" accept="image/*" multiple class="sr-only" (change)="onFilesChange($event)">
           </label>
         }
+        <p class="text-xs text-ink-muted mt-2">Sube solo fotos tuyas o con permiso de su autor.</p>
       </section>
 
       <!-- El artículo -->
@@ -138,6 +139,8 @@
       @if (error()) {
         <div role="alert" class="border-2 border-signal-red bg-signal-rBg text-signal-red px-4 py-3 text-sm font-medium">{{ error() }}</div>
       }
+
+      <p class="text-xs text-ink-muted leading-relaxed">La venta es entre particulares: BandYou no gestiona pagos, envíos ni garantías.</p>
 
       <button type="submit" [disabled]="submitting()"
         class="btn-primary min-h-[50px] w-full text-sm disabled:opacity-40 disabled:cursor-not-allowed">

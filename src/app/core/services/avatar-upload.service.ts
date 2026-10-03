@@ -1,3 +1,4 @@
+import { IMAGE_MAX_SIDE, RAW_IMAGE_MAX_BYTES, shrinkImage } from '../utils/image-resize';
 import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { ToastService } from './toast.service';
@@ -24,12 +25,18 @@ export class AvatarUploadService {
   readonly uploading = signal(false);
 
   /** Validates, uploads and saves. Returns the new public URL, or null on failure (already toasted). */
-  async upload(file: File | null | undefined): Promise<string | null> {
-    if (!file) return null;
-    if (!ALLOWED.includes(file.type)) {
+  async upload(raw: File | null | undefined): Promise<string | null> {
+    if (!raw) return null;
+    if (!ALLOWED.includes(raw.type)) {
       this.toast.error('Usa una imagen JPG, PNG o WebP.');
       return null;
     }
+    if (raw.size > RAW_IMAGE_MAX_BYTES) {
+      this.toast.error('La imagen es demasiado grande (máx. 20 MB).');
+      return null;
+    }
+    // Shrunk in the browser first: visitors download exactly what is uploaded.
+    const file = await shrinkImage(raw, IMAGE_MAX_SIDE.avatar);
     if (file.size > MAX_BYTES) {
       this.toast.error('La imagen no puede superar 5 MB.');
       return null;

@@ -11,9 +11,19 @@ interface UserProfileData {
   avatar_url: string | null;
 }
 
+/** Where each kind of profile lives (a user has at most one). */
+const PROFILE_SOURCES = [
+  { table: 'musicians', type: 'musician' },
+  { table: 'bands', type: 'band' },
+  { table: 'venues', type: 'venue' },
+  { table: 'teachers', type: 'teacher' },
+  { table: 'rehearsal_spaces', type: 'rehearsal' },
+] as const;
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private _session = signal<Session | null>(null);
+  private _profileLoad: Promise<void> | null = null;
   private _signingOut = false;
   private _loadedUserId: string | null = null;
   private _roleVerifiedFor: string | null = null;
@@ -104,32 +114,29 @@ export class AuthService {
   async loadUserProfile(userId: string): Promise<void> {
     // Skip if already loaded for this user
     if (this.userProfileData() && this._loadedUserId === userId) return;
+    // Several callers ask at once on a fresh load: share one request.
+    if (this._profileLoad && this._loadedUserId === userId) return this._profileLoad;
     this._loadedUserId = userId;
+    this._profileLoad = this.fetchUserProfile(userId).finally(() => { this._profileLoad = null; });
+    return this._profileLoad;
+  }
 
-    // Try localStorage first (fast path)
-    try {
-      const cached = localStorage.getItem('bandyou_profile_type');
-      if (cached) this.userProfileType.set(cached);
-    } catch {}
+  private async fetchUserProfile(userId: string): Promise<void> {
+    let cached = '';
+    try { cached = localStorage.getItem('bandyou_profile_type') || ''; } catch {}
+    if (cached) this.userProfileType.set(cached);
 
-    const tables = [
-      { table: 'musicians', type: 'musician' },
-      { table: 'bands', type: 'band' },
-      { table: 'venues', type: 'venue' },
-      { table: 'teachers', type: 'teacher' },
-      { table: 'rehearsal_spaces', type: 'rehearsal' },
-    ] as const;
+    const query = ({ table, type }: (typeof PROFILE_SOURCES)[number]) =>
+      this.supabase.client.from(table)
+        .select('id, name, city, avatar_url')
+        .eq('user_id', userId)
+        .maybeSingle()
+        .then(({ data }: { data: UserProfileData | null }) => data ? { data, type } : null);
 
-    const results = await Promise.all(
-      tables.map(({ table, type }) =>
-        this.supabase.client.from(table)
-          .select('id, name, city, avatar_url')
-          .eq('user_id', userId)
-          .maybeSingle()
-          .then(({ data }: { data: UserProfileData | null }) => data ? { data, type } : null)
-      )
-    );
-    const found = results.find(r => r !== null);
+    // Returning users: one request to the table we already know; all five only if that misses.
+    const known = PROFILE_SOURCES.find(s => s.type === cached);
+    let found = known ? await query(known) : null;
+    if (!found) found = (await Promise.all(PROFILE_SOURCES.map(query))).find(r => r !== null) ?? null;
     if (found) {
       this.userProfileType.set(found.type);
       this.userProfileData.set(found.data);
@@ -177,6 +184,10 @@ export class AuthService {
     // auth.users is deleted) does not trigger the unexpected-signout redirect.
     this._signingOut = true;
     try {
+      // Files first, through the Storage API: newer Supabase projects block deleting
+      // storage objects from SQL, and the RPC below cannot reach the 'media' bucket.
+      const uid = this._session()?.user.id;
+      if (uid) await this.purgeOwnFiles(uid);
       const { error } = await this.supabase.client.rpc('delete_user_account');
       if (error) throw new Error(error.message);
       // auth.users is gone, so a server sign-out would fail — but the session must
@@ -188,5 +199,32 @@ export class AuthService {
     } finally {
       this._signingOut = false;
     }
+  }
+
+  /**
+   * Best effort: removes every file under `{uid}/` in the user buckets
+   * (avatars/{uid}/avatar, gear-images/{uid}/*, media/{uid}/{events|spaces}/*).
+   * A failure never blocks the account deletion itself.
+   */
+  private async purgeOwnFiles(uid: string): Promise<void> {
+    const storage = this.supabase.client.storage;
+    const listAll = async (bucket: string, prefix: string, depth = 0): Promise<string[]> => {
+      const { data, error } = await storage.from(bucket).list(prefix, { limit: 1000 });
+      if (error || !data) return [];
+      const paths: string[] = [];
+      for (const item of data) {
+        const path = `${prefix}/${item.name}`;
+        // Folders come back without an id; files have one.
+        if (item.id) paths.push(path);
+        else if (depth < 2) paths.push(...await listAll(bucket, path, depth + 1));
+      }
+      return paths;
+    };
+    await Promise.all(['avatars', 'gear-images', 'media'].map(async bucket => {
+      try {
+        const paths = await listAll(bucket, uid);
+        if (paths.length) await storage.from(bucket).remove(paths);
+      } catch { /* best effort */ }
+    }));
   }
 }

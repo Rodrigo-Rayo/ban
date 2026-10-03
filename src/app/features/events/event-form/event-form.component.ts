@@ -1,3 +1,4 @@
+import { publishErrorMessage } from '../../../core/utils/publish-error';
 import { Component, ElementRef, HostListener, OnDestroy, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -151,7 +152,7 @@ export class EventFormComponent implements OnDestroy {
         .single();
 
       if (error) {
-        this.error.set('Error al crear el evento. Inténtalo de nuevo.');
+        this.error.set(publishErrorMessage(error, 'Error al crear el evento. Inténtalo de nuevo.'));
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         this.toast.success('Evento publicado correctamente.');

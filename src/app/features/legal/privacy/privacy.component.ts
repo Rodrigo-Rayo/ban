@@ -17,7 +17,7 @@ export class PrivacyComponent implements OnInit {
     this.seo.set({
       title: 'Política de Privacidad',
       description: 'Política de privacidad de BandYou. Cómo recogemos, usamos y protegemos tus datos personales.',
-      url: 'https://bandyou.es/legal/privacidad',
+      url: 'https://www.bandyou.es/legal/privacidad',
     });
   }
 }

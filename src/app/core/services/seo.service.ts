@@ -3,7 +3,7 @@ import { Title, Meta } from '@angular/platform-browser';
 
 import { ActivatedRouteSnapshot, NavigationEnd, NavigationStart, Router } from '@angular/router';
 
-export const SITE_URL = 'https://bandyou.es';
+export const SITE_URL = 'https://www.bandyou.es';
 
 export interface SeoOptions {
   title?: string;

@@ -1,14 +1,7 @@
 /** Copy for bell notifications created client-side. Kept short: the server caps title/body length. */
 
-function firstName(name: string | null | undefined): string {
-  return (name ?? '').trim().split(/\s+/)[0] ?? '';
-}
-
-/** "A Lola le gusta tu perfil", or "Alguien ha guardado tu perfil" when the name is unknown. */
-export function favoriteNoticeTitle(senderName: string | null | undefined): string {
-  const who = firstName(senderName);
-  return who ? `A ${who} le gusta tu perfil` : 'Alguien ha guardado tu perfil';
-}
+/** Saving a profile is private: the owner hears that someone saved it, never who. */
+export const FAVORITE_NOTICE_TITLE = 'Alguien ha guardado tu perfil';
 
 export const LESSON_REQUEST_TITLE = 'Nueva solicitud de clase';
 
