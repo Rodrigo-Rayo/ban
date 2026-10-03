@@ -23,7 +23,7 @@
     <!-- Actions -->
     <div class="flex items-center gap-1 flex-shrink-0 lg:justify-self-end">
       <a routerLink="/search" aria-label="Buscar" aria-keyshortcuts="Control+K Meta+K" [attr.title]="'Buscar (' + shortcutLabel + ')'"
-         class="hidden lg:flex w-11 h-11 items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors">
+         class="flex w-11 h-11 items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors">
         <app-icon name="search" [size]="20"/>
       </a>
       @if (auth.isLoggedIn()) {
@@ -199,16 +199,16 @@
   </div>
 }
 
-<!-- BOTTOM BAR (mobile & tablet). Logged out: Portada · Buscar · Publicar · Entrar -->
+<!-- BOTTOM BAR (mobile & tablet). Logged out: Portada · Se busca · Publicar · Entrar -->
 <nav aria-label="Navegación inferior" class="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-dark-900 border-t-2 border-ink safe-area-pb">
   <div class="flex h-16">
     <a [routerLink]="auth.isLoggedIn() ? '/home' : '/'" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{exact: true}"
        class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
       <app-icon name="home" [size]="20"/> Portada
     </a>
-    <a routerLink="/search" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
-       class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
-      <app-icon name="search" [size]="20"/> Buscar
+    <a routerLink="/feed" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
+       class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase whitespace-nowrap">
+      <app-icon name="megaphone" [size]="20"/> Se busca
     </a>
     <button type="button" (click)="togglePublish()" data-publish-dropdown data-publish-trigger
             [attr.aria-expanded]="publishOpen" aria-haspopup="menu" aria-controls="publish-menu"

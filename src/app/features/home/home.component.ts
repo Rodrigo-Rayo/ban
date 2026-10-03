@@ -5,13 +5,14 @@ import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { VacanciesService } from '../../core/services/vacancies.service';
 import { SeoService } from '../../core/services/seo.service';
-import { timeAgo } from '../../core/utils/display.utils';
+import { timeAgo, avatarColor } from '../../core/utils/display.utils';
 import { localToday, dateParts as sharedDateParts } from '../../core/utils/date';
 import { askLabel, askStampClass } from '../../core/utils/se-busca';
 import { AvatarUploadService } from '../../core/services/avatar-upload.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../shared/components/avatar-upload/avatar-upload.component';
 import { environment } from '../../../environments/environment';
+import { PostType } from '../../core/models';
 
 interface HomeMusician { id: string; user_id?: string | null; name: string; city: string; instrument: string; avatar_url: string | null; created_at: string; }
 interface HomeEvent { id: string; title: string; city: string; date: string; genre: string; description: string | null; venue?: string | null; created_at: string; }
@@ -22,6 +23,38 @@ interface HomeListing { id: string; title: string; price: number | null; conditi
 interface HomeVacancy { id: string; instrument: string; genre: string | null; bands: { id: string; name: string; city: string | null; genre: string | null } | null; }
 interface HomeProfile { id?: string; name: string; city?: string | null; avatar_url?: string | null; }
 
+/** One row of the merged "Se busca" list (band vacancies + board posts). */
+export interface SeBuscaItem { id: string; title: string; stampClass: string; stampLabel: string; meta: string; link: unknown[]; }
+
+/**
+ * A slide of the "Destacado" carousel. Today it is filled from real content
+ * (next gig, rehearsal space, a band that needs people, newest gear); it is the
+ * slot reserved for paid promotion later, so the shape stays generic.
+ */
+export interface FeaturedSlide {
+  key: string; kicker: string; title: string; meta: string; cta: string;
+  link: unknown[]; tone: 'ink' | 'yellow' | 'red';
+  /** Paid placement: shows a "Promo" tag. */
+  sponsored?: boolean;
+  date?: { weekday: string; day: string; month: string };
+}
+
+/** Section shortcuts on the home, in the same order as the masthead. */
+export const HOME_SECTIONS: readonly { label: string; hint: string; icon: string; link: string; query?: Record<string, string> }[] = [
+  { label: 'Se busca', hint: 'Bandas y músicos',  icon: 'megaphone',     link: '/feed' },
+  { label: 'Músicos',  hint: 'Por instrumento',   icon: 'music',         link: '/search', query: { tab: 'musicians' } },
+  { label: 'Bandas',   hint: 'Proyectos activos', icon: 'users',         link: '/search', query: { tab: 'bands' } },
+  { label: 'Locales',  hint: 'Ensayo por horas',  icon: 'headphones',    link: '/search', query: { tab: 'rehearsal' } },
+  { label: 'Clases',   hint: 'Profesores',        icon: 'book-open',     link: '/search', query: { tab: 'teachers' } },
+  { label: 'Agenda',   hint: 'Conciertos',        icon: 'calendar',      link: '/search', query: { tab: 'events' } },
+  { label: 'Salas',    hint: 'Música en directo', icon: 'building',      link: '/search', query: { tab: 'venues' } },
+  { label: 'Tienda',   hint: 'Segunda mano',      icon: 'shopping-cart', link: '/shop' },
+];
+
+const SE_BUSCA_LIMIT = 5;
+const NEW_PEOPLE_LIMIT = 8;
+const TICKER_MIN_ITEMS = 8;
+
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-home',
@@ -30,6 +63,8 @@ interface HomeProfile { id?: string; name: string; city?: string | null; avatar_
 })
 export class HomeComponent implements OnInit {
   readonly timeAgo = timeAgo;
+  readonly avatarColor = avatarColor;
+  readonly sections = HOME_SECTIONS;
   readonly askLabel = askLabel;
   readonly askStampClass = askStampClass;
 
@@ -72,8 +107,6 @@ export class HomeComponent implements OnInit {
   userCity     = signal('');
   userProfile  = signal<HomeProfile | null>(null);
 
-  today = new Date();
-
   /** Upcoming events only (never past ones), soonest first. */
   readonly upcomingEvents = computed(() => {
     const today = localToday();
@@ -86,8 +119,104 @@ export class HomeComponent implements OnInit {
   /** New musicians, never the signed-in user. */
   readonly newPeople = computed(() => {
     const me = this.auth.user()?.id;
-    return this.recentMusicians().filter(m => !me || m.user_id !== me).slice(0, 4);
+    return this.recentMusicians().filter(m => !me || m.user_id !== me).slice(0, NEW_PEOPLE_LIMIT);
   });
+  /** First name for the greeting ("Hola, Lola"). */
+  readonly firstName = computed(() => (this.userProfile()?.name ?? '').trim().split(/\s+/)[0] ?? '');
+
+  /**
+   * One "Se busca" list: open vacancies (user's city first), then board posts.
+   * A band's "buscamos músico" post is skipped when that band already shows a vacancy.
+   */
+  readonly seBuscaItems = computed<SeBuscaItem[]>(() => {
+    const vacancies: SeBuscaItem[] = this.vacanciesSorted()
+      .filter(v => !!v.bands)
+      .map(v => ({
+        id: 'v-' + v.id,
+        title: v.bands!.name,
+        stampClass: askStampClass('vacancy'),
+        stampLabel: askLabel('vacancy', v.instrument),
+        meta: [v.genre || v.bands!.genre, v.bands!.city].filter(Boolean).join(' · '),
+        link: ['/bands', v.bands!.id],
+      }));
+    const bandsWithVacancy = new Set(vacancies.map(v => v.title.toLowerCase()));
+    const posts: SeBuscaItem[] = this.recentPosts()
+      .filter(p => !(p.type === 'band_seeking_musician' && bandsWithVacancy.has(p.author_name.toLowerCase())))
+      .map(p => ({
+        id: 'p-' + p.id,
+        title: p.author_name,
+        stampClass: askStampClass(p.type as PostType),
+        stampLabel: askLabel(p.type as PostType, p.instrument),
+        meta: [p.city, timeAgo(p.created_at)].filter(Boolean).join(' · '),
+        link: ['/posts', p.id],
+      }));
+    return [...vacancies.slice(0, 3), ...posts].slice(0, SE_BUSCA_LIMIT);
+  });
+
+  /** Ticker tape ("Los Despistados — busca batería"); hidden while empty. */
+  readonly tickerItems = computed(() =>
+    this.seBuscaItems().map(i => ({ id: i.id, text: `${i.title} — ${i.stampLabel.toLowerCase()}`, link: i.link })));
+  /** Ticker items repeated until the tape is long enough to loop without a gap. */
+  readonly tickerLoop = computed(() => {
+    const items = this.tickerItems();
+    if (!items.length) return [];
+    const loop = [...items];
+    while (loop.length < TICKER_MIN_ITEMS) loop.push(...items);
+    return loop;
+  });
+
+  /** "Destacado" carousel slides, built only from content that exists. */
+  readonly featuredSlides = computed<FeaturedSlide[]>(() => {
+    const slides: FeaturedSlide[] = [];
+    const ev = this.featuredEvent();
+    if (ev) {
+      slides.push({
+        key: 'ev-' + ev.id, kicker: 'Próximo concierto', title: ev.title, tone: 'ink', cta: 'Ver concierto',
+        meta: [ev.venue, ev.city].filter(Boolean).join(', '), link: ['/events', ev.id], date: this.dateParts(ev.date),
+      });
+    }
+    const v = this.vacanciesSorted().find(x => !!x.bands);
+    if (v) {
+      slides.push({
+        key: 'v-' + v.id, kicker: 'Se busca', title: v.bands!.name, tone: 'red', cta: 'Ver banda',
+        meta: askLabel('vacancy', v.instrument) + (v.bands!.city ? ' · ' + v.bands!.city : ''), link: ['/bands', v.bands!.id],
+      });
+    }
+    const r = this.featuredRehearsal();
+    if (r) {
+      slides.push({
+        key: 'r-' + r.id, kicker: 'Local de ensayo', title: r.name, tone: 'yellow', cta: 'Ver local',
+        meta: [r.city, r.hourly_rate ? `${r.hourly_rate} €/h` : '', r.capacity ? `${r.capacity} personas` : ''].filter(Boolean).join(' · '),
+        link: ['/rehearsal', r.id],
+      });
+    }
+    const g = this.recentListings()[0];
+    if (g) {
+      slides.push({
+        key: 'g-' + g.id, kicker: 'Nuevo en la tienda', title: g.title, tone: 'ink', cta: 'Ver anuncio',
+        meta: [g.price ? `${g.price} €` : '', g.city].filter(Boolean).join(' · '), link: ['/shop', g.id],
+      });
+    }
+    return slides;
+  });
+  /** Index of the slide in view (drives the dots). */
+  readonly activeSlide = signal(0);
+
+  onCarouselScroll(el: HTMLElement) {
+    const slides = Array.from(el.children) as HTMLElement[];
+    if (!slides.length) return;
+    // At the end of the track the last slide is the active one, even when two fit on screen.
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+    const origin = slides[0].offsetLeft;
+    const i = atEnd ? slides.length - 1 : slides.reduce((best, s, idx) =>
+      Math.abs(s.offsetLeft - origin - el.scrollLeft) < Math.abs(slides[best].offsetLeft - origin - el.scrollLeft) ? idx : best, 0);
+    if (i !== this.activeSlide()) this.activeSlide.set(i);
+  }
+
+  goToSlide(el: HTMLElement, i: number) {
+    const slide = el.children[i] as HTMLElement | undefined;
+    slide?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+  }
   /** True when the musicians list was filled from all of Spain (the user's city had too few). */
   musiciansNationwide = signal(false);
   /** Only musicians and bands play gigs, so only they get the "publish your gig" nudge. */
@@ -154,7 +283,7 @@ export class HomeComponent implements OnInit {
         city
           ? this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).eq('city', city).order('created_at', { ascending: false }).limit(5)
           : this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).order('created_at', { ascending: false }).limit(5),
-        this.supabase.client.from('posts').select(postCols).order('created_at', { ascending: false }).limit(4),
+        this.supabase.client.from('posts').select(postCols).order('created_at', { ascending: false }).limit(8),
         // Non-critical module: a failure just hides "Se busca".
         this.vacanciesSvc.listOpen({ limit: 6 }).then(data => ({ data }), () => ({ data: [] })),
         this.supabase.client.from('gear_listings').select(listingCols).eq('status', 'active').order('created_at', { ascending: false }).limit(6),
@@ -175,18 +304,18 @@ export class HomeComponent implements OnInit {
         return (data as unknown as Record<string, unknown>[]) || [];
       };
 
-      this.recentMusicians.set(((musicians || []) as unknown as HomeMusician[]).slice(0, 8));
+      this.recentMusicians.set(((musicians || []) as unknown as HomeMusician[]).slice(0, NEW_PEOPLE_LIMIT + 1));
       this.recentEvents.set((events || []) as unknown as HomeEvent[]);
       this.recentVenues.set((venues || []) as unknown as HomeVenue[]);
       this.recentRehearsals.set((rehearsals || []) as unknown as HomeRehearsal[]);
-      this.recentPosts.set(((posts || []) as unknown as HomePost[]).slice(0, 4));
+      this.recentPosts.set((posts || []) as unknown as HomePost[]);
       this.recentVacancies.set((vacancies || []) as unknown as HomeVacancy[]);
       this.recentListings.set(((listings || []) as unknown as HomeListing[]).slice(0, 6));
 
       // Fallbacks run in background and update signals when ready
       if (city) {
         if ((musicians?.length ?? 0) < 6) {
-          globalFallback('musicians', 12).then(d => { this.musiciansNationwide.set(true); this.recentMusicians.set(d.slice(0, 8) as unknown as HomeMusician[]); }).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
+          globalFallback('musicians', 12).then(d => { this.musiciansNationwide.set(true); this.recentMusicians.set(d.slice(0, NEW_PEOPLE_LIMIT + 1) as unknown as HomeMusician[]); }).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((events?.length ?? 0) < 2) {
           globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d as unknown as HomeEvent[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
@@ -214,14 +343,6 @@ export class HomeComponent implements OnInit {
   }
 
 
-  /** ISO week number, for the masthead dateline. */
-  readonly weekNumber = (() => {
-    const d = new Date(Date.UTC(this.today.getFullYear(), this.today.getMonth(), this.today.getDate()));
-    const day = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - day);
-    const yearStart = Date.UTC(d.getUTCFullYear(), 0, 1);
-    return Math.ceil(((d.getTime() - yearStart) / 86400000 + 1) / 7);
-  })();
 
   /** Event date parts for the poster date block. */
   dateParts(date: string): { weekday: string; day: string; month: string } {

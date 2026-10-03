@@ -91,9 +91,53 @@ describe('HomeComponent', () => {
       expect(component.newPeople().map(m => m.id)).toEqual(['b', 'c']);
     });
 
-    it('shows at most four people', () => {
-      component.recentMusicians.set(['1', '2', '3', '4', '5', '6'].map(i => person(i, `u${i}`)));
-      expect(component.newPeople().length).toBe(4);
+    it('shows at most eight people', () => {
+      component.recentMusicians.set(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map(i => person(i, `u${i}`)));
+      expect(component.newPeople().length).toBe(8);
+    });
+  });
+
+  describe('Se busca, ticker and carousel', () => {
+    const vacancy = (id: string, band: string, city = 'Bilbao') =>
+      ({ id, instrument: 'Batería', genre: 'Rock', bands: { id: 'b-' + id, name: band, city, genre: 'Rock' } });
+    const post = (id: string, type: string, author: string) =>
+      ({ id, type, text: 'x', city: 'Madrid', instrument: null, author_name: author, author_profile_type: null, author_profile_id: null, created_at: new Date().toISOString() });
+
+    it('merges vacancies first and skips a band post already shown as a vacancy', () => {
+      component.recentVacancies.set([vacancy('1', 'Los Despistados')]);
+      component.recentPosts.set([
+        post('p1', 'band_seeking_musician', 'Los Despistados'),
+        post('p2', 'musician_seeking_band', 'Sofía'),
+      ]);
+      const items = component.seBuscaItems();
+      expect(items.map(i => i.id)).toEqual(['v-1', 'p-p2']);
+      expect(items[0].stampLabel).toBe('Busca batería');
+      expect(items[0].link).toEqual(['/bands', 'b-1']);
+    });
+
+    it('lists vacancies from the user city first', () => {
+      component.userCity.set('Madrid');
+      component.recentVacancies.set([vacancy('1', 'A', 'Bilbao'), vacancy('2', 'B', 'Madrid')]);
+      expect(component.seBuscaItems()[0].title).toBe('B');
+    });
+
+    it('caps the list at five rows', () => {
+      component.recentPosts.set(['1', '2', '3', '4', '5', '6', '7'].map(i => post(i, 'collab', 'P' + i)));
+      expect(component.seBuscaItems().length).toBe(5);
+    });
+
+    it('repeats ticker items so the tape loops without a gap, and hides it when empty', () => {
+      expect(component.tickerLoop()).toEqual([]);
+      component.recentPosts.set([post('1', 'collab', 'Ana')]);
+      expect(component.tickerLoop().length).toBeGreaterThanOrEqual(8);
+      expect(component.tickerLoop()[0].text).toBe('Ana — busca colaboración');
+    });
+
+    it('builds carousel slides only from content that exists', () => {
+      expect(component.featuredSlides()).toEqual([]);
+      component.recentVacancies.set([vacancy('1', 'Los Despistados')]);
+      component.recentListings.set([{ id: 'g1', title: 'Fender', price: 500, condition: null, category: null, city: 'Madrid', images: null, created_at: '' }]);
+      expect(component.featuredSlides().map(s => s.kicker)).toEqual(['Se busca', 'Nuevo en la tienda']);
     });
   });
 });

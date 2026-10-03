@@ -1,31 +1,37 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-5 lg:pt-8 pb-10">
+<div class="min-h-screen bg-dark-900 pt-16">
 
-    <!-- ══ MASTHEAD ══ -->
-    <header class="mb-5 lg:mb-7">
-      <p class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted mb-2">
-        Portada · Semana {{ weekNumber }}
-      </p>
-      <h1 class="text-[2.75rem] sm:text-7xl lg:text-8xl leading-[1.2] pt-1 break-words">
-        Esta semana<br>
-        <span class="text-primary-500">en {{ displayCity() }}</span>
-      </h1>
+  <!-- ══ CABECERA + ACCESOS ══ -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 lg:pt-8">
+    <header class="mb-4 lg:mb-2 lg:flex lg:items-end lg:justify-between lg:gap-10">
+      <div class="min-w-0">
+        <p class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted mb-1">
+          @if (firstName()) { Hola, {{ firstName() }} } @else { Portada }
+        </p>
+        <h1 class="text-[2rem] min-[360px]:text-[2.25rem] sm:text-6xl lg:text-7xl leading-[1.12] pt-1 break-words">
+          Esta semana <span class="text-primary-500">en {{ displayCity() }}</span>
+        </h1>
+      </div>
+      <!-- Search shortcut: looks like a field, opens the full search -->
+      <a routerLink="/search"
+         class="press mt-3 lg:mt-0 lg:w-[22rem] lg:shrink-0 flex items-center gap-3 min-h-[48px] px-4 bg-white border-2 border-ink shadow-[3px_3px_0_0_#141210] text-ink-muted hover:text-ink transition-colors">
+        <app-icon name="search" [size]="18" class="text-ink"/>
+        <span class="text-sm truncate">Busca músicos, bandas, locales…</span>
+      </a>
     </header>
 
     <!-- ── ERROR STATE ── -->
     @if (!loading() && loadError()) {
-      <div role="alert" aria-live="assertive" class="card-flat flex flex-col items-center justify-center py-12 gap-4 text-center mb-6">
+      <div role="alert" aria-live="assertive" class="card-flat flex flex-col items-center justify-center py-10 gap-4 text-center mb-6">
         <p class="font-display text-2xl">No se pudo cargar la portada</p>
         <p class="text-ink-muted text-sm">Revisa tu conexión e inténtalo de nuevo.</p>
         <button type="button" (click)="retryLoad()" class="btn-primary min-h-[44px]">Reintentar</button>
       </div>
     }
 
-    <!-- ══ 1 · TU SIGUIENTE PASO ══ -->
+    <!-- ── TU SIGUIENTE PASO ── -->
     @if (nextStep(); as step) {
-      <section aria-label="Tu siguiente paso" class="mb-6 flex items-center gap-3 sm:gap-4 bg-poster-yellow border-2 border-ink px-4 py-3">
-        <span class="hidden sm:inline font-mono text-xs font-bold uppercase tracking-wide shrink-0">Tu siguiente paso</span>
-        <p class="flex-1 font-bold text-sm sm:text-base text-ink leading-snug">{{ step.text }}</p>
+      <section aria-label="Tu siguiente paso" class="mb-4 flex items-center gap-3 bg-poster-yellow border-2 border-ink px-3 sm:px-4 py-2.5 pop-in">
+        <p class="flex-1 font-bold text-sm text-ink leading-snug">{{ step.text }}</p>
         @if (step.upload) {
           <app-avatar-upload [label]="step.cta" variant="night" class="shrink-0"/>
         } @else {
@@ -34,241 +40,278 @@
       </section>
     }
 
-    <div class="grid gap-8 lg:gap-10 lg:grid-cols-[1.35fr_1fr_0.9fr] items-start">
+    <!-- ── SECCIONES ── -->
+    <nav aria-label="Secciones" class="grid grid-cols-4 gap-2 sm:gap-3 lg:hidden">
+      @for (s of sections; track s.label; let i = $index) {
+        <a [routerLink]="s.link" [queryParams]="s.query ?? null" [style.--i]="i"
+           class="pop-in press group flex flex-col items-center justify-center gap-1.5 aspect-[6/5] sm:aspect-auto sm:min-h-[6.5rem] p-1.5 border-2 border-ink shadow-[3px_3px_0_0_#141210] text-center hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+           [class]="i === 0 ? 'bg-primary-500 text-white' : 'bg-dark-900 text-ink hover:bg-poster-yellow'">
+          <app-icon [name]="s.icon" [size]="24" class="group-hover:scale-110 transition-transform"/>
+          <span class="font-display text-[0.8rem] min-[360px]:text-[0.95rem] sm:text-lg uppercase leading-none whitespace-nowrap">{{ s.label }}</span>
+          <span class="hidden sm:block text-[11px] leading-tight opacity-80">{{ s.hint }}</span>
+        </a>
+      }
+    </nav>
+  </div>
 
-      <!-- ══ COLUMNA 1 · CONCIERTO DESTACADO ══ -->
-      <div class="flex flex-col gap-8 min-w-0">
-        <section aria-labelledby="poster-title">
-          @if (loading()) {
-            <div class="bg-ink h-72 lg:h-[26rem] animate-pulse" aria-hidden="true"></div>
-          } @else if (featuredEvent(); as ev) {
-            <a [routerLink]="['/events', ev.id]"
-               class="group flex flex-col bg-ink text-poster-paper border-2 border-ink shadow-[4px_4px_0_0_#c23a1f] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#c23a1f] transition-[transform,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-              <div class="p-4 sm:p-6 lg:min-h-[19rem] flex flex-col justify-between gap-6">
-                <span class="font-mono text-xs font-bold uppercase tracking-wide text-poster-yellow">Concierto destacado</span>
-                <h2 id="poster-title" class="text-[2.5rem] sm:text-6xl lg:text-7xl leading-[1.15] break-words">{{ ev.title }}</h2>
-              </div>
-              <div class="flex border-t-2 border-poster-paper">
-                <div class="bg-primary-500 text-white px-4 sm:px-5 py-3 flex flex-col items-center justify-center min-w-[5.5rem]">
-                  <span class="font-mono text-xs font-bold uppercase">{{ dateParts(ev.date).weekday }}</span>
-                  <span class="font-display text-4xl sm:text-5xl leading-none">{{ dateParts(ev.date).day }}</span>
-                  <span class="font-mono text-xs font-bold uppercase">{{ dateParts(ev.date).month }}</span>
-                </div>
-                <div class="flex-1 min-w-0 px-4 sm:px-5 py-3 flex flex-col justify-center gap-0.5">
-                  <span class="font-bold text-base sm:text-lg truncate">{{ ev.venue || 'Sala por confirmar' }}@if (ev.city) {, {{ ev.city }}}</span>
-                  @if (ev.genre) { <span class="font-mono text-xs font-bold uppercase text-poster-yellow">{{ ev.genre }}</span> }
-                </div>
-                <span aria-hidden="true" class="hidden sm:flex items-center px-5 group-hover:translate-x-1 transition-transform"><app-icon name="arrow-right" [size]="28"/></span>
-              </div>
-            </a>
-
-            @if (moreEvents().length > 0) {
-              <div class="mt-6">
-                <div class="rule-label"><span>También en la agenda</span>
-                  <a [routerLink]="'/search'" [queryParams]="userCity() ? {tab:'events', city: userCity()} : {tab:'events'}" class="underline min-h-[44px] inline-flex items-center">Ver agenda</a>
-                </div>
-                @for (e of moreEvents(); track e.id) {
-                  <a [routerLink]="['/events', e.id]" class="flex items-center gap-3 py-3 border-b border-ink/15 min-h-[56px] hover:text-primary-500 transition-colors">
-                    <span class="bg-poster-yellow border-[1.5px] border-ink w-12 shrink-0 py-1 flex flex-col items-center leading-none">
-                      <span class="font-display text-xl">{{ dateParts(e.date).day }}</span>
-                      <span class="font-mono text-[11px] font-bold uppercase">{{ dateParts(e.date).month }}</span>
-                    </span>
-                    <span class="flex-1 min-w-0">
-                      <span class="block font-display text-xl uppercase leading-tight truncate">{{ e.title }}</span>
-                      <span class="block text-sm text-ink-muted truncate">{{ e.venue || e.city }}</span>
-                    </span>
+  <!-- ══ CINTA · LO ÚLTIMO EN SE BUSCA ══ -->
+  @if (tickerLoop().length > 0) {
+    <section aria-label="Lo último en Se busca" class="mt-6 lg:mt-8 flex items-stretch bg-poster-yellow border-y-2 border-ink">
+      <a routerLink="/feed" class="shrink-0 z-10 flex items-center gap-2 px-3 sm:px-4 bg-ink text-poster-yellow font-mono text-xs font-bold uppercase tracking-wide">
+        <span class="w-2 h-2 bg-primary-500 animate-pulse" aria-hidden="true"></span> Se busca
+      </a>
+      <div class="ticker flex-1 overflow-hidden no-scrollbar">
+        <div class="ticker-track flex w-max" [style.--ticker-duration]="tickerLoop().length * 4 + 's'">
+          @for (copy of [0, 1]; track copy) {
+            <ul class="flex shrink-0" [class.ticker-dup]="copy === 1" [attr.aria-hidden]="copy === 1 ? 'true' : null">
+              @for (t of tickerLoop(); track $index; let i = $index) {
+                @let filler = copy === 1 || i >= tickerItems().length;
+                <li [attr.aria-hidden]="filler && copy === 0 ? 'true' : null">
+                  <a [routerLink]="t.link" [attr.tabindex]="filler ? -1 : null"
+                     class="flex items-center gap-4 h-11 pl-4 font-display text-lg uppercase whitespace-nowrap hover:text-primary-500">
+                    {{ t.text }} <span aria-hidden="true" class="text-primary-500">✶</span>
                   </a>
-                }
-              </div>
-            }
-          } @else {
-            <!-- No upcoming gigs: a quiet nudge, not a poster -->
-            <div class="card-flat p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
-              <div class="flex-1 min-w-0">
-                <h2 id="poster-title" class="text-3xl leading-[1.15]">La agenda está libre</h2>
-                @if (canPublishGigs()) {
-                  <p class="text-sm text-ink-muted mt-1">¿Tocas pronto? Que la escena de {{ displayCity() }} se entere.</p>
-                } @else {
-                  <p class="text-sm text-ink-muted mt-1">Todavía no hay conciertos publicados en {{ displayCity() }}.</p>
-                }
-              </div>
-              @if (canPublishGigs()) {
-                <a routerLink="/events/create" class="btn-secondary min-h-[44px] shrink-0">Publicar concierto</a>
-              } @else {
-                <a routerLink="/events" class="btn-secondary min-h-[44px] shrink-0">Ver agenda</a>
+                </li>
               }
-            </div>
+            </ul>
           }
-        </section>
+        </div>
       </div>
+    </section>
+  }
 
-      <!-- ══ COLUMNA 2 · SE BUSCA + TABLÓN ══ -->
-      <div class="flex flex-col gap-8 min-w-0">
+  <!-- ══ CONTENIDO ══ -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-6 lg:pt-10 pb-10 grid gap-9 lg:gap-12 lg:grid-cols-[1.45fr_1fr] items-start">
 
-        <section aria-labelledby="busca-title">
-          <div class="rule-label">
-            <span>Se busca</span>
-            <a routerLink="/feed" [queryParams]="{ver:'bandas'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
-          </div>
-          <h2 id="busca-title" class="text-4xl lg:text-[2.5rem] leading-[1.15] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
+    <!-- ── COLUMNA PRINCIPAL ── -->
+    <div class="flex flex-col gap-9 min-w-0">
 
-          @if (loading()) {
-            @for (i of [1,2,3]; track i) { <div class="h-14 border-b-[1.5px] border-ink/30 animate-pulse" aria-hidden="true"></div> }
-          } @else {
-            @for (v of vacanciesSorted(); track v.id) {
-              @if (v.bands; as b) {
-                <a [routerLink]="['/bands', b.id]" class="block py-3 border-b border-ink/15 min-h-[56px] group">
-                  <span class="block font-display text-xl lg:text-[1.375rem] uppercase leading-tight group-hover:text-primary-500 transition-colors truncate">{{ b.name }}</span>
-                  <span class="flex items-center gap-2 mt-1 min-w-0">
-                    <span [class]="askStampClass('vacancy') + ' shrink-0'">{{ askLabel('vacancy', v.instrument) }}</span>
-                    <span class="meta truncate min-w-0">{{ v.genre || b.genre }}@if (b.city) { · {{ b.city }}}</span>
-                  </span>
-                </a>
-              }
-            } @empty {
-              <div class="py-6">
-                <p class="text-sm text-ink-muted mb-3">Ninguna banda busca gente ahora.</p>
-                <a routerLink="/search" [queryParams]="{tab:'bands'}" class="btn-secondary min-h-[44px]">Ver bandas</a>
-              </div>
-            }
-          }
-        </section>
-
+      <!-- Destacado: carrusel (el hueco reservado para promoción de pago más adelante) -->
+      <section aria-labelledby="destacado-title" aria-roledescription="carrusel">
+        <h2 id="destacado-title" class="sr-only">Destacado</h2>
         @if (loading()) {
-          <section aria-hidden="true">
-            @for (i of [1,2,3]; track i) { <div class="h-16 border-b-[1.5px] border-ink/30 animate-pulse"></div> }
-          </section>
-        } @else if (recentPosts().length > 0) {
-          <section aria-labelledby="tablon-title">
-            <div class="rule-label">
-              <span id="tablon-title">Últimos anuncios</span>
-              <a routerLink="/feed" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
+          <div class="bg-ink h-52 sm:h-64 animate-pulse" aria-hidden="true"></div>
+        } @else if (featuredSlides().length > 0) {
+          <div #carousel (scroll)="onCarouselScroll(carousel)"
+               class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 sm:scroll-px-0 pb-2 pr-6">
+            @for (slide of featuredSlides(); track slide.key; let i = $index) {
+              <a [routerLink]="slide.link" [style.--i]="i"
+                 class="pop-in press snap-start snap-always shrink-0 w-[86%] sm:w-[72%] lg:w-[calc(50%-6px)] flex flex-col justify-between min-h-[11.5rem] sm:min-h-[15rem] border-2 border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                 [class]="slide.tone === 'ink' ? 'bg-ink text-poster-paper shadow-[4px_4px_0_0_#c23a1f]'
+                        : slide.tone === 'yellow' ? 'bg-poster-yellow text-ink shadow-[4px_4px_0_0_#141210]'
+                        : 'bg-primary-500 text-white shadow-[4px_4px_0_0_#141210]'">
+                <div class="p-4 sm:p-6 flex flex-col gap-3">
+                  <span class="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wide"
+                        [class.text-poster-yellow]="slide.tone === 'ink'">
+                    {{ slide.kicker }}
+                    @if (slide.sponsored) { <span class="border border-current px-1 text-[11px]">Promo</span> }
+                  </span>
+                  <span class="font-display uppercase text-[2rem] sm:text-5xl lg:text-4xl leading-[1.08] line-clamp-3 break-words">{{ slide.title }}</span>
+                </div>
+                <div class="flex items-stretch border-t-2"
+                     [class.border-poster-paper]="slide.tone === 'ink'" [class.border-ink]="slide.tone !== 'ink'">
+                  @if (slide.date; as d) {
+                    <span class="bg-primary-500 text-white px-3 py-2 flex flex-col items-center justify-center min-w-[4.25rem] border-r-2 border-poster-paper">
+                      <span class="font-mono text-[11px] font-bold uppercase">{{ d.weekday }}</span>
+                      <span class="font-display text-3xl leading-none">{{ d.day }}</span>
+                      <span class="font-mono text-[11px] font-bold uppercase">{{ d.month }}</span>
+                    </span>
+                  }
+                  <span class="flex-1 min-w-0 px-4 py-3 text-sm font-bold truncate self-center">{{ slide.meta }}</span>
+                  <span class="hidden sm:flex lg:hidden xl:flex items-center gap-2 px-4 font-mono text-xs font-bold uppercase whitespace-nowrap">{{ slide.cta }} <app-icon name="arrow-right" [size]="16"/></span>
+                  <span class="sm:hidden lg:flex xl:hidden flex items-center px-4" aria-hidden="true"><app-icon name="arrow-right" [size]="20"/></span>
+                </div>
+              </a>
+            }
+          </div>
+          @if (featuredSlides().length > 1) {
+            <div class="flex justify-center -mt-1">
+              @for (slide of featuredSlides(); track slide.key; let i = $index) {
+                <button type="button" (click)="goToSlide(carousel, i)"
+                        [attr.aria-label]="'Ver destacado ' + (i + 1) + ' de ' + featuredSlides().length"
+                        [attr.aria-current]="activeSlide() === i ? 'true' : null"
+                        class="h-11 min-w-[36px] px-1 flex items-center justify-center">
+                  <span class="block h-1.5 w-7 border border-ink origin-center transition-transform duration-300"
+                        [class]="activeSlide() === i ? 'scale-x-100 bg-ink' : 'scale-x-[0.45] bg-transparent'"></span>
+                </button>
+              }
             </div>
-            @for (post of recentPosts(); track post.id) {
-              <a [routerLink]="['/posts', post.id]" class="block py-3 border-b border-ink/15 group">
-                <span class="block font-bold text-sm truncate group-hover:text-primary-500 transition-colors">{{ post.author_name }}</span>
+          }
+        }
+      </section>
+
+      <!-- Se busca -->
+      <section aria-labelledby="busca-title" class="reveal">
+        <div class="flex items-end justify-between gap-3 mb-1">
+          <h2 id="busca-title" class="text-3xl lg:text-4xl leading-[1.15]">Se busca</h2>
+          <a routerLink="/feed" class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Ver todo</a>
+        </div>
+        @if (loading()) {
+          @for (i of [1,2,3]; track i) { <div class="h-16 border-b border-ink/15 animate-pulse bg-dark-800/40" aria-hidden="true"></div> }
+        } @else {
+          @for (item of seBuscaItems(); track item.id) {
+            <a [routerLink]="item.link" class="flex items-center gap-3 py-3 border-b border-ink/15 min-h-[64px] group">
+              <span class="flex-1 min-w-0">
+                <span class="block font-display text-xl uppercase leading-tight truncate group-hover:text-primary-500 transition-colors">{{ item.title }}</span>
                 <span class="flex items-center gap-2 mt-1 min-w-0">
-                  <span [class]="askStampClass($any(post.type)) + ' shrink-0'">{{ askLabel($any(post.type), post.instrument) }}</span>
-                  <span class="meta truncate min-w-0">@if (post.city) { {{ post.city }} · }{{ timeAgo(post.created_at) }}</span>
+                  <span [class]="item.stampClass + ' shrink-0'">{{ item.stampLabel }}</span>
+                  <span class="meta truncate min-w-0">{{ item.meta }}</span>
                 </span>
-                <span class="block text-sm text-ink-muted leading-snug truncate mt-1">{{ post.text }}</span>
-              </a>
-            }
-          </section>
-        }
-      </div>
-
-      <!-- ══ COLUMNA 3 · LOCALES, GENTE, TIENDA ══ -->
-      <div class="flex flex-col gap-8 min-w-0">
-
-        <!-- Local de la semana -->
-        @if (loading()) {
-          <div class="bg-dark-750 border-2 border-ink h-40 animate-pulse" aria-hidden="true"></div>
-        } @else if (featuredRehearsal(); as r) {
-          <section aria-labelledby="local-title" class="bg-poster-yellow border-2 border-ink p-4 flex flex-col gap-1.5">
-            <span id="local-title" class="font-mono text-xs font-bold uppercase tracking-wide">Local de la semana</span>
-            <h2 class="text-3xl leading-[1.15] break-words">{{ r.name }}</h2>
-            <p class="text-sm">{{ r.city }}@if (r.hourly_rate) { · <strong>{{ r.hourly_rate }} €/h</strong>}@if (r.capacity) { · {{ r.capacity }} personas}</p>
-            <a [routerLink]="['/rehearsal', r.id]" class="btn-night self-start mt-2 min-h-[44px]">Ver local <app-icon name="arrow-right" [size]="16"/></a>
-          </section>
-
-          @if (otherRehearsals().length > 0) {
-            <section aria-labelledby="locales-title">
-              <div class="rule-label">
-                <span id="locales-title">Locales</span>
-                <a routerLink="/search" [queryParams]="userCity() ? {tab:'rehearsal', city: userCity()} : {tab:'rehearsal'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
-              </div>
-              @for (o of otherRehearsals(); track o.id) {
-                <a [routerLink]="['/rehearsal', o.id]" class="flex items-center justify-between gap-3 py-3 border-b border-ink/15 min-h-[56px] hover:text-primary-500 transition-colors">
-                  <span class="min-w-0">
-                    <span class="block font-bold text-sm truncate">{{ o.name }}</span>
-                    <span class="block text-sm text-ink-muted truncate">{{ o.city }}</span>
-                  </span>
-                  @if (o.hourly_rate) { <span class="font-mono text-sm font-bold shrink-0">{{ o.hourly_rate }} €/h</span> }
-                </a>
-              }
-            </section>
+              </span>
+              <app-icon name="arrow-right" [size]="18" class="shrink-0 text-ink-muted group-hover:text-primary-500 group-hover:translate-x-1 transition-transform"/>
+            </a>
+          } @empty {
+            <p class="text-sm text-ink-muted py-4">Nadie busca nada ahora mismo. ¡Sé el primero!</p>
           }
-        } @else if (!loading() && recentVenues().length > 0) {
-          <section aria-labelledby="salas-title">
-            <div class="rule-label">
-              <span id="salas-title">Salas</span>
-              <a routerLink="/search" [queryParams]="userCity() ? {tab:'venues', city: userCity()} : {tab:'venues'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
-            </div>
-            @for (venue of recentVenues().slice(0,3); track venue.id) {
-              <a [routerLink]="['/venues', venue.id]" class="flex items-center justify-between gap-3 py-3 border-b border-ink/15 min-h-[56px] hover:text-primary-500 transition-colors">
-                <span class="min-w-0">
-                  <span class="block font-bold text-sm truncate">{{ venue.name }}</span>
-                  <span class="block text-sm text-ink-muted truncate">{{ venue.city }}</span>
+          <a routerLink="/feed" [queryParams]="{ new: '1' }" class="btn-secondary mt-4 min-h-[44px] w-full sm:w-auto">
+            <app-icon name="plus" [size]="16"/> Publicar en Se busca
+          </a>
+        }
+      </section>
+
+      <!-- Agenda -->
+      <section aria-labelledby="agenda-title" class="reveal">
+        <div class="flex items-end justify-between gap-3 mb-3">
+          <h2 id="agenda-title" class="text-3xl lg:text-4xl leading-[1.15]">Agenda</h2>
+          <a routerLink="/search" [queryParams]="userCity() ? {tab:'events', city: userCity()} : {tab:'events'}"
+             class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Ver agenda</a>
+        </div>
+        @if (loading()) {
+          <div class="h-24 bg-dark-800/40 animate-pulse" aria-hidden="true"></div>
+        } @else if (upcomingEvents().length > 0) {
+          <div class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 pb-2">
+            @for (e of upcomingEvents(); track e.id) {
+              <a [routerLink]="['/events', e.id]"
+                 class="press snap-start shrink-0 w-[78%] max-w-[16rem] flex border-2 border-ink bg-dark-900 shadow-[3px_3px_0_0_#141210] hover:bg-poster-yellow transition-colors">
+                <span class="bg-poster-yellow border-r-2 border-ink w-16 shrink-0 flex flex-col items-center justify-center leading-none py-2">
+                  <span class="font-mono text-[11px] font-bold uppercase">{{ dateParts(e.date).weekday }}</span>
+                  <span class="font-display text-3xl">{{ dateParts(e.date).day }}</span>
+                  <span class="font-mono text-[11px] font-bold uppercase">{{ dateParts(e.date).month }}</span>
                 </span>
-                @if (venue.capacity) { <span class="font-mono text-xs font-bold shrink-0">{{ venue.capacity }} personas</span> }
+                <span class="flex-1 min-w-0 p-3">
+                  <span class="block font-display text-lg uppercase leading-tight line-clamp-2">{{ e.title }}</span>
+                  <span class="block text-xs text-ink-muted truncate mt-1">{{ e.venue || e.city }}</span>
+                </span>
               </a>
             }
-          </section>
-        }
-
-        <!-- Gente nueva cerca -->
-        <section aria-labelledby="gente-title">
-          <div class="rule-label">
-            <span id="gente-title">Gente nueva{{ userCity() && !musiciansNationwide() ? ' en ' + userCity() : '' }}</span>
-            <a routerLink="/search" [queryParams]="userCity() && !musiciansNationwide() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
           </div>
-          @if (loading()) {
-            @for (i of [1,2,3]; track i) { <div class="h-14 border-b-[1.5px] border-ink/30 animate-pulse" aria-hidden="true"></div> }
-          } @else {
-            @for (m of newPeople(); track m.id) {
-              <a [routerLink]="['/musicians', m.id]" class="flex items-center gap-3 py-2.5 border-b border-ink/15 min-h-[56px] group">
-                <span class="avatar w-11 h-11 text-lg overflow-hidden">
+        } @else {
+          <div class="flex items-center gap-3 border-2 border-dashed border-ink/30 px-4 py-3">
+            <app-icon name="calendar" [size]="22" class="shrink-0 text-ink-muted"/>
+            <p class="flex-1 text-sm text-ink-muted leading-snug">
+              @if (canPublishGigs()) { ¿Tocas pronto? Que la escena de {{ displayCity() }} se entere. }
+              @else { Aún no hay conciertos próximos en {{ displayCity() }}. }
+            </p>
+            @if (canPublishGigs()) {
+              <a routerLink="/events/create" class="btn-secondary min-h-[44px] shrink-0 px-3">Publicar</a>
+            }
+          </div>
+        }
+      </section>
+    </div>
+
+    <!-- ── COLUMNA LATERAL ── -->
+    <div class="flex flex-col gap-9 min-w-0">
+
+      <!-- Gente nueva -->
+      <section aria-labelledby="gente-title" class="reveal">
+        <div class="flex items-end justify-between gap-3 mb-3">
+          <h2 id="gente-title" class="text-3xl leading-[1.15]">Gente nueva</h2>
+          <a routerLink="/search" [queryParams]="userCity() && !musiciansNationwide() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}"
+             class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Ver todo</a>
+        </div>
+        @if (loading()) {
+          <div class="flex gap-3" aria-hidden="true">
+            @for (i of [1,2,3,4]; track i) { <div class="w-[4.5rem] h-24 bg-dark-800/40 animate-pulse"></div> }
+          </div>
+        } @else {
+          <div class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible">
+            @for (m of newPeople(); track m.id; let i = $index) {
+              <a [routerLink]="['/musicians', m.id]" [style.--i]="i"
+                 class="pop-in snap-start shrink-0 w-[4.75rem] lg:w-auto flex flex-col items-center text-center group">
+                <span class="avatar w-[4.25rem] h-[4.25rem] text-xl overflow-hidden border-2 border-ink group-hover:-translate-y-0.5 group-hover:shadow-[3px_3px_0_0_#c23a1f] transition-[transform,box-shadow]"
+                      [style.background]="m.avatar_url ? null : avatarColor(m.name)">
                   @if (m.avatar_url) {
-                    <img [src]="m.avatar_url" [alt]="''" class="w-full h-full object-cover" loading="lazy"/>
+                    <img [src]="m.avatar_url" alt="" class="w-full h-full object-cover" loading="lazy"/>
                   } @else {
                     {{ m.name.slice(0,2) }}
                   }
                 </span>
-                <span class="flex-1 min-w-0">
-                  <span class="block font-bold text-sm truncate group-hover:text-primary-500 transition-colors">{{ m.name }}</span>
-                  <span class="block text-sm text-ink-muted truncate">{{ m.instrument }}@if (m.city) { · {{ m.city }}}</span>
-                </span>
+                <span class="mt-1.5 w-full font-bold text-xs truncate group-hover:text-primary-500">{{ m.name }}</span>
+                <span class="w-full text-[11px] text-ink-muted truncate">{{ m.instrument }}</span>
               </a>
             } @empty {
-              <div class="py-6">
-                <p class="text-sm text-ink-muted mb-3">Aún no hay músicos por aquí.</p>
-                <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="btn-secondary min-h-[44px]">Explorar músicos</a>
-              </div>
+              <p class="text-sm text-ink-muted py-2">Aún no hay músicos por aquí.</p>
             }
-          }
-        </section>
-
-        <!-- Tienda -->
-        @if (loading()) {
-          <div class="grid grid-cols-3 gap-2.5" aria-hidden="true">
-            @for (i of [1,2,3]; track i) { <div class="h-24 bg-dark-750 border-2 border-ink animate-pulse"></div> }
           </div>
-        } @else if (recentListings().length > 0) {
-          <section aria-labelledby="tienda-title">
-            <div class="rule-label">
-              <span id="tienda-title">Tienda</span>
-              <a routerLink="/shop" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
-            </div>
-            <div class="grid grid-cols-3 gap-2.5 mt-3">
-              @for (item of recentListings().slice(0,3); track item.id) {
-                <a [routerLink]="['/shop', item.id]" class="flex flex-col gap-1.5 group min-w-0">
-                  <span class="block h-24 bg-ink border-2 border-ink overflow-hidden">
-                    @if ((item.images?.length ?? 0) > 0) {
-                      <img [src]="item.images![0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
-                    } @else {
-                      <span class="flex h-full items-center justify-center p-2 text-center font-display text-xl uppercase leading-none text-poster-paper break-words">{{ item.category || 'Equipo' }}</span>
-                    }
+        }
+      </section>
+
+      <!-- Locales (o salas si no hay locales) -->
+      @if (!loading() && (recentRehearsals().length > 0 || recentVenues().length > 0)) {
+        @let isRehearsal = recentRehearsals().length > 0;
+        <section aria-labelledby="locales-title" class="reveal">
+          <div class="flex items-end justify-between gap-3 mb-3">
+            <h2 id="locales-title" class="text-3xl leading-[1.15]">{{ isRehearsal ? 'Locales' : 'Salas' }}</h2>
+            <a routerLink="/search" [queryParams]="{ tab: isRehearsal ? 'rehearsal' : 'venues' }"
+               class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Ver todo</a>
+          </div>
+          <div class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 pb-2 lg:flex-col lg:overflow-visible lg:gap-0">
+            @if (isRehearsal) {
+              @for (o of recentRehearsals(); track o.id) {
+                <a [routerLink]="['/rehearsal', o.id]"
+                   class="press snap-start shrink-0 w-[70%] max-w-[14rem] lg:max-w-none lg:w-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-1 p-3 lg:px-0 lg:py-3 border-2 lg:border-0 lg:border-b border-ink lg:border-ink/15 bg-dark-900 shadow-[3px_3px_0_0_#141210] lg:shadow-none hover:text-primary-500 transition-colors">
+                  <span class="min-w-0">
+                    <span class="block font-display text-lg uppercase leading-tight truncate">{{ o.name }}</span>
+                    <span class="block text-xs text-ink-muted truncate">{{ o.city }}@if (o.capacity) { · {{ o.capacity }} personas}</span>
                   </span>
-                  <span class="font-bold text-sm leading-tight line-clamp-2">{{ item.title }}</span>
-                  @if (item.price) { <span class="font-mono text-sm font-bold text-primary-500">{{ item.price | number:'1.0-0' }} €</span> }
+                  @if (o.hourly_rate) { <span class="font-mono text-sm font-bold shrink-0">{{ o.hourly_rate }} €/h</span> }
                 </a>
               }
-            </div>
-          </section>
-        }
-      </div>
+            } @else {
+              @for (v of recentVenues(); track v.id) {
+                <a [routerLink]="['/venues', v.id]"
+                   class="press snap-start shrink-0 w-[70%] max-w-[14rem] lg:max-w-none lg:w-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-1 p-3 lg:px-0 lg:py-3 border-2 lg:border-0 lg:border-b border-ink lg:border-ink/15 bg-dark-900 shadow-[3px_3px_0_0_#141210] lg:shadow-none hover:text-primary-500 transition-colors">
+                  <span class="min-w-0">
+                    <span class="block font-display text-lg uppercase leading-tight truncate">{{ v.name }}</span>
+                    <span class="block text-xs text-ink-muted truncate">{{ v.city }}</span>
+                  </span>
+                  @if (v.capacity) { <span class="font-mono text-xs font-bold shrink-0">{{ v.capacity }} personas</span> }
+                </a>
+              }
+            }
+          </div>
+        </section>
+      }
 
+      <!-- Tienda -->
+      @if (loading()) {
+        <div class="flex gap-3" aria-hidden="true">
+          @for (i of [1,2,3]; track i) { <div class="w-36 h-40 bg-dark-800/40 animate-pulse"></div> }
+        </div>
+      } @else if (recentListings().length > 0) {
+        <section aria-labelledby="tienda-title" class="reveal">
+          <div class="flex items-end justify-between gap-3 mb-3">
+            <h2 id="tienda-title" class="text-3xl leading-[1.15]">Tienda</h2>
+            <a routerLink="/shop" class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Ver todo</a>
+          </div>
+          <div class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 pb-2 lg:grid lg:grid-cols-3 lg:overflow-visible">
+            @for (item of recentListings(); track item.id) {
+              <a [routerLink]="['/shop', item.id]" class="snap-start shrink-0 w-36 lg:w-auto flex flex-col gap-1.5 group min-w-0">
+                <span class="block aspect-square bg-ink border-2 border-ink overflow-hidden">
+                  @if ((item.images?.length ?? 0) > 0) {
+                    <img [src]="item.images![0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+                  } @else {
+                    <span class="flex h-full items-center justify-center p-2 text-center font-mono text-xs font-bold uppercase tracking-wide text-poster-paper break-words">{{ item.category || 'Equipo' }}</span>
+                  }
+                </span>
+                <span class="font-bold text-sm leading-tight line-clamp-2 group-hover:text-primary-500">{{ item.title }}</span>
+                @if (item.price) { <span class="font-mono text-sm font-bold text-primary-500">{{ item.price | number:'1.0-0' }} €</span> }
+              </a>
+            }
+          </div>
+        </section>
+      }
     </div>
   </div>
 </div>
