@@ -51,7 +51,7 @@
               </div>
               <div>
                 <label for="rehearsal-rate" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Precio por hora (€)</label>
-                <input id="rehearsal-rate" formControlName="hourly_rate" type="number" min="0" placeholder="15" class="input-field"
+                <input id="rehearsal-rate" formControlName="hourly_rate" type="number" min="0" placeholder="Ej. 15 €/h" class="input-field"
                   [attr.aria-invalid]="isInvalid('hourly_rate')"
                   [attr.aria-describedby]="isInvalid('hourly_rate') ? 'rehearsal-rate-error' : null"/>
                 @if (form.get('hourly_rate')?.errors?.['positiveNumber'] && form.get('hourly_rate')?.touched) {
@@ -63,7 +63,7 @@
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label for="rehearsal-capacity" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Aforo (personas)</label>
-                <input id="rehearsal-capacity" formControlName="capacity" type="number" min="0" placeholder="10" class="input-field"
+                <input id="rehearsal-capacity" formControlName="capacity" type="number" min="0" placeholder="Ej. 10 personas" class="input-field"
                   [attr.aria-invalid]="isInvalid('capacity')"
                   [attr.aria-describedby]="isInvalid('capacity') ? 'rehearsal-capacity-error' : null"/>
                 @if (isInvalid('capacity')) {

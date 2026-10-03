@@ -19,6 +19,7 @@ export interface GearCardItem {
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-gear-card',
+  host: { class: 'block h-full' },
   imports: [RouterLink, DecimalPipe],
   template: `
     <a [routerLink]="['/shop', item().id]"
@@ -28,9 +29,9 @@ export interface GearCardItem {
           <img [src]="item().images![0]" [alt]="item().title" loading="lazy"
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
         } @else {
-          <div class="w-full h-full flex items-center justify-center p-3 text-center"
+          <div class="w-full h-full flex items-center justify-center p-3 text-center [container-type:inline-size]"
                style="background-image: repeating-linear-gradient(135deg, transparent 0 9px, rgba(20,18,16,0.08) 9px 10px)">
-            <span class="font-display text-2xl sm:text-3xl uppercase leading-none text-ink/80 [overflow-wrap:anywhere]">{{ item().category || 'Equipo' }}</span>
+            <span class="font-display text-[clamp(0.8rem,12.5cqw,1.875rem)] uppercase leading-none text-ink/80 [overflow-wrap:normal] [word-break:keep-all] [hyphens:none]">{{ item().category || 'Equipo' }}</span>
           </div>
         }
         @if (item().status === 'sold') {
@@ -45,9 +46,7 @@ export interface GearCardItem {
         <p class="meta min-w-0">
           <span class="truncate">{{ metaLine() }}</span>
         </p>
-        @if (item().seller_name) {
-          <p class="text-xs text-ink-muted truncate mt-auto pt-2">{{ item().seller_name }}</p>
-        }
+        <p class="text-xs text-ink-muted truncate mt-auto pt-2 min-h-[1.75rem]">{{ item().seller_name }}</p>
       </div>
     </a>
   `,

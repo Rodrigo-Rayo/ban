@@ -4,8 +4,16 @@
     @if (url) {
       <img [src]="url" class="w-full h-full object-cover" alt="" loading="lazy"/>
     } @else {
-      {{ name.slice(0,2) }}
+      {{ initials(name) }}
     }
+  </div>
+</ng-template>
+
+<!-- Empty state when a text query matches nothing -->
+<ng-template #emptyQuery>
+  <p class="font-display text-2xl uppercase text-ink [overflow-wrap:anywhere]">No hay resultados para «{{ searchQuery().trim() }}»</p>
+  <div class="flex flex-wrap justify-center gap-2 mt-2">
+    <button type="button" (click)="onSearchQueryChange('')" class="btn-primary min-h-[44px] text-sm px-5">Borrar búsqueda</button>
   </div>
 </ng-template>
 
@@ -17,7 +25,7 @@
         <p class="page-kicker">{{ tabKicker() }}</p>
         <h1 class="page-title">{{ tabLabel() }}{{ cityScope() }}</h1>
       </div>
-      @if (activeTab() === 'events') {
+      @if (activeTab() === 'events' && (loading() || events().length > 0)) {
         <a [routerLink]="isLoggedIn() ? '/events/create' : '/auth/login'" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 inline-flex items-center">Publicar</a>
       }
     </div>
@@ -55,7 +63,7 @@
             type="search"
             [placeholder]="searchPlaceholder()"
             aria-label="Buscar en el directorio"
-            class="input-field pl-11 pr-12 min-h-[48px] text-base sm:text-sm"/>
+            class="input-field pl-11 pr-12 min-h-[48px] text-base sm:text-sm [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"/>
           @if (searchQuery()) {
             <button type="button" (click)="onSearchQueryChange('')"
               class="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors"
@@ -112,14 +120,14 @@
         @if (hasInstrumentFilter()) {
           <select name="instrument" [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
             aria-label="Filtrar por instrumento" class="input-field min-h-[44px] py-2 px-3 text-base sm:text-sm cursor-pointer">
-            <option value="">Todos los instrumentos</option>
+            <option value="">Instrumento</option>
             @for (inst of instruments; track inst) { <option [value]="inst">{{ inst }}</option> }
           </select>
         }
         @if (hasGenreFilter()) {
           <select name="genre" [ngModel]="selectedGenre()" (ngModelChange)="selectedGenre.set($event); filterChanged()"
             aria-label="Filtrar por género" class="input-field min-h-[44px] py-2 px-3 text-base sm:text-sm cursor-pointer">
-            <option value="">Todos los géneros</option>
+            <option value="">Género</option>
             @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
           </select>
         }
@@ -139,10 +147,8 @@
           Buscando…
         } @else if (currentCount() > 0) {
           {{ currentCount() }}{{ hasMore() ? '+' : '' }} {{ currentCount() === 1 && !hasMore() ? 'resultado' : 'resultados' }}
-        } @else if (hasActiveFilters()) {
-          Sin resultados
         } @else {
-          {{ tabLabel() }}
+          0 resultados
         }
       </span>
     </div>
@@ -179,14 +185,18 @@
       <div role="tabpanel" id="panel-musicians" aria-labelledby="tab-musicians">
       @if (musicians().length === 0) {
         <div class="empty-state">
+          @if (emptyMode() === 'query') {
+            <ng-container *ngTemplateOutlet="emptyQuery"/>
+          } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay músicos{{ cityScope() }}</p>
-          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad o con menos filtros.</p>
+          <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra ciudad o con menos filtros.' : 'Sé el primero: crea tu perfil.' }}</p>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <button type="button" (click)="joinAs('musician')" class="btn-primary min-h-[44px] text-sm px-5">Crear mi perfil de músico</button>
             @if (cityScope()) {
               <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
             }
           </div>
+          }
         </div>
       } @else {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -228,14 +238,18 @@
       <div role="tabpanel" id="panel-bands" aria-labelledby="tab-bands">
       @if (bands().length === 0) {
         <div class="empty-state">
+          @if (emptyMode() === 'query') {
+            <ng-container *ngTemplateOutlet="emptyQuery"/>
+          } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay bandas{{ cityScope() }}</p>
-          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad o con menos filtros. ¿Tienes banda? Que te encuentren.</p>
+          <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra ciudad o con menos filtros' : '¿Tienes banda? Que te encuentren.' }}</p>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <button type="button" (click)="joinAs('band')" class="btn-primary min-h-[44px] text-sm px-5">Registrar mi banda</button>
             @if (cityScope()) {
               <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
             }
           </div>
+          }
         </div>
       } @else {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -270,14 +284,18 @@
       <div role="tabpanel" id="panel-venues" aria-labelledby="tab-venues">
       @if (venues().length === 0) {
         <div class="empty-state">
+          @if (emptyMode() === 'query') {
+            <ng-container *ngTemplateOutlet="emptyQuery"/>
+          } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay salas{{ cityScope() }}</p>
-          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad. ¿Programas conciertos? Publica tu sala.</p>
+          <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra ciudad' : '¿Programas conciertos? Publica tu sala.' }}</p>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/venues/new" class="btn-primary min-h-[44px] text-sm px-5">Publicar mi sala</a>
             @if (cityScope()) {
               <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
             }
           </div>
+          }
         </div>
       } @else {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -310,14 +328,18 @@
       <div role="tabpanel" id="panel-events" aria-labelledby="tab-events">
       @if (events().length === 0) {
         <div class="empty-state">
+          @if (emptyMode() === 'query') {
+            <ng-container *ngTemplateOutlet="emptyQuery"/>
+          } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay eventos próximos{{ cityScope() }}</p>
-          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad o publica el tuyo.</p>
+          <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra ciudad o publica el tuyo.' : 'Publica el tuyo.' }}</p>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/events/create" class="btn-primary min-h-[44px] text-sm px-5">Publicar evento</a>
             @if (cityScope()) {
               <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
             }
           </div>
+          }
         </div>
       } @else {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -353,14 +375,18 @@
       <div role="tabpanel" id="panel-teachers" aria-labelledby="tab-teachers">
       @if (teachers().length === 0) {
         <div class="empty-state">
+          @if (emptyMode() === 'query') {
+            <ng-container *ngTemplateOutlet="emptyQuery"/>
+          } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay clases{{ cityScope() }}</p>
-          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad o con otro instrumento. ¿Das clases? Publícate.</p>
+          <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra ciudad o con otro instrumento' : '¿Das clases? Publícate.' }}</p>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/teachers/new" class="btn-primary min-h-[44px] text-sm px-5">Ofrecer clases</a>
             @if (cityScope()) {
               <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
             }
           </div>
+          }
         </div>
       } @else {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -389,14 +415,18 @@
       <div role="tabpanel" id="panel-rehearsal" aria-labelledby="tab-rehearsal">
       @if (rehearsals().length === 0) {
         <div class="empty-state">
+          @if (emptyMode() === 'query') {
+            <ng-container *ngTemplateOutlet="emptyQuery"/>
+          } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay locales{{ cityScope() }}</p>
-          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad. ¿Alquilas un local de ensayo? Publícalo.</p>
+          <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra ciudad' : '¿Alquilas un local de ensayo? Publícalo.' }}</p>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/rehearsal/new" class="btn-primary min-h-[44px] text-sm px-5">Publicar mi local</a>
             @if (cityScope()) {
               <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
             }
           </div>
+          }
         </div>
       } @else {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">

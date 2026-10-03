@@ -49,7 +49,7 @@
               <a [routerLink]="publicProfilePath()" class="btn-secondary min-h-[44px] text-xs">Ver mi perfil</a>
             }
             @if (profileType() !== 'listener') {
-              <app-avatar-upload label="Cambiar foto" (uploaded)="onAvatarUploaded($event)" class="contents"/>
+              <app-avatar-upload label="Foto" (uploaded)="onAvatarUploaded($event)" class="contents"/>
             }
             @if (publicProfilePath()) {
               <button type="button" (click)="copyProfileLink()" class="btn-secondary min-h-[44px] text-xs">
@@ -272,6 +272,9 @@
                     @if (item.status === 'active') {
                       <button type="button" (click)="markListingSold(item.id, $event)"
                         class="btn-ghost min-h-[44px] text-xs" [attr.aria-label]="'Marcar como vendido: ' + item.title">Marcar vendido</button>
+                    } @else if (item.status === 'sold') {
+                      <button type="button" (click)="relistListing(item.id, $event)"
+                        class="btn-ghost min-h-[44px] text-xs" [attr.aria-label]="'Volver a poner en venta: ' + item.title">Volver a poner en venta</button>
                     }
                     <button type="button" (click)="deleteListing(item.id, $event)"
                       class="btn-ghost min-h-[44px] text-xs text-signal-red hover:text-signal-red"

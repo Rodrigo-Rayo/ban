@@ -49,7 +49,7 @@ export class RehearsalProfileComponent implements OnInit {
   myReview = signal<Review | null>(null);
   linkShared = signal(false);
 
-  readonly posterLine = computed(() => ['Local', this.space()?.city].filter(Boolean).join(' · '));
+  readonly posterLine = computed(() => this.space()?.city ?? '');
   readonly avgRating = computed(() => {
     const r = this.reviews();
     if (!r.length) return null;

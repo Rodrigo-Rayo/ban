@@ -383,6 +383,20 @@ export class SearchComponent implements OnInit, OnDestroy {
     return [];
   }
 
+  /** Why the list is empty decides the empty-state copy. */
+  readonly emptyMode = computed<'query' | 'filters' | 'none'>(() =>
+    this.searchQuery().trim() ? 'query'
+      : (this.selectedCity() !== 'Toda España' || this.selectedInstrument() || this.selectedGenre()) ? 'filters' : 'none');
+
+  /** Initials from first + last word ("Sofía López" -> "SL"). */
+  initials(name: string | null | undefined): string {
+    const words = (name ?? '').trim().split(/s+/).filter(Boolean);
+    if (words.length === 0) return '?';
+    const first = words[0].charAt(0);
+    const last = words.length > 1 ? words[words.length - 1].charAt(0) : '';
+    return (first + last).toUpperCase();
+  }
+
   clearFilters() {
     this.selectedGenre.set('');
     this.selectedCity.set(this.userCity() || 'Toda España');

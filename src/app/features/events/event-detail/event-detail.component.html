@@ -59,7 +59,7 @@
               <p class="font-mono text-xs font-bold mt-2 pt-2 border-t" [class.border-white/40]="!isPast()" [class.border-ink/30]="isPast()">{{ time(event()!.time) }}</p>
             }
           </div>
-          <h1 class="min-w-0 font-display text-[clamp(2.25rem,11vw,4rem)] sm:text-6xl lg:text-7xl leading-[0.9] text-poster-paper [overflow-wrap:anywhere]">{{ event()!.title }}</h1>
+          <h1 class="min-w-0 font-display text-[clamp(2.25rem,11vw,4rem)] sm:text-6xl lg:text-7xl leading-[1.08] text-poster-paper [overflow-wrap:anywhere]">{{ event()!.title }}</h1>
         </div>
       </div>
       <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-4 py-2 font-display uppercase text-xl sm:text-2xl leading-tight flex items-center gap-2 [overflow-wrap:anywhere]">
@@ -129,7 +129,7 @@
               </button>
             } @else {
               <a routerLink="/auth/login" class="btn-secondary text-sm min-h-[44px] text-center">
-                Inicia sesión para guardar
+                Entra para guardar
               </a>
             }
             <button type="button" (click)="shareLink()" class="btn-secondary text-sm min-h-[44px]"
@@ -212,7 +212,7 @@
           @if (!(event()!.ticket_url)) { <span class="text-sm">{{ isFav() ? 'En favoritos' : 'Favorito' }}</span> }
         </button>
       } @else {
-        <a routerLink="/auth/login" class="btn-secondary min-h-[52px] flex-1 text-center text-sm">Inicia sesión para guardar</a>
+        <a routerLink="/auth/login" class="btn-secondary min-h-[52px] flex-1 text-center text-sm">Entra para guardar</a>
       }
       <button type="button" (click)="shareLink()"
         [attr.aria-label]="linkShared() ? 'Enlace copiado' : 'Compartir evento'"

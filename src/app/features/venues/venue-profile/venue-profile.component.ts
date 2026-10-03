@@ -49,7 +49,7 @@ export class VenueProfileComponent implements OnInit {
   msgError = signal<string | null>(null);
   linkShared = signal(false);
 
-  readonly posterLine = computed(() => ['Sala', this.venue()?.city].filter(Boolean).join(' · '));
+  readonly posterLine = computed(() => this.venue()?.city ?? '');
   readonly avgRating = computed(() => {
     const r = this.reviews();
     if (!r.length) return null;

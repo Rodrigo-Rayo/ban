@@ -361,6 +361,16 @@ describe('ChatComponent', () => {
     expect(component.conversationGone()).toBeTrue();
   });
 
+  it('24e. the realtime onGone callback switches the chat to the deleted state', async () => {
+    msgSvc.getConversationById.and.resolveTo(existingConv);
+    await component.ngOnInit();
+    expect(component.conversationGone()).toBeFalse();
+    const onGone = msgSvc.subscribeToMessages.calls.mostRecent().args[4] as () => void;
+    expect(onGone).toEqual(jasmine.any(Function));
+    onGone();
+    expect(component.conversationGone()).toBeTrue();
+  });
+
   it('24d. loads the other side avatar and keeps a one-letter fallback helper', async () => {
     msgSvc.getConversationById.and.resolveTo(existingConv);
     supabaseSpy.client.rpc = jasmine.createSpy('rpc').and.resolveTo({ data: 'https://x.test/a.jpg' });

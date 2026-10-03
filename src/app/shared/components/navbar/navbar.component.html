@@ -35,7 +35,7 @@
             <span class="badge top-1 right-0.5" aria-hidden="true">{{ notifSvc.unreadCount() > 9 ? '9+' : notifSvc.unreadCount() }}</span>
           }
         </a>
-        <a routerLink="/inbox" aria-label="Mensajes"
+        <a routerLink="/inbox" [attr.aria-label]="messagesService.unreadCount() > 0 ? 'Mensajes, ' + messagesService.unreadCount() + ' sin leer' : 'Mensajes'"
            class="relative hidden lg:flex w-11 h-11 items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors">
           <app-icon name="message-circle" [size]="20"/>
           @if (messagesService.unreadCount() > 0) {
@@ -132,9 +132,9 @@
           <app-icon name="logout" [size]="18"/> Cerrar sesión
         </button>
       } @else {
-        <div class="grid grid-cols-2 gap-2 py-3">
-          <a routerLink="/auth/login" (click)="menuOpen = false" class="btn-secondary">Entrar</a>
-          <a routerLink="/auth/register" (click)="menuOpen = false" class="btn-primary">Únete gratis</a>
+        <!-- "Entrar" already lives in the bottom bar; no second one here -->
+        <div class="py-3">
+          <a routerLink="/auth/register" (click)="menuOpen = false" class="btn-primary w-full">Únete gratis</a>
         </div>
       }
     </div>

@@ -46,7 +46,7 @@
                class="group flex flex-col bg-ink text-poster-paper border-2 border-ink shadow-[4px_4px_0_0_#c23a1f] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#c23a1f] transition-[transform,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
               <div class="p-4 sm:p-6 lg:min-h-[19rem] flex flex-col justify-between gap-6">
                 <span class="font-mono text-xs font-bold uppercase tracking-wide text-poster-yellow">Concierto destacado</span>
-                <h2 id="poster-title" class="text-[2.5rem] sm:text-6xl lg:text-7xl leading-[0.95] break-words">{{ ev.title }}</h2>
+                <h2 id="poster-title" class="text-[2.5rem] sm:text-6xl lg:text-7xl leading-[1.15] break-words">{{ ev.title }}</h2>
               </div>
               <div class="flex border-t-2 border-poster-paper">
                 <div class="bg-primary-500 text-white px-4 sm:px-5 py-3 flex flex-col items-center justify-center min-w-[5.5rem]">
@@ -85,10 +85,18 @@
             <!-- No upcoming gigs: a quiet nudge, not a poster -->
             <div class="card-flat p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
               <div class="flex-1 min-w-0">
-                <h2 id="poster-title" class="text-3xl leading-[1.05]">La agenda está libre</h2>
-                <p class="text-sm text-ink-muted mt-1">¿Tocas pronto? Que la escena de {{ displayCity() }} se entere.</p>
+                <h2 id="poster-title" class="text-3xl leading-[1.15]">La agenda está libre</h2>
+                @if (canPublishGigs()) {
+                  <p class="text-sm text-ink-muted mt-1">¿Tocas pronto? Que la escena de {{ displayCity() }} se entere.</p>
+                } @else {
+                  <p class="text-sm text-ink-muted mt-1">Todavía no hay conciertos publicados en {{ displayCity() }}.</p>
+                }
               </div>
-              <a routerLink="/events/create" class="btn-secondary min-h-[44px] shrink-0">Publicar evento</a>
+              @if (canPublishGigs()) {
+                <a routerLink="/events/create" class="btn-secondary min-h-[44px] shrink-0">Publicar concierto</a>
+              } @else {
+                <a routerLink="/events" class="btn-secondary min-h-[44px] shrink-0">Ver agenda</a>
+              }
             </div>
           }
         </section>
@@ -102,7 +110,7 @@
             <span>Se busca</span>
             <a routerLink="/feed" [queryParams]="{ver:'bandas'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
           </div>
-          <h2 id="busca-title" class="text-4xl lg:text-[2.5rem] leading-[1.02] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
+          <h2 id="busca-title" class="text-4xl lg:text-[2.5rem] leading-[1.15] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
 
           @if (loading()) {
             @for (i of [1,2,3]; track i) { <div class="h-14 border-b-[1.5px] border-ink/30 animate-pulse" aria-hidden="true"></div> }
@@ -159,7 +167,7 @@
         } @else if (featuredRehearsal(); as r) {
           <section aria-labelledby="local-title" class="bg-poster-yellow border-2 border-ink p-4 flex flex-col gap-1.5">
             <span id="local-title" class="font-mono text-xs font-bold uppercase tracking-wide">Local de la semana</span>
-            <h2 class="text-3xl leading-[1] break-words">{{ r.name }}</h2>
+            <h2 class="text-3xl leading-[1.15] break-words">{{ r.name }}</h2>
             <p class="text-sm">{{ r.city }}@if (r.hourly_rate) { · <strong>{{ r.hourly_rate }} €/h</strong>}@if (r.capacity) { · {{ r.capacity }} personas}</p>
             <a [routerLink]="['/rehearsal', r.id]" class="btn-night self-start mt-2 min-h-[44px]">Ver local <app-icon name="arrow-right" [size]="16"/></a>
           </section>
@@ -202,8 +210,8 @@
         <!-- Gente nueva cerca -->
         <section aria-labelledby="gente-title">
           <div class="rule-label">
-            <span id="gente-title">Gente nueva{{ userCity() ? ' en ' + userCity() : '' }}</span>
-            <a routerLink="/search" [queryParams]="userCity() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
+            <span id="gente-title">Gente nueva{{ userCity() && !musiciansNationwide() ? ' en ' + userCity() : '' }}</span>
+            <a routerLink="/search" [queryParams]="userCity() && !musiciansNationwide() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
           </div>
           @if (loading()) {
             @for (i of [1,2,3]; track i) { <div class="h-14 border-b-[1.5px] border-ink/30 animate-pulse" aria-hidden="true"></div> }

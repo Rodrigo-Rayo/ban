@@ -157,10 +157,10 @@ describe('GearDetailComponent', () => {
       expect(toastSpy.success).toHaveBeenCalled();
     });
 
-    it('explains that the listing stays visible as VENDIDO', async () => {
+    it('explains that the listing disappears from the shop but can be relisted', async () => {
       supabaseSpy.client.from.and.returnValue(mockBuilder({ error: null }));
       await component.markAsSold();
-      expect(confirmSpy.ask.calls.mostRecent().args[0].message).toContain('VENDIDO');
+      expect(confirmSpy.ask.calls.mostRecent().args[0].message).toContain('Dejará de aparecer en la Tienda');
     });
 
     it('relist() puts a sold listing back on sale', async () => {

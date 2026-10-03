@@ -68,10 +68,17 @@ describe('HomeComponent', () => {
       expect(component.nextStep()).toBeNull();
     });
 
-    it('unread messages take priority over the photo nudge', () => {
+    it('never nudges about unread messages (the badges already do)', () => {
       unread.set(2);
-      component.userProfile.set({ name: 'Lola', avatar_url: null });
-      expect(component.nextStep()?.link).toBe('/inbox');
+      component.userProfile.set({ name: 'Lola', avatar_url: 'https://x/a.png' });
+      expect(component.nextStep()).toBeNull();
+    });
+
+    it('only musicians and bands get the "publish your gig" nudge', () => {
+      profileType.set('venue');
+      expect(component.canPublishGigs()).toBeFalse();
+      profileType.set('band');
+      expect(component.canPublishGigs()).toBeTrue();
     });
   });
 

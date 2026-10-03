@@ -62,7 +62,7 @@
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label for="teacher-rate" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Precio por hora (€)</label>
-                <input id="teacher-rate" formControlName="hourly_rate" type="number" min="0" placeholder="25" class="input-field"
+                <input id="teacher-rate" formControlName="hourly_rate" type="number" min="0" placeholder="Ej. 25 €/h" class="input-field"
                   [attr.aria-invalid]="isInvalid('hourly_rate')"
                   [attr.aria-describedby]="isInvalid('hourly_rate') ? 'teacher-rate-error' : null"/>
                 @if (form.get('hourly_rate')?.errors?.['positiveNumber'] && form.get('hourly_rate')?.touched) {
@@ -71,7 +71,7 @@
               </div>
               <div>
                 <label for="teacher-exp-years" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Años de experiencia</label>
-                <input id="teacher-exp-years" formControlName="experience_years" type="number" min="0" placeholder="5" class="input-field"
+                <input id="teacher-exp-years" formControlName="experience_years" type="number" min="0" placeholder="Ej. 5 años" class="input-field"
                   [attr.aria-invalid]="isInvalid('experience_years')"
                   [attr.aria-describedby]="isInvalid('experience_years') ? 'teacher-exp-years-error' : null"/>
                 @if (isInvalid('experience_years')) {

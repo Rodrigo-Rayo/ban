@@ -104,6 +104,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         onTyping: (from) => this.onOtherTyping(from),
         onPresence: (ids) => { this.onlineIds = ids; this.refreshOnline(); },
       },
+      () => this.conversationGone.set(true),
     );
 
     try {

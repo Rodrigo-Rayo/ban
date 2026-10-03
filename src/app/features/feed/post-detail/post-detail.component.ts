@@ -112,16 +112,15 @@ export class PostDetailComponent implements OnInit {
     return p ? [p.instrument, p.city, p.genre].filter(Boolean).join(' · ') : '';
   });
 
-  /** Label/value rows of the data sheet; only rows with data. */
+  /**
+   * Data-sheet rows not already on the poster: instrument and city live in the red
+   * strip and the date at the top, so only the style is left (one datum, one place).
+   */
   readonly sheet = computed((): { label: string; value: string }[] => {
     const p = this.post();
     if (!p) return [];
-    return [
-      { label: 'Ciudad', value: p.city },
-      { label: 'Instrumento', value: p.instrument },
-      { label: 'Estilo', value: p.genre },
-      { label: 'Publicado', value: timeAgo(p.created_at) },
-    ].filter((r): r is { label: string; value: string } => !!r.value);
+    return [{ label: 'Estilo', value: p.genre }]
+      .filter((r): r is { label: string; value: string } => !!r.value);
   });
 
   /** Same-type posts first, then same-city ones; never the current post. Hides itself on error. */

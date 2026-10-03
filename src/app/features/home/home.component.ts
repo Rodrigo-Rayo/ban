@@ -5,7 +5,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { VacanciesService } from '../../core/services/vacancies.service';
 import { SeoService } from '../../core/services/seo.service';
-import { MessagesService } from '../../core/services/messages.service';
 import { timeAgo } from '../../core/utils/display.utils';
 import { localToday, dateParts as sharedDateParts } from '../../core/utils/date';
 import { askLabel, askStampClass } from '../../core/utils/se-busca';
@@ -38,7 +37,6 @@ export class HomeComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private vacanciesSvc = inject(VacanciesService);
   private seo = inject(SeoService);
-  private messages = inject(MessagesService);
   private avatarUpload = inject(AvatarUploadService);
 
   constructor() {
@@ -90,6 +88,10 @@ export class HomeComponent implements OnInit {
     const me = this.auth.user()?.id;
     return this.recentMusicians().filter(m => !me || m.user_id !== me).slice(0, 4);
   });
+  /** True when the musicians list was filled from all of Spain (the user's city had too few). */
+  musiciansNationwide = signal(false);
+  /** Only musicians and bands play gigs, so only they get the "publish your gig" nudge. */
+  readonly canPublishGigs = computed(() => ['musician', 'band'].includes(this.auth.userProfileType()));
   readonly displayCity = computed(() => this.userCity() || 'España');
   /** Vacancies from the user's city first. */
   readonly vacanciesSorted = computed(() => {
@@ -99,10 +101,6 @@ export class HomeComponent implements OnInit {
   });
   /** Single most useful nudge, built only from data that exists. */
   readonly nextStep = computed<{ text: string; cta: string; link?: string; upload?: boolean } | null>(() => {
-    const unread = this.messages.unreadCount();
-    if (unread > 0) {
-      return { text: unread === 1 ? 'Tienes 1 mensaje sin leer.' : `Tienes ${unread} mensajes sin leer.`, cta: 'Leer', link: '/inbox' };
-    }
     const profile = this.userProfile();
     // The photo is saved on the profile row, so listeners (no row) never see this nudge.
     const hasPhoto = !!profile?.avatar_url || !!this.avatarUpload.avatarUrl();
@@ -188,7 +186,7 @@ export class HomeComponent implements OnInit {
       // Fallbacks run in background and update signals when ready
       if (city) {
         if ((musicians?.length ?? 0) < 6) {
-          globalFallback('musicians', 12).then(d => this.recentMusicians.set(d.slice(0, 8) as unknown as HomeMusician[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
+          globalFallback('musicians', 12).then(d => { this.musiciansNationwide.set(true); this.recentMusicians.set(d.slice(0, 8) as unknown as HomeMusician[]); }).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
         }
         if ((events?.length ?? 0) < 2) {
           globalFallback('events', 5, q => q.gte('date', todayStr).order('date', { ascending: true })).then(d => this.recentEvents.set(d as unknown as HomeEvent[])).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
@@ -210,6 +208,7 @@ export class HomeComponent implements OnInit {
 
   retryLoad() {
     this.loadError.set(false);
+    this.musiciansNationwide.set(false);
     this.loading.set(true);
     this.loadContent();
   }

@@ -127,8 +127,12 @@
         <section aria-labelledby="gear-seller-title">
           <h2 id="gear-seller-title" class="font-display text-2xl leading-none border-t-2 border-ink pt-2 mb-3">Vendedor</h2>
           <div class="flex items-center gap-3">
-            <div class="avatar w-12 h-12 text-xl flex-shrink-0" aria-hidden="true">
-              {{ (listing()!.seller_name || 'V').slice(0,1).toUpperCase() }}
+            <div class="avatar w-12 h-12 text-xl flex-shrink-0 overflow-hidden" aria-hidden="true">
+              @if (sellerAvatar()) {
+                <img [src]="sellerAvatar()" alt="" class="w-full h-full object-cover" (error)="sellerAvatar.set(null)"/>
+              } @else {
+                {{ (listing()!.seller_name || 'V').slice(0,1).toUpperCase() }}
+              }
             </div>
             <div class="flex-1 min-w-0">
               @if (profileRoute(); as route) {
@@ -157,7 +161,7 @@
           }
           @if (!auth.isLoggedIn() && listing()!.status === 'active') {
             <a routerLink="/auth/login" class="btn-primary text-sm min-h-[50px] w-full inline-flex items-center justify-center">
-              Inicia sesión para contactar
+              Entra para escribir
             </a>
           }
           <button type="button" (click)="shareLink()" class="btn-secondary text-sm min-h-[44px] w-full"
@@ -202,7 +206,7 @@
           </div>
           <ul class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             @for (item of related(); track item.id) {
-              <li><app-gear-card [item]="item"/></li>
+              <li class="h-full"><app-gear-card [item]="item"/></li>
             }
           </ul>
         </section>
@@ -224,7 +228,7 @@
         @if (!auth.isLoggedIn() && listing()!.status === 'active') {
           <a routerLink="/auth/login"
              class="btn-night font-display text-xl leading-none flex-1 flex items-center justify-center min-h-[52px]">
-            Inicia sesión para contactar
+            Entra para escribir
           </a>
         }
         @if (isOwner) {

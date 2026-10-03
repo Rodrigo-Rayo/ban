@@ -47,7 +47,7 @@
             <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center font-display text-[11rem] sm:text-[14rem] leading-none text-poster-paper/10 select-none">{{ musician()!.name.slice(0,1).toUpperCase() }}</span>
           }
           <span class="absolute left-3 top-3.5 font-mono text-[11px] font-bold uppercase tracking-wide text-poster-paper/80">Músico</span>
-          <h1 class="absolute inset-x-3 bottom-3 font-display text-[clamp(2.5rem,13vw,4.75rem)] sm:text-7xl leading-[1.04] text-poster-paper [overflow-wrap:anywhere]"><span class="bg-ink box-decoration-clone px-2">{{ musician()!.name }}</span></h1>
+          <div class="absolute inset-x-3 bottom-3"><h1 class="w-fit max-w-full bg-ink px-3 py-1.5 font-display text-[clamp(2.25rem,11vw,4.75rem)] sm:text-7xl leading-[1.1] text-poster-paper [overflow-wrap:anywhere]">{{ musician()!.name }}</h1></div>
         </div>
         @if (posterLine()) {
           <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>
@@ -87,7 +87,7 @@
           <app-avatar-upload class="block" (uploaded)="onPhotoUploaded($event)"/>
         </div>
       } @else if (!musician()!.user_id) {
-        <p class="mt-4 border-t border-ink/15 pt-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Este perfil aún no tiene cuenta en BandYou</p>
+        <p class="mt-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Este perfil aún no tiene cuenta en BandYou</p>
       }
       <!-- One action bar: fixed single row above the bottom nav on mobile, plain block from sm up -->
       <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink px-3 py-2 sm:static sm:z-auto sm:bg-transparent sm:border-0 sm:p-0 sm:mt-5">

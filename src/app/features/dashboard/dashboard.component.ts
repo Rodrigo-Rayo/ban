@@ -296,13 +296,29 @@ export class DashboardComponent implements OnInit {
     e.preventDefault(); e.stopPropagation();
     const uid = this.auth.user()?.id;
     if (!uid) return;
+    if (!(await this.confirm.ask({
+      title: '¿Marcar como vendido?',
+      message: 'Dejará de aparecer en la Tienda. Podrás volver a ponerlo en venta.',
+      confirmLabel: 'Marcar como vendido',
+    }))) return;
+    await this.setListingStatus(id, uid, 'sold', 'Marcado como vendido.', 'No se pudo marcar como vendido.');
+  }
+
+  async relistListing(id: string, e: Event) {
+    e.preventDefault(); e.stopPropagation();
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
+    await this.setListingStatus(id, uid, 'active', 'Artículo de nuevo en venta.', 'No se pudo volver a poner en venta.');
+  }
+
+  private async setListingStatus(id: string, uid: string, status: 'sold' | 'active', okMsg: string, errMsg: string) {
     try {
-      const { error } = await this.supabase.client.from('gear_listings').update({ status: 'sold' as const }).eq('id', id).eq('user_id', uid);
-      if (error) { this.toast.error('No se pudo marcar como vendido.'); return; }
-      this.myListings.update(ls => ls.map(l => l.id === id ? { ...l, status: 'sold' } : l));
-      this.toast.success('Marcado como vendido.');
+      const { error } = await this.supabase.client.from('gear_listings').update({ status }).eq('id', id).eq('user_id', uid);
+      if (error) { this.toast.error(errMsg); return; }
+      this.myListings.update(ls => ls.map(l => l.id === id ? { ...l, status } : l));
+      this.toast.success(okMsg);
     } catch {
-      this.toast.error('No se pudo marcar como vendido.');
+      this.toast.error(errMsg);
     }
   }
 

@@ -87,7 +87,7 @@
     @if (!loading() && listings().length > 0) {
       <ul class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         @for (item of listings(); track item.id) {
-          <li><app-gear-card [item]="item"/></li>
+          <li class="h-full"><app-gear-card [item]="item"/></li>
         }
       </ul>
 

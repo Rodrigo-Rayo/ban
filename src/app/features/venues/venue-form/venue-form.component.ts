@@ -83,10 +83,6 @@ export class VenueFormComponent implements OnInit {
         if (data.genres) {
           this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
         }
-      } else {
-        // New profile: start from the name the user already gave on their first profile.
-        const knownName = this.auth.userProfileData()?.name;
-        if (knownName) this.form.patchValue({ name: knownName });
       }
     } finally {
       this.loading.set(false);

@@ -38,7 +38,7 @@
             <span>Se busca</span>
             <a routerLink="/feed" [queryParams]="{ver:'bandas'}" class="underline min-h-[44px] inline-flex items-center">Ver todo en Se busca</a>
           </div>
-          <h2 class="text-4xl lg:text-5xl leading-[1.05] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
+          <h2 class="text-4xl lg:text-5xl leading-[1.15] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
           @for (v of vacancies(); track v.id; let i = $index) {
             @if (v.bands; as b) {
               <a [routerLink]="['/bands', b.id]" class="flex items-center gap-3 py-3 border-b border-ink/15 min-h-[56px] group">
@@ -60,7 +60,7 @@
             <span>Recién llegados</span>
             <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="underline min-h-[44px] inline-flex items-center">Ver músicos</a>
           </div>
-          <h2 class="text-4xl lg:text-5xl leading-[1.05] mt-1 mb-2">Gente que<br>ya está dentro</h2>
+          <h2 class="text-4xl lg:text-5xl leading-[1.15] mt-1 mb-2">Gente que<br>ya está dentro</h2>
           @for (m of people(); track m.id) {
             <a [routerLink]="['/musicians', m.id]" class="flex items-center gap-3 py-2.5 border-b border-ink/15 min-h-[56px] group">
               <span class="avatar w-11 h-11 text-lg overflow-hidden" [style.background]="m.avatar_url ? null : avatarColor(m.name)">
@@ -86,7 +86,7 @@
 <section class="bg-ink text-poster-paper border-y-2 border-ink">
   <div class="px-4 sm:px-8 lg:px-14 py-14 lg:py-20 max-w-7xl mx-auto">
     <p class="font-mono text-xs font-bold uppercase tracking-wide text-poster-yellow mb-3">Cómo funciona</p>
-    <h2 class="text-5xl lg:text-7xl leading-[1.05] mb-10">Simple. <span class="text-poster-yellow">Directo.</span></h2>
+    <h2 class="text-5xl lg:text-7xl leading-[1.15] mb-10">Simple. <span class="text-poster-yellow">Directo.</span></h2>
     <ol class="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8">
       @for (step of steps; track step.n) {
         <li class="border-t-2 border-poster-paper pt-3">
@@ -104,7 +104,7 @@
   <div class="rule-label"><span>Directorio</span>
     <a routerLink="/search" class="underline min-h-[44px] inline-flex items-center">Ver todo</a>
   </div>
-  <h2 id="que-buscas" class="text-5xl lg:text-6xl leading-[1.05] mt-1 mb-4">¿Qué buscas?</h2>
+  <h2 id="que-buscas" class="text-5xl lg:text-6xl leading-[1.15] mt-1 mb-4">¿Qué buscas?</h2>
   <ul class="border-t border-ink/15">
     @for (cat of catalog; track cat.label; let i = $index) {
       <li>
@@ -124,7 +124,7 @@
 <section class="px-4 sm:px-8 lg:px-14 pb-16 lg:pb-24 max-w-7xl mx-auto">
   <div class="bg-primary-500 text-white border-2 border-ink shadow-[6px_6px_0_0_#141210] p-6 sm:p-10 lg:p-14">
     <p class="font-mono text-xs font-bold uppercase tracking-wide mb-3">Únete a la comunidad</p>
-    <h2 class="text-5xl sm:text-6xl lg:text-8xl leading-[1.05] mb-6">Tu próxima banda<br>te está esperando</h2>
+    <h2 class="text-5xl sm:text-6xl lg:text-8xl leading-[1.15] mb-6">Tu próxima banda<br>te está esperando</h2>
     <div class="flex flex-wrap gap-2 mb-8">
       @for (role of roles; track role.id) {
         <a routerLink="/auth/register" class="tag min-h-[44px] px-3 hover:bg-ink hover:text-poster-paper transition-colors">{{ role.label }}</a>

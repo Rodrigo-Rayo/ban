@@ -259,7 +259,14 @@ export class BandProfileComponent implements OnInit {
     try {
       // .select() returns the deleted rows: RLS can silently delete nothing without an error.
       const { data, error } = await this.supabase.client.from('band_vacancies').delete().eq('id', vacancy.id).select('id');
-      if (error || !data || data.length === 0) {
+      if (error) {
+        const blocked = error.code === '23503' || (error as { status?: number }).status === 409;
+        this.toast.error(blocked
+          ? 'No se puede eliminar mientras tenga interesados. Ciérrala para que no lleguen más.'
+          : 'No se pudo eliminar la vacante.');
+        return;
+      }
+      if (!data || data.length === 0) {
         this.toast.error('No se pudo eliminar la vacante.');
         return;
       }

@@ -51,7 +51,7 @@
               </div>
               <div>
                 <label for="venue-capacity" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Aforo (personas)</label>
-                <input id="venue-capacity" formControlName="capacity" type="number" min="0" placeholder="200" class="input-field"
+                <input id="venue-capacity" formControlName="capacity" type="number" min="0" placeholder="Ej. 200 personas" class="input-field"
                   [attr.aria-invalid]="isInvalid('capacity')"
                   [attr.aria-describedby]="isInvalid('capacity') ? 'venue-capacity-error' : null"/>
                 @if (form.get('capacity')?.errors?.['positiveNumber'] && form.get('capacity')?.touched) {

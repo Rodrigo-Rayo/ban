@@ -10,12 +10,13 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { gearConditionLabel } from '../../../core/constants/gear';
 import { formatShortDate } from '../../../core/utils/date';
+import { fetchProfileAvatar } from '../../inbox/profile-avatar';
 import { GearCardComponent } from '../gear-card/gear-card.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { GearListing } from '../../../core/models';
 
 const GEAR_COLUMNS = 'id, user_id, title, description, price, category, condition, city, images, status, seller_name, seller_profile_type, seller_profile_id, created_at';
-const RELATED_COLUMNS = 'id, title, price, category, city, images, status';
+const RELATED_COLUMNS = 'id, title, price, category, condition, city, images, status';
 const RELATED_LIMIT = 3;
 
 @Component({
@@ -42,6 +43,7 @@ export class GearDetailComponent implements OnInit {
   contacting = signal(false);
   related = signal<GearListing[]>([]);
   linkShared = signal(false);
+  sellerAvatar = signal<string | null>(null);
 
   readonly conditionLabel = gearConditionLabel;
   readonly shortDate = formatShortDate;
@@ -69,6 +71,7 @@ export class GearDetailComponent implements OnInit {
       this.listing.set(data as GearListing | null);
       if (data) {
         void this.loadRelated(data as GearListing);
+        void fetchProfileAvatar(this.supabase, data.user_id).then(url => this.sellerAvatar.set(url));
         if (!data.seller_name) void this.resolveSellerName(data as GearListing);
         this.seo.setListing(data.title, data.price, data.city, undefined, data.images?.[0]);
         this.seo.injectJsonLd({
@@ -159,7 +162,7 @@ export class GearDetailComponent implements OnInit {
     if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
     const ok = await this.confirm.ask({
       title: '¿Marcar como vendido?',
-      message: 'El artículo seguirá visible en la tienda con la etiqueta VENDIDO. Podrás volver a ponerlo en venta cuando quieras.',
+      message: 'Dejará de aparecer en la Tienda. Podrás volver a ponerlo en venta.',
       confirmLabel: 'Marcar como vendido',
     });
     if (!ok) return;
