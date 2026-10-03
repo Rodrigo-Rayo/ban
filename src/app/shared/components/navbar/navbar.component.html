@@ -199,46 +199,53 @@
   </div>
 }
 
-<!-- BOTTOM BAR (mobile & tablet). Logged out: Portada · Se busca · Publicar · Entrar -->
-<nav aria-label="Navegación inferior" class="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-dark-900 border-t-2 border-ink safe-area-pb">
+<!-- BOTTOM BAR (mobile & tablet). Quiet: paper bar, hairline, the active tab turns red with a thin top bar.
+     Logged out: Portada · Se busca · Publicar · Entrar -->
+<nav aria-label="Navegación inferior" class="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-dark-900 border-t border-ink/15 safe-area-pb">
   <div class="flex h-16">
-    <a [routerLink]="auth.isLoggedIn() ? '/home' : '/'" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{exact: true}"
-       class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
-      <app-icon name="home" [size]="20"/> Portada
+    <a [routerLink]="auth.isLoggedIn() ? '/home' : '/'" routerLinkActive="is-active" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{exact: true}"
+       class="relative flex-1 flex flex-col items-center justify-center gap-1 text-ink-muted text-[11px] font-semibold leading-none whitespace-nowrap transition-colors hover:text-ink aria-[current=page]:text-primary-600 before:content-[''] before:absolute before:top-0 before:inset-x-4 before:h-[3px] before:bg-primary-500 before:scale-x-0 before:transition-transform aria-[current=page]:before:scale-x-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
+      <span class="h-8 flex items-center"><app-icon name="home" [size]="22"/></span> Portada
     </a>
-    <a routerLink="/feed" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
-       class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase whitespace-nowrap">
-      <app-icon name="megaphone" [size]="20"/> Se busca
+    <a routerLink="/feed" routerLinkActive="is-active" ariaCurrentWhenActive="page"
+       class="relative flex-1 flex flex-col items-center justify-center gap-1 text-ink-muted text-[11px] font-semibold leading-none whitespace-nowrap transition-colors hover:text-ink aria-[current=page]:text-primary-600 before:content-[''] before:absolute before:top-0 before:inset-x-4 before:h-[3px] before:bg-primary-500 before:scale-x-0 before:transition-transform aria-[current=page]:before:scale-x-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
+      <span class="h-8 flex items-center"><app-icon name="megaphone" [size]="22"/></span> Se busca
     </a>
     <button type="button" (click)="togglePublish()" data-publish-dropdown data-publish-trigger
-            [attr.aria-expanded]="publishOpen" aria-haspopup="menu" aria-controls="publish-menu"
-            class="flex-1 flex flex-col items-center justify-center gap-0.5 bg-primary-500 text-white font-mono text-[11px] font-bold uppercase border-x-2 border-ink">
-      <app-icon name="plus" [size]="22"/> Publicar
+            [attr.aria-expanded]="publishOpen" aria-haspopup="menu" aria-controls="publish-menu" aria-label="Publicar"
+            class="flex-1 flex flex-col items-center justify-center gap-1 text-[11px] font-semibold leading-none text-ink-muted focus-visible:outline-none group">
+      <span class="w-8 h-8 flex items-center justify-center bg-primary-500 text-white shadow-[2px_2px_0_0_#141210] transition-transform group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-none group-focus-visible:ring-2 group-focus-visible:ring-primary-500 group-focus-visible:ring-offset-2"
+            [class.rotate-45]="publishOpen">
+        <app-icon name="plus" [size]="18"/>
+      </span>
+      <span aria-hidden="true">Publicar</span>
     </button>
     @if (auth.isLoggedIn()) {
-      <a routerLink="/inbox" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
-         class="relative flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
-        <span class="relative flex">
-          <app-icon name="message-circle" [size]="20"/>
+      <a routerLink="/inbox" routerLinkActive="is-active" ariaCurrentWhenActive="page"
+         class="relative flex-1 flex flex-col items-center justify-center gap-1 text-ink-muted text-[11px] font-semibold leading-none whitespace-nowrap transition-colors hover:text-ink aria-[current=page]:text-primary-600 before:content-[''] before:absolute before:top-0 before:inset-x-4 before:h-[3px] before:bg-primary-500 before:scale-x-0 before:transition-transform aria-[current=page]:before:scale-x-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
+        <span class="relative h-8 flex items-center">
+          <app-icon name="message-circle" [size]="22"/>
           @if (messagesService.unreadCount() > 0) {
             <span class="badge -top-2 -right-3">{{ messagesService.unreadCount() > 99 ? '99+' : messagesService.unreadCount() }}</span>
           }
         </span>
         Mensajes
       </a>
-      <a routerLink="/dashboard" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
-         class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase whitespace-nowrap">
-        @if (avatarUrl()) {
-          <img [src]="avatarUrl()" class="w-5 h-5 object-cover border border-ink" loading="lazy" alt=""/>
-        } @else {
-          <app-icon name="user" [size]="20"/>
-        }
+      <a routerLink="/dashboard" routerLinkActive="is-active" ariaCurrentWhenActive="page"
+         class="relative flex-1 flex flex-col items-center justify-center gap-1 text-ink-muted text-[11px] font-semibold leading-none whitespace-nowrap transition-colors hover:text-ink aria-[current=page]:text-primary-600 before:content-[''] before:absolute before:top-0 before:inset-x-4 before:h-[3px] before:bg-primary-500 before:scale-x-0 before:transition-transform aria-[current=page]:before:scale-x-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
+        <span class="h-8 flex items-center">
+          @if (avatarUrl()) {
+            <img [src]="avatarUrl()" class="w-[22px] h-[22px] object-cover border border-ink/30" loading="lazy" alt=""/>
+          } @else {
+            <app-icon name="user" [size]="22"/>
+          }
+        </span>
         Mi panel
       </a>
     } @else {
-      <a routerLink="/auth/login" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
-         class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
-        <app-icon name="user" [size]="20"/> Entrar
+      <a routerLink="/auth/login" routerLinkActive="is-active" ariaCurrentWhenActive="page"
+         class="relative flex-1 flex flex-col items-center justify-center gap-1 text-ink-muted text-[11px] font-semibold leading-none whitespace-nowrap transition-colors hover:text-ink aria-[current=page]:text-primary-600 before:content-[''] before:absolute before:top-0 before:inset-x-4 before:h-[3px] before:bg-primary-500 before:scale-x-0 before:transition-transform aria-[current=page]:before:scale-x-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
+        <span class="h-8 flex items-center"><app-icon name="user" [size]="22"/></span> Entrar
       </a>
     }
   </div>
