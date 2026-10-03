@@ -32,6 +32,11 @@ describe('EventFormComponent', () => {
     expect(component.form.valid).toBeTrue();
   });
 
+  it('genre is optional', () => {
+    component.form.patchValue({ title: 'Concierto de prueba', venue: 'Sala', city: 'Madrid', date: localToday(), time: '21:00', genre: '' });
+    expect(component.form.valid).toBeTrue();
+  });
+
   it('accepts today in local time and rejects yesterday', () => {
     const today = localToday();
     const yesterday = localToday(new Date(Date.now() - 86400000));

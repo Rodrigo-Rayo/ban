@@ -46,7 +46,7 @@ export class EventFormComponent {
     date: ['', [Validators.required, futureDate]],
     // events.time is NOT NULL in the database: an empty value made the insert fail with 400.
     time: ['', Validators.required],
-    genre: ['', Validators.required],
+    genre: [''],
     price: [null as number | null],
     description: ['', [Validators.maxLength(500)]],
     contactEmail: ['', [Validators.email]],
@@ -85,7 +85,8 @@ export class EventFormComponent {
           city: v.city,
           date: v.date,
           time: v.time,
-          genre: v.genre,
+          // Optional. Sent as '' (not null) because the live column may be NOT NULL.
+          genre: v.genre || '',
           price: v.price != null && v.price > 0 ? String(v.price) : null,
           description: v.description,
           contact_email: v.contactEmail,

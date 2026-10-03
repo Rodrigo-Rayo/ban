@@ -82,18 +82,13 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="event-genre" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Género <span class="text-signal-red" aria-hidden="true">*</span></label>
-                <select id="event-genre" formControlName="genre" class="input-field" required
-                  [attr.aria-invalid]="isInvalid('genre')"
-                  [attr.aria-describedby]="isInvalid('genre') ? 'event-genre-error' : null">
-                  <option value="" disabled>Selecciona género</option>
+                <label for="event-genre" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Género <span class="text-ink-muted normal-case">(opcional)</span></label>
+                <select id="event-genre" formControlName="genre" class="input-field">
+                  <option value="">Sin especificar</option>
                   @for (genre of genres; track genre) {
                     <option [value]="genre">{{ genre }}</option>
                   }
                 </select>
-                @if (form.get('genre')?.invalid && form.get('genre')?.touched) {
-                  <p id="event-genre-error" class="text-xs font-bold text-signal-red mt-1.5">Selecciona un género.</p>
-                }
               </div>
               <div>
                 <label for="event-price" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Precio (€)</label>
