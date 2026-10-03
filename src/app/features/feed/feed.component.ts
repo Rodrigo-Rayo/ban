@@ -10,7 +10,20 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Post, PostType } from '../../core/models';
-import { CITIES_WITH_ALL } from '../../core/constants/cities';
+import { CITIES, CITIES_WITH_ALL } from '../../core/constants/cities';
+
+const ALL_SPAIN = 'Toda España';
+
+/**
+ * The city "Se busca" opens on: the profile's city, else the last city the
+ * user picked on the home (localStorage). Unknown values fall back to all of Spain.
+ */
+export function preferredFeedCity(profileCity: string | null | undefined, cachedCity: string | null | undefined): string | null {
+  const known = (c: string | null | undefined) => !!c && c !== 'Otra' && (CITIES as readonly string[]).includes(c);
+  if (known(profileCity)) return profileCity!;
+  if (known(cachedCity)) return cachedCity!;
+  return null;
+}
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { ConfirmService } from '../../core/services/confirm.service';
@@ -127,6 +140,14 @@ export class FeedComponent implements OnInit {
     return this.filterCity() !== 'Toda España' || !!this.filterInstrument();
   }
 
+  /** Only the city narrows the list (no instrument): the empty state offers all of Spain. */
+  readonly onlyCityFilter = computed(() => this.filterCity() !== ALL_SPAIN && !this.filterInstrument());
+
+  showAllSpain() {
+    this.filterCity.set(ALL_SPAIN);
+    this.loadPosts();
+  }
+
   clearFilters() {
     this.filterCity.set('Toda España');
     this.filterInstrument.set('');
@@ -181,6 +202,14 @@ export class FeedComponent implements OnInit {
         if (profile) {
           this.userProfile.set({ ...profile, type: this.auth.userProfileType() });
           this.newPost.type = this.defaultPostType();
+        }
+        // Open on the user's own city, not all of Spain.
+        let cached: string | null = null;
+        try { cached = localStorage.getItem('bandyou_city'); } catch {}
+        const city = preferredFeedCity(profile?.city, cached);
+        if (city) {
+          this.filterCity.set(city);
+          this.newPost.city = city;
         }
       }
     } catch {

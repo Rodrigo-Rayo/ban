@@ -146,7 +146,7 @@
       <div class="min-w-0 flex flex-col gap-8">
         @if (event()!.description) {
           <section aria-labelledby="ev-desc-title">
-            <h2 id="ev-desc-title" class="font-display text-2xl leading-none border-t-2 border-ink pt-2 mb-3">Sobre el evento</h2>
+            <h2 id="ev-desc-title" class="font-display text-2xl leading-none border-t border-dark-600 pt-3 mb-3">Sobre el evento</h2>
             <p class="text-base leading-7 text-ink whitespace-pre-line [overflow-wrap:anywhere]">{{ event()!.description }}</p>
           </section>
         } @else {
@@ -158,7 +158,7 @@
 
         @if (related().length) {
           <section aria-labelledby="ev-related-title">
-            <div class="flex items-center justify-between gap-3 border-t-2 border-ink pt-2">
+            <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3">
               <h2 id="ev-related-title" class="font-display text-2xl leading-none">Más en la agenda</h2>
               <a [routerLink]="['/search']" [queryParams]="{tab:'events'}" class="font-mono text-xs font-bold uppercase tracking-wide text-ink hover:text-primary-600 min-h-[44px] inline-flex items-center">Ver todo</a>
             </div>

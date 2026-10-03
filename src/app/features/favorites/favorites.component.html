@@ -17,7 +17,7 @@
 
   <div class="page-wrap py-5">
 
-    <div class="flex flex-wrap gap-1.5 mb-4" role="group" aria-label="Filtrar por tipo">
+    <div class="flex gap-1.5 mb-4 overflow-x-auto no-scrollbar sm:flex-wrap -mx-4 px-4 sm:mx-0 sm:px-0" role="group" aria-label="Filtrar por tipo">
       @for (tab of tabs; track tab.id) {
         <button type="button" (click)="activeTab.set(tab.id)"
           [attr.aria-pressed]="activeTab() === tab.id"

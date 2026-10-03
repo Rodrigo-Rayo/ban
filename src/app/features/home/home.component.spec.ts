@@ -97,7 +97,7 @@ describe('HomeComponent', () => {
     });
   });
 
-  describe('Se busca, ticker and carousel', () => {
+  describe('Se busca and carousel', () => {
     const vacancy = (id: string, band: string, city = 'Bilbao') =>
       ({ id, instrument: 'Batería', genre: 'Rock', bands: { id: 'b-' + id, name: band, city, genre: 'Rock' } });
     const post = (id: string, type: string, author: string) =>
@@ -126,18 +126,13 @@ describe('HomeComponent', () => {
       expect(component.seBuscaItems().length).toBe(5);
     });
 
-    it('repeats ticker items so the tape loops without a gap, and hides it when empty', () => {
-      expect(component.tickerLoop()).toEqual([]);
-      component.recentPosts.set([post('1', 'collab', 'Ana')]);
-      expect(component.tickerLoop().length).toBeGreaterThanOrEqual(8);
-      expect(component.tickerLoop()[0].text).toBe('Ana — busca colaboración');
-    });
-
     it('builds carousel slides only from content that exists', () => {
       expect(component.featuredSlides()).toEqual([]);
       component.recentVacancies.set([vacancy('1', 'Los Despistados')]);
+      component.recentVenues.set([{ id: 's1', name: 'Sala X', city: 'Madrid', avatar_url: null, capacity: 300, created_at: '' }]);
       component.recentListings.set([{ id: 'g1', title: 'Fender', price: 500, condition: null, category: null, city: 'Madrid', images: null, created_at: '' }]);
-      expect(component.featuredSlides().map(s => s.kicker)).toEqual(['Se busca', 'Nuevo en la tienda']);
+      // Vacancies are already in the Se busca list, so the carousel does not repeat them.
+      expect(component.featuredSlides().map(s => s.kicker)).toEqual(['Sala', 'Nuevo en la tienda']);
     });
   });
 });

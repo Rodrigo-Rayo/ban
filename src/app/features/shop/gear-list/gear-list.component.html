@@ -1,6 +1,6 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
-  <header class="page-head bg-dark-900 sticky top-16 z-20">
+  <header class="page-head bg-dark-900 sm:sticky sm:top-16 sm:z-20">
     <div class="page-head-inner">
       <div class="min-w-0">
         <p class="page-kicker">Segunda mano · entre músicos</p>
@@ -20,7 +20,7 @@
   <div class="page-wrap py-5">
 
     <!-- Filters: three selects, same look as the other pages -->
-    <div class="grid grid-cols-1 min-[420px]:grid-cols-3 gap-2 mb-2" role="group" aria-label="Filtros de la tienda">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2" role="group" aria-label="Filtros de la tienda">
       <select aria-label="Filtrar por ciudad" [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); applyFilters()"
         class="input-field !px-3 !py-2 min-h-[44px] cursor-pointer">
         @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
@@ -31,7 +31,7 @@
         @for (cat of categories; track cat) { <option [value]="cat">{{ cat }}</option> }
       </select>
       <select aria-label="Filtrar por estado" [ngModel]="filterCondition()" (ngModelChange)="filterCondition.set($event); applyFilters()"
-        class="input-field !px-3 !py-2 min-h-[44px] cursor-pointer">
+        class="col-span-2 sm:col-span-1 input-field !px-3 !py-2 min-h-[44px] cursor-pointer">
         <option value="">Cualquier estado</option>
         @for (cond of conditions; track cond.id) { <option [value]="cond.id">{{ cond.label }}</option> }
       </select>

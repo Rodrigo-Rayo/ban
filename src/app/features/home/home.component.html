@@ -4,7 +4,9 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 lg:pt-8">
     <header class="mb-4 lg:mb-2 lg:flex lg:items-end lg:justify-between lg:gap-10">
       <div class="min-w-0">
-        <p class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted mb-1">
+        <p class="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wide text-ink-muted mb-1">
+          <!-- The only ambient motion on the page: a tiny, slow equalizer -->
+          <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
           @if (firstName()) { Hola, {{ firstName() }} } @else { Portada }
         </p>
         <h1 class="text-[2rem] min-[360px]:text-[2.25rem] sm:text-6xl lg:text-7xl leading-[1.12] pt-1 break-words">
@@ -54,31 +56,6 @@
     </nav>
   </div>
 
-  <!-- ══ CINTA · LO ÚLTIMO EN SE BUSCA ══ -->
-  @if (tickerLoop().length > 0) {
-    <section aria-label="Lo último en Se busca" class="mt-6 lg:mt-8 flex items-stretch bg-poster-yellow border-y-2 border-ink">
-      <a routerLink="/feed" class="shrink-0 z-10 flex items-center gap-2 px-3 sm:px-4 bg-ink text-poster-yellow font-mono text-xs font-bold uppercase tracking-wide">
-        <span class="w-2 h-2 bg-primary-500 animate-pulse" aria-hidden="true"></span> Se busca
-      </a>
-      <div class="ticker flex-1 overflow-hidden no-scrollbar">
-        <div class="ticker-track flex w-max" [style.--ticker-duration]="tickerLoop().length * 4 + 's'">
-          @for (copy of [0, 1]; track copy) {
-            <ul class="flex shrink-0" [class.ticker-dup]="copy === 1" [attr.aria-hidden]="copy === 1 ? 'true' : null">
-              @for (t of tickerLoop(); track $index; let i = $index) {
-                @let filler = copy === 1 || i >= tickerItems().length;
-                <li [attr.aria-hidden]="filler && copy === 0 ? 'true' : null">
-                  <a [routerLink]="t.link" [attr.tabindex]="filler ? -1 : null"
-                     class="flex items-center gap-4 h-11 pl-4 font-display text-lg uppercase whitespace-nowrap hover:text-primary-500">
-                    {{ t.text }} <span aria-hidden="true" class="text-primary-500">✶</span>
-                  </a>
-                </li>
-              }
-            </ul>
-          }
-        </div>
-      </div>
-    </section>
-  }
 
   <!-- ══ CONTENIDO ══ -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-6 lg:pt-10 pb-10 grid gap-9 lg:gap-12 lg:grid-cols-[1.45fr_1fr] items-start">
@@ -96,7 +73,7 @@
                class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 sm:scroll-px-0 pb-2 pr-6">
             @for (slide of featuredSlides(); track slide.key; let i = $index) {
               <a [routerLink]="slide.link" [style.--i]="i"
-                 class="pop-in press snap-start snap-always shrink-0 w-[86%] sm:w-[72%] lg:w-[calc(50%-6px)] flex flex-col justify-between min-h-[11.5rem] sm:min-h-[15rem] border-2 border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                 class="pop-in press snap-start snap-always shrink-0 w-[86%] sm:w-[72%] lg:w-[calc(50%-6px)] flex flex-col justify-between min-h-[11.5rem] sm:min-h-[13rem] lg:min-h-[12rem] border-2 border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                  [class]="slide.tone === 'ink' ? 'bg-ink text-poster-paper shadow-[4px_4px_0_0_#c23a1f]'
                         : slide.tone === 'yellow' ? 'bg-poster-yellow text-ink shadow-[4px_4px_0_0_#141210]'
                         : 'bg-primary-500 text-white shadow-[4px_4px_0_0_#141210]'">
@@ -143,7 +120,9 @@
       <!-- Se busca -->
       <section aria-labelledby="busca-title" class="reveal">
         <div class="flex items-end justify-between gap-3 mb-1">
-          <h2 id="busca-title" class="text-3xl lg:text-4xl leading-[1.15]">Se busca</h2>
+          <h2 id="busca-title" class="text-3xl lg:text-4xl leading-[1.15]">Se busca
+            <span class="block font-mono text-xs font-bold tracking-wide normal-case text-ink-muted mt-1">{{ seBuscaNationwide() || !userCity() ? 'En toda España' : 'En ' + userCity() }}</span>
+          </h2>
           <a routerLink="/feed" class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Ver todo</a>
         </div>
         @if (loading()) {
@@ -161,7 +140,7 @@
               <app-icon name="arrow-right" [size]="18" class="shrink-0 text-ink-muted group-hover:text-primary-500 group-hover:translate-x-1 transition-transform"/>
             </a>
           } @empty {
-            <p class="text-sm text-ink-muted py-4">Nadie busca nada ahora mismo. ¡Sé el primero!</p>
+            <p class="text-sm text-ink-muted py-4">Nadie busca nada ahora mismo. Publica el primer anuncio.</p>
           }
           <a routerLink="/feed" [queryParams]="{ new: '1' }" class="btn-secondary mt-4 min-h-[44px] w-full sm:w-auto">
             <app-icon name="plus" [size]="16"/> Publicar en Se busca

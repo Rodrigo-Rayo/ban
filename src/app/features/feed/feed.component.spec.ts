@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { Location } from '@angular/common';
-import { FeedComponent, mergeSeBusca } from './feed.component';
+import { FeedComponent, mergeSeBusca, preferredFeedCity } from './feed.component';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -450,6 +450,18 @@ describe('FeedComponent', () => {
       expect(routerSpy.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { ver: 'otros' } }));
       component.setSection('todo');
       expect(routerSpy.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { ver: null } }));
+    });
+  });
+
+  describe('preferredFeedCity', () => {
+    it('opens on the profile city', () => {
+      expect(preferredFeedCity('Bilbao', 'Madrid')).toBe('Bilbao');
+    });
+    it('falls back to the city cached by the home', () => {
+      expect(preferredFeedCity(null, 'Valencia')).toBe('Valencia');
+    });
+    it('ignores unknown cities (all of Spain)', () => {
+      expect(preferredFeedCity('Atlantis', '')).toBeNull();
     });
   });
 

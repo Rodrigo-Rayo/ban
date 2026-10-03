@@ -53,7 +53,6 @@ export const HOME_SECTIONS: readonly { label: string; hint: string; icon: string
 
 const SE_BUSCA_LIMIT = 5;
 const NEW_PEOPLE_LIMIT = 8;
-const TICKER_MIN_ITEMS = 8;
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -88,10 +87,16 @@ export class HomeComponent implements OnInit {
         if (profile.city) {
           this.userCity.set(profile.city);
           try { localStorage.setItem('bandyou_city', profile.city); } catch {}
+          // The first load used the cached city (or none): reload for the profile's city.
+          if (this.loadedCity !== null && this.loadedCity !== profile.city) this.retryLoad();
         }
       }).catch((err: unknown) => { if (!environment.production) console.error('[Home] loadUserProfile failed:', err); });
     });
   }
+
+  /** City the content was loaded for (null until the first load starts). */
+  private loadedCity: string | null = null;
+  private loadSeq = 0;
 
   recentMusicians  = signal<HomeMusician[]>([]);
   recentEvents     = signal<HomeEvent[]>([]);
@@ -153,17 +158,6 @@ export class HomeComponent implements OnInit {
     return [...vacancies.slice(0, 3), ...posts].slice(0, SE_BUSCA_LIMIT);
   });
 
-  /** Ticker tape ("Los Despistados — busca batería"); hidden while empty. */
-  readonly tickerItems = computed(() =>
-    this.seBuscaItems().map(i => ({ id: i.id, text: `${i.title} — ${i.stampLabel.toLowerCase()}`, link: i.link })));
-  /** Ticker items repeated until the tape is long enough to loop without a gap. */
-  readonly tickerLoop = computed(() => {
-    const items = this.tickerItems();
-    if (!items.length) return [];
-    const loop = [...items];
-    while (loop.length < TICKER_MIN_ITEMS) loop.push(...items);
-    return loop;
-  });
 
   /** "Destacado" carousel slides, built only from content that exists. */
   readonly featuredSlides = computed<FeaturedSlide[]>(() => {
@@ -175,11 +169,11 @@ export class HomeComponent implements OnInit {
         meta: [ev.venue, ev.city].filter(Boolean).join(', '), link: ['/events', ev.id], date: this.dateParts(ev.date),
       });
     }
-    const v = this.vacanciesSorted().find(x => !!x.bands);
-    if (v) {
+    const venue = this.recentVenues()[0];
+    if (venue) {
       slides.push({
-        key: 'v-' + v.id, kicker: 'Se busca', title: v.bands!.name, tone: 'red', cta: 'Ver banda',
-        meta: askLabel('vacancy', v.instrument) + (v.bands!.city ? ' · ' + v.bands!.city : ''), link: ['/bands', v.bands!.id],
+        key: 'vn-' + venue.id, kicker: 'Sala', title: venue.name, tone: 'red', cta: 'Ver sala',
+        meta: [venue.city, venue.capacity ? `${venue.capacity} personas` : ''].filter(Boolean).join(' · '), link: ['/venues', venue.id],
       });
     }
     const r = this.featuredRehearsal();
@@ -219,6 +213,8 @@ export class HomeComponent implements OnInit {
   }
   /** True when the musicians list was filled from all of Spain (the user's city had too few). */
   musiciansNationwide = signal(false);
+  /** True when "Se busca" fell back to all of Spain (nothing in the user's city). */
+  seBuscaNationwide = signal(false);
   /** Only musicians and bands play gigs, so only they get the "publish your gig" nudge. */
   readonly canPublishGigs = computed(() => ['musician', 'band'].includes(this.auth.userProfileType()));
   readonly displayCity = computed(() => this.userCity() || 'España');
@@ -250,9 +246,10 @@ export class HomeComponent implements OnInit {
       // Profile personalization is handled reactively via effect() in the constructor.
       let cachedCity = '';
       try { cachedCity = localStorage.getItem('bandyou_city') || ''; } catch {}
-      this.userCity.set(cachedCity);
-
-      const city = this.userCity();
+      const city = this.userCity() || cachedCity;
+      this.userCity.set(city);
+      this.loadedCity = city;
+      const seq = ++this.loadSeq;
       const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
 
       const musicianCols   = 'id, user_id, name, city, instrument, avatar_url, created_at';
@@ -283,11 +280,14 @@ export class HomeComponent implements OnInit {
         city
           ? this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).eq('city', city).order('created_at', { ascending: false }).limit(5)
           : this.supabase.client.from('rehearsal_spaces').select(rehearsalCols).order('created_at', { ascending: false }).limit(5),
-        this.supabase.client.from('posts').select(postCols).order('created_at', { ascending: false }).limit(8),
+        this.seBuscaPostsQuery(postCols, city),
         // Non-critical module: a failure just hides "Se busca".
-        this.vacanciesSvc.listOpen({ limit: 6 }).then(data => ({ data }), () => ({ data: [] })),
+        this.vacanciesSvc.listOpen({ city: city || null, limit: 6 }).then(data => ({ data }), () => ({ data: [] })),
         this.supabase.client.from('gear_listings').select(listingCols).eq('status', 'active').order('created_at', { ascending: false }).limit(6),
       ]);
+
+      // A newer load (e.g. for the profile's city) started meanwhile: drop this one.
+      if (seq !== this.loadSeq) return;
 
       const fallbackCols: Record<string, string> = {
         musicians: musicianCols,
@@ -313,6 +313,17 @@ export class HomeComponent implements OnInit {
       this.recentListings.set(((listings || []) as unknown as HomeListing[]).slice(0, 6));
 
       // Fallbacks run in background and update signals when ready
+      if (city && !(posts?.length) && !(vacancies?.length)) {
+        // Nothing wanted in the user's city yet: show all of Spain and say so.
+        Promise.all([
+          this.seBuscaPostsQuery(postCols, ''),
+          this.vacanciesSvc.listOpen({ limit: 6 }).catch(() => []),
+        ]).then(([{ data: p }, v]) => {
+          this.seBuscaNationwide.set(true);
+          this.recentPosts.set((p || []) as unknown as HomePost[]);
+          this.recentVacancies.set(v as unknown as HomeVacancy[]);
+        }).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
+      }
       if (city) {
         if ((musicians?.length ?? 0) < 6) {
           globalFallback('musicians', 12).then(d => { this.musiciansNationwide.set(true); this.recentMusicians.set(d.slice(0, NEW_PEOPLE_LIMIT + 1) as unknown as HomeMusician[]); }).catch((err: unknown) => { if (!environment.production) console.error('[Home] fallback failed:', err); });
@@ -335,8 +346,15 @@ export class HomeComponent implements OnInit {
     }
   }
 
+  /** Latest board posts, from one city or (empty city) all of Spain. */
+  private seBuscaPostsQuery(cols: string, city: string) {
+    const q = this.supabase.client.from('posts').select(cols).order('created_at', { ascending: false }).limit(8);
+    return city ? q.eq('city', city) : q;
+  }
+
   retryLoad() {
     this.loadError.set(false);
+    this.seBuscaNationwide.set(false);
     this.musiciansNationwide.set(false);
     this.loading.set(true);
     this.loadContent();

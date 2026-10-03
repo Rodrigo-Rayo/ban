@@ -115,7 +115,7 @@
       <div class="min-w-0 flex flex-col gap-8">
         @if (openVacancies().length > 0 || isOwner()) {
         <section>
-          <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-dark-600 pt-3 mb-3">
             <div class="flex flex-wrap items-center gap-2">
               <h2 class="font-display text-2xl leading-none">Buscamos</h2>
             </div>
@@ -232,7 +232,7 @@
 
         @if (isOwner() && (applications().length > 0 || applicationsLoading())) {
         <section>
-          <div class="flex items-center gap-2 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex items-center gap-2 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Músicos interesados</h2>
             @if (applications().length > 0) {
               <span class="tag-accent">{{ applications().length }}</span>
@@ -287,7 +287,7 @@
 
         @if (members().length > 0) {
         <section>
-          <div class="flex items-center justify-between gap-3 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Formación</h2>
           </div>
           <ul>
@@ -301,9 +301,17 @@
         </section>
         }
 
+        @if (!band()!.description && members().length === 0 && openVacancies().length === 0) {
+          <!-- Nothing told yet: one quiet line instead of a blank page -->
+          <p class="border-2 border-dashed border-ink/30 px-4 py-3 text-sm text-ink-muted">
+            @if (isOwner()) { Cuenta quiénes sois y qué buscáis: los perfiles completos reciben más mensajes. <a routerLink="/onboarding" class="font-bold text-ink underline">Completar perfil</a> }
+            @else { Esta banda todavía no ha contado nada sobre sí misma. }
+          </p>
+        }
+
         @if (band()!.description) {
         <section>
-          <div class="flex items-center justify-between gap-3 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Sobre la banda</h2>
           </div>
           <p class="text-base leading-7 text-ink whitespace-pre-line [overflow-wrap:anywhere]">{{ band()!.description }}</p>
@@ -312,7 +320,7 @@
 
         @if (hasLinks()) {
         <section>
-          <div class="flex items-center justify-between gap-3 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Escúchanos</h2>
           </div>
           <div class="flex flex-wrap gap-2">

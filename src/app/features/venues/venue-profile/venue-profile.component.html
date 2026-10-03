@@ -126,7 +126,7 @@
       <div class="min-w-0 flex flex-col gap-8">
         @if (venue()!.description) {
         <section>
-          <div class="flex items-center justify-between gap-3 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Sobre la sala</h2>
           </div>
           <p class="text-base leading-7 text-ink whitespace-pre-line [overflow-wrap:anywhere]">{{ venue()!.description }}</p>
@@ -135,7 +135,7 @@
 
         @if (venue()!.genres) {
         <section>
-          <div class="flex items-center justify-between gap-3 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Géneros programados</h2>
           </div>
           <div class="flex flex-wrap gap-1.5">
@@ -150,7 +150,7 @@
 
         @if (venue()!.city || venue()!.address) {
         <section>
-          <div class="flex items-center justify-between gap-3 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Ubicación</h2>
           </div>
           <div class="card-flat p-4 flex flex-wrap items-center gap-3">
@@ -169,7 +169,7 @@
         }
 
         <section>
-          <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Reseñas
               @if (reviews().length > 0) { <span class="font-mono text-xs font-bold text-ink-muted align-middle">({{ reviews().length }})</span> }
               @if (avgRating()) { <span class="ml-1 font-mono text-xs font-bold text-primary-600 align-middle">★ {{ avgRating() }}</span> }
@@ -232,7 +232,7 @@
 
         @if (venue()!.website_url || venue()!.instagram_url) {
         <section>
-          <div class="flex items-center justify-between gap-3 border-t-2 border-ink pt-2 mb-3">
+          <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Enlaces</h2>
           </div>
           <div class="flex flex-wrap gap-2">
