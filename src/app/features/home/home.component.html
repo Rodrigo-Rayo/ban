@@ -46,9 +46,9 @@
     <nav aria-label="Secciones" class="grid grid-cols-4 gap-2 sm:gap-3 lg:hidden">
       @for (s of sections; track s.label; let i = $index) {
         <a [routerLink]="s.link" [queryParams]="s.query ?? null" [style.--i]="i"
-           class="pop-in press group flex flex-col items-center justify-center gap-1.5 aspect-[6/5] sm:aspect-auto sm:min-h-[6.5rem] p-1.5 border-2 border-ink shadow-[3px_3px_0_0_#141210] text-center hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-           [class]="i === 0 ? 'bg-primary-500 text-white' : 'bg-dark-900 text-ink hover:bg-poster-yellow'">
-          <app-icon [name]="s.icon" [size]="24" class="group-hover:scale-110 transition-transform"/>
+           class="pop-in press group flex flex-col items-center justify-center gap-1.5 aspect-[6/5] sm:aspect-auto sm:min-h-[6.5rem] p-1.5 border-2 border-ink shadow-[3px_3px_0_0_#141210] text-center hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 bg-dark-900 text-ink hover:bg-poster-yellow">
+          <!-- All tiles look alike (a filled tile reads as "selected"); Se busca only gets a red icon -->
+          <app-icon [name]="s.icon" [size]="24" class="group-hover:scale-110 transition-transform" [class.text-primary-500]="i === 0"/>
           <span class="font-display text-[0.8rem] min-[360px]:text-[0.95rem] sm:text-lg uppercase leading-none whitespace-nowrap">{{ s.label }}</span>
           <span class="hidden sm:block text-[11px] leading-tight opacity-80">{{ s.hint }}</span>
         </a>
