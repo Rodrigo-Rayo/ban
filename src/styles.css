@@ -173,8 +173,8 @@
   /* ── Page header: one pattern for every page (kicker + Anton title + action) ── */
   .page-head { @apply border-b-2 border-ink; }
   .page-head-inner { @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-end justify-between gap-4; }
-  .page-kicker { @apply font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wide text-primary-600 mb-1; }
-  .page-title { @apply text-4xl sm:text-5xl leading-[1.08]; }
+  .page-kicker { @apply font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wide text-primary-600 mb-2; }
+  .page-title { @apply text-4xl sm:text-5xl leading-[1.15]; }
   /* Content column shared by list pages (same width everywhere). */
   .page-wrap { @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8; }
 

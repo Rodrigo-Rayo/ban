@@ -386,6 +386,8 @@ export class MessagesService {
     callback: (msg: Message) => void,
     onUpdate?: (msg: Message) => void,
     live?: ChatLiveHandlers,
+    /** The conversation row was deleted (by either participant). */
+    onGone?: () => void,
   ) {
     const filter = `conversation_id=eq.${conversationId}`;
     const channel = this.supabase.client
@@ -393,7 +395,9 @@ export class MessagesService {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter },
         (payload) => callback(payload.new as unknown as Message))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter },
-        (payload) => onUpdate?.(payload.new as unknown as Message));
+        (payload) => onUpdate?.(payload.new as unknown as Message))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'conversations', filter: `id=eq.${conversationId}` },
+        () => onGone?.());
     if (!live) return channel.subscribe();
 
     // Ephemeral "typing…" / "online" signals: Realtime broadcast + presence, nothing stored.

@@ -20,13 +20,14 @@ import { SeoService } from './core/services/seo.service';
     <main id="main-content" tabindex="-1" class="pb-16 lg:pb-0">
       <router-outlet />
       @if (showFooter()) {
-        <footer class="border-t-2 border-ink mt-8 px-4 sm:px-6 py-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+        <footer class="border-t-2 border-ink mt-8 px-4 sm:px-6 py-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between"
+                [class.pb-24]="hasActionBar()" [class.sm:pb-6]="hasActionBar()">
           <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
           <nav aria-label="Legal" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
-            <a routerLink="/legal/aviso-legal" class="hover:text-ink py-1">Aviso legal</a>
-            <a routerLink="/legal/privacidad" class="hover:text-ink py-1">Privacidad</a>
-            <a routerLink="/legal/terminos" class="hover:text-ink py-1">Términos</a>
-            <a routerLink="/legal/cookies" class="hover:text-ink py-1">Cookies</a>
+            <a routerLink="/legal/aviso-legal" class="hover:text-ink min-h-[44px] inline-flex items-center">Aviso legal</a>
+            <a routerLink="/legal/privacidad" class="hover:text-ink min-h-[44px] inline-flex items-center">Privacidad</a>
+            <a routerLink="/legal/terminos" class="hover:text-ink min-h-[44px] inline-flex items-center">Términos</a>
+            <a routerLink="/legal/cookies" class="hover:text-ink min-h-[44px] inline-flex items-center">Cookies</a>
           </nav>
         </footer>
       }
@@ -50,6 +51,8 @@ export class AppComponent {
   private lastPath: string | null = null;
   /** The landing has its own footer and the chat is a full-height panel. */
   showFooter = signal(false);
+  /** Profile/detail pages pin an action bar above the bottom nav on mobile; the footer must clear it. */
+  hasActionBar = signal(false);
 
   constructor() {
     this.router.events
@@ -59,6 +62,7 @@ export class AppComponent {
         // filters) must not steal focus, and the first load keeps the skip link first.
         const path = e.urlAfterRedirects.split(/[?#]/)[0];
         this.showFooter.set(path !== '/' && !path.startsWith('/inbox/'));
+        this.hasActionBar.set(/^\/(posts|events|shop|musicians|bands|venues|teachers|rehearsal)\/(?!new$|create$)[^/]+$/.test(path));
         const isFirst = this.lastPath === null;
         const pathChanged = path !== this.lastPath;
         this.lastPath = path;

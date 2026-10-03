@@ -46,3 +46,26 @@ CREATE POLICY "Band owner can dismiss applications" ON vacancy_applications
         AND b.user_id = auth.uid()
     )
   );
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 5) Deleting a vacancy removes its applications. The live FK
+--    vacancy_applications.vacancy_id → band_vacancies has no ON DELETE CASCADE,
+--    so a band owner deleting a vacancy with applicants gets HTTP 409.
+-- ═══════════════════════════════════════════════════════════════════════════
+DO $$
+DECLARE c text;
+BEGIN
+  FOR c IN
+    SELECT con.conname FROM pg_constraint con
+    JOIN pg_class rel ON rel.oid = con.conrelid
+    JOIN pg_attribute att ON att.attrelid = rel.oid AND att.attnum = ANY (con.conkey)
+    WHERE rel.relname = 'vacancy_applications' AND con.contype = 'f' AND att.attname = 'vacancy_id'
+  LOOP
+    EXECUTE format('ALTER TABLE vacancy_applications DROP CONSTRAINT %I', c);
+  END LOOP;
+  ALTER TABLE vacancy_applications
+    ADD CONSTRAINT vacancy_applications_vacancy_id_fkey
+    FOREIGN KEY (vacancy_id) REFERENCES band_vacancies(id) ON DELETE CASCADE;
+END $$;
+
+NOTIFY pgrst, 'reload schema';
