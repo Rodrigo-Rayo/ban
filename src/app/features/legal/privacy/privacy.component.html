@@ -23,8 +23,12 @@
         <h2>1. Responsable del tratamiento</h2>
         <ul>
           <li><strong>Responsable:</strong> {{ info.ownerName }}</li>
-          <li><strong>NIF:</strong> {{ info.nif }}</li>
-          <li><strong>Domicilio:</strong> {{ info.address }}</li>
+          @if (info.nif) {
+            <li><strong>NIF:</strong> {{ info.nif }}</li>
+          }
+          @if (info.address) {
+            <li><strong>Domicilio:</strong> {{ info.address }}</li>
+          }
           <li><strong>Contacto para protección de datos:</strong> <a [href]="'mailto:' + info.privacyEmail">{{ info.privacyEmail }}</a></li>
         </ul>
         <p>

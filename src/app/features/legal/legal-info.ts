@@ -7,25 +7,25 @@
  * (LSSI-CE art. 10, RGPD art. 13). Never ship with placeholders.
  */
 export const LEGAL_INFO = {
-  /** Nombre y apellidos (persona física) o razón social (sociedad). */
-  ownerName: '[NOMBRE O RAZÓN SOCIAL DEL TITULAR]',
-  /** NIF / CIF del titular. */
-  nif: '[NIF]',
-  /** Domicilio completo (calle, número, CP, municipio, provincia). */
-  address: '[DOMICILIO COMPLETO DEL TITULAR]',
+  /** Nombre y apellidos (persona física) o razón social. De momento solo la marca: poner el titular real antes de cobrar (LSSI art. 10, RGPD art. 13). */
+  ownerName: 'BandYou',
+  /** NIF / CIF del titular. Vacío = no se muestra; LSSI art. 10 lo exige. */
+  nif: '',
+  /** Domicilio (calle, número, CP, municipio, provincia). Vacío = no se muestra; LSSI art. 10 lo exige, rellenar en cuanto haya una dirección publicable. */
+  address: '',
   /**
    * Datos registrales (Registro Mercantil: tomo, folio, hoja, inscripción).
    * Si el titular es persona física no inscrita, sustituir por
    * "No inscrito en registro público".
    */
-  registry: '[DATOS DE INSCRIPCIÓN EN EL REGISTRO MERCANTIL]',
+  registry: 'Persona física no inscrita en el Registro Mercantil',
   website: 'https://bandyou.es',
   /** Buzón general / legal y punto de contacto único DSA (arts. 11 y 12). Verificar que existe. */
   legalEmail: 'legal@bandyou.es',
   /** Buzón para ejercicio de derechos RGPD. Verificar que existe. */
   privacyEmail: 'privacidad@bandyou.es',
   /** Plazo de retención de copias de seguridad en Supabase (según plan contratado). */
-  backupRetention: '[PLAZO DE RETENCIÓN DE COPIAS DE SEGURIDAD, p. ej. 7 días]',
+  backupRetention: '7 días',
   /** Edad mínima para registrarse (LOPDGDD art. 7). */
   minAge: 14,
   /** Fecha visible de última actualización de los textos legales. */

@@ -28,8 +28,12 @@
         </p>
         <ul>
           <li><strong>Titular:</strong> {{ info.ownerName }}</li>
-          <li><strong>NIF:</strong> {{ info.nif }}</li>
-          <li><strong>Domicilio:</strong> {{ info.address }}</li>
+          @if (info.nif) {
+            <li><strong>NIF:</strong> {{ info.nif }}</li>
+          }
+          @if (info.address) {
+            <li><strong>Domicilio:</strong> {{ info.address }}</li>
+          }
           <li><strong>Correo electrónico:</strong> <a [href]="'mailto:' + info.legalEmail">{{ info.legalEmail }}</a></li>
           <li><strong>Datos registrales:</strong> {{ info.registry }}</li>
         </ul>
