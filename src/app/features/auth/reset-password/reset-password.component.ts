@@ -1,11 +1,12 @@
 import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthPosterComponent } from '../auth-poster.component';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
 @Component({
     selector: 'app-reset-password',
-    imports: [ReactiveFormsModule, RouterLink],
+    imports: [ReactiveFormsModule, RouterLink, AuthPosterComponent],
     templateUrl: './reset-password.component.html'
 })
 export class ResetPasswordComponent implements OnInit {
@@ -65,7 +66,7 @@ export class ResetPasswordComponent implements OnInit {
       this.error.set('No se pudo actualizar la contraseña. Inténtalo de nuevo.');
     } else {
       this.success.set(true);
-      setTimeout(() => this.router.navigate(['/dashboard']), 2500);
+      setTimeout(() => this.router.navigate(['/home']), 2500);
     }
   }
 }

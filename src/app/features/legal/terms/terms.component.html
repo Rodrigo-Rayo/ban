@@ -1,18 +1,21 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
-  <div class="max-w-3xl mx-auto px-5 lg:px-8 py-10">
-
-    <a routerLink="/" class="inline-flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink hover:text-primary-600 mb-6 min-h-[44px] transition-colors">
+<div class="min-h-screen bg-dark-900 pt-16 pb-20">
+  <header class="page-head">
+    <div class="page-head-inner max-w-3xl">
+      <div>
+        <p class="page-kicker">Legal</p>
+        <h1 class="page-title">Términos de Uso</h1>
+      </div>
+      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted text-right">Última actualización: {{ info.updated }}</p>
+    </div>
+  </header>
+  <div class="page-wrap max-w-3xl py-6">
+    <a routerLink="/" class="inline-flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink hover:text-primary-600 mb-4 min-h-[44px] transition-colors">
       <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
       Volver al inicio
     </a>
 
-    <div class="mb-10 border-b-2 border-ink pb-5">
-      <p class="font-mono text-[11px] font-bold text-primary-500 uppercase tracking-wide mb-2">Legal</p>
-      <h1 class="text-5xl sm:text-6xl text-ink leading-[0.9] mb-3">Términos de Uso</h1>
-      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Última actualización: {{ info.updated }}</p>
-    </div>
 
     <div class="prose-legal">
 
@@ -30,7 +33,7 @@
         <h2>2. Descripción del servicio</h2>
         <p>
           BandYou es una red para la comunidad musical en España que permite a músicos, bandas, salas, profesores y
-          locales de ensayo crear perfiles públicos, publicar en el tablón, anunciar eventos, vacantes y equipamiento
+          locales de ensayo crear perfiles públicos, publicar en Se busca, anunciar eventos y vacantes, y vender equipamiento en la Tienda
           de segunda mano, dejar reseñas y enviarse mensajes privados.
         </p>
         <p>
@@ -82,7 +85,7 @@
       <section>
         <h2>6. Compraventa de equipamiento entre usuarios</h2>
         <ul>
-          <li>La sección de tienda es un <strong>tablón de anuncios</strong>. BandYou <strong>no es parte</strong> en las compraventas, no es propietario de los artículos, no los inspecciona, no gestiona pagos ni envíos y no actúa como intermediario ni garante.</li>
+          <li>La Tienda es un <strong>espacio de anuncios entre particulares</strong>. BandYou <strong>no es parte</strong> en las compraventas, no es propietario de los artículos, no los inspecciona, no gestiona pagos ni envíos y no actúa como intermediario ni garante.</li>
           <li>El contrato se celebra exclusivamente entre comprador y vendedor, que son los únicos responsables de su cumplimiento, del estado y la legalidad del artículo, del pago y de la entrega.</li>
           <li>Las compraventas entre particulares se rigen por el Código Civil y <strong>no están cubiertas por la normativa de protección de consumidores</strong> (por ejemplo, no existe un derecho legal de desistimiento de 14 días ni la garantía legal de los vendedores profesionales).</li>
           <li><strong>Vendedores profesionales:</strong> si vendes artículos u ofreces servicios (clases, salas, locales de ensayo) como empresa o autónomo, debes identificarte como profesional en tu anuncio o perfil y cumplir la normativa de consumo, comercio electrónico y fiscal que te resulte aplicable, incluida la información sobre desistimiento y garantías.</li>
@@ -131,7 +134,7 @@
           manifiestamente ilegal o envíe avisos manifiestamente infundados.
         </p>
         <p>
-          Puedes darte de baja cuando quieras desde tu panel, opción <strong>"Eliminar mi cuenta"</strong>. La
+          Puedes darte de baja cuando quieras desde Mi panel, opción <strong>"Eliminar mi cuenta"</strong>. La
           eliminación es inmediata e irreversible y borra tus datos en los términos descritos en la
           <a routerLink="/legal/privacidad">Política de Privacidad</a>.
         </p>

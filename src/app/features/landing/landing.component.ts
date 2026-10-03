@@ -27,12 +27,15 @@ export class LandingComponent implements OnInit {
   vacancies = signal<LandingVacancy[]>([]);
   people = signal<LandingPerson[]>([]);
 
-  catalog = [
-    { tab: 'musicians', label: 'Músicos',    icon: 'music',      desc: 'Guitarras, bajos, voces y más' },
-    { tab: 'bands',     label: 'Bandas',     icon: 'mic',        desc: 'Buscan miembros o proyectos' },
-    { tab: 'venues',    label: 'Salas',      icon: 'building',   desc: 'Conciertos y eventos en directo' },
-    { tab: 'teachers',  label: 'Profesores', icon: 'book-open',  desc: 'Clases particulares y talleres' },
-    { tab: 'events',    label: 'Agenda',     icon: 'calendar',   desc: 'Bolos, jams, open stages' },
+  catalog: { label: string; desc: string; link: string; query?: Record<string, string> }[] = [
+    { label: 'Se busca',  desc: 'Bandas que necesitan gente y músicos que buscan banda', link: '/feed' },
+    { label: 'Músicos',   desc: 'Guitarras, bajos, voces y más',      link: '/search', query: { tab: 'musicians' } },
+    { label: 'Bandas',    desc: 'Buscan miembros o proyectos',        link: '/search', query: { tab: 'bands' } },
+    { label: 'Locales',   desc: 'Locales de ensayo por horas',        link: '/search', query: { tab: 'rehearsal' } },
+    { label: 'Clases',    desc: 'Profesores y talleres',              link: '/search', query: { tab: 'teachers' } },
+    { label: 'Agenda',    desc: 'Bolos, jams, open stages',           link: '/search', query: { tab: 'events' } },
+    { label: 'Salas',     desc: 'Conciertos y eventos en directo',    link: '/search', query: { tab: 'venues' } },
+    { label: 'Tienda',    desc: 'Instrumentos y equipo de segunda mano', link: '/shop' },
   ];
 
   steps = [
@@ -47,7 +50,7 @@ export class LandingComponent implements OnInit {
     { id: 'band',      label: 'Tengo una banda',   icon: 'mic',        desc: 'Buscamos miembros' },
     { id: 'venue',     label: 'Tengo una sala',    icon: 'building',   desc: 'Programo conciertos' },
     { id: 'teacher',   label: 'Doy clases',        icon: 'book-open',  desc: 'Quiero más alumnos' },
-    { id: 'rehearsal', label: 'Local de ensayo',   icon: 'headphones', desc: 'Alquilo espacio' },
+    { id: 'rehearsal', label: 'Tengo un local',     icon: 'headphones', desc: 'Alquilo espacio' },
   ];
 
   constructor() {

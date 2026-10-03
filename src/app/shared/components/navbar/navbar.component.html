@@ -27,11 +27,12 @@
         <app-icon name="search" [size]="20"/>
       </a>
       @if (auth.isLoggedIn()) {
-        <a routerLink="/notifications" aria-label="Notificaciones"
+        <a routerLink="/notifications"
+           [attr.aria-label]="notifSvc.unreadCount() > 0 ? 'Notificaciones, ' + notifSvc.unreadCount() + ' sin leer' : 'Notificaciones'"
            class="relative w-11 h-11 flex items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors">
           <app-icon name="bell" [size]="20"/>
           @if (notifSvc.unreadCount() > 0) {
-            <span class="badge top-1 right-0.5">{{ notifSvc.unreadCount() > 9 ? '9+' : notifSvc.unreadCount() }}</span>
+            <span class="badge top-1 right-0.5" aria-hidden="true">{{ notifSvc.unreadCount() > 9 ? '9+' : notifSvc.unreadCount() }}</span>
           }
         </a>
         <a routerLink="/inbox" aria-label="Mensajes"
@@ -41,97 +42,164 @@
             <span class="badge top-1 right-0.5">{{ messagesService.unreadCount() > 9 ? '9+' : messagesService.unreadCount() }}</span>
           }
         </a>
-        <a routerLink="/dashboard" aria-label="Mi panel"
-           class="hidden lg:flex w-10 h-10 ml-1 border-2 border-ink bg-ink text-poster-paper items-center justify-center font-display text-base overflow-hidden hover:shadow-[3px_3px_0_0_#c23a1f] transition-shadow">
-          @if (avatarUrl()) {
-            <img [src]="avatarUrl()" class="w-full h-full object-cover" loading="lazy" alt="">
-          } @else {
-            {{ (auth.user()?.email || 'U').slice(0,1).toUpperCase() }}
+
+        <!-- Account menu (desktop) -->
+        <div class="relative hidden lg:block ml-1" data-account-menu>
+          <button type="button" id="account-button" data-account-trigger (click)="toggleAccount()"
+                  aria-label="Mi cuenta" aria-haspopup="menu" [attr.aria-expanded]="accountOpen" aria-controls="account-menu"
+                  class="w-10 h-10 border-2 border-ink bg-ink text-poster-paper flex items-center justify-center font-display text-base overflow-hidden hover:shadow-[3px_3px_0_0_#c23a1f] focus-visible:shadow-[3px_3px_0_0_#c23a1f] transition-shadow">
+            @if (avatarUrl()) {
+              <img [src]="avatarUrl()" class="w-full h-full object-cover" loading="lazy" alt="">
+            } @else {
+              {{ initial() }}
+            }
+          </button>
+          @if (accountOpen) {
+            <div id="account-menu" role="menu" aria-labelledby="account-button" (keydown)="onMenuKeydown($event)"
+                 class="absolute right-0 top-full mt-2 w-60 z-[60] bg-dark-900 border-2 border-ink shadow-[6px_6px_0_0_#141210] animate-slide-in">
+              @if (accountName()) {
+                <p class="px-4 pt-3 pb-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted truncate border-b border-ink/15">{{ accountName() }}</p>
+              }
+              <a role="menuitem" routerLink="/dashboard"
+                 class="flex items-center min-h-[44px] px-4 text-sm font-semibold text-ink hover:bg-poster-yellow focus-visible:bg-poster-yellow focus-visible:outline-none transition-colors">Mi panel</a>
+              <a role="menuitem" routerLink="/favorites"
+                 class="flex items-center min-h-[44px] px-4 text-sm font-semibold text-ink hover:bg-poster-yellow focus-visible:bg-poster-yellow focus-visible:outline-none transition-colors">Favoritos</a>
+              <a role="menuitem" routerLink="/notifications"
+                 class="flex items-center justify-between min-h-[44px] px-4 text-sm font-semibold text-ink hover:bg-poster-yellow focus-visible:bg-poster-yellow focus-visible:outline-none transition-colors">
+                Notificaciones
+                @if (notifSvc.unreadCount() > 0) {
+                  <span class="tag-accent">{{ notifSvc.unreadCount() > 9 ? '9+' : notifSvc.unreadCount() }}</span>
+                }
+              </a>
+              <div role="separator" class="border-t border-ink/15"></div>
+              <button role="menuitem" type="button" (click)="signOut()"
+                      class="w-full flex items-center gap-2 min-h-[44px] px-4 text-sm font-semibold text-ink-muted hover:text-ink hover:bg-poster-yellow focus-visible:bg-poster-yellow focus-visible:outline-none transition-colors text-left">
+                <app-icon name="logout" [size]="16"/> Cerrar sesión
+              </button>
+            </div>
           }
-        </a>
+        </div>
+
         <div class="relative hidden lg:block ml-2" data-publish-dropdown>
-          <button type="button" (click)="togglePublish()" [attr.aria-expanded]="publishOpen" aria-haspopup="menu"
+          <button type="button" data-publish-trigger (click)="togglePublish()" [attr.aria-expanded]="publishOpen" aria-haspopup="menu"
                   aria-controls="publish-menu" class="btn-primary px-4 py-2">
             <app-icon name="plus" [size]="16"/> Publicar
           </button>
         </div>
       } @else {
-        <a routerLink="/auth/login" class="hidden sm:inline-flex btn-secondary px-4 py-2">Entrar</a>
+        <a routerLink="/auth/login" class="hidden lg:inline-flex btn-secondary px-4 py-2">Entrar</a>
         <a routerLink="/auth/register" class="hidden lg:inline-flex btn-primary px-4 py-2 ml-2">Únete gratis</a>
-        <a routerLink="/auth/login" class="sm:hidden font-mono text-xs font-bold uppercase underline underline-offset-4 px-2 min-h-[44px] flex items-center">Entrar</a>
       }
-      <button type="button" class="lg:hidden w-11 h-11 flex items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors"
+      <button type="button" data-menu-trigger
+              class="lg:hidden w-11 h-11 flex items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors"
               [attr.aria-label]="menuOpen ? 'Cerrar menú' : 'Abrir menú'"
               [attr.aria-expanded]="menuOpen" aria-controls="mobile-menu"
-              (click)="menuOpen = !menuOpen; publishOpen = false">
+              (click)="toggleMenu()">
         <app-icon [name]="menuOpen ? 'x' : 'menu'" [size]="22"/>
       </button>
     </div>
   </div>
-
-  <!-- Mobile / tablet menu: every section + account + legal -->
-  @if (menuOpen) {
-    <div id="mobile-menu" class="lg:hidden border-t-2 border-ink bg-dark-900 max-h-[calc(100vh-4rem)] overflow-y-auto animate-slide-in">
-      <nav aria-label="Secciones" class="grid grid-cols-2 border-b-2 border-ink">
-        @for (s of sections; track s.label; let i = $index) {
-          <a [routerLink]="s.link" [queryParams]="s.query ?? null" (click)="menuOpen = false"
-             [attr.aria-current]="isActive(s) ? 'page' : null"
-             class="px-4 py-3.5 font-display text-xl uppercase border-ink"
-             [class.border-r-2]="i % 2 === 0" [class.border-b-2]="i < sections.length - 2"
-             [class.bg-ink]="isActive(s)" [class.text-poster-paper]="isActive(s)">
-            {{ s.label }}
-          </a>
-        }
-      </nav>
-      <div class="px-4 py-3 flex flex-col">
-        @if (auth.isLoggedIn()) {
-          <a routerLink="/dashboard" (click)="menuOpen = false" class="nav-item nav-item-inactive">Mi panel</a>
-          <a routerLink="/favorites" (click)="menuOpen = false" class="nav-item nav-item-inactive">Favoritos</a>
-          <a routerLink="/notifications" (click)="menuOpen = false" class="nav-item nav-item-inactive">
-            Notificaciones
-            @if (notifSvc.unreadCount() > 0) {
-              <span class="tag-accent">{{ notifSvc.unreadCount() > 9 ? '9+' : notifSvc.unreadCount() }}</span>
-            }
-          </a>
-          <button type="button" (click)="auth.signOut(); menuOpen = false" class="nav-item nav-item-inactive w-full text-left text-ink-muted">Cerrar sesión</button>
-        } @else {
-          <div class="grid grid-cols-2 gap-2 py-1">
-            <a routerLink="/auth/login" (click)="menuOpen = false" class="btn-secondary">Entrar</a>
-            <a routerLink="/auth/register" (click)="menuOpen = false" class="btn-primary">Únete gratis</a>
-          </div>
-        }
-        <div class="flex flex-wrap gap-x-4 gap-y-1 pt-3 mt-2 border-t-2 border-ink font-mono text-[11px] font-bold uppercase text-ink-muted">
-          <a routerLink="/legal/aviso-legal" (click)="menuOpen = false" class="hover:text-ink py-2">Aviso legal</a>
-          <a routerLink="/legal/privacidad" (click)="menuOpen = false" class="hover:text-ink py-2">Privacidad</a>
-          <a routerLink="/legal/terminos" (click)="menuOpen = false" class="hover:text-ink py-2">Términos</a>
-          <a routerLink="/legal/cookies" (click)="menuOpen = false" class="hover:text-ink py-2">Cookies</a>
-        </div>
-      </div>
-    </div>
-  }
 </header>
 
-<!-- PUBLICAR: one sheet with every way to publish (bottom sheet on mobile, dropdown on desktop) -->
+<!-- Mobile / tablet menu: scrim + full-height panel (below the masthead, above the bottom bar) -->
+@if (menuOpen) {
+  <div class="lg:hidden fixed inset-x-0 top-16 bottom-0 z-[49] bg-ink/40" (click)="menuOpen = false" aria-hidden="true"></div>
+  <div id="mobile-menu" class="lg:hidden fixed z-50 top-16 bottom-16 inset-x-0 sm:left-auto sm:w-[26rem] flex flex-col overflow-y-auto bg-dark-900 border-t-2 sm:border-l-2 border-ink animate-slide-in">
+    <nav aria-label="Secciones" class="grid grid-cols-2 border-b-2 border-ink flex-shrink-0">
+      @for (s of sections; track s.label; let i = $index) {
+        <a [routerLink]="s.link" [queryParams]="s.query ?? null" (click)="menuOpen = false"
+           [attr.aria-current]="isActive(s) ? 'page' : null"
+           class="px-4 min-h-[52px] flex items-center font-display text-xl uppercase border-ink hover:bg-poster-yellow transition-colors"
+           [class.border-r]="i % 2 === 0" [class.border-b]="i < sections.length - 2"
+           [class.bg-ink]="isActive(s)" [class.text-poster-paper]="isActive(s)">
+          {{ s.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="px-4 pt-2 flex flex-col">
+      @if (auth.isLoggedIn()) {
+        <p class="rule-label border-t-0 px-0 pt-2 pb-1">Tu cuenta</p>
+        <a routerLink="/dashboard" (click)="menuOpen = false" class="flex items-center min-h-[48px] text-base font-semibold text-ink border-b border-ink/15">Mi panel</a>
+        <a routerLink="/favorites" (click)="menuOpen = false" class="flex items-center min-h-[48px] text-base font-semibold text-ink border-b border-ink/15">Favoritos</a>
+        <a routerLink="/notifications" (click)="menuOpen = false" class="flex items-center justify-between min-h-[48px] text-base font-semibold text-ink border-b border-ink/15">
+          Notificaciones
+          @if (notifSvc.unreadCount() > 0) {
+            <span class="tag-accent">{{ notifSvc.unreadCount() > 9 ? '9+' : notifSvc.unreadCount() }}</span>
+          }
+        </a>
+        <button type="button" (click)="signOut()" class="flex items-center gap-2 min-h-[48px] text-base font-semibold text-ink-muted hover:text-ink text-left">
+          <app-icon name="logout" [size]="18"/> Cerrar sesión
+        </button>
+      } @else {
+        <div class="grid grid-cols-2 gap-2 py-3">
+          <a routerLink="/auth/login" (click)="menuOpen = false" class="btn-secondary">Entrar</a>
+          <a routerLink="/auth/register" (click)="menuOpen = false" class="btn-primary">Únete gratis</a>
+        </div>
+      }
+    </div>
+
+    <nav aria-label="Información legal" class="mt-auto px-4 pt-3 pb-2 flex flex-wrap gap-x-4 font-mono text-[11px] font-bold uppercase text-ink-muted">
+      <a routerLink="/legal/aviso-legal" (click)="menuOpen = false" class="hover:text-ink py-2.5">Aviso legal</a>
+      <a routerLink="/legal/privacidad" (click)="menuOpen = false" class="hover:text-ink py-2.5">Privacidad</a>
+      <a routerLink="/legal/terminos" (click)="menuOpen = false" class="hover:text-ink py-2.5">Términos</a>
+      <a routerLink="/legal/cookies" (click)="menuOpen = false" class="hover:text-ink py-2.5">Cookies</a>
+    </nav>
+  </div>
+}
+
+<!-- PUBLICAR: one sheet, two groups (bottom sheet on mobile, dropdown on desktop) -->
 @if (publishOpen) {
   <div class="fixed inset-0 z-[55] bg-ink/40 lg:bg-transparent" (click)="publishOpen = false" aria-hidden="true"></div>
-  <div id="publish-menu" role="menu" aria-label="Publicar" data-publish-dropdown
+  <div id="publish-menu" role="menu" aria-label="Publicar" data-publish-dropdown (keydown)="onMenuKeydown($event)"
        class="fixed z-[60] inset-x-0 bottom-16 lg:bottom-auto lg:top-[60px] lg:left-auto lg:right-6 lg:w-[380px]
+              max-h-[calc(100vh-8rem)] lg:max-h-[calc(100vh-5rem)] overflow-y-auto
               bg-dark-900 border-t-2 lg:border-2 border-ink lg:shadow-[6px_6px_0_0_#141210] animate-slide-in safe-area-pb">
-    <p class="rule-label border-t-0 px-4 pt-3 pb-2 bg-ink text-poster-paper">¿Qué quieres publicar?</p>
-    @for (o of publishOptions; track o.label) {
-      <a role="menuitem" [routerLink]="o.link" [queryParams]="o.query ?? null" (click)="publishOpen = false"
-         class="flex items-center gap-3 px-4 py-3 border-b border-ink/15 last:border-b-0 hover:bg-poster-yellow focus-visible:bg-poster-yellow focus-visible:outline-none transition-colors">
-        <span class="w-9 h-9 flex-shrink-0 border-2 border-ink bg-dark-800 flex items-center justify-center"><app-icon [name]="o.icon" [size]="16"/></span>
-        <span class="flex flex-col min-w-0">
-          <span class="font-display text-lg uppercase leading-none">{{ o.label }}</span>
-          <span class="text-xs text-ink-muted mt-0.5">{{ o.hint }}</span>
-        </span>
-      </a>
+    <div class="flex items-center justify-between bg-ink text-poster-paper pl-4">
+      <p class="font-mono text-[11px] font-bold uppercase tracking-wide py-3">¿Qué quieres publicar?</p>
+      <button type="button" (click)="publishOpen = false" aria-label="Cerrar"
+              class="lg:hidden flex items-center gap-1.5 min-h-[44px] px-4 font-mono text-[11px] font-bold uppercase tracking-wide hover:bg-poster-yellow hover:text-ink transition-colors">
+        Cerrar <app-icon name="x" [size]="14"/>
+      </button>
+    </div>
+
+    @if (auth.isLoggedIn()) {
+      <div role="group" aria-labelledby="publish-group-content">
+        <p id="publish-group-content" class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted px-4 pt-3 pb-1">Publicar</p>
+        @for (o of publishItems(); track o.label) {
+          <a role="menuitem" [routerLink]="o.link" [queryParams]="o.query ?? null" (click)="publishOpen = false"
+             class="flex items-center gap-3 px-4 py-2.5 min-h-[56px] border-b border-ink/15 hover:bg-poster-yellow focus-visible:bg-poster-yellow focus-visible:outline-none transition-colors">
+            <span class="w-9 h-9 flex-shrink-0 border-2 border-ink bg-dark-800 flex items-center justify-center"><app-icon [name]="o.icon" [size]="16"/></span>
+            <span class="flex flex-col min-w-0">
+              <span class="font-display text-lg uppercase leading-none">{{ o.label }}</span>
+              <span class="text-xs text-ink-muted mt-0.5">{{ o.hint }}</span>
+            </span>
+          </a>
+        }
+      </div>
+      <div role="group" aria-labelledby="publish-group-profile">
+        <p id="publish-group-profile" class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted px-4 pt-3 pb-1">Crear un perfil profesional</p>
+        @for (o of publishProfiles; track o.label) {
+          <a role="menuitem" [routerLink]="o.link" (click)="publishOpen = false"
+             class="flex items-center gap-3 px-4 py-2.5 min-h-[56px] border-b border-ink/15 last:border-b-0 hover:bg-poster-yellow focus-visible:bg-poster-yellow focus-visible:outline-none transition-colors">
+            <span class="w-9 h-9 flex-shrink-0 border-2 border-ink bg-dark-800 flex items-center justify-center"><app-icon [name]="o.icon" [size]="16"/></span>
+            <span class="flex flex-col min-w-0">
+              <span class="font-display text-lg uppercase leading-none">{{ o.label }}</span>
+              <span class="text-xs text-ink-muted mt-0.5">{{ o.hint }}</span>
+            </span>
+          </a>
+        }
+      </div>
+    } @else {
+      <div class="px-4 py-5 flex flex-col gap-3">
+        <p class="text-sm text-ink">Inicia sesión para publicar.</p>
+        <a role="menuitem" routerLink="/auth/login" (click)="publishOpen = false" class="btn-primary justify-center">Entrar</a>
+      </div>
     }
   </div>
 }
 
-<!-- BOTTOM BAR (mobile & tablet, everyone) -->
+<!-- BOTTOM BAR (mobile & tablet). Logged out: Portada · Buscar · Publicar · Entrar -->
 <nav aria-label="Navegación inferior" class="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-dark-900 border-t-2 border-ink safe-area-pb">
   <div class="flex h-16">
     <a [routerLink]="auth.isLoggedIn() ? '/home' : '/'" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{exact: true}"
@@ -142,30 +210,37 @@
        class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
       <app-icon name="search" [size]="20"/> Buscar
     </a>
-    <button type="button" (click)="togglePublish()" data-publish-dropdown
+    <button type="button" (click)="togglePublish()" data-publish-dropdown data-publish-trigger
             [attr.aria-expanded]="publishOpen" aria-haspopup="menu" aria-controls="publish-menu"
             class="flex-1 flex flex-col items-center justify-center gap-0.5 bg-primary-500 text-white font-mono text-[11px] font-bold uppercase border-x-2 border-ink">
       <app-icon name="plus" [size]="22"/> Publicar
     </button>
-    <a routerLink="/inbox" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
-       class="relative flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
-      <span class="relative flex">
-        <app-icon name="message-circle" [size]="20"/>
-        @if (messagesService.unreadCount() > 0) {
-          <span class="badge -top-2 -right-3">{{ messagesService.unreadCount() > 99 ? '99+' : messagesService.unreadCount() }}</span>
+    @if (auth.isLoggedIn()) {
+      <a routerLink="/inbox" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
+         class="relative flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
+        <span class="relative flex">
+          <app-icon name="message-circle" [size]="20"/>
+          @if (messagesService.unreadCount() > 0) {
+            <span class="badge -top-2 -right-3">{{ messagesService.unreadCount() > 99 ? '99+' : messagesService.unreadCount() }}</span>
+          }
+        </span>
+        Mensajes
+      </a>
+      <a routerLink="/dashboard" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
+         class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase whitespace-nowrap">
+        @if (avatarUrl()) {
+          <img [src]="avatarUrl()" class="w-5 h-5 object-cover border border-ink" loading="lazy" alt=""/>
+        } @else {
+          <app-icon name="user" [size]="20"/>
         }
-      </span>
-      Mensajes
-    </a>
-    <a [routerLink]="auth.isLoggedIn() ? '/dashboard' : '/auth/login'" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
-       class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
-      @if (avatarUrl()) {
-        <img [src]="avatarUrl()" class="w-5 h-5 object-cover border border-ink" loading="lazy" alt=""/>
-      } @else {
-        <app-icon name="user" [size]="20"/>
-      }
-      Yo
-    </a>
+        Mi panel
+      </a>
+    } @else {
+      <a routerLink="/auth/login" routerLinkActive="bg-ink text-poster-paper" ariaCurrentWhenActive="page"
+         class="flex-1 flex flex-col items-center justify-center gap-0.5 text-ink font-mono text-[11px] font-bold uppercase">
+        <app-icon name="user" [size]="20"/> Entrar
+      </a>
+    }
   </div>
 </nav>
 
@@ -180,7 +255,7 @@
          (keydown.escape)="dismissToast()">
       <button (click)="goToChat()"
               type="button"
-              class="flex items-center gap-3 pl-3 pr-2 py-3 min-w-0 flex-1 text-left cursor-pointer hover:bg-dark-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
+              class="flex items-center gap-3 pl-3 pr-2 py-3 min-w-0 flex-1 text-left cursor-pointer hover:bg-dark-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
         <span class="w-9 h-9 bg-ink text-poster-paper flex items-center justify-center font-display text-base flex-shrink-0" aria-hidden="true">
           {{ t.name.slice(0,1).toUpperCase() }}
         </span>
@@ -191,9 +266,9 @@
       </button>
       <button (click)="dismissToast()"
               type="button"
-              class="mr-2 p-2 min-w-[32px] min-h-[32px] flex items-center justify-center text-ink-muted hover:text-ink hover:bg-dark-700 transition-colors flex-shrink-0"
+              class="mr-1 w-11 h-11 flex items-center justify-center text-ink-muted hover:text-ink hover:bg-dark-700 transition-colors flex-shrink-0"
               aria-label="Cerrar aviso de mensaje">
-        <span aria-hidden="true">✕</span>
+        <app-icon name="x" [size]="14"/>
       </button>
     </div>
   }

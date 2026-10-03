@@ -1,22 +1,25 @@
 import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Location } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { CITIES } from '../../../core/constants/cities';
 import { GENRES } from '../../../core/constants/music.constants';
+import { confirmSecondProfile } from '../../teachers/teacher-form/professional-profile';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
     selector: 'app-venue-form',
-    imports: [ReactiveFormsModule],
+    imports: [ReactiveFormsModule, RouterLink],
     templateUrl: './venue-form.component.html'
 })
 export class VenueFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private location = inject(Location);
+  private auth = inject(AuthService);
+  private confirm = inject(ConfirmService);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -80,6 +83,10 @@ export class VenueFormComponent implements OnInit {
         if (data.genres) {
           this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
         }
+      } else {
+        // New profile: start from the name the user already gave on their first profile.
+        const knownName = this.auth.userProfileData()?.name;
+        if (knownName) this.form.patchValue({ name: knownName });
       }
     } finally {
       this.loading.set(false);
@@ -91,8 +98,6 @@ export class VenueFormComponent implements OnInit {
     this.selectedGenres.set(cur.includes(g) ? cur.filter(x => x !== g) : [...cur, g]);
   }
 
-  goBack() { this.location.back(); }
-
   async onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -102,6 +107,7 @@ export class VenueFormComponent implements OnInit {
       return;
     }
     if (this.loadFailed() || this.saving()) return;
+    if (!await confirmSecondProfile(this.auth, this.confirm, 'venue', this.isEditing())) return;
     this.saving.set(true);
     this.error.set('');
     try {

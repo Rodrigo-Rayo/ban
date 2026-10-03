@@ -3,8 +3,9 @@ import { RouterLink } from '@angular/router';
 
 import { FavoritesService } from '../../core/services/favorites.service';
 import { SupabaseService } from '../../core/services/supabase.service';
-import { IconComponent } from '../../shared/components/icon/icon.component';
-import { avatarColor } from '../../core/utils/display.utils';
+import { ToastService } from '../../core/services/toast.service';
+import { parseList } from '../../core/utils/list';
+import { formatShortDate } from '../../core/utils/date';
 import { Favorite } from '../../core/models';
 
 interface ResolvedEntity {
@@ -24,14 +25,13 @@ interface ResolvedEntity {
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-favorites',
-    imports: [RouterLink, IconComponent],
+    imports: [RouterLink],
     templateUrl: './favorites.component.html'
 })
 export class FavoritesComponent implements OnInit {
-  readonly avatarColor = avatarColor;
-
   private favSvc = inject(FavoritesService);
   private supabase = inject(SupabaseService);
+  private toast = inject(ToastService);
 
   loading = signal(true);
   loadError = signal(false);
@@ -93,17 +93,30 @@ export class FavoritesComponent implements OnInit {
   typeLabel(type: string) {
     const map: Record<string, string> = {
       musician: 'Músico', band: 'Banda', venue: 'Sala',
-      event: 'Evento', teacher: 'Clase', rehearsal: 'Local',
+      event: 'Evento', teacher: 'Clases', rehearsal: 'Local',
     };
     return map[type] || type;
   }
 
-  typeIcon(type: string) {
-    const map: Record<string, string> = {
-      musician: 'music', band: 'mic', venue: 'building',
-      event: 'calendar', teacher: 'book-open', rehearsal: 'headphones',
-    };
-    return map[type] || 'user';
+  /** Second line of a row: instrument, genres (clean list) or the event date. */
+  detail(fav: Favorite, it: ResolvedEntity): string {
+    if (fav.entity_type === 'event') {
+      return [formatShortDate(it.date), ...parseList(it.genre).slice(0, 2)].filter(Boolean).join(' · ');
+    }
+    const parts = [it.instrument ?? '', ...parseList(it.genre ?? it.genres).slice(0, 3)];
+    return parts.map(p => p.trim()).filter(Boolean).join(' · ');
+  }
+
+  /** Removes the favorite right away; puts it back if the request fails. */
+  async remove(fav: Favorite) {
+    const previous = this.favorites();
+    this.favorites.set(previous.filter(f => f.id !== fav.id));
+    try {
+      await this.favSvc.toggle(fav.user_id, fav.entity_type, fav.entity_id);
+    } catch {
+      this.favorites.set(previous);
+      this.toast.error('No se pudo quitar de favoritos.');
+    }
   }
 
   async ngOnInit() {

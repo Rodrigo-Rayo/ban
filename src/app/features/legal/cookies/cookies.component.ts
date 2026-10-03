@@ -26,21 +26,24 @@ const STORAGE_ITEMS: readonly StorageItem[] = [
     selector: 'app-cookies',
     imports: [RouterLink],
     template: `
-    <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
-      <div class="max-w-3xl mx-auto px-5 lg:px-8 py-10">
-
-        <a routerLink="/" class="inline-flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink hover:text-primary-600 mb-6 min-h-[44px] transition-colors">
+    <div class="min-h-screen bg-dark-900 pt-16 pb-20">
+  <header class="page-head">
+    <div class="page-head-inner max-w-3xl">
+      <div>
+        <p class="page-kicker">Legal</p>
+        <h1 class="page-title">Política de Cookies</h1>
+      </div>
+      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted text-right">Última actualización: {{ info.updated }}</p>
+    </div>
+  </header>
+  <div class="page-wrap max-w-3xl py-6">
+    <a routerLink="/" class="inline-flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink hover:text-primary-600 mb-4 min-h-[44px] transition-colors">
           <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
           Volver al inicio
         </a>
 
-        <div class="mb-10 border-b-2 border-ink pb-5">
-          <p class="font-mono text-[11px] font-bold text-primary-500 uppercase tracking-wide mb-2">Legal</p>
-          <h1 class="text-5xl sm:text-6xl text-ink leading-[0.9] mb-3">Política de Cookies</h1>
-          <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Última actualización: {{ info.updated }}</p>
-        </div>
 
         <div class="prose-legal">
 

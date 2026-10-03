@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EventDetailComponent } from './event-detail.component';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { SeoService } from '../../../core/services/seo.service';
 
@@ -28,6 +29,7 @@ describe('EventDetailComponent', () => {
   let routerSpy: jasmine.SpyObj<Router>;
   let favSvcSpy: jasmine.SpyObj<FavoritesService>;
   let toastSpy: jasmine.SpyObj<ToastService>;
+  let confirmSpy: jasmine.SpyObj<ConfirmService>;
 
   beforeEach(() => {
     supabaseSpy = {
@@ -46,6 +48,8 @@ describe('EventDetailComponent', () => {
     favSvcSpy.isFavorite.and.returnValue(Promise.resolve(false));
     favSvcSpy.toggle.and.returnValue(Promise.resolve(true));
     toastSpy = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']);
+    confirmSpy = jasmine.createSpyObj<ConfirmService>('ConfirmService', ['ask']);
+    confirmSpy.ask.and.resolveTo(true);
 
     TestBed.configureTestingModule({
       providers: [
@@ -54,6 +58,7 @@ describe('EventDetailComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: FavoritesService, useValue: favSvcSpy },
         { provide: ToastService, useValue: toastSpy },
+        { provide: ConfirmService, useValue: confirmSpy },
         { provide: SeoService, useValue: { setEvent: () => {}, injectJsonLd: () => {} } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'ev1' } } } },
       ],
@@ -103,6 +108,59 @@ describe('EventDetailComponent', () => {
       await component.toggleFav();
       expect(toastSpy.error).toHaveBeenCalled();
       expect(component.favLoading()).toBeFalse();
+    });
+  });
+
+  describe('owner actions', () => {
+    const OWN = { ...EVENT, user_id: 'u1' };
+
+    it('isOwner is true only for the event creator', () => {
+      component.event.set(OWN);
+      component.currentUserId.set('u1');
+      expect(component.isOwner()).toBeTrue();
+      component.currentUserId.set('u2');
+      expect(component.isOwner()).toBeFalse();
+    });
+
+    it('owner cannot favorite their own event', async () => {
+      component.event.set(OWN);
+      component.currentUserId.set('u1');
+      await component.toggleFav();
+      expect(favSvcSpy.toggle).not.toHaveBeenCalled();
+    });
+
+    it('deleteEvent asks for confirmation, deletes and goes back to the agenda', async () => {
+      const builder = mockBuilder({ error: null });
+      builder.delete = jasmine.createSpy('delete').and.returnValue(builder);
+      supabaseSpy.client.from.and.returnValue(builder);
+      component.event.set(OWN);
+      component.currentUserId.set('u1');
+      await component.deleteEvent();
+      expect(confirmSpy.ask).toHaveBeenCalled();
+      expect(builder.delete).toHaveBeenCalled();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/search'], { queryParams: { tab: 'events' } });
+    });
+
+    it('deleteEvent does nothing when the user cancels', async () => {
+      confirmSpy.ask.and.resolveTo(false);
+      component.event.set(OWN);
+      component.currentUserId.set('u1');
+      await component.deleteEvent();
+      expect(supabaseSpy.client.from).not.toHaveBeenCalled();
+    });
+
+    it('deleteEvent does nothing for a non-owner', async () => {
+      component.event.set(OWN);
+      component.currentUserId.set('u2');
+      await component.deleteEvent();
+      expect(confirmSpy.ask).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('date formatting', () => {
+    it('formats the long date and the time like the rest of the app', () => {
+      expect(component.longDate('2026-08-21')).toBe('viernes, 21 de agosto de 2026');
+      expect(component.time('21:00:00')).toBe('21:00');
     });
   });
 

@@ -5,6 +5,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { SeoService } from '../../../core/services/seo.service';
 
 function mockBuilder(resolveValue: { data?: any; error?: any } = {}) {
@@ -33,6 +34,7 @@ describe('GearDetailComponent', () => {
   let routerSpy: jasmine.SpyObj<Router>;
   let toastSpy: jasmine.SpyObj<ToastService>;
   let messagesSpy: jasmine.SpyObj<MessagesService>;
+  let confirmSpy: jasmine.SpyObj<ConfirmService>;
 
   beforeEach(() => {
     supabaseSpy = {
@@ -48,6 +50,8 @@ describe('GearDetailComponent', () => {
 
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
     toastSpy = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']);
+    confirmSpy = jasmine.createSpyObj<ConfirmService>('ConfirmService', ['ask']);
+    confirmSpy.ask.and.resolveTo(true);
     messagesSpy = jasmine.createSpyObj<MessagesService>('MessagesService', ['getOrCreateConversation']);
 
     TestBed.configureTestingModule({
@@ -57,6 +61,7 @@ describe('GearDetailComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: ToastService, useValue: toastSpy },
         { provide: MessagesService, useValue: messagesSpy },
+        { provide: ConfirmService, useValue: confirmSpy },
         { provide: SeoService, useValue: { setListing: () => {} } },
         { provide: AuthService, useValue: {} },
         {
@@ -87,6 +92,14 @@ describe('GearDetailComponent', () => {
       component.currentUser.set(null);
       component.listing.set(LISTING as any);
       expect(component.isOwner).toBeFalse();
+    });
+  });
+
+  describe('conditionLabel()', () => {
+    it('shows "Bueno" for legacy "bueno" and for "good"', () => {
+      expect(component.conditionLabel('bueno')).toBe('Bueno');
+      expect(component.conditionLabel('good')).toBe('Bueno');
+      expect(component.conditionLabel('muy bueno')).toBe('Muy bueno');
     });
   });
 
@@ -130,13 +143,13 @@ describe('GearDetailComponent', () => {
     });
 
     it('does nothing if user cancels confirm', async () => {
-      spyOn(window, 'confirm').and.returnValue(false);
+      confirmSpy.ask.and.resolveTo(false);
       await component.markAsSold();
       expect(supabaseSpy.client.from).not.toHaveBeenCalled();
     });
 
     it('updates listing status to sold on success', async () => {
-      spyOn(window, 'confirm').and.returnValue(true);
+      confirmSpy.ask.and.resolveTo(true);
       const builder = mockBuilder({ error: null });
       supabaseSpy.client.from.and.returnValue(builder);
       await component.markAsSold();
@@ -144,8 +157,21 @@ describe('GearDetailComponent', () => {
       expect(toastSpy.success).toHaveBeenCalled();
     });
 
+    it('explains that the listing stays visible as VENDIDO', async () => {
+      supabaseSpy.client.from.and.returnValue(mockBuilder({ error: null }));
+      await component.markAsSold();
+      expect(confirmSpy.ask.calls.mostRecent().args[0].message).toContain('VENDIDO');
+    });
+
+    it('relist() puts a sold listing back on sale', async () => {
+      component.listing.set({ ...LISTING, status: 'sold' } as any);
+      supabaseSpy.client.from.and.returnValue(mockBuilder({ error: null }));
+      await component.relist();
+      expect(component.listing()?.status).toBe('active');
+    });
+
     it('shows error toast on supabase error', async () => {
-      spyOn(window, 'confirm').and.returnValue(true);
+      confirmSpy.ask.and.resolveTo(true);
       const builder = mockBuilder({ error: { message: 'db error' } });
       supabaseSpy.client.from.and.returnValue(builder);
       await component.markAsSold();
@@ -166,13 +192,13 @@ describe('GearDetailComponent', () => {
     });
 
     it('does nothing if user cancels confirm', async () => {
-      spyOn(window, 'confirm').and.returnValue(false);
+      confirmSpy.ask.and.resolveTo(false);
       await component.deleteListing();
       expect(supabaseSpy.client.from).not.toHaveBeenCalled();
     });
 
     it('navigates to /shop on success', async () => {
-      spyOn(window, 'confirm').and.returnValue(true);
+      confirmSpy.ask.and.resolveTo(true);
       const builder = mockBuilder({ error: null });
       supabaseSpy.client.from.and.returnValue(builder);
       await component.deleteListing();
@@ -181,7 +207,7 @@ describe('GearDetailComponent', () => {
     });
 
     it('shows error and clears deleting on supabase error', async () => {
-      spyOn(window, 'confirm').and.returnValue(true);
+      confirmSpy.ask.and.resolveTo(true);
       const builder = mockBuilder({ error: { message: 'fail' } });
       supabaseSpy.client.from.and.returnValue(builder);
       await component.deleteListing();

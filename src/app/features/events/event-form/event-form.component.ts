@@ -1,11 +1,11 @@
 import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Location } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { optionalUrl } from '../../../core/utils/form-validators';
 import { CITIES } from '../../../core/constants/cities';
+import { GENRES } from '../../../core/constants/music.constants';
 import { localToday } from '../../../core/utils/date';
 
 export function futureDate(control: AbstractControl): ValidationErrors | null {
@@ -15,13 +15,12 @@ export function futureDate(control: AbstractControl): ValidationErrors | null {
 
 @Component({
     selector: 'app-event-form',
-    imports: [ReactiveFormsModule],
+    imports: [ReactiveFormsModule, RouterLink],
     templateUrl: './event-form.component.html'
 })
 export class EventFormComponent {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private location = inject(Location);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -37,9 +36,7 @@ export class EventFormComponent {
   private _submitted = false;
   readonly today = localToday();
 
-  goBack() { this.location.back(); }
-
-  genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Otro'];
+  genres = GENRES;
   cities = CITIES;
 
   form = this.fb.group({

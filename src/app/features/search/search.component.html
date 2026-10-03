@@ -10,20 +10,23 @@
 </ng-template>
 
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
-  <div class="px-4 lg:px-8 pt-5 lg:pt-8 max-w-screen-xl mx-auto">
 
-    <!-- ══ Poster headline: CATEGORÍA / CIUDAD ══ -->
-    <header>
+  <header class="page-head bg-dark-900 sticky top-16 z-20">
+    <div class="page-head-inner">
+      <div class="min-w-0">
+        <p class="page-kicker">{{ tabKicker() }}</p>
+        <h1 class="page-title">{{ tabLabel() }}{{ cityScope() }}</h1>
+      </div>
       @if (activeTab() === 'events') {
-        <p class="font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wide text-primary-500 mb-1">Conciertos, jams y festivales</p>
+        <a [routerLink]="isLoggedIn() ? '/events/create' : '/auth/login'" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 inline-flex items-center">Publicar</a>
       }
-      <h1 class="text-[2.6rem] leading-[1.08] sm:text-6xl lg:text-7xl tracking-[0.005em] text-ink">
-        {{ tabLabel() }}<span class="text-primary-500" aria-hidden="true">/</span><span class="sr-only"> en </span>{{ selectedCity() }}
-      </h1>
-    </header>
+    </div>
+  </header>
+
+  <div class="page-wrap py-5">
 
     <!-- ══ Category toggles — mobile/tablet only: on desktop the masthead nav already lists them ══ -->
-    <div class="mt-4 flex lg:hidden gap-1.5 overflow-x-auto no-scrollbar sm:flex-wrap -mx-4 px-4" role="tablist" aria-label="Categorías de búsqueda">
+    <div class="flex lg:hidden gap-1.5 overflow-x-auto no-scrollbar sm:flex-wrap -mx-4 px-4" role="tablist" aria-label="Categorías de búsqueda">
       @for (tab of tabs; track tab.id) {
         <button type="button" (click)="setTab(tab.id)"
           role="tab"
@@ -40,7 +43,7 @@
     </div>
 
     <!-- ══ Filters ══ -->
-    <form role="search" aria-label="Filtros de búsqueda" (submit)="$event.preventDefault()" class="mt-3">
+    <form role="search" aria-label="Filtros de búsqueda" (submit)="$event.preventDefault()" class="mt-3 lg:mt-0">
 
       <!-- Search input + mobile filters toggle -->
       <div class="flex gap-2">
@@ -101,50 +104,35 @@
       }
 
       <!-- Secondary filters: collapsible on mobile, always open on desktop -->
-      <div id="search-filters" class="mt-3 lg:flex lg:flex-wrap lg:items-center lg:gap-x-2 lg:gap-y-3" [class.hidden]="!filtersOpen()">
-        <div class="grid grid-cols-2 gap-2 lg:contents">
-          <select name="city" [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event); filterChanged()"
-            aria-label="Filtrar por ciudad"
-            class="input-field min-h-[44px] py-2 px-3 font-mono font-bold uppercase text-base sm:text-xs lg:w-auto lg:max-w-[200px]">
-            @for (city of cities; track city) { <option [value]="city">{{ city }}</option> }
+      <div id="search-filters" class="mt-3 grid-cols-2 lg:grid-cols-4 gap-2 lg:grid" [class.hidden]="!filtersOpen()" [class.grid]="filtersOpen()">
+        <select name="city" [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event); filterChanged()"
+          aria-label="Filtrar por ciudad" class="input-field min-h-[44px] py-2 px-3 text-base sm:text-sm cursor-pointer">
+          @for (city of cities; track city) { <option [value]="city">{{ city }}</option> }
+        </select>
+        @if (hasInstrumentFilter()) {
+          <select name="instrument" [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
+            aria-label="Filtrar por instrumento" class="input-field min-h-[44px] py-2 px-3 text-base sm:text-sm cursor-pointer">
+            <option value="">Todos los instrumentos</option>
+            @for (inst of instruments; track inst) { <option [value]="inst">{{ inst }}</option> }
           </select>
-          @if (hasInstrumentFilter()) {
-            <select name="instrument" [ngModel]="selectedInstrument()" (ngModelChange)="selectedInstrument.set($event); filterChanged()"
-              aria-label="Filtrar por instrumento"
-              class="input-field min-h-[44px] py-2 px-3 font-mono font-bold uppercase text-base sm:text-xs lg:w-auto lg:max-w-[200px]">
-              <option value="">Instrumento</option>
-              @for (inst of instruments; track inst) {
-                <option [value]="inst">{{ inst }}</option>
-              }
-            </select>
-          }
-        </div>
-
-        @if (hasGenreFilter()) {
-          <div class="mt-3 lg:mt-0 flex flex-wrap gap-1.5 lg:ml-2" role="group" aria-label="Filtrar por género">
-            @for (g of genres; track g) {
-              <button type="button" (click)="selectedGenre.set(g === 'Todos' ? '' : g); filterChanged()"
-                [attr.aria-pressed]="(g === 'Todos' && !selectedGenre()) || selectedGenre() === g"
-                class="px-2.5 min-h-[44px] sm:min-h-[36px] border-[1.5px] font-mono text-[11px] font-bold uppercase tracking-wide whitespace-nowrap transition-colors
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
-                [class.genre-pill-active]="(g === 'Todos' && !selectedGenre()) || selectedGenre() === g"
-                [class.genre-pill-inactive]="(g !== 'Todos' || !!selectedGenre()) && selectedGenre() !== g">
-                {{ g }}
-              </button>
-            }
-          </div>
         }
-
+        @if (hasGenreFilter()) {
+          <select name="genre" [ngModel]="selectedGenre()" (ngModelChange)="selectedGenre.set($event); filterChanged()"
+            aria-label="Filtrar por género" class="input-field min-h-[44px] py-2 px-3 text-base sm:text-sm cursor-pointer">
+            <option value="">Todos los géneros</option>
+            @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
+          </select>
+        }
         @if (hasActiveFilters()) {
           <button type="button" (click)="clearFilters()"
-            class="mt-3 lg:mt-0 lg:ml-auto min-h-[44px] px-1 font-mono text-xs font-bold uppercase underline underline-offset-4 text-ink hover:text-primary-500 transition-colors">
-            Limpiar todo
+            class="col-span-2 lg:col-span-1 min-h-[44px] px-1 font-mono text-xs font-bold uppercase underline underline-offset-4 text-ink hover:text-primary-600 transition-colors text-left">
+            Limpiar filtros
           </button>
         }
       </div>
     </form>
 
-    <!-- ══ Result count + CTA ══ -->
+    <!-- ══ Result count ══ -->
     <div class="mt-5 rule-label gap-3">
       <span aria-live="polite">
         @if (loading()) {
@@ -157,20 +145,16 @@
           {{ tabLabel() }}
         }
       </span>
-      @if (isLoggedIn() && activeTab() === 'events') {
-        <a routerLink="/events/create" class="btn-primary min-h-[44px] text-xs px-4 -mt-1">+ Publicar evento</a>
-      }
     </div>
 
     <div class="mt-4">
 
     <!-- ── Error ── -->
     @if (searchError()) {
-      <div role="alert" class="border-2 border-ink bg-dark-800 shadow-[4px_4px_0_0_#141210] p-5 mb-4 max-w-xl">
-        <span class="tag-red">Error</span>
-        <p class="font-display text-2xl uppercase leading-none mt-2">Error al cargar los resultados</p>
-        <p class="text-sm text-ink-muted mt-2 mb-4">Comprueba tu conexión y vuelve a intentarlo.</p>
-        <button type="button" (click)="filterChanged()" class="btn-primary text-sm min-h-[44px]">Reintentar</button>
+      <div role="alert" class="empty-state">
+        <p class="font-display text-2xl uppercase text-ink">No se pudieron cargar los resultados</p>
+        <p class="text-sm text-ink-muted mb-2">Comprueba tu conexión y vuelve a intentarlo.</p>
+        <button type="button" (click)="filterChanged()" class="btn-primary text-sm min-h-[44px] px-5">Reintentar</button>
       </div>
     }
 
@@ -194,13 +178,14 @@
     @if (activeTab() === 'musicians' && !loading()) {
       <div role="tabpanel" id="panel-musicians" aria-labelledby="tab-musicians">
       @if (musicians().length === 0) {
-        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
-          <span class="tag-accent">Sin resultados</span>
-          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay músicos con esos filtros</p>
-          <p class="text-sm text-ink-muted mt-3">Prueba a cambiar la ciudad o amplía la búsqueda. O sé el primero en tu zona.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <button type="button" (click)="joinAs('musician')" class="btn-primary min-h-[44px] text-sm">Crear mi perfil de músico</button>
-            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todos los músicos</button>
+        <div class="empty-state">
+          <p class="font-display text-2xl uppercase text-ink">No hay músicos{{ cityScope() }}</p>
+          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad o con menos filtros.</p>
+          <div class="flex flex-wrap justify-center gap-2 mt-2">
+            <button type="button" (click)="joinAs('musician')" class="btn-primary min-h-[44px] text-sm px-5">Crear mi perfil de músico</button>
+            @if (cityScope()) {
+              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+            }
           </div>
         </div>
       } @else {
@@ -217,9 +202,9 @@
                     @if (days.size > 0) {
                       <span class="inline-flex" role="img" [attr.aria-label]="'Disponible: ' + (m.availability_days | list).join(', ')">
                         @for (d of weekdays; track d.key) {
-                          <span aria-hidden="true" class="w-[22px] h-[22px] -ml-[1.5px] first:ml-0 flex items-center justify-center border-[1.5px] border-ink font-mono text-[11px] font-bold"
-                                [class.bg-poster-yellow]="days.has(d.key)"
-                                [class.bg-dark-800]="!days.has(d.key)" [class.opacity-40]="!days.has(d.key)">{{ d.label }}</span>
+                          @if (days.has(d.key)) {
+                            <span aria-hidden="true" class="w-[22px] h-[22px] -ml-[1.5px] first:ml-0 flex items-center justify-center border-[1.5px] border-ink bg-poster-yellow text-ink font-mono text-[11px] font-bold">{{ d.label }}</span>
+                          }
                         }
                       </span>
                     }
@@ -242,13 +227,14 @@
     @if (activeTab() === 'bands' && !loading()) {
       <div role="tabpanel" id="panel-bands" aria-labelledby="tab-bands">
       @if (bands().length === 0) {
-        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
-          <span class="tag-accent">Sin resultados</span>
-          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay bandas que coincidan</p>
-          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o amplía los filtros. ¿Tienes banda? Que te encuentren.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <button type="button" (click)="joinAs('band')" class="btn-primary min-h-[44px] text-sm">Registrar mi banda</button>
-            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todas las bandas</button>
+        <div class="empty-state">
+          <p class="font-display text-2xl uppercase text-ink">No hay bandas{{ cityScope() }}</p>
+          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad o con menos filtros. ¿Tienes banda? Que te encuentren.</p>
+          <div class="flex flex-wrap justify-center gap-2 mt-2">
+            <button type="button" (click)="joinAs('band')" class="btn-primary min-h-[44px] text-sm px-5">Registrar mi banda</button>
+            @if (cityScope()) {
+              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+            }
           </div>
         </div>
       } @else {
@@ -279,55 +265,18 @@
       </div><!-- /panel-bands -->
     }
 
-    <!-- ══ SE BUSCA (vacantes) ══ -->
-    @if (activeTab() === 'vacancies' && !loading()) {
-      <div role="tabpanel" id="panel-vacancies" aria-labelledby="tab-vacancies">
-      @if (vacancyResults().length === 0) {
-        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
-          <span class="tag-accent">Sin resultados</span>
-          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay vacantes abiertas con esos filtros</p>
-          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o amplía la búsqueda. ¿Tu banda necesita a alguien?</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <a [routerLink]="isLoggedIn() ? '/dashboard' : '/auth/register'" class="btn-primary min-h-[44px] text-sm">Publica un anuncio</a>
-            <button type="button" (click)="selectedCity.set('Toda España'); selectedInstrument.set(''); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todas las vacantes</button>
-          </div>
-        </div>
-      } @else {
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          @for (v of vacancyResults(); track v.id) {
-            <a [routerLink]="['/bands', v.bands?.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
-              <ng-container *ngTemplateOutlet="photo; context: { name: v.bands?.name || v.instrument, url: v.bands?.avatar_url }"/>
-              <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <span class="tag-accent">Se busca</span>
-                  @if (v.genre) { <span class="tag">{{ v.genre }}</span> }
-                </div>
-                <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ v.instrument }}</h2>
-                @if (v.bands) {
-                  <p class="text-[13px] text-ink-muted truncate">{{ v.bands.name }}@if (v.bands.city) { · {{ v.bands.city }} }</p>
-                }
-                @if (v.description) {
-                  <p class="text-[13px] text-ink-muted line-clamp-1">{{ v.description }}</p>
-                }
-              </div>
-            </a>
-          }
-        </div>
-      }
-      </div><!-- /panel-vacancies -->
-    }
-
     <!-- ══ SALAS ══ -->
     @if (activeTab() === 'venues' && !loading()) {
       <div role="tabpanel" id="panel-venues" aria-labelledby="tab-venues">
       @if (venues().length === 0) {
-        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
-          <span class="tag-accent">Sin resultados</span>
-          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay salas en esta zona</p>
-          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o amplía los filtros. ¿Programas conciertos? Publica tu sala.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <a routerLink="/venues/new" class="btn-primary min-h-[44px] text-sm">Publica tu sala</a>
-            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todas las salas</button>
+        <div class="empty-state">
+          <p class="font-display text-2xl uppercase text-ink">No hay salas{{ cityScope() }}</p>
+          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad. ¿Programas conciertos? Publica tu sala.</p>
+          <div class="flex flex-wrap justify-center gap-2 mt-2">
+            <a routerLink="/venues/new" class="btn-primary min-h-[44px] text-sm px-5">Publicar mi sala</a>
+            @if (cityScope()) {
+              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+            }
           </div>
         </div>
       } @else {
@@ -337,7 +286,7 @@
               <ng-container *ngTemplateOutlet="photo; context: { name: venue.name, url: venue.avatar_url }"/>
               <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
                 <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ venue.name }}</h2>
-                @if (venue.city) { <p class="text-[13px] text-ink-muted truncate">Sala de conciertos · {{ venue.city }}</p> }
+                @if (venue.city) { <p class="text-[13px] text-ink-muted truncate">{{ venue.city }}</p> }
                 @if (venue.capacity || venue.genres) {
                   <div class="flex flex-wrap gap-1.5">
                     @if (venue.capacity) { <span class="tag-accent">Aforo {{ venue.capacity }}</span> }
@@ -360,13 +309,14 @@
     @if (activeTab() === 'events' && !loading()) {
       <div role="tabpanel" id="panel-events" aria-labelledby="tab-events">
       @if (events().length === 0) {
-        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
-          <span class="tag-accent">Sin resultados</span>
-          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay eventos próximos en esta zona</p>
-          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o cuelga tu propio cartel.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <a routerLink="/events/create" class="btn-primary min-h-[44px] text-sm">Publicar evento</a>
-            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todos los eventos</button>
+        <div class="empty-state">
+          <p class="font-display text-2xl uppercase text-ink">No hay eventos próximos{{ cityScope() }}</p>
+          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad o publica el tuyo.</p>
+          <div class="flex flex-wrap justify-center gap-2 mt-2">
+            <a routerLink="/events/create" class="btn-primary min-h-[44px] text-sm px-5">Publicar evento</a>
+            @if (cityScope()) {
+              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+            }
           </div>
         </div>
       } @else {
@@ -402,13 +352,14 @@
     @if (activeTab() === 'teachers' && !loading()) {
       <div role="tabpanel" id="panel-teachers" aria-labelledby="tab-teachers">
       @if (teachers().length === 0) {
-        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
-          <span class="tag-accent">Sin resultados</span>
-          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay profesores en esta zona</p>
-          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o con el instrumento que buscas. ¿Das clases? Publícate.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <a routerLink="/teachers/new" class="btn-primary min-h-[44px] text-sm">Ofrece tus clases</a>
-            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todos los profesores</button>
+        <div class="empty-state">
+          <p class="font-display text-2xl uppercase text-ink">No hay clases{{ cityScope() }}</p>
+          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad o con otro instrumento. ¿Das clases? Publícate.</p>
+          <div class="flex flex-wrap justify-center gap-2 mt-2">
+            <a routerLink="/teachers/new" class="btn-primary min-h-[44px] text-sm px-5">Ofrecer clases</a>
+            @if (cityScope()) {
+              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+            }
           </div>
         </div>
       } @else {
@@ -437,13 +388,14 @@
     @if (activeTab() === 'rehearsal' && !loading()) {
       <div role="tabpanel" id="panel-rehearsal" aria-labelledby="tab-rehearsal">
       @if (rehearsals().length === 0) {
-        <div class="border-2 border-ink bg-dark-800 shadow-[6px_6px_0_0_#141210] p-6 sm:p-8 max-w-xl">
-          <span class="tag-accent">Sin resultados</span>
-          <p class="font-display text-4xl sm:text-5xl uppercase leading-[0.95] mt-3">No hay locales de ensayo en esta zona</p>
-          <p class="text-sm text-ink-muted mt-3">Prueba con otra ciudad o amplía los filtros. ¿Alquilas un local? Publícalo.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <a routerLink="/rehearsal/new" class="btn-primary min-h-[44px] text-sm">Publica tu local</a>
-            <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm">Ver todos los locales</button>
+        <div class="empty-state">
+          <p class="font-display text-2xl uppercase text-ink">No hay locales{{ cityScope() }}</p>
+          <p class="text-sm text-ink-muted max-w-sm">Prueba con otra ciudad. ¿Alquilas un local de ensayo? Publícalo.</p>
+          <div class="flex flex-wrap justify-center gap-2 mt-2">
+            <a routerLink="/rehearsal/new" class="btn-primary min-h-[44px] text-sm px-5">Publicar mi local</a>
+            @if (cityScope()) {
+              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+            }
           </div>
         </div>
       } @else {
@@ -453,7 +405,7 @@
               <ng-container *ngTemplateOutlet="photo; context: { name: r.name, url: r.avatar_url }"/>
               <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
                 <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ r.name }}</h2>
-                @if (r.city) { <p class="text-[13px] text-ink-muted truncate">Local de ensayo · {{ r.city }}</p> }
+                @if (r.city) { <p class="text-[13px] text-ink-muted truncate">{{ r.city }}</p> }
                 @if (r.hourly_rate || r.capacity) {
                   <div class="flex flex-wrap gap-1.5">
                     @if (r.hourly_rate) { <span class="tag-accent">{{ r.hourly_rate }} €/h</span> }

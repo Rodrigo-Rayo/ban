@@ -5,8 +5,9 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { localToday } from '../../../core/utils/date';
+import { formatLongDate, formatTime, localToday } from '../../../core/utils/date';
 
 const RELATED_COLUMNS = 'id, title, venue, city, date, time, genre, price';
 const RELATED_LIMIT = 3;
@@ -25,6 +26,7 @@ export class EventDetailComponent implements OnInit {
   private favSvc = inject(FavoritesService);
   private seo = inject(SeoService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
 
   event = signal<any>(null);
   loading = signal(true);
@@ -33,6 +35,16 @@ export class EventDetailComponent implements OnInit {
   favLoading = signal(false);
   linkShared = signal(false);
   related = signal<any[]>([]);
+  deleting = signal(false);
+
+  readonly longDate = formatLongDate;
+  readonly time = formatTime;
+
+  /** The organizer manages the event; they cannot favorite it. */
+  readonly isOwner = computed(() => {
+    const uid = this.currentUserId();
+    return !!uid && uid === this.event()?.user_id;
+  });
 
   readonly priceLabel = computed(() => {
     const price = this.event()?.price;
@@ -126,9 +138,34 @@ export class EventDetailComponent implements OnInit {
     }
   }
 
+  async deleteEvent() {
+    const ev = this.event();
+    const uid = this.currentUserId();
+    if (!ev || !uid || ev.user_id !== uid || this.deleting()) return;
+    const ok = await this.confirm.ask({
+      title: '¿Eliminar este evento?',
+      message: 'Desaparece de la agenda y no se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
+    this.deleting.set(true);
+    try {
+      const { error } = await this.supabase.client.from('events').delete().eq('id', ev.id).eq('user_id', uid);
+      if (error) { this.toast.error('No se pudo eliminar el evento.'); return; }
+      this.toast.success('Evento eliminado.');
+      this.router.navigate(['/search'], { queryParams: { tab: 'events' } });
+    } catch {
+      this.toast.error('No se pudo eliminar el evento.');
+    } finally {
+      this.deleting.set(false);
+    }
+  }
+
   async toggleFav() {
     const uid = this.currentUserId();
     if (!uid) { this.router.navigate(['/auth/login']); return; }
+    if (this.isOwner()) return;
     this.favLoading.set(true);
     try {
       const result = await this.favSvc.toggle(uid, 'event', this.event()!.id);

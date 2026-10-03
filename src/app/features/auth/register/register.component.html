@@ -1,24 +1,20 @@
-<div class="min-h-screen bg-dark-900 flex">
+<div class="min-h-screen bg-dark-900 pt-16 flex">
 
   <!-- Form panel -->
   <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden">
-    <!-- Mobile logo -->
-    <a routerLink="/" class="lg:hidden font-display text-4xl uppercase text-ink leading-none mb-8">
-      Band<span class="text-primary-500">You</span>
-    </a>
 
     <div class="w-full max-w-sm">
 
       <div class="mb-7">
-          <h1 class="text-5xl text-ink leading-[0.9] mb-2">Únete a BandYou.</h1>
+          <h1 class="text-5xl text-ink leading-[1.05] mb-2">Únete a BandYou.</h1>
           <p class="text-sm text-ink-muted">Crea tu cuenta y elige tu perfil en el siguiente paso.</p>
         </div>
 
         <!-- Legal consent: gates BOTH Google and email sign-up. Never pre-checked. -->
         <div class="mb-5">
-          <label for="reg-legal" class="flex items-start gap-2.5 text-xs text-ink-2 leading-snug cursor-pointer">
+          <label for="reg-legal" class="flex items-start gap-3 py-2.5 min-h-[44px] text-xs text-ink-2 leading-snug cursor-pointer">
             <input id="reg-legal" type="checkbox" [formControl]="legalConsent" required
-              class="mt-0.5 h-4 w-4 flex-shrink-0 border-2 border-ink text-primary-500 accent-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500"
+              class="h-5 w-5 flex-shrink-0 border-2 border-ink text-primary-500 accent-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500"
               [attr.aria-invalid]="legalConsent.invalid && legalConsent.touched"
               [attr.aria-describedby]="legalConsent.invalid && legalConsent.touched ? 'reg-legal-error' : null"/>
             <span>
@@ -29,7 +25,7 @@
             </span>
           </label>
           @if (legalConsent.invalid && legalConsent.touched) {
-            <p id="reg-legal-error" role="alert" class="text-xs font-bold text-signal-red mt-1.5">
+            <p id="reg-legal-error" role="alert" class="text-xs font-bold text-signal-red">
               Debes confirmar tu edad y aceptar los Términos para crear una cuenta.
             </p>
           }
@@ -58,7 +54,7 @@
           <div>
             <label for="reg-email" class="block font-mono text-[11px] font-bold text-ink mb-1.5 uppercase tracking-wide">Email</label>
             <input id="reg-email" formControlName="email" type="email" placeholder="tu@email.com"
-              class="input-field" autocomplete="email" required
+              class="input-field" [class.border-signal-red]="isInvalid('email')" autocomplete="email" required
               [attr.aria-invalid]="isInvalid('email')"
               [attr.aria-describedby]="isInvalid('email') ? 'reg-email-error' : null"/>
             @if (isInvalid('email')) {
@@ -70,7 +66,7 @@
             <label for="reg-password" class="block font-mono text-[11px] font-bold text-ink mb-1.5 uppercase tracking-wide">Contraseña</label>
             <div class="relative">
               <input id="reg-password" formControlName="password" [type]="showPassword() ? 'text' : 'password'"
-                placeholder="Mínimo 8 caracteres" class="input-field pr-12" autocomplete="new-password" required
+                placeholder="Mínimo 8 caracteres" class="input-field pr-12" [class.border-signal-red]="isInvalid('password')" autocomplete="new-password" required
                 minlength="8"
                 [attr.aria-invalid]="isInvalid('password')"
                 [attr.aria-describedby]="isInvalid('password') ? 'reg-password-error reg-password-hint' : 'reg-password-hint'"/>
@@ -140,12 +136,5 @@
     </div>
   </div>
   <!-- Poster panel — desktop only -->
-  <aside class="hidden lg:flex lg:w-[440px] flex-shrink-0 bg-poster-yellow border-l-2 border-ink flex-col justify-between p-10" aria-hidden="true">
-    <a routerLink="/" tabindex="-1" class="font-display text-4xl uppercase text-ink leading-none">Band<span class="text-primary-500">You</span></a>
-    <div>
-      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-3">La red musical de España</p>
-      <p class="font-display text-7xl uppercase leading-[0.88] text-ink">Músicos,<br>bandas,<br>salas.</p>
-      <p class="mt-6 border-t-2 border-ink pt-3 font-mono text-[11px] font-bold uppercase tracking-wide text-ink">Tablón de la escena · Entrada libre</p>
-    </div>
-  </aside>
+  <app-auth-poster />
 </div>

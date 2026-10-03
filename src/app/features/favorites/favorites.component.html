@@ -1,29 +1,27 @@
-﻿<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
-  <!-- Header -->
-  <div class="border-b-2 border-ink">
-    <div class="max-w-5xl mx-auto px-6 lg:px-10 py-6">
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-primary-500 mb-1">Mi colección</p>
-          <h1 class="text-4xl sm:text-5xl text-ink leading-[0.9]">Favoritos</h1>
-        </div>
-        @if (!loading() && favorites().length > 0) {
-          <span class="tag-accent">
-            {{ favorites().length }} favorito{{ favorites().length !== 1 ? 's' : '' }}
-          </span>
-        }
+  <header class="page-head bg-dark-900">
+    <div class="page-head-inner">
+      <div>
+        <p class="page-kicker">
+          @if (!loading() && favorites().length > 0) {
+            {{ favorites().length }} {{ favorites().length === 1 ? 'favorito' : 'favoritos' }}
+          } @else {
+            Lo que te interesa
+          }
+        </p>
+        <h1 class="page-title">Favoritos</h1>
       </div>
     </div>
-  </div>
+  </header>
 
-  <div class="max-w-5xl mx-auto px-6 lg:px-10 py-7">
+  <div class="page-wrap py-5">
 
-    <!-- Tabs -->
-    <div class="flex gap-1.5 flex-wrap mb-6 overflow-x-auto no-scrollbar">
+    <div class="flex gap-1.5 overflow-x-auto no-scrollbar mb-4 -mx-4 px-4 sm:mx-0 sm:px-0" role="group" aria-label="Filtrar por tipo">
       @for (tab of tabs; track tab.id) {
-        <button (click)="activeTab.set(tab.id)"
-          class="px-3 py-2 min-h-[44px] font-mono text-[11px] font-bold uppercase tracking-wide border-[1.5px] border-ink transition-colors whitespace-nowrap flex-shrink-0"
+        <button type="button" (click)="activeTab.set(tab.id)"
+          [attr.aria-pressed]="activeTab() === tab.id"
+          class="px-3 min-h-[44px] font-mono text-[11px] font-bold uppercase tracking-wide border-[1.5px] border-ink transition-colors whitespace-nowrap flex-shrink-0"
           [class.genre-pill-active]="activeTab() === tab.id"
           [class.genre-pill-inactive]="activeTab() !== tab.id">
           {{ tab.label }}
@@ -35,16 +33,13 @@
     </div>
 
     @if (loading()) {
-      <!-- Skeleton -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="animate-pulse" role="status" aria-label="Cargando favoritos...">
         @for (i of [1,2,3,4,5,6]; track i) {
-          <div class="card-flat overflow-hidden animate-pulse">
-            <div class="p-4 flex items-center gap-3">
-              <div class="w-12 h-12 bg-dark-700 flex-shrink-0"></div>
-              <div class="flex-1 space-y-2">
-                <div class="h-3.5 bg-dark-700 w-3/4"></div>
-                <div class="h-2.5 bg-dark-600 w-1/2"></div>
-              </div>
+          <div class="flex items-center gap-3 py-3 border-b border-ink/15">
+            <div class="w-10 h-10 bg-dark-700 flex-shrink-0"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-3.5 bg-dark-700 w-3/5"></div>
+              <div class="h-3 bg-dark-600 w-2/5"></div>
             </div>
           </div>
         }
@@ -58,84 +53,61 @@
         </div>
         <div class="gap-1 flex flex-col">
           <p class="font-display text-2xl uppercase text-ink">No se pudieron cargar los favoritos</p>
-          <p class="text-sm text-ink-muted">Comprueba tu conexión e inténtalo de nuevo</p>
+          <p class="text-sm text-ink-muted">Comprueba tu conexión e inténtalo de nuevo.</p>
         </div>
-        <a routerLink="/home" class="btn-secondary text-sm min-h-[44px] inline-flex items-center">Volver al inicio</a>
+        <a routerLink="/home" class="btn-secondary">Volver a la portada</a>
       </div>
     } @else if (filteredFavs().length === 0) {
-      @if (activeTab() === 'all') {
-        <div class="empty-state">
-          <div class="empty-state-icon">
-            <svg aria-hidden="true" class="w-8 h-8 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
-          </div>
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg aria-hidden="true" class="w-8 h-8 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+        </div>
+        @if (activeTab() === 'all') {
           <p class="font-display text-3xl uppercase text-ink">Aún no tienes favoritos</p>
-          <p class="text-sm text-ink-muted max-w-xs leading-relaxed">Marca como favoritos músicos, bandas, salas o eventos que te interesen para encontrarlos fácilmente aquí</p>
-          <a routerLink="/search" class="btn-primary text-sm mt-1 min-h-[44px] inline-flex items-center">Explorar el directorio</a>
-        </div>
-      } @else {
-        <div class="empty-state">
-          <div class="empty-state-icon">
-            <svg aria-hidden="true" class="w-8 h-8 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
-          </div>
-          <p class="font-display text-3xl uppercase text-ink">Sin favoritos en esta categoría</p>
-          <p class="text-sm text-ink-muted max-w-xs leading-relaxed">No tienes favoritos de este tipo todavía</p>
-          <button (click)="activeTab.set('all')" class="btn-secondary text-sm mt-1">Ver todo</button>
-        </div>
-      }
-    } @else {
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (fav of filteredFavs(); track fav.id) {
-          @if (item(fav); as it) {
-            <a [routerLink]="route(fav)"
-               class="group card cursor-pointer flex flex-col">
-              <div class="p-4 flex flex-col gap-3 flex-1">
-                <!-- Header -->
-                <div class="flex items-center gap-3">
-                  <div class="avatar w-14 h-14 overflow-hidden text-xl border-2 border-ink">
-                    @if (it.avatar_url) {
-                      <img [src]="it.avatar_url" [alt]="it.name || it.title" class="w-full h-full object-cover" loading="lazy"/>
-                    } @else {
-                      {{ (it.name || it.title)?.slice(0,2)?.toUpperCase() }}
-                    }
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <h3 class="font-display text-xl uppercase text-ink group-hover:text-primary-500 transition-colors truncate leading-tight">
-                      {{ it.name || it.title }}
-                    </h3>
-                    @if (it.instrument || it.genre || it.genres) {
-                      <p class="font-mono text-[11px] font-bold uppercase text-ink-muted mt-0.5 truncate">
-                        {{ it.instrument || it.genre || it.genres }}
-                      </p>
-                    }
-                    @if (it.city) {
-                      <p class="meta mt-0.5">
-                        <app-icon name="map-pin" [size]="10"/>
-                        {{ it.city }}
-                      </p>
-                    }
-                  </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="flex items-center justify-between mt-auto pt-2.5 border-t-2 border-ink">
-                  <span class="tag-accent gap-1">
-                    <app-icon [name]="typeIcon(fav.entity_type)" [size]="10"/>
-                    {{ typeLabel(fav.entity_type) }}
-                  </span>
-                  <span class="font-mono text-[11px] font-bold uppercase text-primary-500 flex items-center gap-1">
-                    Ver
-                    <app-icon name="arrow-right" [size]="11"/>
-                  </span>
-                </div>
-              </div>
-            </a>
-          }
+          <p class="text-sm text-ink-muted max-w-xs leading-relaxed">Guarda músicos, bandas, salas o eventos para encontrarlos aquí.</p>
+          <a routerLink="/search" class="btn-primary mt-1">Buscar</a>
+        } @else {
+          <p class="font-display text-3xl uppercase text-ink">Nada en esta categoría</p>
+          <p class="text-sm text-ink-muted max-w-xs leading-relaxed">No tienes favoritos de este tipo todavía.</p>
+          <button type="button" (click)="activeTab.set('all')" class="btn-secondary mt-1">Ver todos</button>
         }
       </div>
+    } @else {
+      <!-- One favorite = 3 lines: name, detail, type · city. "Quitar" sits apart from the link. -->
+      <ul>
+        @for (fav of filteredFavs(); track fav.id) {
+          <li class="flex items-center gap-2 border-b border-ink/15">
+            @if (item(fav); as it) {
+              <a [routerLink]="route(fav)" class="group flex flex-1 min-w-0 items-center gap-3 py-3 -mx-2 px-2 hover:bg-dark-800 transition-colors">
+                <span class="avatar w-10 h-10 overflow-hidden text-base" aria-hidden="true">
+                  @if (it.avatar_url) {
+                    <img [src]="it.avatar_url" alt="" class="w-full h-full object-cover" loading="lazy"/>
+                  } @else {
+                    {{ (it.name || it.title || '?').slice(0, 2).toUpperCase() }}
+                  }
+                </span>
+                <span class="flex flex-col min-w-0">
+                  <span class="font-display text-lg uppercase leading-tight text-ink group-hover:text-primary-600 transition-colors truncate">{{ it.name || it.title }}</span>
+                  <span class="text-sm text-ink-3 truncate" [class.hidden]="!detail(fav, it)">{{ detail(fav, it) }}</span>
+                  <span class="meta">{{ typeLabel(fav.entity_type) }}@if (it.city) { · {{ it.city }} }</span>
+                </span>
+              </a>
+            } @else {
+              <div class="flex flex-1 min-w-0 flex-col py-3">
+                <span class="font-display text-lg uppercase leading-tight text-ink-muted">Ya no está disponible</span>
+                <span class="meta">{{ typeLabel(fav.entity_type) }}</span>
+              </div>
+            }
+            <button type="button" (click)="remove(fav)"
+                    [attr.aria-label]="'Quitar de favoritos' + (item(fav) ? ': ' + (item(fav)!.name || item(fav)!.title) : '')"
+                    class="flex-shrink-0 min-h-[44px] px-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted underline underline-offset-4 hover:text-signal-red transition-colors">
+              Quitar
+            </button>
+          </li>
+        }
+      </ul>
     }
   </div>
 </div>

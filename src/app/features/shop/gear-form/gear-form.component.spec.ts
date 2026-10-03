@@ -318,11 +318,29 @@ describe('GearFormComponent', () => {
   });
 
   // -------------------------------------------------------------------------
-  // goBack()
+  // Conditions (legacy Spanish values in the DB)
   // -------------------------------------------------------------------------
 
-  it('20. goBack calls location.back()', () => {
-    component.goBack();
-    expect(locationSpy.back).toHaveBeenCalled();
+  it('20. offers the form conditions without the legacy-only "Muy bueno"', () => {
+    expect(component.conditions.map(c => c.id)).toEqual(['new', 'like_new', 'good', 'acceptable']);
+  });
+
+  function editListingWithCondition(condition: string) {
+    routeMock.snapshot.paramMap.get.and.returnValue('g1');
+    const listing = { id: 'g1', title: 'Guitarra', description: '', price: 100, category: 'Guitarras', condition, city: 'Madrid', images: [] };
+    supabaseSpy.client.from.and.callFake((table: string) =>
+      table === 'gear_listings' ? mockBuilder({ data: listing, error: null }) : mockBuilder({ data: null, error: null }));
+    return component.ngOnInit();
+  }
+
+  it('21. editing a listing stored as "bueno" selects the "good" option', async () => {
+    await editListingWithCondition('bueno');
+    expect(component.form.condition).toBe('good');
+  });
+
+  it('22. editing a legacy "muy bueno" listing keeps it selectable', async () => {
+    await editListingWithCondition('muy bueno');
+    expect(component.form.condition).toBe('muy bueno');
+    expect(component.conditions.some(c => c.id === 'muy bueno' && c.label === 'Muy bueno')).toBeTrue();
   });
 });

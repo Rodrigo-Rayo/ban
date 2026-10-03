@@ -1,20 +1,16 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
-  <!-- Header bar -->
-  <div class="px-6 lg:px-10 py-3 border-b-2 border-ink bg-dark-900 flex items-center gap-4 sticky top-16 z-10">
-    <button type="button" (click)="goBack()" aria-label="Volver"
-      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink hover:bg-dark-700 border-[1.5px] border-ink transition-colors">
-      <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-    </button>
-    <div class="flex-1">
-      <p class="text-[11px] font-mono uppercase tracking-widest text-ink-muted leading-none mb-0.5">
-        {{ isEditing() ? 'Editar local' : 'Publicar' }}
-      </p>
-      <h1 class="text-3xl text-ink leading-none">Local de ensayo</h1>
-    </div>
-  </div>
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+
+    <a routerLink="/search" [queryParams]="{ tab: 'rehearsal' }"
+       class="group inline-flex items-center gap-1 min-h-[44px] -ml-1 pr-3 mb-2 font-mono text-xs font-bold uppercase tracking-wide text-ink hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 transition-transform group-hover:-translate-x-0.5"><path d="M15 6l-6 6 6 6"/></svg>
+      Locales
+    </a>
+    <header class="mb-6">
+      <p class="page-kicker">Perfil profesional</p>
+      <h1 class="page-title">{{ isEditing() ? 'Editar local de ensayo' : 'Publicar local de ensayo' }}</h1>
+    </header>
 
   @if (loading()) {
     <div class="flex items-center justify-center py-24">
@@ -24,23 +20,17 @@
       </svg>
     </div>
   } @else {
-    <div class="px-6 lg:px-10 py-10 max-w-2xl mx-auto">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+    <div>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-8" novalidate>
+        <p class="meta -mb-3"><span class="text-signal-red" aria-hidden="true">*</span> Obligatorio</p>
 
         <!-- Información básica -->
-        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
-          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
-            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-              </svg>
-            </div>
-            <h2 class="text-xl text-ink">Información del local</h2>
-          </div>
-          <div class="p-6 flex flex-col gap-5">
+        <section>
+          <h2 class="rule-label mb-4"><span>Información del local</span></h2>
+          <div class="flex flex-col gap-4">
 
             <div>
-              <label for="rehearsal-name" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Nombre del local <span aria-hidden="true">*</span></label>
+              <label for="rehearsal-name" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Nombre del local <span class="text-signal-red" aria-hidden="true">*</span></label>
               <input id="rehearsal-name" formControlName="name" type="text" placeholder="Ej: Estudio Compás"
                 autocomplete="organization" class="input-field" required
                   [attr.aria-invalid]="isInvalid('name')"
@@ -52,7 +42,7 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="rehearsal-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Ciudad <span aria-hidden="true">*</span></label>
+                <label for="rehearsal-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad <span class="text-signal-red" aria-hidden="true">*</span></label>
                 <select id="rehearsal-city" formControlName="city" class="input-field" required>
                   @for (city of cities; track city) {
                     <option [value]="city">{{ city }}</option>
@@ -60,7 +50,7 @@
                 </select>
               </div>
               <div>
-                <label for="rehearsal-rate" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Precio por hora (€)</label>
+                <label for="rehearsal-rate" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Precio por hora (€)</label>
                 <input id="rehearsal-rate" formControlName="hourly_rate" type="number" min="0" placeholder="15" class="input-field"
                   [attr.aria-invalid]="isInvalid('hourly_rate')"
                   [attr.aria-describedby]="isInvalid('hourly_rate') ? 'rehearsal-rate-error' : null"/>
@@ -72,7 +62,7 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="rehearsal-capacity" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Aforo (personas)</label>
+                <label for="rehearsal-capacity" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Aforo (personas)</label>
                 <input id="rehearsal-capacity" formControlName="capacity" type="number" min="0" placeholder="10" class="input-field"
                   [attr.aria-invalid]="isInvalid('capacity')"
                   [attr.aria-describedby]="isInvalid('capacity') ? 'rehearsal-capacity-error' : null"/>
@@ -81,7 +71,7 @@
                 }
               </div>
               <div>
-                <label for="rehearsal-phone" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Teléfono</label>
+                <label for="rehearsal-phone" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Teléfono</label>
                 <input id="rehearsal-phone" formControlName="phone" type="tel" placeholder="+34 600 000 000"
                   autocomplete="tel" class="input-field"
                   [attr.aria-invalid]="isInvalid('phone')"
@@ -93,13 +83,13 @@
             </div>
 
             <div>
-              <label for="rehearsal-address" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Dirección</label>
+              <label for="rehearsal-address" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Dirección</label>
               <input id="rehearsal-address" formControlName="address" type="text" placeholder="Calle, número, zona..."
                 autocomplete="street-address" class="input-field"/>
             </div>
 
             <div>
-              <label for="rehearsal-hours" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">
+              <label for="rehearsal-hours" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">
                 Horario <span class="text-ink-muted normal-case">(opcional)</span>
               </label>
               <input id="rehearsal-hours" formControlName="opening_hours" type="text"
@@ -107,7 +97,7 @@
             </div>
 
             <div>
-              <label for="rehearsal-description" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">
+              <label for="rehearsal-description" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">
                 Descripción <span class="text-ink-muted normal-case">(equipamiento, características...)</span>
               </label>
               <textarea id="rehearsal-description" formControlName="description" rows="4"
@@ -116,21 +106,14 @@
             </div>
 
           </div>
-        </div>
+        </section>
 
         <!-- Links -->
-        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
-          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
-            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-              </svg>
-            </div>
-            <h2 class="text-xl text-ink">Links <span class="normal-case font-normal text-ink-muted">(opcionales)</span></h2>
-          </div>
-          <div class="p-6 flex flex-col gap-4">
+        <section>
+          <h2 class="rule-label mb-4"><span>Links <span class="normal-case font-normal text-ink-muted">(opcionales)</span></span></h2>
+          <div class="flex flex-col gap-4">
             <div>
-              <label for="rehearsal-instagram" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Instagram</label>
+              <label for="rehearsal-instagram" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Instagram</label>
               <input id="rehearsal-instagram" formControlName="instagram_url" type="url"
                 placeholder="https://instagram.com/tulocal" autocomplete="url" class="input-field"
                   [attr.aria-invalid]="isInvalid('instagram_url')"
@@ -140,7 +123,7 @@
               }
             </div>
             <div>
-              <label for="rehearsal-web" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Web</label>
+              <label for="rehearsal-web" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Web</label>
               <input id="rehearsal-web" formControlName="website_url" type="url"
                 placeholder="https://tuweb.com" autocomplete="url" class="input-field"
                   [attr.aria-invalid]="isInvalid('website_url')"
@@ -150,10 +133,10 @@
               }
             </div>
           </div>
-        </div>
+        </section>
 
         @if (error()) {
-          <p role="alert" class="text-sm text-signal-red text-center">{{ error() }}</p>
+          <div role="alert" class="border-2 border-signal-red bg-signal-rBg text-signal-red px-4 py-3 text-sm font-medium">{{ error() }}</div>
         }
 
         <button type="submit" [disabled]="saving() || loadFailed()"
@@ -173,4 +156,5 @@
     </div>
   }
 
+  </div>
 </div>

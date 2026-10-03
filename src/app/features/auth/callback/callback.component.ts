@@ -6,11 +6,12 @@ import { SupabaseService } from '../../../core/services/supabase.service';
   selector: 'app-callback',
   standalone: true,
   template: `
-    <div class="min-h-screen bg-dark-900 flex items-center justify-center">
-      <svg class="w-8 h-8 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24">
+    <div class="min-h-screen bg-dark-900 flex flex-col items-center justify-center gap-3" role="status">
+      <svg aria-hidden="true" class="w-8 h-8 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
       </svg>
+      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink">Entrando…</p>
     </div>
   `,
 })

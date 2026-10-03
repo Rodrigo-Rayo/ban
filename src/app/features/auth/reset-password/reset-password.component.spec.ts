@@ -188,7 +188,7 @@ describe('ResetPasswordComponent', () => {
     });
 
     it(
-      'schedules navigation to /dashboard after 2500ms',
+      'schedules navigation to /home after 2500ms',
       fakeAsync(() => {
         component.form.setValue({ password: 'newpassword', confirm: 'newpassword' });
         updateUserSpy.and.returnValue(Promise.resolve({ error: null }));
@@ -196,7 +196,7 @@ describe('ResetPasswordComponent', () => {
         component.onSubmit();
         tick(2500);
 
-        expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
+        expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
       })
     );
 

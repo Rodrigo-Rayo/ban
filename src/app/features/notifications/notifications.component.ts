@@ -1,11 +1,12 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { NotificationsService } from '../../core/services/notifications.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Notification as AppNotification } from '../../core/models';
 import { SupabaseService } from '../../core/services/supabase.service';
-import { IconComponent } from '../../shared/components/icon/icon.component';
+import { ConfirmService } from '../../core/services/confirm.service';
+import { timeAgo } from '../../core/utils/display.utils';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -18,7 +19,7 @@ const ENTITY_ROUTES: Readonly<Record<string, string>> = {
 
 @Component({
     selector: 'app-notifications',
-    imports: [RouterLink, CommonModule, DatePipe, IconComponent],
+    imports: [RouterLink, NgTemplateOutlet],
     templateUrl: './notifications.component.html'
 })
 export class NotificationsComponent implements OnInit {
@@ -26,6 +27,8 @@ export class NotificationsComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
+  readonly timeAgo = timeAgo;
 
   loading = signal(true);
   deleting = signal(false);
@@ -33,6 +36,7 @@ export class NotificationsComponent implements OnInit {
   userId = signal<string | null>(null);
 
   readonly hasUnread = computed(() => this.notifications().some(n => !n.read));
+  readonly unreadTotal = computed(() => this.notifications().filter(n => !n.read).length);
 
   readonly groupedNotifications = computed(() => {
     const now = new Date();
@@ -73,26 +77,22 @@ export class NotificationsComponent implements OnInit {
   async deleteAll() {
     const uid = this.userId();
     if (!uid) return;
+    const ok = await this.confirm.ask({
+      title: 'Eliminar todas las notificaciones',
+      message: 'Se borrarán para siempre. No se puede deshacer.',
+      confirmLabel: 'Eliminar todas',
+      danger: true,
+    });
+    if (!ok) return;
     this.deleting.set(true);
     try {
       await this.notifSvc.deleteAll(uid);
       this.notifications.set([]);
     } catch {
-      this.toast.error('No se pudieron borrar las notificaciones.');
+      this.toast.error('No se pudieron eliminar las notificaciones.');
     } finally {
       this.deleting.set(false);
     }
-  }
-
-  typeIcon(type: string) {
-    const map: Record<string, string> = {
-      application: 'music',
-      message:     'message',
-      review:      'star',
-      booking:     'calendar',
-      info:        'info',
-    };
-    return map[type] || 'bell';
   }
 
   getRoute(n: AppNotification): string[] | null {

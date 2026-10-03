@@ -1,21 +1,24 @@
 import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Location } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { CITIES } from '../../../core/constants/cities';
+import { confirmSecondProfile } from '../../teachers/teacher-form/professional-profile';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
     selector: 'app-rehearsal-form',
-    imports: [ReactiveFormsModule],
+    imports: [ReactiveFormsModule, RouterLink],
     templateUrl: './rehearsal-form.component.html'
 })
 export class RehearsalFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private location = inject(Location);
+  private auth = inject(AuthService);
+  private confirm = inject(ConfirmService);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -77,13 +80,15 @@ export class RehearsalFormComponent implements OnInit {
           instagram_url: data.instagram_url ?? '',
           website_url:   data.website_url ?? '',
         });
+      } else {
+        // New profile: start from the name the user already gave on their first profile.
+        const knownName = this.auth.userProfileData()?.name;
+        if (knownName) this.form.patchValue({ name: knownName });
       }
     } finally {
       this.loading.set(false);
     }
   }
-
-  goBack() { this.location.back(); }
 
   async onSubmit() {
     if (this.form.invalid) {
@@ -94,6 +99,7 @@ export class RehearsalFormComponent implements OnInit {
       return;
     }
     if (this.loadFailed() || this.saving()) return;
+    if (!await confirmSecondProfile(this.auth, this.confirm, 'rehearsal', this.isEditing())) return;
     this.saving.set(true);
     this.error.set('');
     try {

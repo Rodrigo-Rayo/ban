@@ -9,17 +9,11 @@
       La red musical<br>
       <span class="text-primary-500">de España</span>
     </h1>
-
-    <!-- Stamp -->
-    <span aria-hidden="true"
-          class="hidden md:flex absolute right-2 lg:right-10 top-0 rotate-6 bg-poster-yellow border-2 border-ink px-4 py-2 font-display text-2xl lg:text-3xl uppercase leading-none text-ink shadow-[4px_4px_0_0_#141210]">
-      Se busca<br>banda
-    </span>
   </div>
 
   <div class="mt-6 grid lg:grid-cols-[1fr_auto] gap-6 items-end">
     <p class="text-base sm:text-lg text-ink max-w-xl leading-relaxed">
-      Músicos, bandas, salas, profesores y locales de ensayo en un solo cartel.
+      Músicos, bandas, salas, clases y locales de ensayo en un solo cartel.
       Ves un perfil, escribes, tocáis.
     </p>
     <div class="flex flex-col sm:flex-row gap-3">
@@ -42,7 +36,7 @@
         <div>
           <div class="rule-label">
             <span>Se busca</span>
-            <a routerLink="/feed" [queryParams]="{ver:'bandas'}" class="underline min-h-[44px] inline-flex items-center">Todas las vacantes</a>
+            <a routerLink="/feed" [queryParams]="{ver:'bandas'}" class="underline min-h-[44px] inline-flex items-center">Ver todo en Se busca</a>
           </div>
           <h2 class="text-4xl lg:text-5xl leading-[1.05] mt-1 mb-2">Bandas que<br>necesitan gente</h2>
           @for (v of vacancies(); track v.id; let i = $index) {
@@ -112,9 +106,9 @@
   </div>
   <h2 id="que-buscas" class="text-5xl lg:text-6xl leading-[1.05] mt-1 mb-4">¿Qué buscas?</h2>
   <ul class="border-t border-ink/15">
-    @for (cat of catalog; track cat.tab; let i = $index) {
+    @for (cat of catalog; track cat.label; let i = $index) {
       <li>
-        <a [routerLink]="['/search']" [queryParams]="{tab: cat.tab}"
+        <a [routerLink]="cat.link" [queryParams]="cat.query"
            class="flex items-center gap-4 py-4 border-b border-ink/15 min-h-[64px] group hover:bg-poster-yellow transition-colors px-1">
           <span class="font-mono text-xs font-bold text-ink-muted w-6 shrink-0">0{{ i + 1 }}</span>
           <span class="font-display text-3xl lg:text-4xl uppercase leading-none flex-1 group-hover:translate-x-1 transition-transform">{{ cat.label }}</span>
@@ -133,7 +127,7 @@
     <h2 class="text-5xl sm:text-6xl lg:text-8xl leading-[1.05] mb-6">Tu próxima banda<br>te está esperando</h2>
     <div class="flex flex-wrap gap-2 mb-8">
       @for (role of roles; track role.id) {
-        <a routerLink="/auth/register" class="tag-accent min-h-[44px] px-3 hover:bg-ink hover:text-poster-yellow transition-colors">{{ role.label }}</a>
+        <a routerLink="/auth/register" class="tag min-h-[44px] px-3 hover:bg-ink hover:text-poster-paper transition-colors">{{ role.label }}</a>
       }
     </div>
     <a routerLink="/auth/register" class="btn-night px-10 py-4 text-sm min-h-[48px]">Crear perfil gratis</a>
@@ -141,19 +135,13 @@
   </div>
 </section>
 
-<!-- FOOTER ───────────────────────────────────────────── -->
-<footer class="px-4 sm:px-8 lg:px-14 pt-6 pb-24 sm:pb-8 border-t-2 border-ink">
-  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-    <div class="flex items-center gap-4">
-      <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
-      <span class="font-mono text-[11px] font-bold uppercase text-ink-muted">© Bandyou, 2026</span>
-    </div>
-    <nav aria-label="Legal" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
-      <a routerLink="/legal/privacidad" class="hover:text-ink py-2">Privacidad</a>
-      <a routerLink="/legal/terminos" class="hover:text-ink py-2">Términos</a>
-      <a routerLink="/legal/cookies" class="hover:text-ink py-2">Cookies</a>
-      <a routerLink="/legal/aviso-legal" class="hover:text-ink py-2">Aviso legal</a>
-      <a href="mailto:hola@bandyou.es" class="hover:text-ink py-2">Contacto</a>
-    </nav>
-  </div>
+<!-- FOOTER (same as the global one) ───────────────────── -->
+<footer class="border-t-2 border-ink mt-8 px-4 sm:px-6 py-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+  <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
+  <nav aria-label="Legal" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
+    <a routerLink="/legal/aviso-legal" class="hover:text-ink py-1">Aviso legal</a>
+    <a routerLink="/legal/privacidad" class="hover:text-ink py-1">Privacidad</a>
+    <a routerLink="/legal/terminos" class="hover:text-ink py-1">Términos</a>
+    <a routerLink="/legal/cookies" class="hover:text-ink py-1">Cookies</a>
+  </nav>
 </footer>

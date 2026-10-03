@@ -88,6 +88,13 @@ describe('RegisterComponent', () => {
   describe('legal consent', () => {
     beforeEach(() => component.legalConsent.setValue(false));
 
+    it('shows the consent error even when the email/password are still empty', () => {
+      component.form.setValue({ email: '', password: '' });
+      component.onSubmit();
+      expect(component.legalConsent.touched).toBeTrue();
+      expect(component.legalConsent.invalid).toBeTrue();
+    });
+
     it('is not pre-checked by default', () => {
       const fresh = TestBed.createComponent(RegisterComponent).componentInstance;
       expect(fresh.legalConsent.value).toBeFalse();

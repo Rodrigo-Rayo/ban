@@ -56,6 +56,32 @@ describe('LoginComponent', () => {
   // ── Form validation ────────────────────────────────────────────────────────
 
   describe('form validation', () => {
+    it('tells a too-short password the minimum length, not "obligatoria"', () => {
+      component.form.setValue({ email: 'user@example.com', password: 'abc' });
+      expect(component.passwordError()).toBe('La contraseña debe tener al menos 6 caracteres.');
+    });
+
+    it('says the password is required when it is empty', () => {
+      component.form.setValue({ email: 'user@example.com', password: '' });
+      expect(component.passwordError()).toBe('La contraseña es obligatoria.');
+    });
+
+    it('shows "Entra para continuar" when a return URL was stored', () => {
+      sessionStorage.setItem('bandyou_return_url', '/inbox');
+      try {
+        component.ngOnInit();
+        expect(component.needsLogin()).toBeTrue();
+      } finally {
+        sessionStorage.removeItem('bandyou_return_url');
+      }
+    });
+
+    it('does not show "Entra para continuar" without a return URL', () => {
+      sessionStorage.removeItem('bandyou_return_url');
+      component.ngOnInit();
+      expect(component.needsLogin()).toBeFalse();
+    });
+
     it('is invalid when the email field is empty', () => {
       component.form.setValue({ email: '', password: 'password123' });
       expect(component.form.get('email')!.invalid).toBeTrue();

@@ -39,16 +39,13 @@
       @if (isPast()) {
         <p class="bg-poster-yellow text-ink border-2 border-b-0 border-ink px-4 py-2.5 font-display uppercase text-xl sm:text-2xl leading-none flex items-center gap-2">
           Evento pasado
-          <span class="font-mono text-xs font-bold tracking-wide ml-auto hidden sm:inline">Este evento ya ha tenido lugar</span>
         </p>
       }
       <div class="relative profile-cover border-2 border-ink overflow-hidden px-4 sm:px-8 pt-14 pb-6 sm:pt-16 sm:pb-8 min-h-[320px] sm:min-h-[380px] flex flex-col justify-end gap-5">
         <span class="absolute left-4 sm:left-8 top-3.5 font-mono text-[11px] font-bold uppercase tracking-wide text-poster-paper/80">
           Concierto@if (event()!.genre) { · {{ event()!.genre }} }
         </span>
-        @if (priceLabel()) {
-          <span class="absolute right-0 top-3 bg-poster-yellow text-ink border-2 border-r-0 border-ink font-mono text-xs font-bold uppercase tracking-wide px-3 py-1.5">{{ priceLabel() }}</span>
-        }
+
 
         <div class="flex gap-4 sm:gap-6 items-end">
           <!-- Date block -->
@@ -59,7 +56,7 @@
             <p class="font-display text-6xl sm:text-7xl leading-[0.9]">{{ event()!.date | date:'d' }}</p>
             <p class="font-mono text-xs font-bold uppercase tracking-wide">{{ event()!.date | date:'MMM' | uppercase }}</p>
             @if (event()!.time) {
-              <p class="font-mono text-xs font-bold mt-2 pt-2 border-t" [class.border-white/40]="!isPast()" [class.border-ink/30]="isPast()">{{ event()!.time?.slice(0,5) }}h</p>
+              <p class="font-mono text-xs font-bold mt-2 pt-2 border-t" [class.border-white/40]="!isPast()" [class.border-ink/30]="isPast()">{{ time(event()!.time) }}</p>
             }
           </div>
           <h1 class="min-w-0 font-display text-[clamp(2.25rem,11vw,4rem)] sm:text-6xl lg:text-7xl leading-[0.9] text-poster-paper [overflow-wrap:anywhere]">{{ event()!.title }}</h1>
@@ -78,30 +75,12 @@
         <dl class="border-t-2 border-ink" aria-label="Ficha del evento">
           <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Fecha</dt>
-            <dd class="text-sm font-bold text-ink text-right min-w-0">{{ event()!.date | date:'EEEE, d MMMM yyyy' }}</dd>
+            <dd class="text-sm font-bold text-ink text-right min-w-0 first-letter:uppercase">{{ longDate(event()!.date) }}</dd>
           </div>
           @if (event()!.time) {
             <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
               <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Hora</dt>
-              <dd class="text-sm font-bold text-ink text-right min-w-0">{{ event()!.time?.slice(0,5) }}h</dd>
-            </div>
-          }
-          @if (event()!.venue) {
-            <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
-              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Lugar</dt>
-              <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ event()!.venue }}</dd>
-            </div>
-          }
-          @if (event()!.city) {
-            <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
-              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Ciudad</dt>
-              <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ event()!.city }}</dd>
-            </div>
-          }
-          @if (event()!.genre) {
-            <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
-              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Género</dt>
-              <dd class="text-sm font-bold text-ink text-right min-w-0">{{ event()!.genre }}</dd>
+              <dd class="text-sm font-bold text-ink text-right min-w-0">{{ time(event()!.time) }}</dd>
             </div>
           }
           @if (priceLabel()) {
@@ -130,8 +109,17 @@
               Comprar entradas<span class="sr-only"> (se abre en una pestaña nueva)</span>
             </a>
           }
-          <div class="grid grid-cols-2 gap-2">
-            @if (currentUserId()) {
+          @if (isOwner()) {
+            <div class="grid grid-cols-2 gap-2">
+              <a routerLink="/dashboard" aria-label="Editar evento en Mi panel" class="btn-secondary text-sm min-h-[44px] text-center">Editar</a>
+              <button type="button" (click)="deleteEvent()" [disabled]="deleting()"
+                class="btn-secondary text-sm min-h-[44px] !text-signal-red !border-signal-red disabled:opacity-50">Eliminar</button>
+            </div>
+          }
+          <div class="grid gap-2" [class.grid-cols-2]="!isOwner()" [class.grid-cols-1]="isOwner()">
+            @if (isOwner()) {
+              <!-- own event: no favorite -->
+            } @else if (currentUserId()) {
               <button type="button" (click)="toggleFav()" [disabled]="favLoading()"
                 [attr.aria-pressed]="isFav()"
                 [attr.aria-label]="isFav() ? 'Quitar de favoritos' : 'Añadir a favoritos'"
@@ -186,7 +174,7 @@
                     <div class="min-w-0 flex-1 flex flex-col justify-center">
                       <p class="font-display text-xl uppercase leading-tight text-ink group-hover:text-primary-600 transition-colors [overflow-wrap:anywhere]">{{ item.title }}</p>
                       <p class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted [overflow-wrap:anywhere]">
-                        {{ item.venue }}@if (item.city) { · {{ item.city }} }@if (item.time) { · {{ item.time.slice(0,5) }}h }
+                        {{ item.venue }}@if (item.city) { · {{ item.city }} }@if (item.time) { · {{ time(item.time) }} }
                       </p>
                     </div>
                   </a>
@@ -208,7 +196,11 @@
           Comprar entradas<span class="sr-only"> (se abre en una pestaña nueva)</span>
         </a>
       }
-      @if (currentUserId()) {
+      @if (isOwner()) {
+        <a routerLink="/dashboard" class="btn-night font-display text-xl leading-none min-h-[52px] flex-1 flex items-center justify-center">Editar</a>
+        <button type="button" (click)="deleteEvent()" [disabled]="deleting()" aria-label="Eliminar evento"
+          class="btn-secondary min-h-[52px] px-4 text-sm !text-signal-red !border-signal-red disabled:opacity-50">Eliminar</button>
+      } @else if (currentUserId()) {
         <button type="button" (click)="toggleFav()" [disabled]="favLoading()"
           [attr.aria-pressed]="isFav()"
           [attr.aria-label]="isFav() ? 'Quitar de favoritos' : 'Añadir a favoritos'"

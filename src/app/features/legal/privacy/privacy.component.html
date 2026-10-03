@@ -1,18 +1,21 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
-  <div class="max-w-3xl mx-auto px-5 lg:px-8 py-10">
-
-    <a routerLink="/" class="inline-flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink hover:text-primary-600 mb-6 min-h-[44px] transition-colors">
+<div class="min-h-screen bg-dark-900 pt-16 pb-20">
+  <header class="page-head">
+    <div class="page-head-inner max-w-3xl">
+      <div>
+        <p class="page-kicker">Legal</p>
+        <h1 class="page-title">Política de Privacidad</h1>
+      </div>
+      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted text-right">Última actualización: {{ info.updated }}</p>
+    </div>
+  </header>
+  <div class="page-wrap max-w-3xl py-6">
+    <a routerLink="/" class="inline-flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink hover:text-primary-600 mb-4 min-h-[44px] transition-colors">
       <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
       Volver al inicio
     </a>
 
-    <div class="mb-10 border-b-2 border-ink pb-5">
-      <p class="font-mono text-[11px] font-bold text-primary-500 uppercase tracking-wide mb-2">Legal</p>
-      <h1 class="text-5xl sm:text-6xl text-ink leading-[0.9] mb-3">Política de Privacidad</h1>
-      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Última actualización: {{ info.updated }}</p>
-    </div>
 
     <div class="prose-legal">
 
@@ -36,7 +39,7 @@
         <ul>
           <li><strong>Datos de cuenta:</strong> correo electrónico y contraseña (guardada cifrada mediante hash, nunca en claro). Si te registras con Google, recibimos de Google tu correo, tu nombre y tu foto de perfil.</li>
           <li><strong>Datos de perfil:</strong> nombre o nombre artístico, tipo de perfil, ciudad, instrumentos, géneros, nivel, descripción, foto, enlaces externos y, si decides añadirlos, email de contacto, teléfono, dirección, aforo o tarifas.</li>
-          <li><strong>Contenido que publicas:</strong> publicaciones en el tablón, eventos, anuncios de equipamiento (con fotos), vacantes y candidaturas, reseñas, reservas de locales y favoritos.</li>
+          <li><strong>Contenido que publicas:</strong> publicaciones en Se busca, eventos, artículos de la Tienda (con fotos), vacantes y candidaturas, reseñas, reservas de locales y favoritos.</li>
           <li><strong>Mensajes privados:</strong> el contenido de las conversaciones con otros usuarios, con su fecha y estado de lectura.</li>
           <li><strong>Notificaciones push:</strong> si las activas, el identificador de suscripción (endpoint y claves) que genera tu navegador.</li>
           <li><strong>Datos técnicos:</strong> dirección IP, navegador y registros de acceso que generan automáticamente nuestros proveedores de alojamiento, con fines de seguridad y diagnóstico.</li>
@@ -68,7 +71,7 @@
         <p>
           BandYou es una red para encontrarse, así que <strong>tu perfil es público</strong>: lo puede ver cualquier
           persona, aunque no tenga cuenta, y puede aparecer en buscadores como Google. Esto incluye tu nombre, foto,
-          ciudad, descripción, instrumentos y géneros, enlaces, eventos, publicaciones, anuncios de equipamiento y
+          ciudad, descripción, instrumentos y géneros, enlaces, eventos, publicaciones, artículos de la Tienda y
           reseñas que escribas.
         </p>
         <p>
@@ -113,7 +116,7 @@
         <h2>7. Cuánto tiempo conservamos los datos</h2>
         <ul>
           <li><strong>Mientras tengas cuenta</strong> conservamos tus datos de cuenta, perfil y contenido.</li>
-          <li><strong>Al eliminar tu cuenta</strong> desde tu panel ("Eliminar mi cuenta") se borran <strong>de forma inmediata e irreversible</strong> tu cuenta, tus perfiles, fotos, publicaciones, eventos, anuncios, reseñas, favoritos, reservas, candidaturas, notificaciones, suscripciones push y tus mensajes. Las conversaciones en las que participabas se eliminan también para la otra persona.</li>
+          <li><strong>Al eliminar tu cuenta</strong> desde Mi panel ("Eliminar mi cuenta") se borran <strong>de forma inmediata e irreversible</strong> tu cuenta, tus perfiles, fotos, publicaciones, eventos, anuncios, reseñas, favoritos, reservas, candidaturas, notificaciones, suscripciones push y tus mensajes. Las conversaciones en las que participabas se eliminan también para la otra persona.</li>
           <li><strong>Copias de seguridad:</strong> los datos borrados pueden permanecer en las copias de seguridad cifradas de nuestro proveedor hasta que se sobrescriban, en un plazo máximo de {{ info.backupRetention }}.</li>
           <li><strong>Registros técnicos y de seguridad:</strong> se conservan el tiempo limitado que fijan nuestros proveedores para fines de seguridad.</li>
           <li><strong>Bloqueo legal:</strong> cuando la ley lo exija, conservaremos bloqueados los datos imprescindibles (por ejemplo, la prueba de aceptación de los términos o la información sobre denuncias de contenido ilegal) durante los plazos de prescripción de las acciones legales aplicables, solo a disposición de jueces y autoridades.</li>

@@ -8,16 +8,16 @@ import { AuthService } from '../../core/services/auth.service';
     selector: 'app-not-found',
     imports: [RouterLink],
     template: `
-    <div class="min-h-screen bg-dark-900 flex items-center justify-center px-6" style="padding-top:64px; padding-bottom:64px">
-      <div class="text-center max-w-sm">
-        <div class="text-8xl sm:text-9xl font-black text-primary-500/15 leading-none mb-4 select-none">404</div>
-        <h1 class="text-2xl font-bold text-ink mb-2">Página no encontrada</h1>
-        <p class="text-sm text-ink-muted mb-8 leading-relaxed">
-          Este enlace no existe o ha sido eliminado.
+    <div class="min-h-screen bg-dark-900 pt-16">
+      <div class="page-wrap py-16 lg:py-24">
+        <p class="page-kicker">Error 404</p>
+        <h1 class="text-6xl sm:text-8xl leading-[1.05] max-w-3xl">Esta página no existe</h1>
+        <p class="mt-5 text-base text-ink-muted max-w-md leading-relaxed">
+          El enlace está mal escrito o la página ya no está. Vuelve a la portada o busca lo que necesitas.
         </p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-          <a [routerLink]="auth.isLoggedIn() ? '/home' : '/'" class="btn-primary px-6 py-3 text-sm min-h-[44px]">Ir al inicio</a>
-          <a routerLink="/search" class="btn-secondary px-6 py-3 text-sm min-h-[44px]">Explorar</a>
+        <div class="mt-8 flex flex-col sm:flex-row gap-3">
+          <a [routerLink]="auth.isLoggedIn() ? '/home' : '/'" aria-label="Ir a la portada (inicio)" class="btn-primary px-8 py-3.5 text-sm min-h-[48px]">Ir a la portada</a>
+          <a routerLink="/search" class="btn-secondary px-8 py-3.5 text-sm min-h-[48px]">Buscar</a>
         </div>
       </div>
     </div>

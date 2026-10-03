@@ -1,4 +1,4 @@
-import { Component, inject, signal, effect, untracked, OnInit, OnDestroy, DestroyRef, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, effect, untracked, OnInit, OnDestroy, DestroyRef, HostListener, ElementRef } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { MessagesService } from '../../../core/services/messages.service';
@@ -42,15 +42,36 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   { label: 'Tienda',   link: '/shop' },
 ];
 
-export const PUBLISH_OPTIONS: readonly PublishOption[] = [
-  { label: 'Anuncio en Se busca', hint: 'Busco banda, músicos, colaboración…', icon: 'newspaper',   link: '/feed', query: { new: '1' } },
-  { label: 'Concierto',        hint: 'Bolo, jam session, festival',          icon: 'calendar',      link: '/events/create' },
-  { label: 'Vender equipo',    hint: 'Instrumentos, amplis, efectos',        icon: 'shopping-cart', link: '/shop/new' },
-  { label: 'Vacante en tu banda', hint: 'Desde el perfil de tu banda',       icon: 'users',         link: '/dashboard' },
-  { label: 'Dar clases',       hint: 'Perfil de profesor',                   icon: 'book-open',     link: '/teachers/new' },
-  { label: 'Local de ensayo',  hint: 'Alquila tu local por horas',           icon: 'headphones',    link: '/rehearsal/new' },
-  { label: 'Sala de conciertos', hint: 'Programa música en directo',         icon: 'building',      link: '/venues/new' },
+/** Content to publish (first group of the sheet). */
+export const PUBLISH_CONTENT: readonly PublishOption[] = [
+  { label: 'Anuncio en Se busca', hint: 'Busco banda, músicos, colaboración…', icon: 'newspaper',      link: '/feed', query: { new: '1' } },
+  { label: 'Concierto',           hint: 'Bolo, jam session, festival',          icon: 'calendar',      link: '/events/create' },
+  { label: 'Vender equipo',       hint: 'Instrumentos, amplis, efectos',        icon: 'shopping-cart', link: '/shop/new' },
 ];
+
+/** Professional profiles to create (second group of the sheet). */
+export const PUBLISH_PROFILES: readonly PublishOption[] = [
+  { label: 'Dar clases',         hint: 'Perfil de profesor',          icon: 'book-open',  link: '/teachers/new' },
+  { label: 'Local de ensayo',    hint: 'Alquila tu local por horas',  icon: 'headphones', link: '/rehearsal/new' },
+  { label: 'Sala de conciertos', hint: 'Programa música en directo',  icon: 'building',   link: '/venues/new' },
+];
+
+/** "Vacante en tu banda": only for band profiles, straight to the band's page. */
+export function bandVacancyOption(profileType: string, profileId: string | null | undefined): PublishOption | null {
+  if (profileType !== 'band') return null;
+  return {
+    label: 'Vacante en tu banda',
+    hint: 'Desde el perfil de tu banda',
+    icon: 'users',
+    link: profileId ? `/bands/${profileId}` : '/dashboard',
+  };
+}
+
+/** First letter shown on the avatar: the profile name wins over the email. */
+export function accountInitial(name: string | null | undefined, email: string | null | undefined): string {
+  const source = (name ?? '').trim() || (email ?? '').trim() || 'U';
+  return source.slice(0, 1).toUpperCase();
+}
 
 @Component({
     selector: 'app-navbar',
@@ -66,10 +87,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private avatarUpload = inject(AvatarUploadService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
   menuOpen = false;
   publishOpen = false;
+  accountOpen = false;
   readonly sections = NAV_SECTIONS;
-  readonly publishOptions = PUBLISH_OPTIONS;
+  readonly publishProfiles = PUBLISH_PROFILES;
+  /** Content group, plus the band vacancy when the user has a band profile. */
+  readonly publishItems = computed<readonly PublishOption[]>(() => {
+    const vacancy = bandVacancyOption(this.auth.userProfileType(), this.auth.userProfileData()?.id);
+    return vacancy ? [...PUBLISH_CONTENT, vacancy] : PUBLISH_CONTENT;
+  });
+  readonly accountName = computed(() => this.auth.userProfileData()?.name?.trim() || '');
+  readonly initial = computed(() => accountInitial(this.accountName(), this.auth.user()?.email));
   /** Current URL, to mark the active section (search tabs differ only by query). */
   private currentUrl = signal(this.router.url);
 
@@ -84,20 +114,74 @@ export class NavbarComponent implements OnInit, OnDestroy {
   togglePublish() {
     this.publishOpen = !this.publishOpen;
     this.menuOpen = false;
+    this.accountOpen = false;
+    if (this.publishOpen) this.focusFirst('#publish-menu');
+  }
+
+  toggleAccount() {
+    this.accountOpen = !this.accountOpen;
+    this.publishOpen = false;
+    if (this.accountOpen) this.focusFirst('#account-menu');
+  }
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
+    this.publishOpen = false;
+    this.accountOpen = false;
+  }
+
+  closeAll() {
+    this.publishOpen = false;
+    this.menuOpen = false;
+    this.accountOpen = false;
+  }
+
+  signOut() {
+    this.closeAll();
+    this.auth.signOut();
+  }
+
+  /** Moves focus into a freshly opened menu (once Angular has rendered it). */
+  private focusFirst(selector: string) {
+    setTimeout(() => this.host.nativeElement.ownerDocument
+      .querySelector<HTMLElement>(`${selector} [role="menuitem"]`)?.focus());
+  }
+
+  /** Returns focus to the (visible) control that opened a menu. */
+  private focusTrigger(selector: string) {
+    const doc = this.host.nativeElement.ownerDocument;
+    Array.from(doc.querySelectorAll<HTMLElement>(selector)).find(el => el.offsetParent !== null)?.focus();
   }
 
   @HostListener('document:keydown.escape')
   onEscape() {
-    this.publishOpen = false;
-    this.menuOpen = false;
+    if (this.accountOpen) { this.accountOpen = false; this.focusTrigger('[data-account-trigger]'); }
+    if (this.publishOpen) { this.publishOpen = false; this.focusTrigger('[data-publish-trigger]'); }
+    if (this.menuOpen) { this.menuOpen = false; this.focusTrigger('[data-menu-trigger]'); }
+  }
+
+  /** Arrow keys / Home / End move between menu items; Tab leaves the menu. */
+  onMenuKeydown(event: KeyboardEvent) {
+    const menu = event.currentTarget as HTMLElement;
+    const items = Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+    const i = items.indexOf(event.target as HTMLElement);
+    const go = (n: number) => { event.preventDefault(); items[(n + items.length) % items.length]?.focus(); };
+    switch (event.key) {
+      case 'ArrowDown': go(i + 1); break;
+      case 'ArrowUp': go(i - 1); break;
+      case 'Home': go(0); break;
+      case 'End': go(items.length - 1); break;
+      case 'Tab': this.accountOpen = false; this.publishOpen = false; break;
+    }
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    if (this.publishOpen && !(event.target as Element).closest('[data-publish-dropdown]')) {
-      this.publishOpen = false;
-    }
+    const target = event.target as Element;
+    if (this.publishOpen && !target.closest('[data-publish-dropdown]')) this.publishOpen = false;
+    if (this.accountOpen && !target.closest('[data-account-menu]')) this.accountOpen = false;
   }
+
   avatarUrl = signal<string | null>(null);
   toast = signal<{ name: string; preview: string; conversationId: string } | null>(null);
   private channel: RealtimeChannel | null = null;
@@ -134,8 +218,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       filter(e => e instanceof NavigationEnd),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(e => {
-      this.publishOpen = false;
-      this.menuOpen = false;
+      this.closeAll();
       this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
     });
   }
@@ -147,7 +230,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (!userId) return;
 
     // Each step is independent: one failing (e.g. the notifications count) must not
-    // leave the inbox channel or the other badge un-initialised.
+    // leave the inbox channel or the other badge un-initialised. Notifications start
+    // first so a slow messages request can never delay the bell badge.
+    const notifications = this.setupNotifications(userId);
+    this.auth.loadUserProfile(userId).catch(() => { /* the initial falls back to the email */ });
     await this.messagesService.refreshUnreadCount(); // keeps previous value on error
     if (this.currentUserId !== userId) return; // user changed while awaiting
     this.loadAvatar(userId).catch(() => {});
@@ -165,6 +251,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
     } catch (err) {
       if (!environment.production) console.error('[navbar] inbox channel failed:', err);
     }
+    await notifications;
+  }
+
+  /** Bell badge: initial unread count, then live updates over Realtime. */
+  private async setupNotifications(userId: string) {
     try {
       await this.notifSvc.loadUnread(userId);
     } catch (err) {
@@ -178,10 +269,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Badges can drift when another tab/device reads messages or notifications;
-   * re-sync whenever this tab becomes visible again.
-   */
   /** Shown next to the search box; the shortcut works on both platforms. */
   readonly shortcutLabel = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K';
 
@@ -193,6 +280,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
       setTimeout(() => document.querySelector<HTMLInputElement>('main input[type="search"]')?.focus()));
   }
 
+  /**
+   * Badges can drift when another tab/device reads messages or notifications;
+   * re-sync whenever this tab becomes visible again.
+   */
   @HostListener('document:visibilitychange')
   onVisibilityChange() {
     const userId = this.currentUserId;

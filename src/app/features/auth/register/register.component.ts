@@ -2,6 +2,7 @@ import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Meta } from '@angular/platform-browser';
+import { AuthPosterComponent } from '../auth-poster.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { RegistrationStateService } from '../../../core/services/registration-state.service';
@@ -9,7 +10,7 @@ import { LEGAL_INFO } from '../../legal/legal-info';
 
 @Component({
     selector: 'app-register',
-    imports: [ReactiveFormsModule, RouterLink],
+    imports: [ReactiveFormsModule, RouterLink, AuthPosterComponent],
     templateUrl: './register.component.html'
 })
 export class RegisterComponent implements OnInit {
@@ -75,6 +76,8 @@ export class RegisterComponent implements OnInit {
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      // Show the consent error in the same pass, not only after the fields are fixed.
+      this.legalConsent.markAsTouched();
       // Scope to the <form>: the legal-consent checkbox lives outside it and has its own gate.
       this.host.nativeElement
         .querySelector<HTMLElement>('form input.ng-invalid, form select.ng-invalid, form textarea.ng-invalid')

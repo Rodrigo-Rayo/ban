@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { FavoritesComponent } from './favorites.component';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Favorite } from '../../core/models';
 
 function makeFav(overrides: Partial<Favorite> = {}): Favorite {
@@ -29,10 +30,13 @@ describe('FavoritesComponent', () => {
   let component: FavoritesComponent;
   let favSvcSpy: jasmine.SpyObj<FavoritesService>;
   let supabaseSpy: any;
+  let toastSpy: jasmine.SpyObj<ToastService>;
 
   beforeEach(() => {
-    favSvcSpy = jasmine.createSpyObj<FavoritesService>('FavoritesService', ['getByUser']);
+    favSvcSpy = jasmine.createSpyObj<FavoritesService>('FavoritesService', ['getByUser', 'toggle']);
     favSvcSpy.getByUser.and.returnValue(Promise.resolve([]));
+    favSvcSpy.toggle.and.returnValue(Promise.resolve(false));
+    toastSpy = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']);
 
     supabaseSpy = {
       auth: {
@@ -50,6 +54,7 @@ describe('FavoritesComponent', () => {
         FavoritesComponent,
         { provide: FavoritesService, useValue: favSvcSpy },
         { provide: SupabaseService, useValue: supabaseSpy },
+        { provide: ToastService, useValue: toastSpy },
       ],
     });
 
@@ -137,17 +142,39 @@ describe('FavoritesComponent', () => {
     });
   });
 
-  describe('typeIcon()', () => {
-    it('returns "music" for musician', () => {
-      expect(component.typeIcon('musician')).toBe('music');
+  describe('detail()', () => {
+    it('parses Postgres array strings into a clean list', () => {
+      const fav = makeFav({ entity_type: 'venue' });
+      expect(component.detail(fav, { id: 'v1', genres: '{ROCK,BLUES,FLAMENCO}' })).toBe('ROCK · BLUES · FLAMENCO');
     });
 
-    it('returns "calendar" for event', () => {
-      expect(component.typeIcon('event')).toBe('calendar');
+    it('puts the instrument before the genres', () => {
+      const fav = makeFav();
+      expect(component.detail(fav, { id: 'm1', instrument: 'Guitarra', genre: 'Rock' })).toBe('Guitarra · Rock');
     });
 
-    it('returns "user" for unknown type', () => {
-      expect(component.typeIcon('unknown')).toBe('user');
+    it('is empty when there is nothing to show', () => {
+      expect(component.detail(makeFav(), { id: 'm1' })).toBe('');
+    });
+  });
+
+  describe('remove()', () => {
+    const fav = makeFav({ id: 'f1' });
+    const other = makeFav({ id: 'f2', entity_id: 'm2' });
+
+    it('drops the favorite and calls the service', async () => {
+      component.favorites.set([fav, other]);
+      await component.remove(fav);
+      expect(favSvcSpy.toggle).toHaveBeenCalledWith('u1', 'musician', 'm1');
+      expect(component.favorites().map(f => f.id)).toEqual(['f2']);
+    });
+
+    it('restores the list and shows an error when the request fails', async () => {
+      favSvcSpy.toggle.and.callFake(async () => { throw new Error('fail'); });
+      component.favorites.set([fav, other]);
+      await component.remove(fav);
+      expect(component.favorites().length).toBe(2);
+      expect(toastSpy.error).toHaveBeenCalled();
     });
   });
 

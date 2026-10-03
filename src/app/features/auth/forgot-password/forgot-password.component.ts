@@ -1,11 +1,12 @@
 import { Component, ElementRef, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { AuthPosterComponent } from '../auth-poster.component';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
 @Component({
     selector: 'app-forgot-password',
-    imports: [ReactiveFormsModule, RouterLink],
+    imports: [ReactiveFormsModule, RouterLink, AuthPosterComponent],
     templateUrl: './forgot-password.component.html'
 })
 export class ForgotPasswordComponent {

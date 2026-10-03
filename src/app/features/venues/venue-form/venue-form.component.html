@@ -1,20 +1,16 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
-  <!-- Header bar -->
-  <div class="px-6 lg:px-10 py-3 border-b-2 border-ink bg-dark-900 flex items-center gap-4 sticky top-16 z-10">
-    <button type="button" (click)="goBack()" aria-label="Volver"
-      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink hover:bg-dark-700 border-[1.5px] border-ink transition-colors">
-      <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-    </button>
-    <div class="flex-1">
-      <p class="text-[11px] font-mono uppercase tracking-widest text-ink-muted leading-none mb-0.5">
-        {{ isEditing() ? 'Editar sala' : 'Publicar' }}
-      </p>
-      <h1 class="text-3xl text-ink leading-none">Sala / Espacio de conciertos</h1>
-    </div>
-  </div>
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+
+    <a routerLink="/search" [queryParams]="{ tab: 'venues' }"
+       class="group inline-flex items-center gap-1 min-h-[44px] -ml-1 pr-3 mb-2 font-mono text-xs font-bold uppercase tracking-wide text-ink hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 transition-transform group-hover:-translate-x-0.5"><path d="M15 6l-6 6 6 6"/></svg>
+      Salas
+    </a>
+    <header class="mb-6">
+      <p class="page-kicker">Perfil profesional</p>
+      <h1 class="page-title">{{ isEditing() ? 'Editar sala' : 'Publicar sala' }}</h1>
+    </header>
 
   @if (loading()) {
     <div class="flex items-center justify-center py-24">
@@ -24,23 +20,17 @@
       </svg>
     </div>
   } @else {
-    <div class="px-6 lg:px-10 py-10 max-w-2xl mx-auto">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+    <div>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-8" novalidate>
+        <p class="meta -mb-3"><span class="text-signal-red" aria-hidden="true">*</span> Obligatorio</p>
 
         <!-- Información básica -->
-        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
-          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
-            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-              </svg>
-            </div>
-            <h2 class="text-xl text-ink">Información de la sala</h2>
-          </div>
-          <div class="p-6 flex flex-col gap-5">
+        <section>
+          <h2 class="rule-label mb-4"><span>Información de la sala</span></h2>
+          <div class="flex flex-col gap-4">
 
             <div>
-              <label for="venue-name" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Nombre de la sala <span aria-hidden="true">*</span></label>
+              <label for="venue-name" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Nombre de la sala <span class="text-signal-red" aria-hidden="true">*</span></label>
               <input id="venue-name" formControlName="name" type="text" placeholder="Ej: Sala Apolo"
                 autocomplete="organization" class="input-field" required
                   [attr.aria-invalid]="isInvalid('name')"
@@ -52,7 +42,7 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="venue-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Ciudad <span aria-hidden="true">*</span></label>
+                <label for="venue-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad <span class="text-signal-red" aria-hidden="true">*</span></label>
                 <select id="venue-city" formControlName="city" class="input-field" required>
                   @for (city of cities; track city) {
                     <option [value]="city">{{ city }}</option>
@@ -60,7 +50,7 @@
                 </select>
               </div>
               <div>
-                <label for="venue-capacity" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Aforo (personas)</label>
+                <label for="venue-capacity" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Aforo (personas)</label>
                 <input id="venue-capacity" formControlName="capacity" type="number" min="0" placeholder="200" class="input-field"
                   [attr.aria-invalid]="isInvalid('capacity')"
                   [attr.aria-describedby]="isInvalid('capacity') ? 'venue-capacity-error' : null"/>
@@ -72,7 +62,7 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="venue-phone" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Teléfono</label>
+                <label for="venue-phone" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Teléfono</label>
                 <input id="venue-phone" formControlName="phone" type="tel" placeholder="+34 600 000 000"
                   autocomplete="tel" class="input-field"
                   [attr.aria-invalid]="isInvalid('phone')"
@@ -82,14 +72,14 @@
                 }
               </div>
               <div>
-                <label for="venue-address" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Dirección</label>
+                <label for="venue-address" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Dirección</label>
                 <input id="venue-address" formControlName="address" type="text" placeholder="Calle, número, zona..."
                   autocomplete="street-address" class="input-field"/>
               </div>
             </div>
 
             <div>
-              <label for="venue-description" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">
+              <label for="venue-description" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">
                 Descripción <span class="text-ink-muted normal-case">(tipo de eventos, capacidad técnica...)</span>
               </label>
               <textarea id="venue-description" formControlName="description" rows="4"
@@ -98,24 +88,17 @@
             </div>
 
           </div>
-        </div>
+        </section>
 
         <!-- Géneros -->
-        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
-          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
-            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-              </svg>
-            </div>
-            <h2 class="text-xl text-ink">Géneros que programas <span class="normal-case font-normal text-ink-muted">(opcional)</span></h2>
-          </div>
-          <div class="p-6">
+        <section>
+          <h2 class="rule-label mb-4"><span>Géneros que programas <span class="normal-case font-normal text-ink-muted">(opcional)</span></span></h2>
+          <div class="flex flex-col gap-4">
             <div class="flex flex-wrap gap-2" role="group" aria-label="Seleccionar géneros musicales">
               @for (genre of genres; track genre) {
                 <button type="button" (click)="toggleGenre(genre)"
                   [attr.aria-pressed]="selectedGenres().includes(genre)"
-                  class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[44px]"
+                  class="px-3 min-h-[44px] border-[1.5px] font-mono text-[11px] font-bold uppercase tracking-wide transition-colors"
                   [class.genre-pill-active]="selectedGenres().includes(genre)"
                   [class.genre-pill-inactive]="!selectedGenres().includes(genre)">
                   {{ genre }}
@@ -123,21 +106,14 @@
               }
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Links -->
-        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
-          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
-            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-              </svg>
-            </div>
-            <h2 class="text-xl text-ink">Links <span class="normal-case font-normal text-ink-muted">(opcionales)</span></h2>
-          </div>
-          <div class="p-6 flex flex-col gap-4">
+        <section>
+          <h2 class="rule-label mb-4"><span>Links <span class="normal-case font-normal text-ink-muted">(opcionales)</span></span></h2>
+          <div class="flex flex-col gap-4">
             <div>
-              <label for="venue-instagram" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Instagram</label>
+              <label for="venue-instagram" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Instagram</label>
               <input id="venue-instagram" formControlName="instagram_url" type="url" placeholder="https://instagram.com/tusala"
                 autocomplete="url" class="input-field"
                   [attr.aria-invalid]="isInvalid('instagram_url')"
@@ -147,7 +123,7 @@
               }
             </div>
             <div>
-              <label for="venue-web" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Web</label>
+              <label for="venue-web" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Web</label>
               <input id="venue-web" formControlName="website_url" type="url" placeholder="https://tuweb.com"
                 autocomplete="url" class="input-field"
                   [attr.aria-invalid]="isInvalid('website_url')"
@@ -157,10 +133,10 @@
               }
             </div>
           </div>
-        </div>
+        </section>
 
         @if (error()) {
-          <p role="alert" class="text-sm text-signal-red text-center">{{ error() }}</p>
+          <div role="alert" class="border-2 border-signal-red bg-signal-rBg text-signal-red px-4 py-3 text-sm font-medium">{{ error() }}</div>
         }
 
         <button type="submit" [disabled]="saving() || loadFailed()"
@@ -180,4 +156,5 @@
     </div>
   }
 
+  </div>
 </div>

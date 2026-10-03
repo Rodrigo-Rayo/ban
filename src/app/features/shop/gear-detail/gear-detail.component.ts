@@ -7,6 +7,10 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
+import { gearConditionLabel } from '../../../core/constants/gear';
+import { formatShortDate } from '../../../core/utils/date';
+import { GearCardComponent } from '../gear-card/gear-card.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { GearListing } from '../../../core/models';
 
@@ -17,7 +21,7 @@ const RELATED_LIMIT = 3;
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-gear-detail',
-    imports: [RouterLink, CommonModule, IconComponent],
+    imports: [RouterLink, CommonModule, IconComponent, GearCardComponent],
     templateUrl: './gear-detail.component.html'
 })
 export class GearDetailComponent implements OnInit {
@@ -27,6 +31,7 @@ export class GearDetailComponent implements OnInit {
   private toast = inject(ToastService);
   private seo = inject(SeoService);
   private messages = inject(MessagesService);
+  private confirm = inject(ConfirmService);
   auth = inject(AuthService);
 
   listing = signal<GearListing | null>(null);
@@ -38,16 +43,8 @@ export class GearDetailComponent implements OnInit {
   related = signal<GearListing[]>([]);
   linkShared = signal(false);
 
-  readonly conditionLabels: Record<string, string> = {
-    new: 'Nuevo', like_new: 'Como nuevo', good: 'Bueno', acceptable: 'Aceptable',
-  };
-
-  readonly conditionClasses: Record<string, string> = {
-    new:        'tag-accent',
-    like_new:   'tag-green',
-    good:       'tag',
-    acceptable: 'tag',
-  };
+  readonly conditionLabel = gearConditionLabel;
+  readonly shortDate = formatShortDate;
 
   /** Older listings were saved without seller_name: look it up so the seller box is never empty. */
   private async resolveSellerName(l: GearListing) {
@@ -88,7 +85,7 @@ export class GearDetailComponent implements OnInit {
             availability: data.status === 'active'
               ? 'https://schema.org/InStock'
               : 'https://schema.org/SoldOut',
-            itemCondition: data.condition === 'new'
+            itemCondition: ['new', 'nuevo'].includes((data.condition ?? '').toLowerCase())
               ? 'https://schema.org/NewCondition'
               : 'https://schema.org/UsedCondition',
             seller: { '@type': 'Person', name: data.seller_name || '' },
@@ -160,12 +157,26 @@ export class GearDetailComponent implements OnInit {
 
   async markAsSold() {
     if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
-    if (!confirm('¿Marcar como vendido? El anuncio dejará de aparecer en la tienda.')) return;
+    const ok = await this.confirm.ask({
+      title: '¿Marcar como vendido?',
+      message: 'El artículo seguirá visible en la tienda con la etiqueta VENDIDO. Podrás volver a ponerlo en venta cuando quieras.',
+      confirmLabel: 'Marcar como vendido',
+    });
+    if (!ok) return;
+    await this.setStatus('sold', 'Artículo marcado como vendido.');
+  }
+
+  async relist() {
+    if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
+    await this.setStatus('active', 'Artículo de nuevo en venta.');
+  }
+
+  private async setStatus(status: 'sold' | 'active', successMsg: string) {
     try {
-      const { error } = await this.supabase.client.from('gear_listings').update({ status: 'sold' }).eq('id', this.listing()!.id).eq('user_id', this.currentUser()!.id);
+      const { error } = await this.supabase.client.from('gear_listings').update({ status }).eq('id', this.listing()!.id).eq('user_id', this.currentUser()!.id);
       if (error) { this.toast.error('No se pudo actualizar el anuncio.'); return; }
-      this.listing.update(l => l ? { ...l, status: 'sold' as const } : l);
-      this.toast.success('Anuncio marcado como vendido.');
+      this.listing.update(l => l ? { ...l, status } : l);
+      this.toast.success(successMsg);
     } catch {
       this.toast.error('No se pudo actualizar el anuncio.');
     }
@@ -173,7 +184,13 @@ export class GearDetailComponent implements OnInit {
 
   async deleteListing() {
     if (!this.currentUser()) { this.router.navigate(['/auth/login']); return; }
-    if (!confirm('¿Eliminar este anuncio? Esta acción no se puede deshacer.')) return;
+    const ok = await this.confirm.ask({
+      title: '¿Eliminar este artículo?',
+      message: 'Se borra para siempre y no se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      danger: true,
+    });
+    if (!ok) return;
     this.deleting.set(true);
     try {
       const { error } = await this.supabase.client.from('gear_listings').delete().eq('id', this.listing()!.id).eq('user_id', this.currentUser()!.id);

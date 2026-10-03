@@ -1,180 +1,101 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
-  <!-- Sticky header + filter strip -->
-  <div class="sticky top-16 z-20">
-
-    <div class="bg-dark-900 border-b-2 border-ink">
-      <div class="max-w-5xl mx-auto px-5 lg:px-8 py-3 flex items-end justify-between gap-3">
-        <div class="min-w-0">
-          <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-primary-500 mb-1">Segunda mano · entre músicos</p>
-          <div class="flex items-baseline gap-3">
-            <h1 class="text-4xl sm:text-5xl leading-[0.9]">Tienda</h1>
-            @if (!loading()) {
-              <span class="meta hidden sm:flex">
-                {{ listings().length }} artículo{{ listings().length !== 1 ? 's' : '' }}
-              </span>
-            }
-          </div>
-        </div>
-        @if (auth.isLoggedIn()) {
-          <a routerLink="/shop/new" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 inline-flex items-center gap-1.5">
-            <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-            </svg>
-            Vender
-          </a>
-        }
+  <header class="page-head bg-dark-900 sticky top-16 z-20">
+    <div class="page-head-inner">
+      <div class="min-w-0">
+        <p class="page-kicker">Segunda mano · entre músicos</p>
+        <h1 class="page-title">Tienda</h1>
       </div>
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/shop/new" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 inline-flex items-center gap-1.5">
+          <app-icon name="edit" [size]="14" [strokeWidth]="2.5"/>
+          Vender
+        </a>
+      } @else {
+        <a routerLink="/auth/login" class="btn-primary text-sm px-4 py-2 min-h-[44px] flex-shrink-0 inline-flex items-center">Vender</a>
+      }
+    </div>
+  </header>
+
+  <div class="page-wrap py-5">
+
+    <!-- Filters: three selects, same look as the other pages -->
+    <div class="grid grid-cols-1 min-[420px]:grid-cols-3 gap-2 mb-2" role="group" aria-label="Filtros de la tienda">
+      <select aria-label="Filtrar por ciudad" [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); applyFilters()"
+        class="input-field !px-3 !py-2 min-h-[44px] cursor-pointer">
+        @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+      <select aria-label="Filtrar por categoría" [ngModel]="filterCategory()" (ngModelChange)="filterCategory.set($event); applyFilters()"
+        class="input-field !px-3 !py-2 min-h-[44px] cursor-pointer">
+        <option value="">Todas las categorías</option>
+        @for (cat of categories; track cat) { <option [value]="cat">{{ cat }}</option> }
+      </select>
+      <select aria-label="Filtrar por estado" [ngModel]="filterCondition()" (ngModelChange)="filterCondition.set($event); applyFilters()"
+        class="input-field !px-3 !py-2 min-h-[44px] cursor-pointer">
+        <option value="">Cualquier estado</option>
+        @for (cond of conditions; track cond.id) { <option [value]="cond.id">{{ cond.label }}</option> }
+      </select>
+    </div>
+    <div class="flex items-center justify-between gap-3 min-h-[36px] mb-3">
+      @if (!loading() && !loadError()) {
+        <p class="meta" aria-live="polite">{{ listings().length }} artículo{{ listings().length !== 1 ? 's' : '' }}</p>
+      } @else { <span></span> }
+      @if (hasFilters()) {
+        <button type="button" (click)="clearFilters()" class="btn-ghost font-mono text-[11px] font-bold uppercase px-3 py-2 min-h-[44px]">Limpiar filtros</button>
+      }
     </div>
 
-    <!-- Filter strip -->
-    <div class="bg-dark-900 border-b border-dark-600">
-      <div class="max-w-5xl mx-auto pl-5 [--fade-pad:1.25rem] lg:px-8 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar fade-edge-r">
-
-        <select aria-label="Filtrar por ciudad" [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadListings()"
-          class="input-field !w-auto flex-shrink-0 !px-3 !py-2 min-h-[44px] text-xs cursor-pointer">
-          @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
-        </select>
-
-        <select aria-label="Filtrar por categoría" [ngModel]="filterCategory()" (ngModelChange)="filterCategory.set($event); loadListings()"
-          class="input-field !w-auto flex-shrink-0 !px-3 !py-2 min-h-[44px] text-xs cursor-pointer">
-          <option value="">Categoría</option>
-          @for (cat of categories; track cat) { <option [value]="cat">{{ cat }}</option> }
-        </select>
-
-        <div class="h-5 w-0.5 bg-ink flex-shrink-0 mx-0.5"></div>
-
-        @for (cond of conditions; track cond.id) {
-          <button (click)="filterCondition.set(filterCondition() === cond.id ? '' : cond.id); loadListings()"
-            [attr.aria-pressed]="filterCondition() === cond.id"
-            class="flex-shrink-0 font-mono text-[11px] font-bold uppercase tracking-wide px-3 py-2 min-h-[44px] border-[1.5px] border-ink transition-colors duration-150"
-            [class.genre-pill-active]="filterCondition() === cond.id"
-            [class.genre-pill-inactive]="filterCondition() !== cond.id">
-            {{ cond.label }}
-          </button>
-        }
-
-        @if (hasFilters()) {
-          <button (click)="clearFilters()"
-            class="btn-ghost flex-shrink-0 flex items-center gap-1 font-mono text-[11px] font-bold uppercase px-3 py-2 min-h-[44px]">
-            <svg aria-hidden="true" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-            Limpiar
-          </button>
-        }
-      </div>
-    </div>
-  </div>
-
-  <div class="max-w-5xl mx-auto px-5 lg:px-8 py-6">
-
-    <!-- Loading skeleton -->
     @if (loading()) {
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" aria-busy="true">
         @for (i of [1,2,3,4,5,6,7,8]; track i) {
           <div class="card-flat overflow-hidden animate-pulse">
-            <div class="aspect-square bg-dark-700"></div>
+            <div class="aspect-[4/3] bg-dark-700"></div>
             <div class="p-3">
-              <div class="h-2.5 bg-dark-700 w-20 mb-2"></div>
+              <div class="h-3.5 bg-dark-600 w-16 mb-2"></div>
               <div class="h-3.5 bg-dark-600 w-full mb-1.5"></div>
-              <div class="h-2.5 bg-dark-700 w-16"></div>
+              <div class="h-2.5 bg-dark-700 w-20"></div>
             </div>
           </div>
         }
       </div>
     }
 
-    <!-- Error state -->
     @if (!loading() && loadError()) {
       <div role="alert" aria-live="assertive" class="empty-state">
         <p class="font-display text-2xl uppercase text-ink">No se pudieron cargar los artículos</p>
         <p class="text-sm text-ink-muted mb-3">Comprueba tu conexión e inténtalo de nuevo</p>
-        <button (click)="loadListings()" class="btn-primary text-sm px-5 py-2.5 min-h-[44px] inline-flex items-center">Reintentar</button>
+        <button type="button" (click)="loadListings()" class="btn-primary text-sm px-5 py-2.5 min-h-[44px] inline-flex items-center">Reintentar</button>
       </div>
     }
 
-    <!-- Empty state -->
     @if (!loading() && !loadError() && listings().length === 0) {
       <div class="empty-state">
-        <div class="empty-state-icon">
-          <app-icon name="shopping-cart" [size]="28" class="text-ink"/>
-        </div>
-        <p class="font-display text-2xl uppercase text-ink">No hay artículos en esta categoría</p>
+        <p class="font-display text-2xl uppercase text-ink">{{ hasFilters() ? 'Nada con estos filtros' : 'Aún no hay artículos' }}</p>
         <p class="text-sm text-ink-muted max-w-xs text-center mb-3">
-          Instrumentos, amplificadores, efectos… vende lo que ya no usas
+          {{ hasFilters() ? 'Prueba con otra ciudad, categoría o estado.' : 'Instrumentos, amplis, efectos… vende lo que ya no usas.' }}
         </p>
-        @if (auth.isLoggedIn()) {
-          <a routerLink="/shop/new" class="btn-primary text-sm px-5 py-2.5 min-h-[44px] inline-flex items-center">Publicar primer anuncio</a>
+        @if (hasFilters()) {
+          <button type="button" (click)="clearFilters()" class="btn-secondary text-sm px-5 py-2.5 min-h-[44px]">Limpiar filtros</button>
+        } @else if (auth.isLoggedIn()) {
+          <a routerLink="/shop/new" class="btn-primary text-sm px-5 py-2.5 min-h-[44px] inline-flex items-center">Vender equipo</a>
         } @else {
           <a routerLink="/auth/register" class="btn-primary text-sm px-5 py-2.5 min-h-[44px] inline-flex items-center">Únete para vender</a>
         }
       </div>
     }
 
-    <!-- Grid -->
     @if (!loading() && listings().length > 0) {
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <ul class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         @for (item of listings(); track item.id) {
-          <a [routerLink]="['/shop', item.id]"
-             class="card flex flex-col group focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500">
-
-            <div class="aspect-[4/3] bg-dark-750 relative overflow-hidden border-b-2 border-ink">
-              @if (item.images.length > 0) {
-                <img [src]="item.images[0]" [alt]="item.title" loading="lazy"
-                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              } @else {
-                <div class="w-full h-full flex items-center justify-center p-3 text-center"
-                     style="background-image: repeating-linear-gradient(135deg, transparent 0 9px, rgba(20,18,16,0.08) 9px 10px)">
-                  <span class="font-display text-2xl sm:text-3xl uppercase leading-none text-ink/80 break-words">{{ item.category }}</span>
-                </div>
-              }
-              <span class="absolute top-2 left-2 {{ conditionClass(item.condition) }}">
-                {{ conditionLabel(item.condition) }}
-              </span>
-              @if (item.images.length > 1) {
-                <span class="absolute top-2 right-2 tag !bg-night !text-poster-paper">
-                  1/{{ item.images.length }}
-                </span>
-              }
-            </div>
-
-            <div class="p-3 flex flex-col gap-1 flex-1">
-              <p class="font-display text-2xl leading-none text-ink">{{ item.price | number:'1.0-0' }} €</p>
-              <p class="text-sm font-semibold text-ink line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors">
-                {{ item.title }}
-              </p>
-              @if (item.images.length > 0) {
-                <p class="meta truncate">{{ item.category }}</p>
-              }
-              @if (item.city) {
-                <p class="meta min-w-0">
-                  <app-icon name="map-pin" [size]="11" class="flex-shrink-0"/>
-                  <span class="truncate">{{ item.city }}</span>
-                </p>
-              }
-              <p class="font-mono text-[11px] font-bold uppercase text-ink-muted mt-auto pt-2 truncate border-t border-dark-600">
-                {{ item.seller_name }}
-              </p>
-            </div>
-          </a>
+          <li><app-gear-card [item]="item"/></li>
         }
-      </div>
+      </ul>
 
-      <!-- Load more -->
-      @if (hasMore() && !loading()) {
+      @if (hasMore()) {
         <div class="flex justify-center py-10">
-          <button (click)="loadMore()" [disabled]="loadingMore()"
-            class="btn-secondary text-sm px-8 min-h-[44px] disabled:opacity-50 flex items-center gap-2">
-            @if (loadingMore()) {
-              <svg aria-hidden="true" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-              </svg>
-              Cargando…
-            } @else {
-              Ver más artículos
-            }
+          <button type="button" (click)="loadMore()" [disabled]="loadingMore()"
+            class="btn-secondary text-sm px-8 min-h-[44px] disabled:opacity-50">
+            {{ loadingMore() ? 'Cargando…' : 'Ver más artículos' }}
           </button>
         </div>
       }

@@ -4,16 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
-import { VacanciesService } from '../../core/services/vacancies.service';
 import { SeoService } from '../../core/services/seo.service';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
-import { INSTRUMENTS } from '../../core/constants/music.constants';
+import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { avatarColor } from '../../core/utils/display.utils';
 import { environment } from '../../../environments/environment';
+import { localToday } from '../../core/utils/date';
 import { parseList } from '../../core/utils/list';
 import { ListPipe } from '../../shared/pipes/list.pipe';
 
-type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal' | 'vacancies';
+type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal';
 
 interface MusicianResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; genre: string; availability_days?: string | null; created_at: string; user_id: string; }
 interface BandResult { id: string; name: string; city: string; avatar_url: string | null; genre: string; looking_for?: string | null; created_at: string; user_id: string; }
@@ -21,7 +21,6 @@ interface VenueResult { id: string; name: string; city: string; avatar_url: stri
 interface EventResult { id: string; title: string; venue: string; city: string; date: string; time: string | null; genre: string; description: string | null; price?: string | null; created_at: string; user_id: string; }
 interface TeacherResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; hourly_rate: number | null; modality?: string | null; created_at: string; user_id: string; }
 interface RehearsalResult { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate: number | null; rooms_count?: number | null; created_at: string; user_id: string; }
-interface VacancyResult { id: string; instrument: string; description: string | null; genre: string | null; created_at: string; bands: { id: string; name: string; city: string; avatar_url: string | null } | null; }
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,7 +34,6 @@ export class SearchComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
-  private vacanciesSvc = inject(VacanciesService);
   private seo = inject(SeoService);
 
   activeTab = signal<SearchType>('musicians');
@@ -62,10 +60,9 @@ export class SearchComponent implements OnInit, OnDestroy {
   venues         = signal<VenueResult[]>([]);
   teachers       = signal<TeacherResult[]>([]);
   rehearsals     = signal<RehearsalResult[]>([]);
-  vacancyResults = signal<VacancyResult[]>([]);
 
 
-  genres = ['Todos', 'Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Reggae', 'Punk', 'Clásico', 'Experimental', 'Bossa Nova'];
+  genres = GENRES;
   cities = CITIES_WITH_ALL;
   instruments = INSTRUMENTS;
 
@@ -112,7 +109,6 @@ export class SearchComponent implements OnInit, OnDestroy {
     const tabTitles: Record<SearchType, string> = {
       musicians: 'Músicos en España',
       bands: 'Bandas de música',
-      vacancies: 'Vacantes de bandas',
       venues: 'Salas de conciertos',
       events: 'Agenda de eventos',
       teachers: 'Clases de música',
@@ -120,13 +116,15 @@ export class SearchComponent implements OnInit, OnDestroy {
     };
 
     this.paramsSub = this.route.queryParams.subscribe(params => {
-      const tab = (params['tab'] as SearchType) || 'musicians';
+      const rawTab = (params['tab'] as string) || 'musicians';
       // "Se busca" now lives in /feed (posts + band vacancies together).
-      if (tab === 'vacancies') {
+      if (rawTab === 'vacancies') {
         this.router.navigate(['/feed'], { queryParams: { ver: 'bandas' }, replaceUrl: true });
         return;
       }
+      const tab: SearchType = this.tabLabelMap.has(rawTab as SearchType) ? rawTab as SearchType : 'musicians';
       this.activeTab.set(tab);
+      this.revealActiveTab();
       this.seo.set({
         title: tabTitles[tab] || 'Buscar',
         description: `Encuentra ${(tabTitles[tab] || 'músicos, bandas y salas').toLowerCase()} — BandYou`,
@@ -153,17 +151,21 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (this.searchDebounceTimer !== undefined) clearTimeout(this.searchDebounceTimer);
   }
 
-  private readonly tabLabelMap = new Map(this.tabs.map(t => [t.id, t.label]));
+  private readonly tabLabelMap = new Map<SearchType, string>(this.tabs.map(t => [t.id, t.label]));
+
+  /** Mobile tabs scroll horizontally: keep the active one in view. */
+  private revealActiveTab() {
+    setTimeout(() => document.getElementById('tab-' + this.activeTab())?.scrollIntoView({ block: 'nearest', inline: 'center' }), 0);
+  }
 
   readonly tabLabel = computed(() => this.tabLabelMap.get(this.activeTab()) ?? 'Resultados');
   private static readonly PLACEHOLDERS: Record<string, string> = {
-    musicians: 'Buscar músicos por nombre…',
+    musicians: 'Buscar músicos…',
     bands: 'Buscar bandas…',
-    vacancies: 'Instrumento que buscan: batería, voz…',
-    rehearsal: 'Buscar locales de ensayo…',
-    venues: 'Buscar salas de conciertos…',
-    events: 'Buscar conciertos…',
-    teachers: 'Buscar profesores…',
+    rehearsal: 'Buscar locales…',
+    venues: 'Buscar salas…',
+    events: 'Buscar eventos…',
+    teachers: 'Buscar clases…',
   };
   readonly searchPlaceholder = computed(() => SearchComponent.PLACEHOLDERS[this.activeTab()] ?? 'Buscar…');
 
@@ -175,15 +177,27 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'events')    return this.events().length;
     if (tab === 'teachers')  return this.teachers().length;
     if (tab === 'rehearsal') return this.rehearsals().length;
-    if (tab === 'vacancies') return this.vacancyResults().length;
     return 0;
   });
 
   readonly hasInstrumentFilter = computed(() => {
     const tab = this.activeTab();
-    return tab === 'musicians' || tab === 'teachers' || tab === 'vacancies';
+    return tab === 'musicians' || tab === 'teachers';
   });
-  readonly hasGenreFilter = computed(() => this.activeTab() !== 'rehearsal' && this.activeTab() !== 'events');
+
+  /** " en Madrid" when a city is selected, nothing for "Toda España" (used in titles and empty states). */
+  /** Page kicker: what the active category is about. */
+  readonly tabKicker = computed(() => ({
+    musicians: 'Gente que toca cerca de ti',
+    bands: 'Bandas de toda España',
+    rehearsal: 'Locales de ensayo',
+    teachers: 'Clases de música',
+    events: 'Conciertos, jams y festivales',
+    venues: 'Salas de conciertos',
+  } as Record<SearchType, string>)[this.activeTab()]);
+
+  readonly cityScope = computed(() => this.selectedCity() !== 'Toda España' ? ' en ' + this.selectedCity() : '');
+  readonly hasGenreFilter = computed(() => !['rehearsal', 'events', 'teachers'].includes(this.activeTab()));
 
   /** Number of secondary filters applied (city, instrument, genre). */
   readonly activeFilterCount = computed(() =>
@@ -201,8 +215,9 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   async setTab(tab: SearchType) {
     this.activeTab.set(tab);
+    this.revealActiveTab();
     this.selectedGenre.set('');
-    const hasInstrumentTab = tab === 'musicians' || tab === 'teachers' || tab === 'vacancies';
+    const hasInstrumentTab = tab === 'musicians' || tab === 'teachers';
     if (!hasInstrumentTab) this.selectedInstrument.set('');
     this.filterChanged();
   }
@@ -276,7 +291,6 @@ export class SearchComponent implements OnInit, OnDestroy {
     else if (tab === 'venues') this.venues.set(data as VenueResult[]);
     else if (tab === 'teachers') this.teachers.set(data as TeacherResult[]);
     else if (tab === 'rehearsal') this.rehearsals.set(data as RehearsalResult[]);
-    else if (tab === 'vacancies') this.vacancyResults.set(data as VacancyResult[]);
   }
 
   private appendResults(data: unknown[]) {
@@ -287,7 +301,6 @@ export class SearchComponent implements OnInit, OnDestroy {
     else if (tab === 'venues') this.venues.update(r => [...r, ...data as VenueResult[]]);
     else if (tab === 'teachers') this.teachers.update(r => [...r, ...data as TeacherResult[]]);
     else if (tab === 'rehearsal') this.rehearsals.update(r => [...r, ...data as RehearsalResult[]]);
-    else if (tab === 'vacancies') this.vacancyResults.update(r => [...r, ...data as VacancyResult[]]);
   }
 
   private static readonly SEARCH_COLS = {
@@ -318,9 +331,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
 
     if (tab === 'events') {
-      const localToday = new Date();
-      const todayStr = `${localToday.getFullYear()}-${String(localToday.getMonth()+1).padStart(2,'0')}-${String(localToday.getDate()).padStart(2,'0')}`;
-      let q = this.supabase.client.from('events').select(SearchComponent.SEARCH_COLS.events).gte('date', todayStr);
+      let q = this.supabase.client.from('events').select(SearchComponent.SEARCH_COLS.events).gte('date', localToday());
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.eq('genre', genre);
       if (query) q = q.ilike('title', `%${query}%`);
@@ -367,15 +378,6 @@ export class SearchComponent implements OnInit, OnDestroy {
       const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       if (error) throw error;
       return data || [];
-    }
-
-    if (tab === 'vacancies') {
-      const instrument = this.selectedInstrument();
-      return this.vacanciesSvc.listOpen({
-        city: city !== 'Toda España' ? city : null,
-        genre: genre && genre !== 'Todos' ? genre : null,
-        instrument, query, offset, limit: this.LIMIT,
-      });
     }
 
     return [];

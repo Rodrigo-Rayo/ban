@@ -1,20 +1,16 @@
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
-  <!-- Header bar -->
-  <div class="px-6 lg:px-10 py-3 border-b-2 border-ink bg-dark-900 flex items-center gap-4 sticky top-16 z-10">
-    <button type="button" (click)="goBack()" aria-label="Volver"
-      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-ink hover:bg-dark-700 border-[1.5px] border-ink transition-colors">
-      <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-    </button>
-    <div class="flex-1">
-      <p class="text-[11px] font-mono uppercase tracking-widest text-ink-muted leading-none mb-0.5">
-        {{ isEditing() ? 'Editar perfil' : 'Publicar' }}
-      </p>
-      <h1 class="text-3xl text-ink leading-none">Perfil de profesor</h1>
-    </div>
-  </div>
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+
+    <a routerLink="/search" [queryParams]="{ tab: 'teachers' }"
+       class="group inline-flex items-center gap-1 min-h-[44px] -ml-1 pr-3 mb-2 font-mono text-xs font-bold uppercase tracking-wide text-ink hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 transition-transform group-hover:-translate-x-0.5"><path d="M15 6l-6 6 6 6"/></svg>
+      Clases
+    </a>
+    <header class="mb-6">
+      <p class="page-kicker">Perfil profesional</p>
+      <h1 class="page-title">{{ isEditing() ? 'Editar mis clases' : 'Ofrecer clases' }}</h1>
+    </header>
 
   @if (loading()) {
     <div class="flex items-center justify-center py-24">
@@ -24,23 +20,17 @@
       </svg>
     </div>
   } @else {
-    <div class="px-6 lg:px-10 py-10 max-w-2xl mx-auto">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+    <div>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-8" novalidate>
+        <p class="meta -mb-3"><span class="text-signal-red" aria-hidden="true">*</span> Obligatorio</p>
 
         <!-- Información básica -->
-        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
-          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
-            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-              </svg>
-            </div>
-            <h2 class="text-xl text-ink">Información básica</h2>
-          </div>
-          <div class="p-6 flex flex-col gap-5">
+        <section>
+          <h2 class="rule-label mb-4"><span>Información básica</span></h2>
+          <div class="flex flex-col gap-4">
 
             <div>
-              <label for="teacher-name" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Tu nombre <span aria-hidden="true">*</span></label>
+              <label for="teacher-name" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Tu nombre <span class="text-signal-red" aria-hidden="true">*</span></label>
               <input id="teacher-name" formControlName="name" type="text" placeholder="Tu nombre completo"
                 autocomplete="name" class="input-field" required
                   [attr.aria-invalid]="isInvalid('name')"
@@ -52,7 +42,7 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="teacher-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Ciudad <span aria-hidden="true">*</span></label>
+                <label for="teacher-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad <span class="text-signal-red" aria-hidden="true">*</span></label>
                 <select id="teacher-city" formControlName="city" class="input-field" required>
                   @for (city of cities; track city) {
                     <option [value]="city">{{ city }}</option>
@@ -60,7 +50,7 @@
                 </select>
               </div>
               <div>
-                <label for="teacher-modality" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Modalidad</label>
+                <label for="teacher-modality" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Modalidad</label>
                 <select id="teacher-modality" formControlName="modality" class="input-field">
                   @for (m of modalities; track m.id) {
                     <option [value]="m.id">{{ m.label }}</option>
@@ -71,7 +61,7 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="teacher-rate" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Precio por hora (€)</label>
+                <label for="teacher-rate" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Precio por hora (€)</label>
                 <input id="teacher-rate" formControlName="hourly_rate" type="number" min="0" placeholder="25" class="input-field"
                   [attr.aria-invalid]="isInvalid('hourly_rate')"
                   [attr.aria-describedby]="isInvalid('hourly_rate') ? 'teacher-rate-error' : null"/>
@@ -80,7 +70,7 @@
                 }
               </div>
               <div>
-                <label for="teacher-exp-years" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Años de experiencia</label>
+                <label for="teacher-exp-years" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Años de experiencia</label>
                 <input id="teacher-exp-years" formControlName="experience_years" type="number" min="0" placeholder="5" class="input-field"
                   [attr.aria-invalid]="isInvalid('experience_years')"
                   [attr.aria-describedby]="isInvalid('experience_years') ? 'teacher-exp-years-error' : null"/>
@@ -91,7 +81,7 @@
             </div>
 
             <div>
-              <label for="teacher-description" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">
+              <label for="teacher-description" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">
                 Descripción <span class="text-ink-muted normal-case">(opcional)</span>
               </label>
               <textarea id="teacher-description" formControlName="description" rows="3"
@@ -100,7 +90,7 @@
             </div>
 
             <div>
-              <label for="teacher-experience" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">
+              <label for="teacher-experience" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">
                 Experiencia previa <span class="text-ink-muted normal-case">(centros, escuelas, proyectos...)</span>
               </label>
               <input id="teacher-experience" formControlName="experience" type="text"
@@ -108,24 +98,17 @@
             </div>
 
           </div>
-        </div>
+        </section>
 
         <!-- Instrumentos -->
-        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
-          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
-            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-              </svg>
-            </div>
-            <h2 class="text-xl text-ink">Instrumentos que enseñas</h2>
-          </div>
-          <div class="p-6">
+        <section>
+          <h2 class="rule-label mb-4"><span>Instrumentos que enseñas</span></h2>
+          <div class="flex flex-col gap-4">
             <div class="flex flex-wrap gap-2" role="group" aria-label="Seleccionar instrumentos">
               @for (inst of instruments; track inst) {
                 <button type="button" (click)="toggleInstrument(inst)"
                   [attr.aria-pressed]="selectedInstruments().includes(inst)"
-                  class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[44px]"
+                  class="px-3 min-h-[44px] border-[1.5px] font-mono text-[11px] font-bold uppercase tracking-wide transition-colors"
                   [class.genre-pill-active]="selectedInstruments().includes(inst)"
                   [class.genre-pill-inactive]="!selectedInstruments().includes(inst)">
                   {{ inst }}
@@ -133,24 +116,17 @@
               }
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Nivel -->
-        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
-          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
-            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
-            </div>
-            <h2 class="text-xl text-ink">Tu nivel como músico</h2>
-          </div>
-          <div class="p-6">
+        <section>
+          <h2 class="rule-label mb-4"><span>Tu nivel como músico</span></h2>
+          <div class="flex flex-col gap-4">
             <div class="flex flex-wrap gap-2" role="group" aria-label="Seleccionar nivel musical">
               @for (lv of levels; track lv.id) {
                 <button type="button" (click)="selectedLevel.set(lv.id)"
                   [attr.aria-pressed]="selectedLevel() === lv.id"
-                  class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all min-h-[44px]"
+                  class="px-3 min-h-[44px] border-[1.5px] font-mono text-[11px] font-bold uppercase tracking-wide transition-colors"
                   [class.genre-pill-active]="selectedLevel() === lv.id"
                   [class.genre-pill-inactive]="selectedLevel() !== lv.id">
                   {{ lv.label }}
@@ -158,21 +134,14 @@
               }
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Links -->
-        <div class="card-flat overflow-hidden shadow-[4px_4px_0_0_#141210]">
-          <div class="px-6 py-3 border-b-2 border-ink bg-dark-750 flex items-center gap-3">
-            <div class="w-8 h-8 bg-poster-yellow border-[1.5px] border-ink flex items-center justify-center flex-shrink-0">
-              <svg aria-hidden="true" class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-              </svg>
-            </div>
-            <h2 class="text-xl text-ink">Links <span class="normal-case font-normal text-ink-muted">(opcionales)</span></h2>
-          </div>
-          <div class="p-6 flex flex-col gap-4">
+        <section>
+          <h2 class="rule-label mb-4"><span>Links <span class="normal-case font-normal text-ink-muted">(opcionales)</span></span></h2>
+          <div class="flex flex-col gap-4">
             <div>
-              <label for="teacher-instagram" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Instagram</label>
+              <label for="teacher-instagram" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Instagram</label>
               <input id="teacher-instagram" formControlName="instagram_url" type="url"
                 placeholder="https://instagram.com/tuusuario" autocomplete="url" class="input-field"
                   [attr.aria-invalid]="isInvalid('instagram_url')"
@@ -182,7 +151,7 @@
               }
             </div>
             <div>
-              <label for="teacher-youtube" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">YouTube</label>
+              <label for="teacher-youtube" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">YouTube</label>
               <input id="teacher-youtube" formControlName="youtube_url" type="url"
                 placeholder="https://youtube.com/@tucanal" autocomplete="url" class="input-field"
                   [attr.aria-invalid]="isInvalid('youtube_url')"
@@ -192,7 +161,7 @@
               }
             </div>
             <div>
-              <label for="teacher-web" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-2">Web</label>
+              <label for="teacher-web" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Web</label>
               <input id="teacher-web" formControlName="website_url" type="url"
                 placeholder="https://tuweb.com" autocomplete="url" class="input-field"
                   [attr.aria-invalid]="isInvalid('website_url')"
@@ -202,10 +171,10 @@
               }
             </div>
           </div>
-        </div>
+        </section>
 
         @if (error()) {
-          <p role="alert" class="text-sm text-signal-red text-center">{{ error() }}</p>
+          <div role="alert" class="border-2 border-signal-red bg-signal-rBg text-signal-red px-4 py-3 text-sm font-medium">{{ error() }}</div>
         }
 
         <button type="submit" [disabled]="saving() || loadFailed()"
@@ -225,4 +194,5 @@
     </div>
   }
 
+  </div>
 </div>

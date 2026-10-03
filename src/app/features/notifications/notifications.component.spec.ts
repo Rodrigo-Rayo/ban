@@ -4,6 +4,7 @@ import { NotificationsComponent } from './notifications.component';
 import { NotificationsService } from '../../core/services/notifications.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { Notification as AppNotification } from '../../core/models';
 
 const NOW = new Date();
@@ -30,6 +31,7 @@ describe('NotificationsComponent', () => {
   let notifSvcSpy: jasmine.SpyObj<NotificationsService>;
   let supabaseSpy: any;
   let toastSpy: jasmine.SpyObj<ToastService>;
+  let confirmSpy: jasmine.SpyObj<ConfirmService>;
 
   beforeEach(() => {
     notifSvcSpy = jasmine.createSpyObj<NotificationsService>('NotificationsService', [
@@ -48,6 +50,8 @@ describe('NotificationsComponent', () => {
     };
 
     toastSpy = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']);
+    confirmSpy = jasmine.createSpyObj<ConfirmService>('ConfirmService', ['ask']);
+    confirmSpy.ask.and.returnValue(Promise.resolve(true));
 
     TestBed.configureTestingModule({
       providers: [
@@ -55,6 +59,7 @@ describe('NotificationsComponent', () => {
         { provide: NotificationsService, useValue: notifSvcSpy },
         { provide: SupabaseService, useValue: supabaseSpy },
         { provide: ToastService, useValue: toastSpy },
+        { provide: ConfirmService, useValue: confirmSpy },
         { provide: Router, useValue: {} },
       ],
     });
@@ -77,6 +82,13 @@ describe('NotificationsComponent', () => {
     it('is false when notifications list is empty', () => {
       component.notifications.set([]);
       expect(component.hasUnread()).toBeFalse();
+    });
+  });
+
+  describe('unreadTotal computed', () => {
+    it('counts only unread notifications', () => {
+      component.notifications.set([makeNotif({ id: 'a', read: false }), makeNotif({ id: 'b', read: true }), makeNotif({ id: 'c', read: false })]);
+      expect(component.unreadTotal()).toBe(2);
     });
   });
 
@@ -143,6 +155,21 @@ describe('NotificationsComponent', () => {
       expect(notifSvcSpy.deleteAll).not.toHaveBeenCalled();
     });
 
+    it('asks for confirmation with the "Eliminar todas" label', async () => {
+      component.userId.set('u1');
+      await component.deleteAll();
+      expect(confirmSpy.ask).toHaveBeenCalledWith(jasmine.objectContaining({ confirmLabel: 'Eliminar todas', danger: true }));
+    });
+
+    it('keeps everything when the user cancels', async () => {
+      component.userId.set('u1');
+      component.notifications.set([makeNotif()]);
+      confirmSpy.ask.and.returnValue(Promise.resolve(false));
+      await component.deleteAll();
+      expect(notifSvcSpy.deleteAll).not.toHaveBeenCalled();
+      expect(component.notifications().length).toBe(1);
+    });
+
     it('clears notifications on success', async () => {
       component.userId.set('u1');
       component.notifications.set([makeNotif()]);
@@ -157,24 +184,6 @@ describe('NotificationsComponent', () => {
       await component.deleteAll();
       expect(toastSpy.error).toHaveBeenCalled();
       expect(component.deleting()).toBeFalse();
-    });
-  });
-
-  describe('typeIcon()', () => {
-    it('returns "music" for application type', () => {
-      expect(component.typeIcon('application')).toBe('music');
-    });
-
-    it('returns "star" for review type', () => {
-      expect(component.typeIcon('review')).toBe('star');
-    });
-
-    it('returns "calendar" for booking type', () => {
-      expect(component.typeIcon('booking')).toBe('calendar');
-    });
-
-    it('returns "bell" for unknown type', () => {
-      expect(component.typeIcon('unknown')).toBe('bell');
     });
   });
 

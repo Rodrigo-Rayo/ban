@@ -1,6 +1,5 @@
 import { Component, ElementRef, HostListener, signal, inject, OnInit, OnDestroy } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { Location } from '@angular/common';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import type { User } from '@supabase/supabase-js';
@@ -8,19 +7,19 @@ import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { CITIES } from '../../../core/constants/cities';
+import { GEAR_CONDITIONS, GEAR_CONDITION_FORM_OPTIONS } from '../../../core/constants/gear';
 
 interface GearFormUserProfile { id: string; name: string; type: 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal'; }
 
 @Component({
     selector: 'app-gear-form',
-    imports: [FormsModule],
+    imports: [FormsModule, RouterLink],
     templateUrl: './gear-form.component.html'
 })
 export class GearFormComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private location = inject(Location);
   private toast = inject(ToastService);
   auth = inject(AuthService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -47,12 +46,13 @@ export class GearFormComponent implements OnInit, OnDestroy {
   userProfile = signal<GearFormUserProfile | null>(null);
 
   readonly categories = ['Guitarras', 'Bajos', 'Batería', 'Teclados', 'Amplificadores', 'Efectos', 'PA/Sonido', 'Accesorios', 'Otro'];
-  readonly conditions = [
-    { id: 'new',       label: 'Nuevo' },
-    { id: 'like_new',  label: 'Como nuevo' },
-    { id: 'good',      label: 'Bueno' },
-    { id: 'acceptable', label: 'Aceptable' },
-  ];
+  /** Stored value of the listing being edited when it is a legacy-only one ("muy bueno"): kept as is. */
+  private legacyCondition: { id: string; label: string } | null = null;
+
+  /** Form options; a legacy value (e.g. "Muy bueno") is offered only while editing a listing that has it. */
+  get conditions(): { id: string; label: string }[] {
+    return this.legacyCondition ? [...GEAR_CONDITION_FORM_OPTIONS, this.legacyCondition] : [...GEAR_CONDITION_FORM_OPTIONS];
+  }
   readonly cities = CITIES;
 
   async ngOnInit() {
@@ -82,7 +82,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
         this.form.description = listing.description ?? '';
         this.form.price = listing.price;
         this.form.category = listing.category;
-        this.form.condition = listing.condition;
+        this.form.condition = this.normalizeCondition(listing.condition);
         this.form.city = listing.city;
         this.existingImages.set(listing.images ?? []);
       }
@@ -90,6 +90,18 @@ export class GearFormComponent implements OnInit, OnDestroy {
       this.toast.error('No se pudo cargar el formulario. Inténtalo de nuevo.');
       this.router.navigate(['/shop']);
     }
+  }
+
+  /** Maps any stored condition ("bueno", "good"…) to a form option id; legacy-only values stay selectable. */
+  private normalizeCondition(stored: string | null): string {
+    const v = (stored ?? '').trim().toLowerCase();
+    const opt = GEAR_CONDITIONS.find(c => c.id === v || c.values.includes(v));
+    if (!opt) return 'good';
+    if (opt.legacy) {
+      this.legacyCondition = { id: stored as string, label: opt.label };
+      return stored as string;
+    }
+    return opt.id;
   }
 
   removeExistingImage(idx: number) {
@@ -139,8 +151,6 @@ export class GearFormComponent implements OnInit, OnDestroy {
       event.returnValue = '';
     }
   }
-
-  goBack() { this.location.back(); }
 
   get canSubmit() {
     return this.form.title.trim() && this.form.price != null && this.form.price > 0;
