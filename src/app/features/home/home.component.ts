@@ -193,6 +193,23 @@ export class HomeComponent implements OnInit {
     }
     return slides;
   });
+  /** Mobile: paper card with a coloured border. Desktop: the solid poster block, smaller. */
+  slideClass(tone: FeaturedSlide['tone']): string {
+    switch (tone) {
+      case 'red':    return 'border-primary-500 shadow-[3px_3px_0_0_#c23a1f] lg:bg-primary-500 lg:text-white lg:border-ink lg:shadow-[4px_4px_0_0_#141210]';
+      case 'yellow': return 'border-poster-yellow shadow-[3px_3px_0_0_#e8b931] lg:bg-poster-yellow lg:text-ink lg:border-ink lg:shadow-[4px_4px_0_0_#141210]';
+      default:       return 'border-ink shadow-[3px_3px_0_0_#141210] lg:bg-ink lg:text-poster-paper lg:shadow-[4px_4px_0_0_#c23a1f]';
+    }
+  }
+
+  kickerClass(tone: FeaturedSlide['tone']): string {
+    switch (tone) {
+      case 'red':    return 'text-primary-600 lg:text-white';
+      case 'yellow': return 'text-ink-muted lg:text-ink';
+      default:       return 'text-ink-muted lg:text-poster-yellow';
+    }
+  }
+
   /** Index of the slide in view (drives the dots). */
   readonly activeSlide = signal(0);
 
