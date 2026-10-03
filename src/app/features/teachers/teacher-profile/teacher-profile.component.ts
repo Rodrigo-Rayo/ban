@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
+import { NotificationsService } from '../../../core/services/notifications.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -12,6 +13,7 @@ import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/
 import { avatarColor } from '../../../core/utils/display.utils';
 import { Teacher, Review } from '../../../core/models';
 import { formatLongDate, localToday } from '../../../core/utils/date';
+import { LESSON_REQUEST_TITLE, lessonRequestBody } from '../../../core/utils/notification-copy';
 
 const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avatar_url, hourly_rate, experience_years, level, modality, website_url, youtube_url';
 
@@ -28,6 +30,7 @@ export class TeacherProfileComponent implements OnInit {
   private supabase = inject(SupabaseService);
   private messagesService = inject(MessagesService);
   private favSvc = inject(FavoritesService);
+  private notifSvc = inject(NotificationsService);
   private seo = inject(SeoService);
   private toast = inject(ToastService);
 
@@ -139,11 +142,24 @@ export class TeacherProfileComponent implements OnInit {
   }
 
   private async getAuthorName(): Promise<string> {
+    return (await this.getProfileName()) || 'Usuario';
+  }
+
+  /** Signed-in user's display name; get_profile_name covers every role, including listeners (profiles.name). */
+  private async getProfileName(): Promise<string | null> {
     const uid = this.currentUserId();
-    if (!uid) return 'Usuario';
-    // get_profile_name covers every role, including listeners (profiles.name).
+    if (!uid) return null;
     const { data } = await this.supabase.client.rpc('get_profile_name', { p_user_id: uid });
-    return (data as string | null) || 'Usuario';
+    return (data as string | null) || null;
+  }
+
+  /** Tells the teacher a lesson request arrived. Never to yourself. */
+  private async notifyLessonRequest(longDate: string): Promise<void> {
+    const teacher = this.teacher();
+    if (!teacher?.user_id || teacher.user_id === this.currentUserId()) return;
+    const name = await this.getProfileName();
+    await this.notifSvc.create(
+      teacher.user_id, 'booking', LESSON_REQUEST_TITLE, lessonRequestBody(name, longDate), 'teacher', teacher.id);
   }
 
   async submitReview() {
@@ -192,6 +208,8 @@ export class TeacherProfileComponent implements OnInit {
         return;
       }
       await this.messagesService.sendMessage(result.id, text);
+      // Best effort: the request already went out as a message.
+      this.notifyLessonRequest(date).catch(() => undefined);
       this.bookingDate = '';
       this.bookingTime = '';
       this.bookingMessage = '';

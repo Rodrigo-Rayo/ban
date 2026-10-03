@@ -35,8 +35,9 @@ describe('NotificationsComponent', () => {
 
   beforeEach(() => {
     notifSvcSpy = jasmine.createSpyObj<NotificationsService>('NotificationsService', [
-      'getAll', 'markAllRead', 'deleteAll',
+      'getAll', 'markAllRead', 'deleteAll', 'markRead',
     ]);
+    notifSvcSpy.markRead.and.returnValue(Promise.resolve());
     notifSvcSpy.getAll.and.returnValue(Promise.resolve([]));
     notifSvcSpy.markAllRead.and.returnValue(Promise.resolve());
     notifSvcSpy.deleteAll.and.returnValue(Promise.resolve());
@@ -226,6 +227,65 @@ describe('NotificationsComponent', () => {
     it('returns null when entity_type is null', () => {
       const n = makeNotif({ type: 'system', entity_type: null, entity_id: null });
       expect(component.getRoute(n)).toBeNull();
+    });
+  });
+
+  describe('getRoute() for every producer', () => {
+    const cases: [string, string, string][] = [
+      ['application', 'band', '/bands'],
+      ['favorite', 'musician', '/musicians'],
+      ['favorite', 'band', '/bands'],
+      ['favorite', 'venue', '/venues'],
+      ['favorite', 'teacher', '/teachers'],
+      ['favorite', 'rehearsal', '/rehearsal'],
+      ['booking', 'teacher', '/teachers'],
+    ];
+    cases.forEach(([type, entityType, base]) => {
+      it(`routes ${type} on a ${entityType} to ${base}/:id`, () => {
+        const n = makeNotif({ type: type as AppNotification['type'], entity_type: entityType, entity_id: UUID_A });
+        expect(component.getRoute(n)).toEqual([base, UUID_A]);
+      });
+    });
+  });
+
+  describe('iconFor()', () => {
+    it('gives each type its own icon and falls back to the bell', () => {
+      expect(component.iconFor(makeNotif({ type: 'favorite' }))).toBe('heart');
+      expect(component.iconFor(makeNotif({ type: 'booking' }))).toBe('book-open');
+      expect(component.iconFor(makeNotif({ type: 'application' }))).toBe('mic');
+      expect(component.iconFor(makeNotif({ type: 'rsvp' }))).toBe('calendar');
+      expect(component.iconFor(makeNotif({ type: 'review' }))).toBe('star');
+      expect(component.iconFor(makeNotif({ type: 'system' }))).toBe('bell');
+      expect(component.iconFor(makeNotif({ type: 'toString' as AppNotification['type'] }))).toBe('bell');
+    });
+  });
+
+  describe('open()', () => {
+    it('marks an unread notification as read locally and on the server', () => {
+      component.userId.set('u1');
+      const n = makeNotif({ id: 'n1', read: false });
+      component.notifications.set([n, makeNotif({ id: 'n2', read: false })]);
+      component.open(n);
+      expect(component.notifications().find(x => x.id === 'n1')!.read).toBeTrue();
+      expect(component.notifications().find(x => x.id === 'n2')!.read).toBeFalse();
+      expect(notifSvcSpy.markRead).toHaveBeenCalledWith('u1', 'n1');
+    });
+
+    it('does nothing for an already-read notification', () => {
+      component.userId.set('u1');
+      component.open(makeNotif({ read: true }));
+      expect(notifSvcSpy.markRead).not.toHaveBeenCalled();
+    });
+
+    it('keeps the read state when the server call fails', async () => {
+      component.userId.set('u1');
+      notifSvcSpy.markRead.and.returnValue(Promise.reject(new Error('x')));
+      const n = makeNotif({ id: 'n1', read: false });
+      component.notifications.set([n]);
+      component.open(n);
+      await Promise.resolve();
+      expect(component.notifications()[0].read).toBeTrue();
+      expect(toastSpy.error).not.toHaveBeenCalled();
     });
   });
 

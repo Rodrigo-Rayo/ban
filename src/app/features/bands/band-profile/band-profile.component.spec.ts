@@ -114,6 +114,60 @@ describe('BandProfileComponent', () => {
     expect(component.vacancies().find(v => v.id === 'v-2')?.open).toBeFalse();
   });
 
+  function application(id: string, userId: string, vacancyId = 'v-2') {
+    return {
+      id, vacancy_id: vacancyId, musician_id: `m-${id}`, user_id: userId, message: null, created_at: '',
+      band_vacancies: { instrument: 'Bajo' }, musician: { id: `m-${id}`, name: 'Ana', city: '', genre: null, avatar_url: null },
+    };
+  }
+
+  it('closeVacancy notifies each applicant of that vacancy once, never the owner', async () => {
+    confirmSpy.ask.and.returnValue(Promise.resolve(true));
+    component.applications.set([
+      application('a1', 'mus-1'), application('a2', 'mus-1'), application('a3', 'mus-2'),
+      application('a4', 'owner-1'), application('a5', 'mus-3', 'v-1'),
+    ]);
+    await component.closeVacancy('v-2');
+    expect(notifSpy.create).toHaveBeenCalledTimes(2);
+    expect(notifSpy.create).toHaveBeenCalledWith(
+      'mus-1', 'application', 'La vacante de bajo en Los Tests se ha cerrado',
+      'Gracias por tu interés. Hay más vacantes en Se busca.', 'band', 'b-1');
+    expect(notifSpy.create).toHaveBeenCalledWith('mus-2', 'application', jasmine.any(String), jasmine.any(String), 'band', 'b-1');
+  });
+
+  it('closeVacancy does not notify when the confirmation is declined', async () => {
+    confirmSpy.ask.and.returnValue(Promise.resolve(false));
+    component.applications.set([application('a1', 'mus-1')]);
+    await component.closeVacancy('v-2');
+    expect(notifSpy.create).not.toHaveBeenCalled();
+  });
+
+  it('closeVacancy still succeeds when the notification fails', async () => {
+    confirmSpy.ask.and.returnValue(Promise.resolve(true));
+    notifSpy.create.and.returnValue(Promise.reject(new Error('rate limit')));
+    component.applications.set([application('a1', 'mus-1')]);
+    await component.closeVacancy('v-2');
+    expect(component.vacancies().find(v => v.id === 'v-2')?.open).toBeFalse();
+    expect(toastSpy.error).not.toHaveBeenCalled();
+  });
+
+  it('contactApplicant tells the musician their application was reviewed, once per visit', async () => {
+    const messages = TestBed.inject(MessagesService) as jasmine.SpyObj<MessagesService>;
+    messages.getOrCreateConversation.and.returnValue(Promise.resolve({ id: 'c-1' } as any));
+    const app = application('a1', 'mus-1');
+    await component.contactApplicant(app as any);
+    await component.contactApplicant(app as any);
+    expect(notifSpy.create).toHaveBeenCalledOnceWith(
+      'mus-1', 'application', 'Han revisado tu solicitud en Los Tests', 'Vacante de bajo', 'band', 'b-1');
+  });
+
+  it('contactApplicant does not notify when the conversation cannot be opened', async () => {
+    const messages = TestBed.inject(MessagesService) as jasmine.SpyObj<MessagesService>;
+    messages.getOrCreateConversation.and.returnValue(Promise.resolve({ error: 'x' } as any));
+    await component.contactApplicant(application('a1', 'mus-1') as any);
+    expect(notifSpy.create).not.toHaveBeenCalled();
+  });
+
   it('submitApply notifies the band owner naming the musician', async () => {
     component.currentUserId.set('visitor');
     component.myMusicianId.set('m-9');

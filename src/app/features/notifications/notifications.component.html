@@ -52,7 +52,7 @@
           </svg>
         </div>
         <p class="font-display text-3xl uppercase text-ink">Sin notificaciones</p>
-        <p class="text-sm text-ink-muted">Te avisaremos cuando alguien te escriba o se interese por tu perfil.</p>
+        <p class="text-sm text-ink-muted">Aquí verás quién guarda tu perfil, las respuestas a tus solicitudes y las peticiones de clase. Los mensajes tienen su propio aviso.</p>
       </div>
 
     } @else {
@@ -64,7 +64,7 @@
               @for (n of group.items; track n.id) {
                 <li class="border-b border-ink/15">
                   @if (getRoute(n); as r) {
-                    <a [routerLink]="r" class="block py-3 -mx-2 px-2 hover:bg-dark-800 transition-colors">
+                    <a [routerLink]="r" (click)="open(n)" class="block py-3 -mx-2 px-2 hover:bg-dark-800 focus-visible:bg-dark-800 transition-colors">
                       <ng-container *ngTemplateOutlet="row; context: { $implicit: n }"/>
                     </a>
                   } @else {
@@ -83,15 +83,20 @@
   </div>
 </div>
 
-<!-- One notification = 3 lines: title (bold + yellow mark when unread), text, time. -->
+<!-- One notification = type stamp + 3 lines: title (bold, yellow stamp when unread), text, time. -->
 <ng-template #row let-n>
-  <p class="flex items-center gap-2 text-sm leading-snug text-ink" [class.font-bold]="!n.read" [class.font-medium]="n.read">
-    @if (!n.read) {
-      <span class="w-2.5 h-2.5 flex-shrink-0 bg-poster-yellow border border-ink" aria-hidden="true"></span>
-      <span class="sr-only">Sin leer: </span>
-    }
-    <span class="truncate">{{ n.title }}</span>
-  </p>
-  <p class="text-sm text-ink-3 truncate mt-0.5" [class.hidden]="!n.body">{{ n.body }}</p>
-  <p class="meta mt-1">{{ timeAgo(n.created_at) }}</p>
+  <div class="flex items-start gap-3">
+    <span class="w-9 h-9 flex-shrink-0 flex items-center justify-center border-2 border-ink text-ink"
+          [class.bg-poster-yellow]="!n.read" [class.bg-dark-800]="n.read" aria-hidden="true">
+      <app-icon [name]="iconFor(n)" [size]="16" [strokeWidth]="2"/>
+    </span>
+    <div class="min-w-0 flex-1">
+      <p class="flex items-center gap-2 text-sm leading-snug text-ink" [class.font-bold]="!n.read" [class.font-medium]="n.read">
+        @if (!n.read) { <span class="sr-only">Sin leer: </span> }
+        <span class="truncate">{{ n.title }}</span>
+      </p>
+      <p class="text-sm text-ink-3 line-clamp-2 mt-0.5" [class.hidden]="!n.body">{{ n.body }}</p>
+      <p class="meta mt-1">{{ timeAgo(n.created_at) }}</p>
+    </div>
+  </div>
 </ng-template>

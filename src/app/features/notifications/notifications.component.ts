@@ -7,6 +7,7 @@ import { Notification as AppNotification } from '../../core/models';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { timeAgo } from '../../core/utils/display.utils';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -17,9 +18,15 @@ const ENTITY_ROUTES: Readonly<Record<string, string>> = {
   gear: '/shop', post: '/posts', conversation: '/inbox',
 };
 
+/** IconComponent name per notification type; anything else gets the bell. */
+const TYPE_ICONS: Readonly<Record<string, string>> = {
+  application: 'mic', favorite: 'heart', booking: 'book-open', rsvp: 'calendar',
+  review: 'star', message: 'message', event_reminder: 'calendar',
+};
+
 @Component({
     selector: 'app-notifications',
-    imports: [RouterLink, NgTemplateOutlet],
+    imports: [RouterLink, NgTemplateOutlet, IconComponent],
     templateUrl: './notifications.component.html'
 })
 export class NotificationsComponent implements OnInit {
@@ -107,6 +114,18 @@ export class NotificationsComponent implements OnInit {
       ? ENTITY_ROUTES[n.entity_type]
       : null;
     return base ? [base, n.entity_id!] : null;
+  }
+
+  iconFor(n: AppNotification): string {
+    return Object.prototype.hasOwnProperty.call(TYPE_ICONS, n.type) ? TYPE_ICONS[n.type] : 'bell';
+  }
+
+  /** Tapping a notification: shows it as read right away; the routerLink does the navigation. */
+  open(n: AppNotification) {
+    const uid = this.userId();
+    if (n.read || !uid) return;
+    this.notifications.update(ns => ns.map(x => (x.id === n.id ? { ...x, read: true } : x)));
+    this.notifSvc.markRead(uid, n.id).catch(() => undefined); // page load already marked all read
   }
 
   async ngOnInit() {

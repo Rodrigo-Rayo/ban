@@ -3,6 +3,10 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { Notification as AppNotification } from '../models';
 import { SupabaseService } from './supabase.service';
 
+/** Mirrors the limits enforced by the create_notification RPC (a longer text would be rejected). */
+const MAX_TITLE = 200;
+const MAX_BODY = 1000;
+
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private supabase = inject(SupabaseService);
@@ -35,6 +39,13 @@ export class NotificationsService {
     this.unreadCount.set(0);
   }
 
+  /** Marks one notification as read (scoped to its owner, as RLS also enforces). */
+  async markRead(userId: string, id: string) {
+    const { error } = await this.supabase.client.from('notifications')
+      .update({ read: true }).eq('user_id', userId).eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
   /**
    * Creates a notification for any user.
    * Routes through the `create_notification` SECURITY DEFINER RPC so that
@@ -44,8 +55,8 @@ export class NotificationsService {
     const { error } = await this.supabase.client.rpc('create_notification', {
       p_user_id: userId,
       p_type: type,
-      p_title: title,
-      p_body: body ?? null,
+      p_title: title.slice(0, MAX_TITLE),
+      p_body: body ? body.slice(0, MAX_BODY) : null,
       p_entity_type: entityType ?? null,
       p_entity_id: entityId ?? null,
     });

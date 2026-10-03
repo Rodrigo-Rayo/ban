@@ -128,7 +128,30 @@ describe('NotificationsService', () => {
     });
   });
 
+  describe('markRead', () => {
+    it('updates only that notification of that user', async () => {
+      const builder = mockBuilder({ error: null });
+      mockClient.from.and.returnValue(builder);
+      await service.markRead('user-1', 'n-1');
+      expect(builder.update).toHaveBeenCalledWith({ read: true });
+      expect(builder.eq).toHaveBeenCalledWith('user_id', 'user-1');
+      expect(builder.eq).toHaveBeenCalledWith('id', 'n-1');
+    });
+
+    it('throws when the update fails', async () => {
+      mockClient.from.and.returnValue(mockBuilder({ error: { message: 'boom' } }));
+      await expectAsync(service.markRead('user-1', 'n-1')).toBeRejectedWithError('boom');
+    });
+  });
+
   describe('create', () => {
+    it('clips title and body to the server limits', async () => {
+      await service.create('user-2', 'favorite', 'x'.repeat(250), 'y'.repeat(1200));
+      const args = mockClient.rpc.calls.mostRecent().args[1];
+      expect(args.p_title.length).toBe(200);
+      expect(args.p_body.length).toBe(1000);
+    });
+
     it('calls rpc create_notification with the correct payload', async () => {
       await service.create('user-1', 'message', 'You have a new message', 'Hello there', 'musician', 'entity-42');
 

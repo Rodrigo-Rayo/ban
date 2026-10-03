@@ -13,7 +13,9 @@ import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { GENRES, INSTRUMENTS } from '../../../core/constants/music.constants';
-import { applicationNoticeBody } from './application-notice';
+import {
+  applicationNoticeBody, applicationReviewedBody, applicationReviewedTitle, vacancyClosedTitle, VACANCY_CLOSED_BODY,
+} from './application-notice';
 import { Band, BandVacancy, BandMember } from '../../../core/models';
 import { environment } from '../../../../environments/environment';
 
@@ -240,9 +242,24 @@ export class BandProfileComponent implements OnInit {
       const { error } = await this.supabase.client.from('band_vacancies').update({ open: false }).eq('id', id);
       if (error) { this.toast.error('No se pudo cerrar la vacante.'); return; }
       this.vacancies.update(v => v.map(x => x.id === id ? { ...x, open: false } : x));
+      this.notifyVacancyClosed(id);
     } catch {
       this.toast.error('No se pudo cerrar la vacante.');
     }
+  }
+
+  /** Best effort: tells everyone who applied that the vacancy closed (one notice per person). */
+  private notifyVacancyClosed(vacancyId: string) {
+    const band = this.band();
+    const vacancy = this.vacancies().find(v => v.id === vacancyId);
+    if (!band || !vacancy) return;
+    const me = this.currentUserId();
+    const recipients = new Set(this.applications()
+      .filter(a => a.vacancy_id === vacancyId && !!a.user_id && a.user_id !== me)
+      .map(a => a.user_id));
+    const title = vacancyClosedTitle(band.name, vacancy.instrument);
+    recipients.forEach(userId =>
+      this.notifSvc.create(userId, 'application', title, VACANCY_CLOSED_BODY, 'band', band.id).catch(() => undefined));
   }
 
   /** Deletes a closed vacancy (and, by cascade, its applications). RLS: band owner has ALL on band_vacancies. */
@@ -430,7 +447,24 @@ export class BandProfileComponent implements OnInit {
       this.toast.error('No se pudo abrir la conversación.');
       return;
     }
+    this.notifyApplicationReviewed(app);
     this.router.navigate(['/inbox', result.id], { state: { name: app.musician?.name } });
+  }
+
+  /** Applications already told "revisada" during this visit: one notice per application. */
+  private reviewedNotified = new Set<string>();
+
+  /** Best effort: the musician learns the band looked at their application. */
+  private notifyApplicationReviewed(app: VacancyApplication) {
+    const band = this.band();
+    if (!band || !app.user_id || app.user_id === this.currentUserId() || this.reviewedNotified.has(app.id)) return;
+    this.reviewedNotified.add(app.id);
+    this.notifSvc.create(
+      app.user_id, 'application',
+      applicationReviewedTitle(band.name),
+      applicationReviewedBody(app.band_vacancies?.instrument),
+      'band', band.id
+    ).catch(() => undefined);
   }
 
   vacancyApplicationCount(vacancyId: string): number {
