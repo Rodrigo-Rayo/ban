@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { HomeComponent } from './home.component';
+import { HomeComponent, seededRandom, shuffled } from './home.component';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { VacanciesService } from '../../core/services/vacancies.service';
@@ -132,7 +132,31 @@ describe('HomeComponent', () => {
       component.recentVenues.set([{ id: 's1', name: 'Sala X', city: 'Madrid', avatar_url: null, capacity: 300, created_at: '' }]);
       component.recentListings.set([{ id: 'g1', title: 'Fender', price: 500, condition: null, category: null, city: 'Madrid', images: null, created_at: '' }]);
       // Vacancies are already in the Se busca list, so the carousel does not repeat them.
-      expect(component.featuredSlides().map(s => s.kicker)).toEqual(['Sala', 'Nuevo en la tienda']);
+      expect(component.featuredSlides().map(s => s.kicker)).toEqual(jasmine.arrayWithExactContents(['Sala', 'En la tienda']));
+    });
+
+    it('draws a random item per kind, stable within a visit and different across visits', () => {
+      const venues = ['a', 'b', 'c', 'd', 'e'].map(id => ({ id, name: id, city: 'Madrid', avatar_url: null, capacity: null, created_at: '' }));
+      component.recentVenues.set(venues);
+      const titleFor = (seed: number) => { component.featuredSeed.set(seed); return component.featuredSlides()[0].title; };
+      expect(titleFor(7)).toBe(titleFor(7));
+      const seen = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(titleFor));
+      expect(seen.size).toBeGreaterThan(1);
+    });
+  });
+
+  describe('random helpers', () => {
+    it('seededRandom is deterministic per seed and stays in [0, 1)', () => {
+      const a = seededRandom(42), b = seededRandom(42);
+      const xs = [a(), a(), a()];
+      expect([b(), b(), b()]).toEqual(xs);
+      expect(xs.every(x => x >= 0 && x < 1)).toBeTrue();
+    });
+    it('shuffled keeps every item and does not mutate the input', () => {
+      const input = [1, 2, 3, 4, 5];
+      const out = shuffled(input, seededRandom(3));
+      expect([...out].sort()).toEqual(input);
+      expect(input).toEqual([1, 2, 3, 4, 5]);
     });
   });
 });

@@ -51,6 +51,30 @@ export const HOME_SECTIONS: readonly { label: string; hint: string; icon: string
   { label: 'Tienda',   hint: 'Segunda mano',      icon: 'shopping-cart', link: '/shop' },
 ];
 
+/**
+ * Tiny seeded PRNG (mulberry32): one random seed per visit gives picks that stay
+ * the same while the page re-renders, and change on the next visit.
+ */
+export function seededRandom(seed: number): () => number {
+  let a = seed | 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Fisher–Yates shuffle into a new array. */
+export function shuffled<T>(list: readonly T[], rnd: () => number): T[] {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 const SE_BUSCA_LIMIT = 5;
 const NEW_PEOPLE_LIMIT = 8;
 
@@ -117,10 +141,6 @@ export class HomeComponent implements OnInit {
     const today = localToday();
     return this.recentEvents().filter(e => (e.date ?? '').slice(0, 10) >= today);
   });
-  readonly featuredEvent = computed(() => this.upcomingEvents()[0] ?? null);
-  readonly moreEvents = computed(() => this.upcomingEvents().slice(1, 4));
-  readonly featuredRehearsal = computed(() => this.recentRehearsals()[0] ?? null);
-  readonly otherRehearsals = computed(() => this.recentRehearsals().slice(1, 4));
   /** New musicians, never the signed-in user. */
   readonly newPeople = computed(() => {
     const me = this.auth.user()?.id;
@@ -159,24 +179,32 @@ export class HomeComponent implements OnInit {
   });
 
 
-  /** "Destacado" carousel slides, built only from content that exists. */
+  /**
+   * Seed for the "Destacado" draw. New on every visit; until paid promotion
+   * exists, every gig, venue, rehearsal space and listing gets its turn.
+   */
+  readonly featuredSeed = signal(Math.floor(Math.random() * 2 ** 31));
+
+  /** "Destacado" carousel: one random item per kind, in random order, only from content that exists. */
   readonly featuredSlides = computed<FeaturedSlide[]>(() => {
+    const rnd = seededRandom(this.featuredSeed());
+    const pick = <T>(list: readonly T[]): T | undefined => list.length ? list[Math.floor(rnd() * list.length)] : undefined;
     const slides: FeaturedSlide[] = [];
-    const ev = this.featuredEvent();
+    const ev = pick(this.upcomingEvents());
     if (ev) {
       slides.push({
-        key: 'ev-' + ev.id, kicker: 'Próximo concierto', title: ev.title, tone: 'ink', cta: 'Ver concierto',
+        key: 'ev-' + ev.id, kicker: 'Concierto', title: ev.title, tone: 'ink', cta: 'Ver concierto',
         meta: [ev.venue, ev.city].filter(Boolean).join(', '), link: ['/events', ev.id], date: this.dateParts(ev.date),
       });
     }
-    const venue = this.recentVenues()[0];
+    const venue = pick(this.recentVenues());
     if (venue) {
       slides.push({
         key: 'vn-' + venue.id, kicker: 'Sala', title: venue.name, tone: 'red', cta: 'Ver sala',
         meta: [venue.city, venue.capacity ? `${venue.capacity} personas` : ''].filter(Boolean).join(' · '), link: ['/venues', venue.id],
       });
     }
-    const r = this.featuredRehearsal();
+    const r = pick(this.recentRehearsals());
     if (r) {
       slides.push({
         key: 'r-' + r.id, kicker: 'Local de ensayo', title: r.name, tone: 'yellow', cta: 'Ver local',
@@ -184,14 +212,14 @@ export class HomeComponent implements OnInit {
         link: ['/rehearsal', r.id],
       });
     }
-    const g = this.recentListings()[0];
+    const g = pick(this.recentListings());
     if (g) {
       slides.push({
-        key: 'g-' + g.id, kicker: 'Nuevo en la tienda', title: g.title, tone: 'ink', cta: 'Ver anuncio',
+        key: 'g-' + g.id, kicker: 'En la tienda', title: g.title, tone: 'ink', cta: 'Ver anuncio',
         meta: [g.price ? `${g.price} €` : '', g.city].filter(Boolean).join(' · '), link: ['/shop', g.id],
       });
     }
-    return slides;
+    return shuffled(slides, rnd);
   });
   /** Solid poster block per slide tone (compact on every screen). */
   slideClass(tone: FeaturedSlide['tone']): string {
