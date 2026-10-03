@@ -104,24 +104,24 @@
                class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 sm:scroll-px-0 pt-0.5 pb-2 pr-6">
             @for (slide of featuredSlides(); track slide.key) {
               <a [routerLink]="slide.link"
-                 class="press group snap-start snap-always shrink-0 w-[84%] sm:w-[60%] lg:w-[calc(50%-6px)] lg:min-h-[9.5rem] flex items-stretch bg-dark-900 border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                 class="press group snap-start snap-always shrink-0 w-[84%] sm:w-[60%] lg:w-[calc(50%-6px)] min-h-[7.5rem] lg:min-h-[9.5rem] flex items-stretch border-2 border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                  [class]="slideClass(slide.tone)">
                 @if (slide.date; as d) {
-                  <span class="w-14 lg:w-16 shrink-0 flex flex-col items-center justify-center leading-none border-r-2 border-primary-500 text-primary-600 lg:bg-primary-500 lg:text-white lg:border-ink">
+                  <span class="w-14 lg:w-16 shrink-0 flex flex-col items-center justify-center leading-none border-r-2 border-ink bg-primary-500 text-white">
                     <span class="font-mono text-[11px] font-bold uppercase">{{ d.weekday }}</span>
                     <span class="font-display text-2xl">{{ d.day }}</span>
                     <span class="font-mono text-[11px] font-bold uppercase">{{ d.month }}</span>
                   </span>
                 }
-                <span class="flex-1 min-w-0 px-3.5 py-3 lg:p-5 flex flex-col justify-center lg:justify-between gap-1 lg:gap-3">
+                <span class="flex-1 min-w-0 p-4 lg:p-5 flex flex-col justify-between gap-2 lg:gap-3">
                   <span class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide" [class]="kickerClass(slide.tone)">
                     {{ slide.kicker }}
                     @if (slide.sponsored) { <span class="border border-current px-1">Promo</span> }
                   </span>
-                  <span class="font-display text-xl lg:text-3xl uppercase leading-tight truncate lg:whitespace-normal lg:line-clamp-2 group-hover:text-primary-500 lg:group-hover:text-current transition-colors">{{ slide.title }}</span>
-                  <span class="text-xs lg:text-sm lg:font-bold text-ink-muted lg:text-current truncate">{{ slide.meta }}</span>
+                  <span class="font-display text-2xl lg:text-3xl uppercase leading-tight line-clamp-2 break-words">{{ slide.title }}</span>
+                  <span class="text-xs lg:text-sm font-bold truncate">{{ slide.meta }}</span>
                 </span>
-                <span class="flex items-center pr-3 lg:pr-5 text-ink-muted lg:text-current group-hover:text-primary-500 lg:group-hover:text-current lg:group-hover:translate-x-1 transition-transform" aria-hidden="true"><app-icon name="arrow-right" [size]="18"/></span>
+                <span class="flex items-center pr-4 lg:pr-5 group-hover:translate-x-1 transition-transform" aria-hidden="true"><app-icon name="arrow-right" [size]="18"/></span>
               </a>
             }
           </div>
