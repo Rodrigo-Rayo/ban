@@ -5,17 +5,11 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#edeae2",
-  "theme_color": "#1a1208",
+  "background_color": "#f2ebdd",
+  "theme_color": "#f2ebdd",
   "orientation": "portrait-primary",
   "lang": "es",
   "icons": [
-    {
-      "src": "favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
     {
       "src": "icon-192.png",
       "sizes": "192x192",
@@ -29,28 +23,37 @@
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
-  "categories": ["music", "social", "entertainment"],
+  "categories": [
+    "music",
+    "social",
+    "entertainment"
+  ],
   "shortcuts": [
     {
-      "name": "Buscar músicos",
-      "url": "/search?tab=musicians",
-      "description": "Buscar músicos y bandas"
+      "name": "Se busca",
+      "url": "/feed",
+      "description": "Bandas y músicos que buscan gente"
     },
     {
-      "name": "Tienda",
-      "url": "/shop",
-      "description": "Comprar y vender equipamiento"
+      "name": "Músicos",
+      "url": "/search?tab=musicians",
+      "description": "Buscar músicos"
     },
     {
       "name": "Agenda",
       "url": "/search?tab=events",
-      "description": "Ver eventos próximos"
+      "description": "Conciertos próximos"
+    },
+    {
+      "name": "Tienda",
+      "url": "/shop",
+      "description": "Instrumentos y equipo de segunda mano"
     }
   ]
 }
