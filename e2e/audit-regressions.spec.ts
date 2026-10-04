@@ -71,7 +71,7 @@ test.describe('Search page filters', () => {
     await page.setViewportSize({ width: 1366, height: 900 });
     await page.goto('/search?tab=musicians&city=Madrid&q=gui');
     const side = page.locator('main');
-    await expect(side.getByLabel('Filtrar por ciudad')).toHaveValue('Madrid');
+    await expect(side.getByLabel('Filtrar por provincia')).toHaveValue('Madrid');
     await expect(side.getByLabel('Buscar en el directorio')).toHaveValue('gui');
     await side.getByLabel('Filtrar por instrumento').selectOption({ index: 2 });
     await expect(page).toHaveURL(/city=Madrid/);
