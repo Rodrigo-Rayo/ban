@@ -10,26 +10,12 @@
           <p class="text-sm text-ink-muted">Crea tu cuenta y elige tu perfil en el siguiente paso.</p>
         </div>
 
-        <!-- Legal consent: gates BOTH Google and email sign-up. Never pre-checked. -->
-        <div class="mb-5">
-          <label for="reg-legal" class="flex items-start gap-3 py-2.5 min-h-[44px] text-xs text-ink-2 leading-snug cursor-pointer">
-            <input id="reg-legal" type="checkbox" [formControl]="legalConsent" required
-              class="h-5 w-5 flex-shrink-0 border-2 border-ink text-primary-500 accent-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500"
-              [attr.aria-invalid]="legalConsent.invalid && legalConsent.touched"
-              [attr.aria-describedby]="legalConsent.invalid && legalConsent.touched ? 'reg-legal-error' : null"/>
-            <span>
-              Confirmo que tengo {{ minAge }} años o más, acepto los
-              <a routerLink="/legal/terminos" target="_blank" class="text-primary-500 hover:underline font-medium">Términos de Uso</a>
-              y he leído la
-              <a routerLink="/legal/privacidad" target="_blank" class="text-primary-500 hover:underline font-medium">Política de Privacidad</a>.
-            </span>
-          </label>
-          @if (legalConsent.invalid && legalConsent.touched) {
-            <p id="reg-legal-error" role="alert" class="text-xs font-bold text-signal-red">
-              Debes confirmar tu edad y aceptar los Términos para crear una cuenta.
-            </p>
-          }
-        </div>
+        <!-- Signing up (Google or email) accepts the Terms and confirms the minimum age. -->
+        <p class="mb-5 text-xs text-ink-muted leading-snug">
+          Al registrarte confirmas que tienes {{ minAge }} años o más y aceptas los
+          <a routerLink="/legal/terminos" target="_blank" class="underline hover:text-primary-600">Términos de Uso</a>
+          y la <a routerLink="/legal/privacidad" target="_blank" class="underline hover:text-primary-600">Política de Privacidad</a>.
+        </p>
 
         <!-- Google -->
         <button type="button" (click)="loginWithGoogle()"

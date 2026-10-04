@@ -15,7 +15,6 @@ interface StorageItem {
 const STORAGE_ITEMS: readonly StorageItem[] = [
   { name: 'sb-…-auth-token', type: 'localStorage', provider: 'BandYou (Supabase)', purpose: 'Mantener tu sesión iniciada de forma segura', duration: 'Hasta que cierres sesión' },
   { name: 'sb-…-code-verifier', type: 'localStorage', provider: 'BandYou (Supabase)', purpose: 'Completar de forma segura el inicio de sesión con Google o con un enlace de email', duration: 'Hasta terminar el inicio de sesión' },
-  { name: 'bandyou_consent_pending', type: 'sessionStorage', provider: 'BandYou', purpose: 'Recordar que aceptaste las condiciones al registrarte hasta que termines de crear tu perfil', duration: 'Hasta cerrar la pestaña' },
   { name: 'bandyou_return_url', type: 'sessionStorage', provider: 'BandYou', purpose: 'Volver a la página en la que estabas tras iniciar sesión', duration: 'Hasta cerrar la pestaña' },
   { name: 'bandyou_role', type: 'localStorage', provider: 'BandYou', purpose: 'Recordar el tipo de perfil que eliges al registrarte', duration: 'Hasta que lo borres' },
   { name: 'bandyou_profile_type, bandyou_city', type: 'localStorage', provider: 'BandYou', purpose: 'Recordar tu tipo de perfil y tu ciudad para mostrarte contenido cercano', duration: 'Hasta que lo borres' },

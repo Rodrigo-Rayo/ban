@@ -44,10 +44,8 @@ export class OnboardingComponent implements OnInit {
   loading = signal(false);
   error = signal('');
   isEditing = signal(false);
-  /** Google sign-ups from /auth/login never saw the register consent checkbox. */
+  /** No acceptance recorded yet (e.g. Google sign-in): the notice by the submit button applies. */
   needsConsent = signal(false);
-  consentAccepted = signal(false);
-  consentError = signal(false);
   pendingConfirmation = signal(false);
   pendingEmail = signal('');
   /** Validation message for chip-based steps (instruments / genres). */
@@ -325,8 +323,8 @@ export class OnboardingComponent implements OnInit {
 
       // Sign up immediately so email confirmation can be sent before the user fills the form
       const email = this.registrationState.email;
-      // The register page only hands over credentials after the legal checkbox was ticked;
-      // store that consent on the auth user as evidence (GDPR art. 7.1).
+      // The register page states that signing up accepts the Terms and confirms the
+      // minimum age; store that acceptance on the auth user as evidence.
       const { data, error } = await this.supabase.signUpWithEmail(email, this.registrationState.password, {
         terms_version: LEGAL_INFO.version,
         terms_accepted_at: new Date().toISOString(),
@@ -358,10 +356,6 @@ export class OnboardingComponent implements OnInit {
     }
 
     this.needsConsent.set(!user.user_metadata?.['terms_accepted_at']);
-    // Consent ticked on /auth/register before "Continuar con Google" counts — don't ask twice.
-    try {
-      if (sessionStorage.getItem('bandyou_consent_pending') === LEGAL_INFO.version) this.consentAccepted.set(true);
-    } catch { /* storage blocked */ }
 
     const [
       { data: musicianData, error: e1 },
@@ -451,11 +445,6 @@ export class OnboardingComponent implements OnInit {
   }
 
   async onSubmit() {
-    if (!this.isEditing() && this.needsConsent() && !this.consentAccepted()) {
-      this.consentError.set(true);
-      this.host.nativeElement.querySelector<HTMLElement>('#onb-consent')?.focus();
-      return;
-    }
     this.loading.set(true);
     this.error.set('');
     try {
@@ -579,13 +568,13 @@ export class OnboardingComponent implements OnInit {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         if (this.needsConsent()) {
-          // Best effort: the profile is saved; a failed metadata write must not block entry.
+          // Creating the profile accepts the Terms (notice by the button). Best effort:
+          // the profile is saved; a failed metadata write must not block entry.
           await this.supabase.auth.updateUser({ data: {
             terms_version: LEGAL_INFO.version,
             terms_accepted_at: new Date().toISOString(),
             age_confirmed: true,
           } }).catch(() => undefined);
-          try { sessionStorage.removeItem('bandyou_consent_pending'); } catch { /* storage blocked */ }
         }
         localStorage.removeItem('bandyou_role');
         if (this.isEditing()) {

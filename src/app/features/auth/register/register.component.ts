@@ -1,5 +1,5 @@
 import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Meta } from '@angular/platform-browser';
 import { AuthPosterComponent } from '../auth-poster.component';
@@ -36,8 +36,6 @@ export class RegisterComponent implements OnInit {
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
-  /** Legal consent + age confirmation; kept outside `form` because it also gates Google sign-up. */
-  readonly legalConsent = new FormControl(false, { nonNullable: true, validators: [Validators.requiredTrue] });
   readonly minAge = LEGAL_INFO.minAge;
 
   // ── Password strength ─────────────────────────────────────────────
@@ -76,15 +74,11 @@ export class RegisterComponent implements OnInit {
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      // Show the consent error in the same pass, not only after the fields are fixed.
-      this.legalConsent.markAsTouched();
-      // Scope to the <form>: the legal-consent checkbox lives outside it and has its own gate.
       this.host.nativeElement
         .querySelector<HTMLElement>('form input.ng-invalid, form select.ng-invalid, form textarea.ng-invalid')
         ?.focus();
       return;
     }
-    if (!this.ensureLegalConsent()) return;
     const { email, password } = this.form.value;
     this.registrationState.set(email!, password!);
     this.router.navigate(['/onboarding']);
@@ -92,24 +86,10 @@ export class RegisterComponent implements OnInit {
 
   async loginWithGoogle() {
     this.error.set('');
-    if (!this.ensureLegalConsent()) return;
-    // Google returns via /auth/callback → onboarding; carry the consent across the redirect.
-    try { sessionStorage.setItem('bandyou_consent_pending', LEGAL_INFO.version); } catch { /* storage blocked */ }
     try {
       await this.auth.signInWithGoogle();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error con Google');
     }
-  }
-
-  /**
-   * Explicit, non-pre-checked acceptance of the Terms + age confirmation
-   * (LOPDGDD art. 7). Required before either sign-up method creates an account.
-   */
-  private ensureLegalConsent(): boolean {
-    if (this.legalConsent.valid) return true;
-    this.legalConsent.markAsTouched();
-    this.host.nativeElement.querySelector<HTMLElement>('#reg-legal')?.focus();
-    return false;
   }
 }
