@@ -72,10 +72,18 @@
           <a routerLink="/feed" class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Ver todo</a>
         </div>
         @if (loading()) {
-          @for (i of [1,2,3]; track i) { <div class="h-16 border-b border-ink/15 animate-pulse bg-dark-800/40" aria-hidden="true"></div> }
+          <!-- Shaped like the rows below, so nothing jumps when they arrive -->
+          @for (i of [1,2,3]; track i) {
+            <div class="flex items-center gap-3 py-3 border-b border-ink/15 min-h-[64px] animate-pulse" aria-hidden="true">
+              <span class="flex-1 min-w-0">
+                <span class="block h-5 bg-dark-700/70 w-3/5"></span>
+                <span class="flex items-center gap-2 mt-2"><span class="h-5 w-24 bg-dark-700/70"></span><span class="h-3 w-32 bg-dark-700/70"></span></span>
+              </span>
+            </div>
+          }
         } @else {
-          @for (item of seBuscaItems(); track item.id) {
-            <a [routerLink]="item.link" class="flex items-center gap-3 py-3 border-b border-ink/15 min-h-[64px] group">
+          @for (item of seBuscaItems(); track item.id; let i = $index) {
+            <a [routerLink]="item.link" [style.--i]="i" class="animate-slide-in flex items-center gap-3 py-3 border-b border-ink/15 min-h-[64px] group">
               <span class="flex-1 min-w-0">
                 <span class="block font-display text-xl uppercase leading-tight truncate group-hover:text-primary-500 transition-colors">{{ item.title }}</span>
                 <span class="flex items-center gap-2 mt-1 min-w-0">

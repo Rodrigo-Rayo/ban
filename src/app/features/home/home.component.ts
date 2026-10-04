@@ -127,7 +127,8 @@ export class HomeComponent implements OnInit {
           this.userCity.set(profile.city);
           try { localStorage.setItem('bandyou_city', profile.city); } catch {}
           // The first load used the cached city (or none): reload for the profile's city.
-          if (this.loadedCity !== null && this.loadedCity !== profile.city) this.retryLoad();
+          // Quietly: what is on screen stays until the new lists arrive (no skeleton flash).
+          if (this.loadedCity !== null && this.loadedCity !== profile.city) this.reloadForCity();
         }
       }).catch((err: unknown) => { if (!environment.production) console.error('[Home] loadUserProfile failed:', err); });
     });
@@ -411,6 +412,12 @@ export class HomeComponent implements OnInit {
   private seBuscaPostsQuery(cols: string, city: string, since: string) {
     const q = this.supabase.client.from('posts').select(cols).gte('created_at', since).order('created_at', { ascending: false }).limit(8);
     return city ? q.eq('city', city) : q;
+  }
+
+  /** Same lists for the profile's city, without bringing the skeletons back. */
+  private reloadForCity() {
+    this.loadError.set(false);
+    void this.loadContent();
   }
 
   retryLoad() {
