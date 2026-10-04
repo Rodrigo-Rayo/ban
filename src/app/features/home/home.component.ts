@@ -17,11 +17,15 @@ import { PostType } from '../../core/models';
 
 interface HomeMusician { id: string; user_id?: string | null; name: string; city: string; instrument: string; avatar_url: string | null; created_at: string; }
 interface HomeEvent { id: string; title: string; city: string; date: string; genre: string; description: string | null; venue?: string | null; created_at: string; }
-interface HomeVenue { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; created_at: string; }
-interface HomeRehearsal { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate?: number | null; created_at: string; }
+interface HomeVenue { id: string; user_id?: string | null; name: string; city: string; avatar_url: string | null; capacity: number | null; created_at: string; }
+interface HomeRehearsal { id: string; user_id?: string | null; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate?: number | null; created_at: string; }
 interface HomePost { id: string; type: string; title?: string | null; text: string; city: string | null; instrument: string | null; author_name: string; author_profile_type: string | null; author_profile_id: string | null; created_at: string; }
 interface HomeListing { id: string; title: string; price: number | null; condition: string | null; category: string | null; city: string | null; images: string[] | null; created_at: string; }
 interface HomeVacancy { id: string; instrument: string; genre: string | null; bands: { id: string; name: string; city: string | null; genre: string | null } | null; }
+interface HomeBand { id: string; user_id?: string | null; name: string; city: string; genre: string | null; avatar_url: string | null; created_at: string; }
+interface HomeTeacher { id: string; user_id?: string | null; name: string; city: string; instrument: string | null; avatar_url: string | null; created_at: string; }
+/** One tile of "Gente nueva": any profile type. */
+export interface NewPerson { key: string; id: string; name: string; city: string; avatar_url: string | null; label: string; link: string[]; created_at: string; }
 interface HomeProfile { id?: string; name: string; city?: string | null; avatar_url?: string | null; }
 
 /** One row of the merged "Se busca" list (band vacancies + board posts). */
@@ -136,6 +140,8 @@ export class HomeComponent implements OnInit {
   recentMusicians  = signal<HomeMusician[]>([]);
   recentEvents     = signal<HomeEvent[]>([]);
   recentVenues     = signal<HomeVenue[]>([]);
+  recentBands      = signal<HomeBand[]>([]);
+  recentTeachers   = signal<HomeTeacher[]>([]);
   recentRehearsals = signal<HomeRehearsal[]>([]);
   recentPosts      = signal<HomePost[]>([]);
   recentListings   = signal<HomeListing[]>([]);
@@ -152,17 +158,24 @@ export class HomeComponent implements OnInit {
     const today = localToday();
     return this.recentEvents().filter(e => (e.date ?? '').slice(0, 10) >= today);
   });
-  /** New musicians, never the signed-in user. */
-  readonly newPeople = computed(() => {
+  /** Newest profiles of every type (musicians, bands, teachers, venues, rehearsal spaces), never the signed-in user. */
+  readonly newPeople = computed<NewPerson[]>(() => {
     const me = this.auth.user()?.id;
     const city = this.userCity();
-    // Same city first, then people with a photo; otherwise newest first (stable sort).
-    const rank = (m: HomeMusician) => (city && m.city === city ? 0 : 2) + (m.avatar_url ? 0 : 1);
-    return this.recentMusicians()
-      .filter(m => !me || m.user_id !== me)
-      .map((m, i) => ({ m, i }))
-      .sort((a, b) => rank(a.m) - rank(b.m) || a.i - b.i)
-      .map(x => x.m)
+    const all: (NewPerson & { user_id?: string | null })[] = [
+      ...this.recentMusicians().map(m => ({ ...m, key: 'm-' + m.id, label: m.instrument || 'Músico', link: ['/musicians', m.id] })),
+      ...this.recentBands().map(b => ({ ...b, key: 'b-' + b.id, label: b.genre ? `Banda · ${b.genre}` : 'Banda', link: ['/bands', b.id] })),
+      ...this.recentTeachers().map(t => ({ ...t, key: 't-' + t.id, label: t.instrument ? `Clases · ${t.instrument}` : 'Clases', link: ['/teachers', t.id] })),
+      ...this.recentVenues().map(v => ({ ...v, key: 'v-' + v.id, label: 'Sala', link: ['/venues', v.id] })),
+      ...this.recentRehearsals().map(r => ({ ...r, key: 'r-' + r.id, label: 'Local de ensayo', link: ['/rehearsal', r.id] })),
+    ];
+    // Same city first, then people with a photo; within that, newest first (stable for ties).
+    const rank = (p: NewPerson) => (city && p.city === city ? 0 : 2) + (p.avatar_url ? 0 : 1);
+    return all
+      .filter(p => !me || p.user_id !== me)
+      .map((p, i) => ({ p, i }))
+      .sort((a, b) => rank(a.p) - rank(b.p) || (b.p.created_at || '').localeCompare(a.p.created_at || '') || a.i - b.i)
+      .map(x => ({ key: x.p.key, id: x.p.id, name: x.p.name, city: x.p.city, avatar_url: x.p.avatar_url, label: x.p.label, link: x.p.link, created_at: x.p.created_at }))
       .slice(0, NEW_PEOPLE_LIMIT);
   });
   /** Rehearsal spaces: the user's city first, each group in a random order per visit. */
@@ -322,8 +335,10 @@ export class HomeComponent implements OnInit {
 
       const musicianCols   = 'id, user_id, name, city, instrument, avatar_url, created_at';
       const eventCols      = 'id, title, city, date, genre, description, venue, created_at';
-      const venueCols      = 'id, name, city, avatar_url, capacity, created_at';
-      const rehearsalCols  = 'id, name, city, avatar_url, capacity, hourly_rate, created_at';
+      const venueCols      = 'id, user_id, name, city, avatar_url, capacity, created_at';
+      const bandCols       = 'id, user_id, name, city, genre, avatar_url, created_at';
+      const teacherCols    = 'id, user_id, name, city, instrument, avatar_url, created_at';
+      const rehearsalCols  = 'id, user_id, name, city, avatar_url, capacity, hourly_rate, created_at';
       const postCols       = 'id, type, text, city, instrument, author_name, author_profile_type, author_profile_id, created_at'
         + (await this.features.has('postTitle') ? ', title' : '');
       const listingCols    = 'id, title, price, condition, category, city, images, created_at';
@@ -342,7 +357,7 @@ export class HomeComponent implements OnInit {
       // `any`: Supabase's PostgrestFilterBuilder generics are too deep to thread through a helper.
       const inCity = (q: any, local: boolean) => local ? q.eq('city', city) : q; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-      const [musicians, events, venues, rehearsals, listings, posts, vacancies] = await Promise.all([
+      const [musicians, events, venues, rehearsals, listings, posts, vacancies, bands, teachers] = await Promise.all([
         both<HomeMusician>(NEW_PEOPLE_LIMIT + 1, l => inCity(db.from('musicians').select(musicianCols), l).order('created_at', { ascending: false }).limit(12)),
         both<HomeEvent>(5, l => inCity(db.from('events').select(eventCols), l).gte('date', todayStr).order('date', { ascending: true }).limit(5)),
         both<HomeVenue>(5, l => inCity(db.from('venues').select(venueCols), l).order('created_at', { ascending: false }).limit(5)),
@@ -351,6 +366,8 @@ export class HomeComponent implements OnInit {
         this.seBuscaPostsQuery(postCols, city, since).then(r => r, () => ({ data: [] })),
         // Non-critical module: a failure just hides those rows.
         this.vacanciesSvc.listOpen({ city: city || null, since, limit: 6 }).catch(() => []),
+        both<HomeBand>(NEW_PEOPLE_LIMIT, l => inCity(db.from('bands').select(bandCols), l).order('created_at', { ascending: false }).limit(NEW_PEOPLE_LIMIT)),
+        both<HomeTeacher>(NEW_PEOPLE_LIMIT, l => inCity(db.from('teachers').select(teacherCols), l).order('created_at', { ascending: false }).limit(NEW_PEOPLE_LIMIT)),
       ]);
 
       // A newer load (e.g. for the profile's city) started meanwhile: drop this one.
@@ -363,6 +380,8 @@ export class HomeComponent implements OnInit {
       this.seBuscaNationwide.set(false);
       this.recentEvents.set(cityFirst(events[0], events[1], 5));
       this.recentVenues.set(cityFirst(venues[0], venues[1], 5));
+      this.recentBands.set(cityFirst(bands[0], bands[1], NEW_PEOPLE_LIMIT));
+      this.recentTeachers.set(cityFirst(teachers[0], teachers[1], NEW_PEOPLE_LIMIT));
       this.recentRehearsals.set(cityFirst(rehearsals[0], rehearsals[1], 5));
       this.recentListings.set(cityFirst(listings[0], listings[1], 6));
       this.recentPosts.set((posts.data || []) as unknown as HomePost[]);

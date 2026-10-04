@@ -95,6 +95,7 @@
       </section>
 
       <!-- Destacado: carrusel compacto (el hueco reservado para promoción de pago más adelante) -->
+      @if (loading() || featuredSlides().length > 0) {
       <section aria-labelledby="destacado-title" aria-roledescription="carrusel" class="lg:order-first">
         <h2 id="destacado-title" class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted mb-2">Destacado</h2>
         @if (loading()) {
@@ -140,6 +141,7 @@
           }
         }
       </section>
+      }
 
       <!-- Agenda -->
       <section aria-labelledby="agenda-title" class="reveal">
@@ -189,7 +191,7 @@
       <section aria-labelledby="gente-title" class="reveal">
         <div class="flex items-end justify-between gap-3 mb-3">
           <h2 id="gente-title" class="text-3xl leading-[1.15]">Gente nueva</h2>
-          <a routerLink="/search" [queryParams]="userCity() && !musiciansNationwide() ? {tab:'musicians', city: userCity()} : {tab:'musicians'}"
+          <a routerLink="/search" [queryParams]="userCity() && !musiciansNationwide() ? {city: userCity()} : {}"
              class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Ver todo</a>
         </div>
         @if (loading()) {
@@ -198,8 +200,8 @@
           </div>
         } @else {
           <div class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible">
-            @for (m of newPeople(); track m.id; let i = $index) {
-              <a [routerLink]="['/musicians', m.id]" [style.--i]="i"
+            @for (m of newPeople(); track m.key; let i = $index) {
+              <a [routerLink]="m.link" [style.--i]="i"
                  class="pop-in snap-start shrink-0 w-[4.75rem] lg:w-auto flex flex-col items-center text-center group">
                 <span class="avatar w-[4.25rem] h-[4.25rem] text-xl overflow-hidden border-2 border-ink group-hover:-translate-y-0.5 group-hover:shadow-[3px_3px_0_0_#c23a1f] transition-[transform,box-shadow]"
                       [style.background]="m.avatar_url ? null : avatarColor(m.name)">
@@ -210,10 +212,10 @@
                   }
                 </span>
                 <span class="mt-1.5 w-full font-bold text-xs truncate group-hover:text-primary-500">{{ m.name }}</span>
-                <span class="w-full text-[11px] text-ink-muted truncate">{{ m.instrument }}</span>
+                <span class="w-full text-[11px] text-ink-muted truncate">{{ m.label }}</span>
               </a>
             } @empty {
-              <p class="text-sm text-ink-muted py-2">Aún no hay músicos por aquí.</p>
+              <p class="text-sm text-ink-muted py-2">Aún no hay nadie por aquí.</p>
             }
           </div>
         }

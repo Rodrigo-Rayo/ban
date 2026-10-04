@@ -99,6 +99,18 @@ describe('HomeComponent', () => {
       expect(component.newPeople().map(m => m.id)).toEqual(['here-photo', 'here-nophoto', 'far-photo']);
     });
 
+    it('mixes every profile type, newest first, each with its label and page', () => {
+      component.userCity.set('');
+      component.recentMusicians.set([{ id: 'm', user_id: 'um', name: 'Ana', city: 'Madrid', instrument: 'Bajo', avatar_url: 'a.png', created_at: '2026-10-01' }]);
+      component.recentBands.set([{ id: 'b', user_id: 'ub', name: 'Los X', city: 'Madrid', genre: 'Rock', avatar_url: 'b.png', created_at: '2026-10-03' }]);
+      component.recentRehearsals.set([{ id: 'r', user_id: 'ur', name: 'Local Y', city: 'Madrid', avatar_url: 'r.png', capacity: null, created_at: '2026-10-02' }]);
+      expect(component.newPeople().map(p => [p.id, p.label, p.link.join('/')])).toEqual([
+        ['b', 'Banda · Rock', '/bands/b'],
+        ['r', 'Local de ensayo', '/rehearsal/r'],
+        ['m', 'Bajo', '/musicians/m'],
+      ]);
+    });
+
     it('shows at most eight people', () => {
       component.recentMusicians.set(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map(i => person(i, `u${i}`)));
       expect(component.newPeople().length).toBe(8);
