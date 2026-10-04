@@ -144,6 +144,7 @@
       <a routerLink="/legal/privacidad" (click)="menuOpen = false" class="hover:text-ink py-2.5">Privacidad</a>
       <a routerLink="/legal/terminos" (click)="menuOpen = false" class="hover:text-ink py-2.5">Términos</a>
       <a routerLink="/legal/cookies" (click)="menuOpen = false" class="hover:text-ink py-2.5">Cookies</a>
+      <a [href]="'mailto:' + contactEmail" class="hover:text-ink py-2.5">Contacto</a>
     </nav>
   </div>
 }

@@ -20,10 +20,10 @@ export const LEGAL_INFO = {
    */
   registry: 'Persona física no inscrita en el Registro Mercantil',
   website: 'https://bandyou.es',
-  /** Buzón general / legal y punto de contacto único DSA (arts. 11 y 12). Verificar que existe. */
-  legalEmail: 'legal@bandyou.es',
-  /** Buzón para ejercicio de derechos RGPD. Verificar que existe. */
-  privacyEmail: 'privacidad@bandyou.es',
+  /** Buzón general / legal y punto de contacto único DSA (arts. 11 y 12). Buzón real: contacto@bandyou.es. */
+  legalEmail: 'contacto@bandyou.es',
+  /** Buzón para ejercicio de derechos RGPD. Buzón real: contacto@bandyou.es. */
+  privacyEmail: 'contacto@bandyou.es',
   /** Plazo de retención de copias de seguridad en Supabase (según plan contratado). */
   backupRetention: '7 días',
   /** Edad mínima para registrarse (LOPDGDD art. 7). */

@@ -50,7 +50,7 @@ accesibilidad, buenas prácticas y SEO 100. E2E en vivo 48/48. Cuentas de prueba
       de semilla sin dueño. Las previsualizaciones van primero; los DELETE están comentados.
 - [ ] Borrar a mano anuncios/posts de prueba de cuentas reales (p. ej. "Cheetos").
 - [ ] Rellenar `src/app/features/legal/legal-info.ts`: titular, NIF, domicilio, registro, retención de backups.
-- [ ] Comprobar que existen y se leen `legal@bandyou.es` y `privacidad@bandyou.es` (punto de contacto DSA).
+- [x] Buzón de contacto: `contacto@bandyou.es` (legal, privacidad y punto de contacto DSA).
 - [ ] Aceptar los DPA de Supabase y Vercel (Settings → Legal / Data Processing Addendum).
 - [ ] Revisión de los textos legales por un abogado antes del lanzamiento.
 

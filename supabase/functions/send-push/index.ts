@@ -129,7 +129,7 @@ serve(async (req) => {
     }
 
     webpush.setVapidDetails(
-      Deno.env.get('VAPID_CONTACT_EMAIL') ?? 'mailto:soporte@bandyou.es',
+      Deno.env.get('VAPID_CONTACT_EMAIL') ?? 'mailto:contacto@bandyou.es',
       VAPID_PUBLIC_KEY,
       vapidPrivateKey,
     );

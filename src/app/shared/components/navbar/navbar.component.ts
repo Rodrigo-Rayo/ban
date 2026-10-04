@@ -12,6 +12,7 @@ import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IconComponent } from '../icon/icon.component';
 import { environment } from '../../../../environments/environment';
+import { LEGAL_INFO } from '../../../features/legal/legal-info';
 
 /** How long the new-message toast stays up (paused while hovered or focused). */
 const MESSAGE_TOAST_MS = 6000;
@@ -73,6 +74,7 @@ export function accountInitial(name: string | null | undefined, email: string | 
     templateUrl: './navbar.component.html'
 })
 export class NavbarComponent implements OnInit, OnDestroy {
+  readonly contactEmail = LEGAL_INFO.legalEmail;
   auth = inject(AuthService);
   notifSvc = inject(NotificationsService);
   messagesService = inject(MessagesService);
