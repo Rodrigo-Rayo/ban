@@ -6,6 +6,8 @@ import { MessagesService } from '../../../core/services/messages.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
 
 const musician = {
   id: 'm-1', user_id: 'owner-1', name: 'Ana García', instrument: 'Batería', genre: 'Rock', city: 'Madrid',
@@ -33,6 +35,9 @@ async function render(sessionUserId: string | null, data: object = musician) {
       { provide: FavoritesService, useValue: { isFavorite: () => Promise.resolve(false), toggle: () => Promise.resolve(true) } },
       { provide: SeoService, useValue: jasmine.createSpyObj('SeoService', ['setProfile', 'injectJsonLd', 'setNotFound']) },
       { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['error', 'success']) },
+      // <app-profile-contact>: no contact columns in this fixture.
+      { provide: AuthService, useValue: { isLoggedIn: () => !!sessionUserId } },
+      { provide: MediaFeaturesService, useValue: { has: () => Promise.resolve(false), state: () => () => false } },
     ],
   }).compileComponents();
   const fixture = TestBed.createComponent(MusicianProfileComponent);

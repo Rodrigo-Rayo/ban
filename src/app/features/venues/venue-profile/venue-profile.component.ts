@@ -1,3 +1,4 @@
+import { ProfileContactComponent } from '../../../shared/components/profile-contact/profile-contact.component';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -15,11 +16,11 @@ import { avatarColor } from '../../../core/utils/display.utils';
 import { Venue, Review } from '../../../core/models';
 import { ListPipe } from '../../../shared/pipes/list.pipe';
 
-const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, capacity, genres, contact_email, instagram_url, website_url, phone';
+const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, capacity, genres, instagram_url, website_url';
 
 @Component({
     selector: 'app-venue-profile',
-    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent, SpaceGalleryComponent],
+    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
     templateUrl: './venue-profile.component.html'
 })
 export class VenueProfileComponent implements OnInit {

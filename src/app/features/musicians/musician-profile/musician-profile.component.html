@@ -67,6 +67,7 @@
           </div>
         }
       </dl>
+      <app-profile-contact [table]="'musicians'" [profileId]="musician()!.id"/>
       @if (availabilityDays().length || availabilitySlots().length) {
         <section class="mt-6" aria-labelledby="avail-title">
           <h2 id="avail-title" class="font-display text-2xl leading-none mb-3">Disponibilidad</h2>

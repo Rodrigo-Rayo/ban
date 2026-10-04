@@ -72,19 +72,8 @@
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">★ {{ avgRating() }} · {{ reviews().length }} reseña{{ reviews().length !== 1 ? 's' : '' }}</dd>
           </div>
         }
-        @if (venue()!.phone) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[44px]">
-            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Teléfono</dt>
-            <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]"><a [href]="'tel:' + venue()!.phone" class="underline decoration-2 underline-offset-4 hover:text-primary-600 inline-flex items-center min-h-[44px]">{{ venue()!.phone }}</a></dd>
-          </div>
-        }
-        @if (venue()!.contact_email) {
-          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[44px]">
-            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Email</dt>
-            <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]"><a [href]="'mailto:' + venue()!.contact_email" class="underline decoration-2 underline-offset-4 hover:text-primary-600 inline-flex items-center min-h-[44px]">{{ venue()!.contact_email }}</a></dd>
-          </div>
-        }
       </dl>
+      <app-profile-contact [table]="'venues'" [profileId]="venue()!.id"/>
       @if (isOwner()) {
         <div class="mt-4 [&>app-avatar-upload>label]:w-full">
           <app-avatar-upload class="block" (uploaded)="onPhotoUploaded($event)"/>

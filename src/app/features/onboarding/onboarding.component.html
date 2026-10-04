@@ -361,15 +361,6 @@
           </div>
           @if (role() === 'venue' || role() === 'rehearsal') {
             <div class="grid sm:grid-cols-2 gap-4">
-<div>
-                <label for="onb-phone" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Teléfono <span class="text-ink-muted">(opcional)</span></label>
-                <input id="onb-phone" formControlName="phone" type="tel" autocomplete="tel" placeholder="+34 600 000 000" class="input-field"
-                  [attr.aria-invalid]="zInvalid('phone')"
-                  [attr.aria-describedby]="zInvalid('phone') ? 'onb-phone-error' : null"/>
-                @if (zInvalid('phone')) {
-                  <p id="onb-phone-error" class="text-xs font-bold text-signal-red mt-1">Introduce un teléfono válido (solo dígitos, espacios y + - ( )).</p>
-                }
-              </div>
               <div>
                 <label for="onb-address" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Dirección <span class="text-ink-muted">(opcional)</span></label>
                 <input id="onb-address" formControlName="address" type="text" autocomplete="street-address" placeholder="Calle y número" class="input-field"/>
@@ -428,6 +419,8 @@
               }
             </div>
           }
+
+          <ng-container [ngTemplateOutlet]="contactFields"/>
 
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">
@@ -641,6 +634,8 @@
             </div>
           }
 
+          <ng-container [ngTemplateOutlet]="contactFields"/>
+
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">
             <h2 class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-3">Redes y enlaces <span class="text-ink-muted">(opcional)</span></h2>
@@ -766,4 +761,34 @@
         </button>
       }
     </div>
+</ng-template>
+
+<!-- Optional contact (email / phone), shown on the profile to signed-in users only -->
+<ng-template #contactFields>
+  <div class="border-t border-dark-700 pt-5" [formGroup]="zoneForm">
+    <h2 class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1">Contacto <span class="text-ink-muted">(opcional)</span></h2>
+    <p class="text-xs text-ink-muted mb-3 leading-snug">Solo lo verán usuarios registrados. Si lo dejas vacío, te escribirán por el chat de BandYou.</p>
+    <div class="grid sm:grid-cols-2 gap-3">
+      <div>
+        <label for="onb-contactEmail" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1">Email</label>
+        <input id="onb-contactEmail" formControlName="contactEmail" type="email" autocomplete="email" [placeholder]="contactEmailPlaceholder" class="input-field"
+          [attr.aria-invalid]="zInvalid('contactEmail')"
+          [attr.aria-describedby]="zInvalid('contactEmail') ? 'onb-contactEmail-error' : null"/>
+        @if (zInvalid('contactEmail')) {
+          <p id="onb-contactEmail-error" class="text-xs font-bold text-signal-red mt-1">Introduce un email válido.</p>
+        }
+      </div>
+      @if (role() === 'venue' || role() === 'rehearsal' || contactPhoneAvailable()) {
+        <div>
+          <label for="onb-phone" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1">Teléfono / WhatsApp</label>
+          <input id="onb-phone" formControlName="phone" type="tel" autocomplete="tel" placeholder="+34 600 000 000" class="input-field"
+            [attr.aria-invalid]="zInvalid('phone')"
+            [attr.aria-describedby]="zInvalid('phone') ? 'onb-phone-error' : null"/>
+          @if (zInvalid('phone')) {
+            <p id="onb-phone-error" class="text-xs font-bold text-signal-red mt-1">Introduce un teléfono válido (solo dígitos, espacios y + - ( )).</p>
+          }
+        </div>
+      }
+    </div>
+  </div>
 </ng-template>

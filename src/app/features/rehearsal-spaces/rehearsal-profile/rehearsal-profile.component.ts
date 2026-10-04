@@ -1,3 +1,4 @@
+import { ProfileContactComponent } from '../../../shared/components/profile-contact/profile-contact.component';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -14,11 +15,11 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { RehearsalSpace, Review } from '../../../core/models';
 
-const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, hourly_rate, capacity, opening_hours, instagram_url, website_url, phone';
+const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, hourly_rate, capacity, opening_hours, instagram_url, website_url';
 
 @Component({
     selector: 'app-rehearsal-profile',
-    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, SpaceGalleryComponent],
+    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
     templateUrl: './rehearsal-profile.component.html'
 })
 export class RehearsalProfileComponent implements OnInit {

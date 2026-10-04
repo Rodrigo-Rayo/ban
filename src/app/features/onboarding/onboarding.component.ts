@@ -67,6 +67,8 @@ export class OnboardingComponent implements OnInit {
   private features = inject(MediaFeaturesService);
   /** Band availability fields exist in the live DB (see MediaFeaturesService). */
   readonly bandAvailability = this.features.state('bandAvailability');
+  /** Musicians, bands and teachers got a phone column with supabase/2026_10_private_contact.sql. */
+  readonly contactPhoneAvailable = this.features.state('profileContact');
 
   readonly DAYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
   readonly DAYS_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
@@ -315,6 +317,7 @@ export class OnboardingComponent implements OnInit {
 
   async ngOnInit() {
     void this.features.has('bandAvailability');
+    void this.features.has('profileContact');
     // Read stored role synchronously before any async operations so later
     // Supabase responses never race-overwrite a role the user already picked.
     const VALID_ROLES: Role[] = ['musician', 'band', 'venue', 'teacher', 'rehearsal', 'listener'];
@@ -507,6 +510,7 @@ export class OnboardingComponent implements OnInit {
 
     if (role === 'musician') {
       const { error } = await this.supabase.client.from('musicians').upsert({
+        ...(this.contactPhoneAvailable() ? { phone: z.phone || null } : {}),
         user_id: userId, name: this.nameForm.value.name,
         city: z.city, genre, instrument, level: this.selectedLevel(),
         description: z.description, contact_email: z.contactEmail,
@@ -520,6 +524,7 @@ export class OnboardingComponent implements OnInit {
       saveError = error;
     } else if (role === 'band') {
       const { data: bandRow, error } = await this.supabase.client.from('bands').upsert({
+        ...(this.contactPhoneAvailable() ? { phone: z.phone || null } : {}),
         user_id: userId, name: this.nameForm.value.name,
         city: z.city, genre, description: z.description,
         contact_email: z.contactEmail,
@@ -554,6 +559,7 @@ export class OnboardingComponent implements OnInit {
       saveError = error;
     } else if (role === 'teacher') {
       const { error } = await this.supabase.client.from('teachers').upsert({
+        ...(this.contactPhoneAvailable() ? { phone: z.phone || null } : {}),
         user_id: userId, name: this.nameForm.value.name,
         city: z.city, instrument, level: this.selectedLevel(),
         hourly_rate: toNumberOrNull(z.hourly_rate), experience: z.experience,

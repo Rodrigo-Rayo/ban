@@ -74,6 +74,7 @@
           </div>
         }
       </dl>
+      <app-profile-contact [table]="'bands'" [profileId]="band()!.id"/>
       @if (isOwner()) {
         <div class="mt-4 [&>app-avatar-upload>label]:w-full">
           <app-avatar-upload class="block" (uploaded)="onPhotoUploaded($event)"/>
