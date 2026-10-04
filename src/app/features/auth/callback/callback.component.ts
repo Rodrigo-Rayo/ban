@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { needsOnboarding } from '../../../core/utils/profile-check';
 
 @Component({
   selector: 'app-callback',
@@ -80,15 +81,9 @@ export class CallbackComponent implements OnInit {
   }
 
   private async redirect(userId: string) {
-    const { data: profile, error } = await this.supabase.client
-      .from('profiles')
-      .select('id, role')
-      .eq('id', userId)
-      .maybeSingle();
-
-    // A failed lookup must not send an existing user back through onboarding;
-    // authGuard re-checks the role on the next protected route anyway.
-    if (!error && !profile?.role) {
+    // A failed lookup (null) must not send an existing user back through onboarding;
+    // authGuard re-checks on the next protected route anyway.
+    if (await needsOnboarding(this.supabase.client, userId) === true) {
       this.router.navigate(['/onboarding']);
       return;
     }

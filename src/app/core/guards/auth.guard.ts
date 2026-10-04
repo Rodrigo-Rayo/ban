@@ -2,6 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
 import { AuthService } from '../services/auth.service';
+import { needsOnboarding } from '../utils/profile-check';
 
 export const authGuard: CanActivateFn = async (route, state) => {
   const supabase = inject(SupabaseService);
@@ -21,19 +22,12 @@ export const authGuard: CanActivateFn = async (route, state) => {
   // Role already confirmed for this user in this session: skip the DB round-trip.
   if (auth.isRoleVerified(userId)) return true;
 
-  const { data: profile, error: profileError } = await supabase.client
-    .from('profiles')
-    .select('id, role')
-    .eq('id', userId)
-    .maybeSingle();
-
-  // If the query itself failed (network / RLS error), allow navigation rather than
-  // silently bouncing the user to onboarding — they are authenticated.
-  if (profileError) {
-    return true;
-  }
-
-  if (!profile?.role) return router.createUrlTree(['/onboarding']);
+  // Every account needs a profile ("soy público" counts). If the lookup itself
+  // failed (network / RLS error), allow navigation rather than silently bouncing
+  // an authenticated user to onboarding.
+  const missing = await needsOnboarding(supabase.client, userId);
+  if (missing === null) return true;
+  if (missing) return router.createUrlTree(['/onboarding']);
 
   auth.markRoleVerified(userId);
   return true;

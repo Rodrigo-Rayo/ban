@@ -17,6 +17,11 @@ function makeClientMock(profileData: any = { id: 'p-1', role: 'musician' }) {
   return b;
 }
 
+/** `from()` spy: the profiles row, plus the musician row (or none) for profile tables. */
+function tables(profileData: any = { id: 'p-1', role: 'musician' }, ownRow: any = { id: 'm-1' }) {
+  return jasmine.createSpy('from').and.callFake((t: string) => makeClientMock(t === 'profiles' ? profileData : t === 'musicians' ? ownRow : null));
+}
+
 describe('authGuard', () => {
   let supabaseSpy: jasmine.SpyObj<SupabaseService> & { client: any };
   let routerSpy: jasmine.SpyObj<Router>;
@@ -35,7 +40,7 @@ describe('authGuard', () => {
     fakeUrlTree = new UrlTree();
 
     supabaseSpy = jasmine.createSpyObj<SupabaseService>('SupabaseService', ['getSession']) as any;
-    supabaseSpy.client = { from: jasmine.createSpy('from').and.returnValue(makeClientMock()) };
+    supabaseSpy.client = { from: tables() };
 
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate', 'createUrlTree']);
     routerSpy.createUrlTree.and.returnValue(fakeUrlTree);
@@ -76,7 +81,7 @@ describe('authGuard', () => {
       Promise.resolve({ data: { session: { user: { id: 'user-1' } } }, error: null } as never)
     );
     supabaseSpy.client = {
-      from: jasmine.createSpy('from').and.returnValue(makeClientMock({ id: 'p-1', role: null })),
+      from: tables({ id: 'p-1', role: null }),
     };
 
     const result = await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
@@ -107,9 +112,10 @@ describe('authGuard', () => {
     );
 
     await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
+    const firstRound = supabaseSpy.client.from.calls.count();
     await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
 
-    expect(supabaseSpy.client.from).toHaveBeenCalledTimes(1);
+    expect(supabaseSpy.client.from.calls.count()).toBe(firstRound);
   });
 
   it('does not reuse a verification made for a different user', async () => {
@@ -120,6 +126,30 @@ describe('authGuard', () => {
 
     await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
 
+    expect(supabaseSpy.client.from).toHaveBeenCalledWith('profiles');
+  });
+
+  it('redirects to /onboarding when the role exists but its profile row was deleted', async () => {
+    supabaseSpy.getSession.and.returnValue(
+      Promise.resolve({ data: { session: { user: { id: 'user-1' } } }, error: null } as never)
+    );
+    supabaseSpy.client = { from: tables({ id: 'p-1', role: 'musician' }, null) };
+
+    const result = await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
+
+    expect(result).toBe(fakeUrlTree);
+    expect(routerSpy.createUrlTree).toHaveBeenCalledWith(['/onboarding']);
+  });
+
+  it('lets a listener ("soy público") through without a profile-type row', async () => {
+    supabaseSpy.getSession.and.returnValue(
+      Promise.resolve({ data: { session: { user: { id: 'user-1' } } }, error: null } as never)
+    );
+    supabaseSpy.client = { from: tables({ id: 'p-1', role: 'listener' }, null) };
+
+    const result = await TestBed.runInInjectionContext(() => authGuard(fakeRoute, fakeState));
+
+    expect(result).toBeTrue();
     expect(supabaseSpy.client.from).toHaveBeenCalledTimes(1);
   });
 });
