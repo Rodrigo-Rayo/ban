@@ -164,22 +164,29 @@
       </nav>
     </div>
 
-    <!-- ── LOADING SKELETON ── -->
-    @if (loading()) {
-      <div class="flex flex-col border-t-2 border-ink" role="status" aria-label="Cargando anuncios...">
+    <!-- ── LOADING SKELETON: first load only, shaped like the cards so nothing jumps ── -->
+    @if (loading() && !loadedOnce()) {
+      <ul class="flex flex-col border-t border-ink/20" role="status" aria-label="Cargando anuncios…">
         @for (i of [1,2,3,4]; track i) {
-          <div class="py-4 border-b border-ink/15 animate-pulse">
-            <div class="h-5 bg-dark-700 w-36 mb-3"></div>
-            <div class="h-3.5 bg-dark-700 w-full mb-2"></div>
-            <div class="h-3 bg-dark-700 w-5/6 mb-2"></div>
-            <div class="h-3 bg-dark-700 w-2/3"></div>
-          </div>
+          <li class="border-b border-ink/15 px-1 sm:px-3 py-4 animate-pulse" aria-hidden="true">
+            <div class="flex items-center justify-between gap-3">
+              <div class="h-6 sm:h-7 bg-dark-700 w-3/5"></div>
+              <div class="h-3 bg-dark-700 w-14 flex-shrink-0"></div>
+            </div>
+            <div class="flex items-center gap-2.5 mt-2.5">
+              <div class="h-6 bg-dark-700 w-24"></div>
+              <div class="h-3.5 bg-dark-700 w-28"></div>
+            </div>
+            <div class="h-3.5 bg-dark-700 w-full mt-3"></div>
+            <div class="h-3.5 bg-dark-700 w-4/5 mt-2"></div>
+          </li>
         }
-      </div>
+      </ul>
     }
 
-    <!-- ── POSTS ── -->
-    @if (!loading()) {
+    <!-- ── POSTS: on later reloads (filters, sections) the current list stays, dimmed, until the new one arrives ── -->
+    @if (loadedOnce()) {
+      <div class="transition-opacity duration-200" [class.opacity-50]="loading()" [attr.aria-busy]="loading()">
       @if (items().length === 0) {
         @if (onlyCityFilter()) {
           <div class="empty-state">
@@ -243,6 +250,7 @@
           }
         </ul>
       }
+      </div>
     }
 
     <!-- ── LOAD MORE ── -->

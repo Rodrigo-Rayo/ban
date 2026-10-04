@@ -124,6 +124,8 @@ export class FeedComponent implements OnInit {
   private initialised = false;
 
   currentUser = signal<User | null>(null);
+  /** The first list has arrived: later reloads keep it on screen instead of showing the skeleton. */
+  readonly loadedOnce = signal(false);
   userProfile = signal<{ id: string; name: string; city: string; avatar_url: string | null; type: string } | null>(null);
 
   newPost = {
@@ -295,7 +297,7 @@ export class FeedComponent implements OnInit {
       }
       await vacanciesDone;
     } finally {
-      if (seq === this.listSeq) this.loading.set(false);
+      if (seq === this.listSeq) { this.loading.set(false); this.loadedOnce.set(true); }
     }
   }
 
