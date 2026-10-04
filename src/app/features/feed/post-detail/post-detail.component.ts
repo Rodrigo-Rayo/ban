@@ -1,3 +1,4 @@
+import { linkify, linkLabel } from '../../../core/utils/linkify';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { ChangeDetectionStrategy, Component, DestroyRef, signal, computed, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -30,6 +31,9 @@ export function heroStampFor(type: PostType): string {
     templateUrl: './post-detail.component.html'
 })
 export class PostDetailComponent implements OnInit {
+  /** Post text split into text and http(s) links (rendered without innerHTML). */
+  readonly textParts = computed(() => linkify(this.post()?.text));
+  readonly linkLabel = linkLabel;
   readonly timeAgo = timeAgo;
   readonly askLabelFor = (p: Pick<Post, 'type' | 'instrument'>) => askLabel(p.type, p.instrument);
   readonly stampFor = askStampClass;

@@ -78,7 +78,7 @@
           <div class="border-t border-dark-600 pt-3 mb-3">
             <h2 id="post-text-title" class="font-display text-2xl leading-none">El anuncio</h2>
           </div>
-          <p class="text-lg sm:text-xl text-ink leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">{{ post()!.text }}</p>
+          <p class="text-lg sm:text-xl text-ink leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">@for (part of textParts(); track $index) {@if (part.href) {<a [href]="part.href" target="_blank" rel="noopener noreferrer nofollow ugc" class="underline decoration-2 underline-offset-4 hover:text-primary-600">{{ linkLabel(part.href) }}</a>} @else {{{ part.text }}}}</p>
         </section>
 
         <!-- Author -->
@@ -154,7 +154,7 @@
       </section>
     }
 
-    @if (!isOwner()) { <div class="mt-6"><app-report-link what="este anuncio"/></div> }
+    @if (!isOwner()) { <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 pb-6"><app-report-link what="este anuncio"/></div> }
 
     <!-- Mobile action bar — sits above the global bottom nav -->
     <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink sm:hidden">
