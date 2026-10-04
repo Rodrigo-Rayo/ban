@@ -49,12 +49,6 @@ export const PUBLISH_CONTENT: readonly PublishOption[] = [
   { label: 'Vender equipo',       hint: 'Instrumentos, amplis, efectos',        icon: 'shopping-cart', link: '/shop/new' },
 ];
 
-/** Professional profiles to create (second group of the sheet). */
-export const PUBLISH_PROFILES: readonly PublishOption[] = [
-  { label: 'Dar clases',         hint: 'Perfil de profesor',          icon: 'book-open',  link: '/teachers/new' },
-  { label: 'Local de ensayo',    hint: 'Alquila tu local por horas',  icon: 'headphones', link: '/rehearsal/new' },
-  { label: 'Sala de conciertos', hint: 'Programa música en directo',  icon: 'building',   link: '/venues/new' },
-];
 
 /** "Vacante en tu banda": only for band profiles, straight to the band's page. */
 export function bandVacancyOption(profileType: string, profileId: string | null | undefined): PublishOption | null {
@@ -98,7 +92,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   publishOpen = false;
   accountOpen = false;
   readonly sections = NAV_SECTIONS;
-  readonly publishProfiles = PUBLISH_PROFILES;
   /** Content group, plus the band vacancy when the user has a band profile. */
   readonly publishItems = computed<readonly PublishOption[]>(() => {
     const vacancy = bandVacancyOption(this.auth.userProfileType(), this.auth.userProfileData()?.id);

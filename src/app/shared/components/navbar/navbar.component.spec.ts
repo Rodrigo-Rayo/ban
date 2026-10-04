@@ -1,4 +1,4 @@
-import { accountInitial, bandVacancyOption, PUBLISH_CONTENT, PUBLISH_PROFILES } from './navbar.component';
+import { accountInitial, bandVacancyOption, PUBLISH_CONTENT } from './navbar.component';
 
 describe('navbar helpers', () => {
   describe('accountInitial()', () => {
@@ -34,7 +34,6 @@ describe('navbar helpers', () => {
   describe('publish groups', () => {
     it('lists content and professional profiles separately', () => {
       expect(PUBLISH_CONTENT.map(o => o.label)).toEqual(['Anuncio en Se busca', 'Evento', 'Vender equipo']);
-      expect(PUBLISH_PROFILES.map(o => o.label)).toEqual(['Dar clases', 'Local de ensayo', 'Sala de conciertos']);
     });
   });
 });

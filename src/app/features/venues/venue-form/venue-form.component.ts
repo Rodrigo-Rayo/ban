@@ -3,24 +3,21 @@ import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { ConfirmService } from '../../../core/services/confirm.service';
 import { CITIES } from '../../../core/constants/cities';
 import { GENRES } from '../../../core/constants/music.constants';
-import { confirmSecondProfile } from '../../teachers/teacher-form/professional-profile';
+import { findOwnProfile } from '../../../core/utils/profile-check';
+import { OneProfileNoticeComponent } from '../../../shared/components/one-profile-notice/one-profile-notice.component';
 import { ProfilePhotosComponent } from '../../../shared/components/profile-photos/profile-photos.component';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
     selector: 'app-venue-form',
-    imports: [ReactiveFormsModule, RouterLink, ProfilePhotosComponent],
+    imports: [ReactiveFormsModule, RouterLink, ProfilePhotosComponent, OneProfileNoticeComponent],
     templateUrl: './venue-form.component.html'
 })
 export class VenueFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private auth = inject(AuthService);
-  private confirm = inject(ConfirmService);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -34,6 +31,8 @@ export class VenueFormComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   isEditing = signal(false);
+  /** Type of the profile this account already has (one account, one profile); null when none. */
+  otherProfile = signal<string | null>(null);
   /** Photos picked for a new profile; uploaded once the row exists. */
   private photos = viewChild(ProfilePhotosComponent);
   profileId = signal<string | null>(null);
@@ -87,6 +86,10 @@ export class VenueFormComponent implements OnInit {
           this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
         }
       }
+      if (!this.isEditing()) {
+        const own = await findOwnProfile(this.supabase.client, user.id);
+        if (own && own.role !== 'venue') this.otherProfile.set(own.role);
+      }
     } finally {
       this.loading.set(false);
     }
@@ -106,7 +109,7 @@ export class VenueFormComponent implements OnInit {
       return;
     }
     if (this.loadFailed() || this.saving()) return;
-    if (!await confirmSecondProfile(this.auth, this.confirm, 'venue', this.isEditing())) return;
+    if (this.otherProfile()) return;
     this.saving.set(true);
     this.error.set('');
     try {

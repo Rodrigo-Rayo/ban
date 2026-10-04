@@ -19,6 +19,8 @@
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
       </svg>
     </div>
+  } @else if (otherProfile(); as other) {
+    <app-one-profile-notice [current]="other" wantedArticle="un local de ensayo"/>
   } @else {
     <div>
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-8" novalidate>

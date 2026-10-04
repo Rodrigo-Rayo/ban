@@ -4,23 +4,22 @@ import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { ConfirmService } from '../../../core/services/confirm.service';
 import { CITIES } from '../../../core/constants/cities';
 import { INSTRUMENTS } from '../../../core/constants/music.constants';
-import { confirmSecondProfile } from './professional-profile';
+import { findOwnProfile } from '../../../core/utils/profile-check';
+import { OneProfileNoticeComponent } from '../../../shared/components/one-profile-notice/one-profile-notice.component';
 import { ProfilePhotosComponent } from '../../../shared/components/profile-photos/profile-photos.component';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
     selector: 'app-teacher-form',
-    imports: [ReactiveFormsModule, RouterLink, ProfilePhotosComponent],
+    imports: [ReactiveFormsModule, RouterLink, ProfilePhotosComponent, OneProfileNoticeComponent],
     templateUrl: './teacher-form.component.html'
 })
 export class TeacherFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private auth = inject(AuthService);
-  private confirm = inject(ConfirmService);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -34,6 +33,8 @@ export class TeacherFormComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   isEditing = signal(false);
+  /** Type of the profile this account already has (one account, one profile); null when none. */
+  otherProfile = signal<string | null>(null);
   /** Photos picked for a new profile; uploaded once the row exists. */
   private photos = viewChild(ProfilePhotosComponent);
   profileId = signal<string | null>(null);
@@ -109,6 +110,10 @@ export class TeacherFormComponent implements OnInit {
         const knownName = this.auth.userProfileData()?.name;
         if (knownName) this.form.patchValue({ name: knownName });
       }
+      if (!this.isEditing()) {
+        const own = await findOwnProfile(this.supabase.client, user.id);
+        if (own && own.role !== 'teacher') this.otherProfile.set(own.role);
+      }
     } finally {
       this.loading.set(false);
     }
@@ -128,7 +133,7 @@ export class TeacherFormComponent implements OnInit {
       return;
     }
     if (this.loadFailed() || this.saving()) return;
-    if (!await confirmSecondProfile(this.auth, this.confirm, 'teacher', this.isEditing())) return;
+    if (this.otherProfile()) return;
     this.saving.set(true);
     this.error.set('');
     try {
