@@ -80,6 +80,7 @@ Tailwind CSS with a custom warm-tone design system. Key conventions:
 - `api/` holds Vercel serverless functions: `sitemap.js` (dynamic sitemap) and `share.js` (link-preview meta for crawlers, wired in `vercel.json`).
 - SQL lives in `supabase/*.sql`; the owner runs files manually in the Supabase SQL editor, so the live DB can lag behind the repo. Photo columns are feature-detected (`MediaFeaturesService`).
 - Images are shrunk client-side before upload (`core/utils/image-resize.ts`) — Supabase image transformations are not enabled.
+- Profile contact (`contact_email`, `phone`) is for signed-in users only: on the five profile tables the `anon` role has column-level SELECT on every column except those two (`supabase/2026_10_private_contact.sql`). Anonymous queries must never name them, and a column added later is not readable by `anon` until block 3 of that file is re-run. `<app-profile-contact>` renders them.
 
 ### State management
 
