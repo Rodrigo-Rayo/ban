@@ -1,13 +1,17 @@
 import { Injectable, Signal, WritableSignal, inject, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 
-/** Optional photo columns added by supabase/audit_2026_10_photos.sql. */
-export type MediaFeature = 'eventImage' | 'venuePhotos' | 'rehearsalPhotos';
+/**
+ * Optional columns that may not exist yet in the live DB: photos (supabase/audit_2026_10_photos.sql)
+ * and band availability (supabase/2026_10_provinces_band_availability.sql).
+ */
+export type MediaFeature = 'eventImage' | 'venuePhotos' | 'rehearsalPhotos' | 'bandAvailability';
 
 const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   eventImage:      { table: 'events',           column: 'image_url' },
   venuePhotos:     { table: 'venues',           column: 'photos' },
   rehearsalPhotos: { table: 'rehearsal_spaces', column: 'photos' },
+  bandAvailability: { table: 'bands',          column: 'open_to_gigs' },
 };
 
 /** Postgres "undefined_column": the SQL has not been run yet. */
@@ -27,6 +31,7 @@ export class MediaFeaturesService {
     eventImage: signal(false),
     venuePhotos: signal(false),
     rehearsalPhotos: signal(false),
+    bandAvailability: signal(false),
   };
 
   /** Latest known availability (false until a probe confirms it). */

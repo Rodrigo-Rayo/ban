@@ -44,7 +44,7 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="teacher-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad <span class="text-signal-red" aria-hidden="true">*</span></label>
+                <label for="teacher-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia <span class="text-signal-red" aria-hidden="true">*</span></label>
                 <select id="teacher-city" formControlName="city" class="input-field" required>
                   @for (city of cities; track city) {
                     <option [value]="city">{{ city }}</option>

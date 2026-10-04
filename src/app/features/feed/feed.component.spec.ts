@@ -469,7 +469,7 @@ describe('FeedComponent', () => {
 
   describe('preferredFeedCity', () => {
     it('opens on the profile city', () => {
-      expect(preferredFeedCity('Bilbao', 'Madrid')).toBe('Bilbao');
+      expect(preferredFeedCity('Vizcaya', 'Madrid')).toBe('Vizcaya');
     });
     it('falls back to the city cached by the home', () => {
       expect(preferredFeedCity(null, 'Valencia')).toBe('Valencia');

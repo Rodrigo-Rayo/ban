@@ -11,32 +11,13 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { parseList } from '../../../core/utils/list';
+import { joinWeekdays } from '../../../core/utils/weekdays';
+
+export { joinWeekdays };
 import { Musician } from '../../../core/models';
 
 /** Columns rendered by the profile page (avoid select('*')). */
 const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
-
-const WEEK_DAYS = [
-  { key: 'lunes', label: 'lunes' },
-  { key: 'martes', label: 'martes' },
-  { key: 'miercoles', label: 'miércoles' },
-  { key: 'jueves', label: 'jueves' },
-  { key: 'viernes', label: 'viernes' },
-  { key: 'sabado', label: 'sábado' },
-  { key: 'domingo', label: 'domingo' },
-] as const;
-
-const stripAccents = (v: string) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-
-/** ['jueves','Lunes'] -> "Lunes y jueves"; all seven -> "Todos los días"; none -> "". */
-export function joinWeekdays(listed: string[]): string {
-  const set = new Set(listed.map(stripAccents));
-  const names = WEEK_DAYS.filter(d => set.has(d.key)).map(d => d.label);
-  if (names.length === 0) return '';
-  if (names.length === WEEK_DAYS.length) return 'Todos los días';
-  const text = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,

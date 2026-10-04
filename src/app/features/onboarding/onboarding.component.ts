@@ -12,6 +12,7 @@ import { CITIES } from '../../core/constants/cities';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { optionalUrl, optionalPositiveNumber } from '../../core/utils/form-validators';
 import { LEGAL_INFO } from '../legal/legal-info';
+import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { ProfilePhotosComponent } from '../../shared/components/profile-photos/profile-photos.component';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
@@ -61,6 +62,11 @@ export class OnboardingComponent implements OnInit {
   bandMembers: { name: string; instrument: string }[] = [];
   selectedDays = signal<string[]>([]);
   selectedSlots = signal<string[]>([]);
+  /** Bands: "Disponibles para bolos". Days/slots above double as rehearsal days. */
+  openToGigs = signal(false);
+  private features = inject(MediaFeaturesService);
+  /** Band availability fields exist in the live DB (see MediaFeaturesService). */
+  readonly bandAvailability = this.features.state('bandAvailability');
 
   readonly DAYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
   readonly DAYS_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
@@ -308,6 +314,7 @@ export class OnboardingComponent implements OnInit {
   }
 
   async ngOnInit() {
+    void this.features.has('bandAvailability');
     // Read stored role synchronously before any async operations so later
     // Supabase responses never race-overwrite a role the user already picked.
     const VALID_ROLES: Role[] = ['musician', 'band', 'venue', 'teacher', 'rehearsal', 'listener'];
@@ -426,6 +433,9 @@ export class OnboardingComponent implements OnInit {
       if (data.instrument)  this.selectedInstruments.set(data.instrument.split(',').map((s: string) => s.trim()).filter(Boolean));
       if (data.level)       this.selectedLevel.set(data.level);
       if (role === 'band') {
+        if (data.rehearsal_days)  this.selectedDays.set(data.rehearsal_days.split(',').filter(Boolean));
+        if (data.rehearsal_slots) this.selectedSlots.set(data.rehearsal_slots.split(',').filter(Boolean));
+        this.openToGigs.set(!!data.open_to_gigs);
         const { data: members } = await this.supabase.client
           .from('band_members').select('name,instrument').eq('band_id', data.id);
         if (members) this.bandMembers = members.map((m: { name: string; instrument: string | null }) => ({ name: m.name, instrument: m.instrument ?? '' }));
@@ -516,6 +526,11 @@ export class OnboardingComponent implements OnInit {
         spotify_url: z.spotify_url, youtube_url: z.youtube_url,
         instagram_url: z.instagram_url, soundcloud_url: z.soundcloud_url,
         website_url: z.website_url,
+        ...(this.bandAvailability() ? {
+          rehearsal_days: this.selectedDays().join(','),
+          rehearsal_slots: this.selectedSlots().join(','),
+          open_to_gigs: this.openToGigs(),
+        } : {}),
       }, { onConflict: 'user_id' }).select('id').single();
       saveError = error;
       if (!error && bandRow) {

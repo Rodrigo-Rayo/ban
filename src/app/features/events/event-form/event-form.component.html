@@ -41,7 +41,7 @@
                 }
               </div>
               <div>
-                <label for="event-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad <span class="text-signal-red" aria-hidden="true">*</span></label>
+                <label for="event-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia <span class="text-signal-red" aria-hidden="true">*</span></label>
                 <select id="event-city" formControlName="city" class="input-field" required
                   [attr.aria-invalid]="isInvalid('city')"
                   [attr.aria-describedby]="isInvalid('city') ? 'event-city-error' : null">
@@ -50,7 +50,7 @@
                   }
                 </select>
                 @if (form.get('city')?.invalid && form.get('city')?.touched) {
-                  <p id="event-city-error" class="text-xs font-bold text-signal-red mt-1.5">La ciudad es obligatoria.</p>
+                  <p id="event-city-error" class="text-xs font-bold text-signal-red mt-1.5">La provincia es obligatoria.</p>
                 }
               </div>
             </div>

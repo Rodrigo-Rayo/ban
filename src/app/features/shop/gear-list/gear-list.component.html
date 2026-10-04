@@ -21,7 +21,7 @@
 
     <!-- Filters: three selects, same look as the other pages -->
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2" role="group" aria-label="Filtros de la tienda">
-      <select aria-label="Filtrar por ciudad" [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); applyFilters()"
+      <select aria-label="Filtrar por provincia" [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); applyFilters()"
         class="input-field !px-3 !py-2 min-h-[44px] cursor-pointer">
         @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
       </select>
@@ -72,7 +72,7 @@
       <div class="empty-state">
         <p class="font-display text-2xl uppercase text-ink">{{ hasFilters() ? 'Nada con estos filtros' : 'Aún no hay artículos' }}</p>
         <p class="text-sm text-ink-muted max-w-xs text-center mb-3">
-          {{ hasFilters() ? 'Prueba con otra ciudad, categoría o estado.' : 'Instrumentos, amplis, efectos… vende lo que ya no usas.' }}
+          {{ hasFilters() ? 'Prueba con otra provincia, categoría o estado.' : 'Instrumentos, amplis, efectos… vende lo que ya no usas.' }}
         </p>
         @if (hasFilters()) {
           <button type="button" (click)="clearFilters()" class="btn-secondary text-sm px-5 py-2.5 min-h-[44px]">Limpiar filtros</button>

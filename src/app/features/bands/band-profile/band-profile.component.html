@@ -295,6 +295,28 @@
         </section>
         }
 
+        @if (hasAvailability()) {
+        <section aria-labelledby="band-avail-title">
+          <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
+            <h2 id="band-avail-title" class="font-display text-2xl leading-none">Disponibilidad</h2>
+          </div>
+          @if (openToGigs()) {
+            <p class="inline-block bg-poster-yellow text-ink border-2 border-ink font-mono text-xs font-bold uppercase tracking-wide px-3 py-1.5 mb-3">Disponibles para bolos</p>
+          }
+          @if (rehearsalDaysText() || rehearsalSlots().length) {
+            <p class="text-base text-ink">
+              <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted mr-1">Ensayamos</span>
+              @if (rehearsalDaysText()) { <strong>{{ rehearsalDaysText() }}</strong> }
+            </p>
+            @if (rehearsalSlots().length) {
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                @for (s of rehearsalSlots(); track s) { <span class="tag capitalize">{{ s }}</span> }
+              </div>
+            }
+          }
+        </section>
+        }
+
         @if (members().length > 0) {
         <section>
           <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">

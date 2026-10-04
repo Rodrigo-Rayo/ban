@@ -13,6 +13,9 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { avatarColor } from '../../../core/utils/display.utils';
+import { parseList } from '../../../core/utils/list';
+import { joinWeekdays } from '../../../core/utils/weekdays';
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { GENRES, INSTRUMENTS } from '../../../core/constants/music.constants';
 import {
   applicationNoticeBody, applicationReviewedBody, applicationReviewedTitle, vacancyClosedTitle, VACANCY_CLOSED_BODY,
@@ -32,6 +35,8 @@ interface VacancyApplication {
 }
 
 const BAND_COLUMNS = 'id, user_id, name, genre, city, description, avatar_url, looking_for, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
+/** Only named once the columns exist (MediaFeaturesService 'bandAvailability'). */
+const BAND_AVAILABILITY_COLUMNS = ', rehearsal_days, rehearsal_slots, open_to_gigs';
 const MAX_VACANCIES = 50;
 const MAX_MEMBERS = 50;
 
@@ -53,6 +58,7 @@ export class BandProfileComponent implements OnInit {
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
 
+  private features = inject(MediaFeaturesService);
   band = signal<Band | null>(null);
   vacancies = signal<BandVacancy[]>([]);
   members = signal<BandMember[]>([]);
@@ -109,22 +115,25 @@ export class BandProfileComponent implements OnInit {
     if (!id) { this.loading.set(false); return; }
 
     try {
+      const columns = BAND_COLUMNS + (await this.features.has('bandAvailability') ? BAND_AVAILABILITY_COLUMNS : '');
       // Round 1: all 4 independent queries in parallel
       const [
-        { data: band },
+        { data: bandRow },
         { data: { session } },
         { data: vac },
         { data: membersData },
       ] = await Promise.all([
-        this.supabase.client.from('bands').select(BAND_COLUMNS).eq('id', id).maybeSingle(),
+        this.supabase.client.from('bands').select(columns).eq('id', id).maybeSingle(),
         this.supabase.auth.getSession(),
         this.supabase.client.from('band_vacancies').select('id, band_id, instrument, description, genre, open, created_at').eq('band_id', id).order('created_at').limit(MAX_VACANCIES),
         this.supabase.client.from('band_members').select('id, band_id, name, instrument, created_at').eq('band_id', id).order('created_at').limit(MAX_MEMBERS),
       ]);
 
-      this.band.set(band as Band | null);
+      // The column list is dynamic, so the row type is given here.
+      const band = bandRow as unknown as Band | null;
+      this.band.set(band);
       if (band) {
-        this.seo.setProfile(band.name, 'band', band.city, band.description, band.avatar_url);
+        this.seo.setProfile(band.name, 'band', band.city, band.description, band.avatar_url ?? undefined);
         this.seo.injectJsonLd({
           '@context': 'https://schema.org',
           '@type': 'MusicGroup',
@@ -171,6 +180,12 @@ export class BandProfileComponent implements OnInit {
       this.loading.set(false);
     }
   }
+
+  /** "Ensayamos: Martes y jueves" + franjas, and whether the band takes gigs. */
+  readonly rehearsalDaysText = computed(() => joinWeekdays(parseList(this.band()?.rehearsal_days)));
+  readonly rehearsalSlots = computed(() => parseList(this.band()?.rehearsal_slots));
+  readonly openToGigs = computed(() => !!this.band()?.open_to_gigs);
+  readonly hasAvailability = computed(() => this.openToGigs() || !!this.rehearsalDaysText() || this.rehearsalSlots().length > 0);
 
   readonly posterLine = computed(() => [this.band()?.genre, this.band()?.city].filter(Boolean).join(' · '));
   readonly hasLinks = computed(() => {

@@ -72,7 +72,7 @@
         <!-- Meta fields -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
           <div>
-            <label for="post-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad</label>
+            <label for="post-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia</label>
             <select id="post-city" [(ngModel)]="newPost.city" class="input-field min-h-[44px]">
               @for (c of cities.slice(1); track c) { <option [value]="c">{{ c }}</option> }
             </select>
@@ -114,7 +114,7 @@
       <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 pb-1">
         <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadPosts()"
           class="input-field col-span-2 sm:col-auto sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
-          aria-label="Filtrar por ciudad">
+          aria-label="Filtrar por provincia">
           @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
         </select>
         <select [ngModel]="filterInstrument()" (ngModelChange)="onInstrumentChange($event)"
@@ -172,7 +172,7 @@
         @if (onlyCityFilter()) {
           <div class="empty-state">
             <p class="font-display text-2xl uppercase text-ink">Nada en {{ filterCity() }} todavía</p>
-            <p class="text-sm text-ink-muted mb-3 max-w-[280px]">Mira lo que se busca en el resto de España o publica el primer anuncio de tu ciudad.</p>
+            <p class="text-sm text-ink-muted mb-3 max-w-[280px]">Mira lo que se busca en el resto de España o publica el primer anuncio de tu provincia.</p>
             <button (click)="showAllSpain()" class="btn-secondary text-sm min-h-[44px]">Ver toda España</button>
           </div>
         } @else if (hasActiveFilters()) {

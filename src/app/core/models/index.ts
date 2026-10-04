@@ -37,6 +37,10 @@ export interface Band {
   soundcloud_url: string | null;
   instagram_url: string | null;
   website_url: string | null;
+  /** Optional columns (bandAvailability feature). */
+  rehearsal_days?: string | null;
+  rehearsal_slots?: string | null;
+  open_to_gigs?: boolean | null;
   created_at: string;
 }
 

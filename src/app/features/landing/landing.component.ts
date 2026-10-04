@@ -42,7 +42,7 @@ export class LandingComponent implements OnInit {
 
   steps = [
     { n: '01', title: 'Crea tu perfil',        desc: 'Instrumento, estilos, zona y disponibilidad. Cinco minutos.' },
-    { n: '02', title: 'Explora el directorio', desc: 'Filtra por ciudad, género, instrumento y nivel.' },
+    { n: '02', title: 'Explora el directorio', desc: 'Filtra por provincia, género, instrumento y nivel.' },
     { n: '03', title: 'Escribe directamente',  desc: 'Sin matches, sin swipes. Ves un perfil y escribes.' },
     { n: '04', title: 'Toca',                  desc: 'Local de ensayo, estudio, concierto — todo coordinado.' },
   ];

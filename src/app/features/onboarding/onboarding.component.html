@@ -316,11 +316,11 @@
         <h1 id="onb-step-heading" tabindex="-1" class="text-5xl sm:text-6xl text-ink mb-3 leading-[0.9] focus:outline-none">
           ¿Dónde <span class="text-primary-500">estás?</span>
         </h1>
-        <p class="text-[15px] text-ink-muted mb-8 leading-relaxed">La ciudad y datos de contacto.</p>
+        <p class="text-[15px] text-ink-muted mb-8 leading-relaxed">La provincia y datos de contacto.</p>
 
         <div class="flex flex-col gap-4 mb-6">
           <div>
-            <label for="onb-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad <span aria-hidden="true">*</span></label>
+            <label for="onb-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia <span aria-hidden="true">*</span></label>
             <select id="onb-city" formControlName="city" class="input-field" required autocomplete="address-level2">
               @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
             </select>
@@ -374,6 +374,19 @@
                 <label for="onb-address" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Dirección <span class="text-ink-muted">(opcional)</span></label>
                 <input id="onb-address" formControlName="address" type="text" autocomplete="street-address" placeholder="Calle y número" class="input-field"/>
               </div>
+            </div>
+          }
+
+          <!-- Band availability: rehearsals + gigs (only once the columns exist) -->
+          @if (role() === 'band' && bandAvailability()) {
+            <div class="border-t border-dark-700 pt-5">
+              <p class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ensayamos <span class="text-ink-muted">(opcional)</span></p>
+              <ng-container [ngTemplateOutlet]="dayPicker"/>
+              <label class="flex items-center gap-3 min-h-[44px] mt-3 text-sm text-ink cursor-pointer">
+                <input type="checkbox" class="w-5 h-5 accent-primary-500 flex-shrink-0"
+                       [checked]="openToGigs()" (change)="openToGigs.set($any($event.target).checked)"/>
+                <span><strong>Disponibles para bolos</strong> <span class="text-ink-muted">· las salas y organizadores verán que aceptáis conciertos</span></span>
+              </label>
             </div>
           }
 
@@ -558,11 +571,11 @@
         <h1 id="onb-step-heading" tabindex="-1" class="text-5xl sm:text-6xl text-ink mb-3 leading-[0.9] focus:outline-none">
           ¿Dónde <span class="text-primary-500">tocas?</span>
         </h1>
-        <p class="text-[15px] text-ink-muted mb-8 leading-relaxed">Tu ciudad y datos de contacto para completar el perfil.</p>
+        <p class="text-[15px] text-ink-muted mb-8 leading-relaxed">Tu provincia y datos de contacto para completar el perfil.</p>
 
         <div class="flex flex-col gap-4 mb-6">
           <div>
-            <label for="onb-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Ciudad <span aria-hidden="true">*</span></label>
+            <label for="onb-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia <span aria-hidden="true">*</span></label>
             <select id="onb-city" formControlName="city" class="input-field" required autocomplete="address-level2">
               @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
             </select>
@@ -603,37 +616,7 @@
             </div>
             <div>
               <p id="onb-availability-label" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Disponibilidad <span class="text-ink-muted">(opcional)</span></p>
-              <div class="grid grid-cols-7 gap-1 mb-2" role="group" aria-label="Días disponibles">
-                @for (d of DAYS; track d; let i = $index) {
-                  <button type="button" (click)="toggleDay(d)"
-                    class="min-h-[44px] text-xs font-bold border-[1.5px] transition-all duration-150 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
-                    [attr.aria-pressed]="selectedDays().includes(d)"
-                    [attr.aria-label]="DAY_NAMES[i]"
-                    [class.border-ink]="selectedDays().includes(d)"
-                    [class.bg-ink]="selectedDays().includes(d)"
-                    [class.text-dark-900]="selectedDays().includes(d)"
-                    [class.border-dark-600]="!selectedDays().includes(d)"
-                    [class.bg-dark-800]="!selectedDays().includes(d)"
-                    [class.text-ink-muted]="!selectedDays().includes(d)">
-                    {{ DAYS_LABELS[i] }}
-                  </button>
-                }
-              </div>
-              <div class="flex gap-2" role="group" aria-label="Franjas horarias disponibles">
-                @for (s of SLOTS; track s) {
-                  <button type="button" (click)="toggleSlot(s)"
-                    class="font-mono text-[11px] font-bold uppercase tracking-wide px-3 py-2.5 min-h-[44px] border-[1.5px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
-                    [attr.aria-pressed]="selectedSlots().includes(s)"
-                    [class.border-primary-500]="selectedSlots().includes(s)"
-                    [class.bg-primary-500]="selectedSlots().includes(s)"
-                    [class.text-white]="selectedSlots().includes(s)"
-                    [class.border-dark-600]="!selectedSlots().includes(s)"
-                    [class.bg-dark-800]="!selectedSlots().includes(s)"
-                    [class.text-ink-muted]="!selectedSlots().includes(s)">
-                    {{ s }}
-                  </button>
-                }
-              </div>
+              <ng-container [ngTemplateOutlet]="dayPicker"/>
             </div>
           }
           @if (role() === 'teacher') {
@@ -749,3 +732,38 @@
   </div>
   } <!-- end @if (!pendingConfirmation()) -->
 </div>
+
+<!-- Days + time slots: musician availability and band rehearsals share it (selectedDays / selectedSlots) -->
+<ng-template #dayPicker>
+    <div class="grid grid-cols-7 gap-1 mb-2" role="group" aria-label="Días">
+      @for (d of DAYS; track d; let i = $index) {
+        <button type="button" (click)="toggleDay(d)"
+          class="min-h-[44px] text-xs font-bold border-[1.5px] transition-all duration-150 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
+          [attr.aria-pressed]="selectedDays().includes(d)"
+          [attr.aria-label]="DAY_NAMES[i]"
+          [class.border-ink]="selectedDays().includes(d)"
+          [class.bg-ink]="selectedDays().includes(d)"
+          [class.text-dark-900]="selectedDays().includes(d)"
+          [class.border-dark-600]="!selectedDays().includes(d)"
+          [class.bg-dark-800]="!selectedDays().includes(d)"
+          [class.text-ink-muted]="!selectedDays().includes(d)">
+          {{ DAYS_LABELS[i] }}
+        </button>
+      }
+    </div>
+    <div class="flex gap-2" role="group" aria-label="Franjas horarias">
+      @for (s of SLOTS; track s) {
+        <button type="button" (click)="toggleSlot(s)"
+          class="font-mono text-[11px] font-bold uppercase tracking-wide px-3 py-2.5 min-h-[44px] border-[1.5px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
+          [attr.aria-pressed]="selectedSlots().includes(s)"
+          [class.border-primary-500]="selectedSlots().includes(s)"
+          [class.bg-primary-500]="selectedSlots().includes(s)"
+          [class.text-white]="selectedSlots().includes(s)"
+          [class.border-dark-600]="!selectedSlots().includes(s)"
+          [class.bg-dark-800]="!selectedSlots().includes(s)"
+          [class.text-ink-muted]="!selectedSlots().includes(s)">
+          {{ s }}
+        </button>
+      }
+    </div>
+</ng-template>
