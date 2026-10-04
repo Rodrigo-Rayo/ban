@@ -1,4 +1,4 @@
-import { needsOnboarding } from './profile-check';
+import { findProfileLink, needsOnboarding } from './profile-check';
 
 /** Fake client: `rows` maps a table to what `.maybeSingle()` resolves to. */
 function client(rows: Record<string, { data: unknown; error?: unknown }>) {
@@ -44,5 +44,19 @@ describe('needsOnboarding', () => {
     expect(await needsOnboarding(client({
       profiles: { data: { role: 'venue' } }, venues: { data: null, error: { message: 'x' } },
     }), 'u')).toBeNull();
+  });
+});
+
+describe('findProfileLink', () => {
+  it('links to the public page of the table that holds the profile', async () => {
+    expect(await findProfileLink(client({ rehearsal_spaces: { data: { id: 'r1' } } }), 'u')).toBe('/rehearsal/r1');
+    expect(await findProfileLink(client({ bands: { data: { id: 'b1' } } }), 'u')).toBe('/bands/b1');
+  });
+
+  it('returns null for listeners, missing users and failed lookups', async () => {
+    expect(await findProfileLink(client({}), 'u')).toBeNull();
+    expect(await findProfileLink(client({}), null)).toBeNull();
+    const broken = { from: () => { throw new Error('offline'); } } as any;
+    expect(await findProfileLink(broken, 'u')).toBeNull();
   });
 });

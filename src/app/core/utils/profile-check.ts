@@ -40,3 +40,29 @@ export async function needsOnboarding(client: Client, userId: string): Promise<b
   if (found.some(f => f === true)) return false;
   return found.some(f => f === null) ? null : true;
 }
+
+/** Route segment of each profile type's public page. */
+const PROFILE_ROUTE_BY_ROLE: Readonly<Record<string, string>> = {
+  musician: 'musicians',
+  band: 'bands',
+  venue: 'venues',
+  teacher: 'teachers',
+  rehearsal: 'rehearsal',
+};
+
+/**
+ * Public profile page of the account `userId` ("/bands/<id>"…), or null when it has
+ * none (listeners, deleted profiles) or the lookup fails.
+ */
+export async function findProfileLink(client: Client, userId: string | null | undefined): Promise<string | null> {
+  if (!userId) return null;
+  try {
+    const hits = await Promise.all(Object.entries(PROFILE_TABLE_BY_ROLE).map(async ([role, table]) => {
+      const { data } = await client.from(table).select('id').eq('user_id', userId).maybeSingle();
+      return data?.id ? `/${PROFILE_ROUTE_BY_ROLE[role]}/${data.id}` : null;
+    }));
+    return hits.find(h => h !== null) ?? null;
+  } catch {
+    return null;
+  }
+}

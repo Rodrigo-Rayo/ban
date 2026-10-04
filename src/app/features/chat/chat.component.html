@@ -11,20 +11,33 @@
       </svg>
     </a>
 
-    <!-- Avatar + name -->
-    @if (otherAvatar(); as photo) {
-      <img [src]="avatarSrc(photo, 80)" alt="" width="40" height="40" class="w-10 h-10 object-cover flex-shrink-0 border-[1.5px] border-ink"/>
+    <!-- Avatar + name: links to the other person's profile when they have one -->
+    <ng-template #who>
+      @if (otherAvatar(); as photo) {
+        <img [src]="avatarSrc(photo, 80)" alt="" width="40" height="40" class="w-10 h-10 object-cover flex-shrink-0 border-[1.5px] border-ink"/>
+      } @else {
+        <div class="avatar w-10 h-10 text-base border-[1.5px] border-ink" aria-hidden="true">{{ initialOf(otherName()) }}</div>
+      }
+      <div class="flex-1 min-w-0">
+        <h1 class="font-display text-xl uppercase text-ink leading-tight truncate"
+            [class.group-hover:underline]="!!otherProfileLink()">{{ otherName() || 'Conversación' }}</h1>
+        <p class="font-mono text-[11px] font-bold uppercase tracking-wide" aria-live="polite" data-testid="chat-status"
+           [class.text-primary-600]="otherTyping() || otherOnline()"
+           [class.text-ink-muted]="!otherTyping() && !otherOnline()">
+          {{ conversationGone() ? 'Conversación eliminada' : otherTyping() ? 'escribiendo…' : otherOnline() ? 'en línea' : 'Mensaje directo' }}
+        </p>
+      </div>
+    </ng-template>
+    @if (otherProfileLink(); as link) {
+      <a [routerLink]="link" class="group flex flex-1 min-w-0 items-center gap-3 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+         [attr.aria-label]="'Ver perfil de ' + (otherName() || 'esta persona')" data-testid="chat-profile-link">
+        <ng-container [ngTemplateOutlet]="who"/>
+      </a>
     } @else {
-      <div class="avatar w-10 h-10 text-base border-[1.5px] border-ink" aria-hidden="true">{{ initialOf(otherName()) }}</div>
+      <div class="flex flex-1 min-w-0 items-center gap-3">
+        <ng-container [ngTemplateOutlet]="who"/>
+      </div>
     }
-    <div class="flex-1 min-w-0">
-      <h1 class="font-display text-xl uppercase text-ink leading-tight truncate">{{ otherName() || 'Conversación' }}</h1>
-      <p class="font-mono text-[11px] font-bold uppercase tracking-wide" aria-live="polite" data-testid="chat-status"
-         [class.text-primary-600]="otherTyping() || otherOnline()"
-         [class.text-ink-muted]="!otherTyping() && !otherOnline()">
-        {{ conversationGone() ? 'Conversación eliminada' : otherTyping() ? 'escribiendo…' : otherOnline() ? 'en línea' : 'Mensaje directo' }}
-      </p>
-    </div>
 
     <!-- Delete (labelled) -->
     @if (!conversationGone()) {

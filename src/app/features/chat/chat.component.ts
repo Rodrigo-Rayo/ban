@@ -9,6 +9,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { avatarSrc } from '../../core/utils/display.utils';
 import { fetchProfileAvatar, initialOf } from '../inbox/profile-avatar';
+import { findProfileLink } from '../../core/utils/profile-check';
 
 /** A message as rendered: server rows plus optimistic, not-yet-confirmed sends. */
 export type ChatMessage = Message & { status?: 'sending' | 'failed' };
@@ -54,6 +55,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   messages = signal<ChatMessage[]>([]);
   otherName = signal('');
   otherAvatar = signal<string | null>(null);
+  /** Public profile page of the other person; null when they have none ("soy público"). */
+  otherProfileLink = signal<string | null>(null);
   /** The conversation no longer exists (the other side deleted it): the composer is disabled. */
   conversationGone = signal(false);
   newMessage = '';
@@ -121,6 +124,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.otherUserId = conv.user1_id === this.currentUserId() ? conv.user2_id : conv.user1_id;
         this.refreshOnline();
         void fetchProfileAvatar(this.supabase, this.otherUserId).then(url => { if (!this.destroyed) this.otherAvatar.set(url); });
+        void findProfileLink(this.supabase.client, this.otherUserId).then(link => { if (!this.destroyed) this.otherProfileLink.set(link); });
         this.messagesService.getOtherUserProfile(conv).then(resolved => {
           // Keep a name passed via navigation over the generic placeholder.
           if (resolved && (resolved !== FALLBACK_NAME || !this.otherName())) this.otherName.set(resolved);
