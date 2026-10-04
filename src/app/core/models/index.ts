@@ -161,6 +161,8 @@ export interface Post {
   id: string;
   user_id: string;
   type: PostType;
+  /** Short headline (postTitle feature); older posts have none. */
+  title?: string | null;
   text: string;
   city: string | null;
   instrument: string | null;

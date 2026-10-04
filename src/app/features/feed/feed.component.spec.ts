@@ -405,6 +405,40 @@ describe('FeedComponent', () => {
     expect(component.postTypes.every(t => !/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(t.label))).toBeTrue();
   });
 
+  describe('post titles', () => {
+    const asItem = (post: Post) => ({ kind: 'post' as const, id: post.id, created_at: post.created_at, post });
+
+    it('leads with the title and moves the author to the meta line', () => {
+      const item = asItem(makePost({ title: 'Batería busca banda de rock', author_name: 'Ana', instrument: null, genre: null, city: 'Madrid' }));
+      expect(component.headline(item)).toBe('Batería busca banda de rock');
+      expect(component.metaLine(item)).toBe('Ana · Madrid');
+    });
+
+    it('keeps older posts without a title exactly as before', () => {
+      const item = asItem(makePost({ title: null, author_name: 'Ana', instrument: null, genre: null, city: 'Madrid' }));
+      expect(component.headline(item)).toBe('Ana');
+      expect(component.metaLine(item)).toBe('Madrid');
+    });
+
+    it('requires a title (max 60) once titles exist', () => {
+      (component as any).postTitleAvailable = () => true;
+      component.newPost.text = 'Busco banda';
+      component.newPost.title = '  ';
+      expect(component.canPublish()).toBeFalse();
+      component.newPost.title = 'Busco banda de rock';
+      expect(component.canPublish()).toBeTrue();
+      component.newPost.title = 'x'.repeat(61);
+      expect(component.canPublish()).toBeFalse();
+    });
+
+    it('does not ask for a title before the column exists', () => {
+      (component as any).postTitleAvailable = () => false;
+      component.newPost.text = 'Busco banda';
+      component.newPost.title = '';
+      expect(component.canPublish()).toBeTrue();
+    });
+  });
+
   describe('Se busca sections', () => {
     it('lists every post type and the band vacancies in "Todo"', async () => {
       component.section.set('todo');

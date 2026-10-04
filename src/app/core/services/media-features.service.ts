@@ -4,9 +4,10 @@ import { SupabaseService } from './supabase.service';
 /**
  * Optional columns that may not exist yet in the live DB: photos (supabase/audit_2026_10_photos.sql)
  * band availability (supabase/2026_10_provinces_band_availability.sql) and private contact
- * (supabase/2026_10_private_contact.sql: has_contact, phone on every profile table).
+ * (supabase/2026_10_private_contact.sql: has_contact, phone on every profile table) and
+ * Se busca titles (supabase/2026_10_post_title.sql).
  */
-export type MediaFeature = 'eventImage' | 'venuePhotos' | 'rehearsalPhotos' | 'bandAvailability' | 'profileContact';
+export type MediaFeature = 'eventImage' | 'venuePhotos' | 'rehearsalPhotos' | 'bandAvailability' | 'profileContact' | 'postTitle';
 
 const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   eventImage:      { table: 'events',           column: 'image_url' },
@@ -14,6 +15,7 @@ const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   rehearsalPhotos: { table: 'rehearsal_spaces', column: 'photos' },
   bandAvailability: { table: 'bands',          column: 'open_to_gigs' },
   profileContact:   { table: 'musicians',      column: 'has_contact' },
+  postTitle:        { table: 'posts',          column: 'title' },
 };
 
 /** Postgres "undefined_column": the SQL has not been run yet. */
@@ -35,6 +37,7 @@ export class MediaFeaturesService {
     rehearsalPhotos: signal(false),
     bandAvailability: signal(false),
     profileContact: signal(false),
+    postTitle: signal(false),
   };
 
   /** Latest known availability (false until a probe confirms it). */

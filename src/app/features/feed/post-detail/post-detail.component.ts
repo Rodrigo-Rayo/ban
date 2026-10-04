@@ -1,3 +1,4 @@
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { linkify, linkLabel } from '../../../core/utils/linkify';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { ChangeDetectionStrategy, Component, DestroyRef, signal, computed, inject, OnInit } from '@angular/core';
@@ -49,6 +50,7 @@ export class PostDetailComponent implements OnInit {
   private seo = inject(SeoService);
   private destroyRef = inject(DestroyRef);
   private confirm = inject(ConfirmService);
+  private features = inject(MediaFeaturesService);
   auth = inject(AuthService);
 
   post = signal<Post | null>(null);
@@ -73,17 +75,20 @@ export class PostDetailComponent implements OnInit {
     this.related.set([]);
     this.authorAvatar.set(null);
     try {
-      const [{ data: { user } }, { data, error }] = await Promise.all([
+      const columns = await this.postColumns();
+      const [{ data: { user } }, { data: row, error }] = await Promise.all([
         this.supabase.auth.getUser(),
-        this.supabase.client.from('posts').select(POST_COLUMNS).eq('id', id!).maybeSingle(),
+        this.supabase.client.from('posts').select(columns).eq('id', id!).maybeSingle(),
       ]);
+      // The column list is dynamic, so the row type is given here.
+      const data = row as unknown as Post | null;
       this.currentUser.set(user);
       if (error) { this.toast.error('No se pudo cargar el anuncio.'); return; }
       this.post.set(data);
       if (data) {
         const label = askLabel(data.type, data.instrument);
         const desc = data.text?.slice(0, 155) ?? `${label} — BandYou`;
-        this.seo.set({ title: `${label} · ${data.author_name}`, description: desc, type: 'article' });
+        this.seo.set({ title: data.title?.trim() || `${label} · ${data.author_name}`, description: desc, type: 'article' });
         void this.loadRelated(data);
         void fetchProfileAvatar(this.supabase, data.user_id).then(url => this.authorAvatar.set(url));
       } else {
@@ -131,16 +136,17 @@ export class PostDetailComponent implements OnInit {
   /** Same-type posts first, then same-city ones; never the current post. Hides itself on error. */
   async loadRelated(current: Post) {
     try {
-      const base = () => this.supabase.client.from('posts').select(POST_COLUMNS)
+      const columns = await this.postColumns();
+      const base = () => this.supabase.client.from('posts').select(columns)
         .neq('id', current.id).order('created_at', { ascending: false });
       const { data: sameType, error } = await base().eq('type', current.type).limit(RELATED_LIMIT);
       if (error) { this.related.set([]); return; }
-      let list = (sameType ?? []).filter((p: Post) => p.id !== current.id);
+      let list = ((sameType ?? []) as unknown as Post[]).filter(p => p.id !== current.id);
       if (list.length < RELATED_LIMIT && current.city) {
         const { data: sameCity, error: cityError } = await base().eq('city', current.city).limit(RELATED_LIMIT * 2);
         if (!cityError) {
           const seen = new Set(list.map((p: Post) => p.id));
-          const extra = (sameCity ?? []).filter((p: Post) => p.id !== current.id && !seen.has(p.id));
+          const extra = ((sameCity ?? []) as unknown as Post[]).filter(p => p.id !== current.id && !seen.has(p.id));
           list = [...list, ...extra];
         }
       }
@@ -209,6 +215,13 @@ export class PostDetailComponent implements OnInit {
   /** One quiet line for a related row: instrument (when not in the stamp) · genre · city. */
   metaLine(p: Post): string {
     const instrumentInStamp = p.type === 'band_seeking_musician' && !!p.instrument;
-    return [instrumentInStamp ? null : p.instrument, p.genre, p.city].filter(Boolean).join(' · ');
+    // With a title as headline, the author moves to this line.
+    const author = p.title?.trim() ? (p.author_name || 'Usuario') : null;
+    return [author, instrumentInStamp ? null : p.instrument, p.genre, p.city].filter(Boolean).join(' · ');
+  }
+
+  /** Post columns, plus `title` once the column exists (supabase/2026_10_post_title.sql). */
+  private async postColumns(): Promise<string> {
+    return POST_COLUMNS + (await this.features.has('postTitle') ? ', title' : '');
   }
 }

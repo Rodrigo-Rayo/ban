@@ -1,3 +1,4 @@
+import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { publishErrorMessage } from '../../core/utils/publish-error';
 import { Component, signal, inject, OnInit, DestroyRef, computed, ElementRef, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -90,6 +91,10 @@ export class FeedComponent implements OnInit {
   private router = inject(Router);
   private location = inject(Location);
   private confirm = inject(ConfirmService);
+  private features = inject(MediaFeaturesService);
+  /** posts.title exists (supabase/2026_10_post_title.sql): new posts must have one. */
+  readonly postTitleAvailable = this.features.state('postTitle');
+  readonly MAX_TITLE_LENGTH = 60;
   private readonly sectionNav = viewChild<ElementRef<HTMLElement>>('sectionNav');
 
   posts = signal<Post[]>([]);
@@ -123,6 +128,7 @@ export class FeedComponent implements OnInit {
 
   newPost = {
     type: 'musician_seeking_band' as PostType,
+    title: '',
     text: '',
     city: 'Madrid',
     instrument: '',
@@ -260,6 +266,11 @@ export class FeedComponent implements OnInit {
 
   private static readonly POST_COLS = 'id,user_id,type,text,city,instrument,genre,author_name,author_profile_type,author_profile_id,created_at';
 
+  /** Post columns, plus `title` once the column exists. */
+  private async postCols(): Promise<string> {
+    return FeedComponent.POST_COLS + (await this.features.has('postTitle') ? ',title' : '');
+  }
+
   async loadPosts() {
     const seq = ++this.listSeq;
     this.listSince = sinceISO(this.filterDays());
@@ -268,7 +279,7 @@ export class FeedComponent implements OnInit {
     this.hasMore.set(true);
     const vacanciesDone = this.loadVacancies(seq);
     try {
-      let q = this.supabase.client.from('posts').select(FeedComponent.POST_COLS)
+      let q = this.supabase.client.from('posts').select(await this.postCols())
         .gte('created_at', this.listSince)
         .order('created_at', { ascending: false });
       if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
@@ -279,7 +290,7 @@ export class FeedComponent implements OnInit {
       if (seq !== this.listSeq) return; // filters changed meanwhile
       if (error) { this.error.set('No se pudieron cargar los anuncios. Inténtalo de nuevo.'); }
       else {
-        this.posts.set(data || []);
+        this.posts.set((data || []) as unknown as Post[]);
         this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
       }
       await vacanciesDone;
@@ -294,7 +305,7 @@ export class FeedComponent implements OnInit {
     const seq = this.listSeq;
     try {
       const last = this.posts().at(-1);
-      let q = this.supabase.client.from('posts').select(FeedComponent.POST_COLS)
+      let q = this.supabase.client.from('posts').select(await this.postCols())
         .order('created_at', { ascending: false })
         .lt('created_at', last?.created_at ?? new Date().toISOString())
         .gte('created_at', this.listSince || sinceISO(this.filterDays()));
@@ -305,7 +316,7 @@ export class FeedComponent implements OnInit {
       const { data, error } = await q.limit(this.PAGE_SIZE);
       if (seq !== this.listSeq) return; // a new list replaced this one
       if (error) { this.toast.error('No se pudieron cargar más anuncios.'); return; }
-      this.posts.update(p => [...p, ...(data || [])]);
+      this.posts.update(p => [...p, ...((data || []) as unknown as Post[])]);
       this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
     } finally {
       if (seq === this.listSeq) this.loadingMore.set(false);
@@ -313,8 +324,7 @@ export class FeedComponent implements OnInit {
   }
 
   async submitPost() {
-    if (!this.newPost.text.trim()) return;
-    if (this.newPost.text.trim().length > this.MAX_POST_LENGTH) return;
+    if (!this.canPublish()) return;
     const user = this.currentUser();
     if (!user) { this.router.navigate(['/auth/login']); return; }
 
@@ -326,6 +336,7 @@ export class FeedComponent implements OnInit {
       const { error } = await this.supabase.client.from('posts').insert({
         user_id: user.id,
         type: this.newPost.type,
+        ...(this.postTitleAvailable() ? { title: this.newPost.title.trim() } : {}),
         text: this.newPost.text.trim(),
         city: this.newPost.city,
         instrument: this.newPost.instrument,
@@ -340,7 +351,7 @@ export class FeedComponent implements OnInit {
         this.toast.error(publishErrorMessage(error, 'No se pudo publicar. Intenta de nuevo.'));
         return;
       }
-      this.newPost = { type: this.defaultPostType(), text: '', city: 'Madrid', instrument: '', genre: '' };
+      this.newPost = { type: this.defaultPostType(), title: '', text: '', city: 'Madrid', instrument: '', genre: '' };
       this.showForm.set(false);
       this.formOnly.set(false);
       this.toast.success('Anuncio publicado.');
@@ -387,9 +398,23 @@ export class FeedComponent implements OnInit {
     return askStampClass(item.kind === 'vacancy' ? 'vacancy' : item.post.type);
   }
 
+  /** Text, and a title when titles exist, within their limits. */
+  canPublish(): boolean {
+    const text = this.newPost.text.trim();
+    if (!text || text.length > this.MAX_POST_LENGTH) return false;
+    if (!this.postTitleAvailable()) return true;
+    const title = this.newPost.title.trim();
+    return !!title && title.length <= this.MAX_TITLE_LENGTH;
+  }
+
   /** Who is asking: the band, or the post's author. */
   whoLabel(item: SeBuscaItem): string {
     return item.kind === 'vacancy' ? item.vacancy.bands.name : (item.post.author_name || 'Usuario');
+  }
+
+  /** Card headline: the post's title, or (older posts, vacancies) who is asking. */
+  headline(item: SeBuscaItem): string {
+    return item.kind === 'post' && item.post.title?.trim() ? item.post.title.trim() : this.whoLabel(item);
   }
 
   /** One quiet line: instrument (when not already in the stamp) · genre · city. */
@@ -400,7 +425,9 @@ export class FeedComponent implements OnInit {
     }
     const p = item.post;
     const instrumentInStamp = p.type === 'band_seeking_musician' && !!p.instrument;
-    return [instrumentInStamp ? null : p.instrument, p.genre, p.city].filter(Boolean).join(' · ');
+    // With a title as headline, the author moves to this line.
+    const author = p.title?.trim() ? (p.author_name || 'Usuario') : null;
+    return [author, instrumentInStamp ? null : p.instrument, p.genre, p.city].filter(Boolean).join(' · ');
   }
 
   detailText(item: SeBuscaItem): string | null {

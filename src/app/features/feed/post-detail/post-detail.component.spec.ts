@@ -8,6 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { MessagesService } from '../../../core/services/messages.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { Post, PostType } from '../../../core/models';
 
 function mockBuilder(resolveValue: { data?: any; error?: any }) {
@@ -57,6 +58,7 @@ describe('PostDetailComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: ConfirmService, useValue: { ask: confirmAsk } },
         { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => 'post-1' }) } },
+        { provide: MediaFeaturesService, useValue: { has: () => Promise.resolve(false), state: () => () => false } },
       ],
     })
     .overrideComponent(PostDetailComponent, { set: { imports: [], template: '<div></div>' } })

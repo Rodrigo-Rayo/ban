@@ -49,8 +49,9 @@ const TYPES = {
     meta: r => ({ title: r.title, kicker: [r.price ? `${r.price} €` : '', r.city].filter(Boolean).join(' · '), text: r.description, image: (r.images || [])[0], type: 'product' }),
   },
   posts: {
-    table: 'posts', cols: 'type,text,city,author_name',
-    meta: r => ({ title: `${r.author_name}: ${(POST_LABELS[r.type] || 'Anuncio').toLowerCase()}`, kicker: ['Se busca', r.city].filter(Boolean).join(' · '), text: r.text }),
+    // `title` only exists after supabase/2026_10_post_title.sql: fetchRow retries without it.
+    table: 'posts', cols: 'type,text,city,author_name', optionalCols: 'title',
+    meta: r => ({ title: r.title || `${r.author_name}: ${(POST_LABELS[r.type] || 'Anuncio').toLowerCase()}`, kicker: ['Se busca', r.author_name, r.city].filter(Boolean).join(' · '), text: r.text }),
   },
 };
 
@@ -76,9 +77,12 @@ function safeImage(url) {
 
 async function fetchRow(type, id) {
   const def = TYPES[type];
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${def.table}?select=${def.cols}&id=eq.${id}&limit=1`, {
+  const get = cols => fetch(`${SUPABASE_URL}/rest/v1/${def.table}?select=${cols}&id=eq.${id}&limit=1`, {
     headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
   });
+  let res = await get(def.optionalCols ? `${def.cols},${def.optionalCols}` : def.cols);
+  // 400 = an optional column does not exist yet in this database.
+  if (res.status === 400 && def.optionalCols) res = await get(def.cols);
   if (!res.ok) throw new Error(`${def.table}: HTTP ${res.status}`);
   const rows = await res.json();
   return rows[0] || null;

@@ -1,3 +1,4 @@
+import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
@@ -18,7 +19,7 @@ interface HomeMusician { id: string; user_id?: string | null; name: string; city
 interface HomeEvent { id: string; title: string; city: string; date: string; genre: string; description: string | null; venue?: string | null; created_at: string; }
 interface HomeVenue { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; created_at: string; }
 interface HomeRehearsal { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate?: number | null; created_at: string; }
-interface HomePost { id: string; type: string; text: string; city: string | null; instrument: string | null; author_name: string; author_profile_type: string | null; author_profile_id: string | null; created_at: string; }
+interface HomePost { id: string; type: string; title?: string | null; text: string; city: string | null; instrument: string | null; author_name: string; author_profile_type: string | null; author_profile_id: string | null; created_at: string; }
 interface HomeListing { id: string; title: string; price: number | null; condition: string | null; category: string | null; city: string | null; images: string[] | null; created_at: string; }
 interface HomeVacancy { id: string; instrument: string; genre: string | null; bands: { id: string; name: string; city: string | null; genre: string | null } | null; }
 interface HomeProfile { id?: string; name: string; city?: string | null; avatar_url?: string | null; }
@@ -105,6 +106,7 @@ export class HomeComponent implements OnInit {
   private vacanciesSvc = inject(VacanciesService);
   private seo = inject(SeoService);
   private avatarUpload = inject(AvatarUploadService);
+  private features = inject(MediaFeaturesService);
 
   constructor() {
     // Watch the auth user signal. When the user becomes available (which may be
@@ -193,10 +195,11 @@ export class HomeComponent implements OnInit {
       .filter(p => !(p.type === 'band_seeking_musician' && bandsWithVacancy.has(p.author_name.toLowerCase())))
       .map(p => ({
         id: 'p-' + p.id,
-        title: p.author_name,
+        // Titled posts lead with the title and move the author to the small line.
+        title: p.title?.trim() || p.author_name,
         stampClass: askStampClass(p.type as PostType),
         stampLabel: askLabel(p.type as PostType, p.instrument),
-        meta: [p.city, timeAgo(p.created_at)].filter(Boolean).join(' · '),
+        meta: [p.title?.trim() ? p.author_name : null, p.city, timeAgo(p.created_at)].filter(Boolean).join(' · '),
         link: ['/posts', p.id],
       }));
     return [...vacancies.slice(0, 3), ...posts].slice(0, SE_BUSCA_LIMIT);
@@ -321,7 +324,8 @@ export class HomeComponent implements OnInit {
       const eventCols      = 'id, title, city, date, genre, description, venue, created_at';
       const venueCols      = 'id, name, city, avatar_url, capacity, created_at';
       const rehearsalCols  = 'id, name, city, avatar_url, capacity, hourly_rate, created_at';
-      const postCols       = 'id, type, text, city, instrument, author_name, author_profile_type, author_profile_id, created_at';
+      const postCols       = 'id, type, text, city, instrument, author_name, author_profile_type, author_profile_id, created_at'
+        + (await this.features.has('postTitle') ? ', title' : '');
       const listingCols    = 'id, title, price, condition, category, city, images, created_at';
 
       const db = this.supabase.client;
