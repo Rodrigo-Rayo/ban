@@ -84,7 +84,9 @@ test.describe('Profiles', () => {
   test('availability tags never show raw array braces', async ({ page }) => {
     await page.goto('/search');
     const links = page.locator('a[href^="/musicians/"]');
-    await expect(links.first()).toBeVisible({ timeout: 15000 });
+    // An empty directory (fresh launch) has no profiles to open.
+    await expect(links.first().or(page.getByText(/no hay músicos/i))).toBeVisible({ timeout: 15000 });
+    test.skip(await links.count() === 0, 'no musician profiles yet');
     const hrefs = (await links.evaluateAll(as => as.map(a => a.getAttribute('href')))).slice(0, 6);
     for (const href of hrefs) {
       await page.goto(href!);
