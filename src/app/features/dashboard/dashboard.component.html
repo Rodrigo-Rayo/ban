@@ -59,6 +59,13 @@
           </div>
           <span class="sr-only" role="status">{{ linkCopied() ? 'Enlace del perfil copiado al portapapeles' : '' }}</span>
         </section>
+        @if (spaceKind(); as kind) {
+          @if (profile()!.id; as profileId) {
+            <!-- Venues and rehearsal spaces: their photo gallery, editable right here -->
+            <app-space-gallery class="block card-flat p-4 sm:p-6 mb-6 empty:hidden"
+              [kind]="kind" [profileId]="profileId" [name]="profile()!.name" [isOwner]="true"/>
+          }
+        }
       } @else {
         <section class="card-flat p-6 mb-6 text-center">
           <h2 class="text-3xl text-ink mb-1">Crea tu perfil público</h2>

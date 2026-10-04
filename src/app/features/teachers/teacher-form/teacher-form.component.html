@@ -173,6 +173,10 @@
           </div>
         </section>
 
+        @if (!isEditing()) {
+          <app-profile-photos role="teacher"/>
+        }
+
         @if (error()) {
           <div role="alert" class="border-2 border-signal-red bg-signal-rBg text-signal-red px-4 py-3 text-sm font-medium">{{ error() }}</div>
         }

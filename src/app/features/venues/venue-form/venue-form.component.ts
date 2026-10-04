@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -8,11 +8,12 @@ import { ConfirmService } from '../../../core/services/confirm.service';
 import { CITIES } from '../../../core/constants/cities';
 import { GENRES } from '../../../core/constants/music.constants';
 import { confirmSecondProfile } from '../../teachers/teacher-form/professional-profile';
+import { ProfilePhotosComponent } from '../../../shared/components/profile-photos/profile-photos.component';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
     selector: 'app-venue-form',
-    imports: [ReactiveFormsModule, RouterLink],
+    imports: [ReactiveFormsModule, RouterLink, ProfilePhotosComponent],
     templateUrl: './venue-form.component.html'
 })
 export class VenueFormComponent implements OnInit {
@@ -33,6 +34,8 @@ export class VenueFormComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   isEditing = signal(false);
+  /** Photos picked for a new profile; uploaded once the row exists. */
+  private photos = viewChild(ProfilePhotosComponent);
   profileId = signal<string | null>(null);
   error = signal('');
   /** True when the existing profile could not be loaded — saving would overwrite it with blanks. */
@@ -128,6 +131,7 @@ export class VenueFormComponent implements OnInit {
       this.error.set('No se pudo guardar la sala. Inténtalo de nuevo.');
       return;
     }
+    if (!this.isEditing()) await this.photos()?.save(user.id);
     this.toast.success(this.isEditing() ? 'Sala actualizada.' : 'Sala publicada. ¡Ya aparece en el directorio!');
     this.router.navigate(['/venues', data.id]);
     } catch {

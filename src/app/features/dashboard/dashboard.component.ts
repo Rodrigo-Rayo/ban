@@ -12,6 +12,7 @@ import { timeAgo } from '../../core/utils/display.utils';
 import { dateParts, formatTime } from '../../core/utils/date';
 import { askLabel as askLabelFor, askStampClass as askStampClassFor } from '../../core/utils/se-busca';
 import { AvatarUploadComponent } from '../../shared/components/avatar-upload/avatar-upload.component';
+import { SpaceGalleryComponent, SpaceKind } from '../../shared/components/space-gallery/space-gallery.component';
 import { Event as AppEvent, EventGenre, PostType } from '../../core/models';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { MediaUploadService, MEDIA_ACCEPT, mediaPickError } from '../../core/services/media-upload.service';
@@ -47,7 +48,7 @@ export type DashboardTab = 'events' | 'posts' | 'gear';
 
 @Component({
     selector: 'app-dashboard',
-    imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent],
+    imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent, SpaceGalleryComponent],
     templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
@@ -68,6 +69,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   profile    = signal<DashboardProfile | null>(null);
   profileType = signal('');
+  /** Venues and rehearsal spaces get their photo gallery in the panel. */
+  readonly spaceKind = computed<SpaceKind | null>(() => {
+    const t = this.profileType();
+    return t === 'venue' || t === 'rehearsal' ? t : null;
+  });
   events     = signal<AppEvent[]>([]);
   myPosts    = signal<DashboardPost[]>([]);
   myListings = signal<DashboardListing[]>([]);

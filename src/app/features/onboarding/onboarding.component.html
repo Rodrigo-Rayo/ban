@@ -482,6 +482,9 @@
           <div role="alert" class="text-xs font-bold text-signal-red mb-4">{{ error() }}</div>
         }
 
+        @if (!isEditing()) {
+          <app-profile-photos [role]="role()"/>
+        }
         @if (!isEditing() && needsConsent()) {
           <p class="text-xs text-ink-muted leading-snug mb-4">
             Al crear tu perfil confirmas que tienes {{ minAge }} años o más y aceptas los
@@ -721,6 +724,9 @@
           <div role="alert" class="text-xs font-bold text-signal-red mb-4">{{ error() }}</div>
         }
 
+        @if (!isEditing()) {
+          <app-profile-photos [role]="role()"/>
+        }
         @if (!isEditing() && needsConsent()) {
           <p class="text-xs text-ink-muted leading-snug mb-4">
             Al crear tu perfil confirmas que tienes {{ minAge }} años o más y aceptas los

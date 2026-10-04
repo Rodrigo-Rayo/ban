@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -7,11 +7,12 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { CITIES } from '../../../core/constants/cities';
 import { confirmSecondProfile } from '../../teachers/teacher-form/professional-profile';
+import { ProfilePhotosComponent } from '../../../shared/components/profile-photos/profile-photos.component';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
 
 @Component({
     selector: 'app-rehearsal-form',
-    imports: [ReactiveFormsModule, RouterLink],
+    imports: [ReactiveFormsModule, RouterLink, ProfilePhotosComponent],
     templateUrl: './rehearsal-form.component.html'
 })
 export class RehearsalFormComponent implements OnInit {
@@ -32,6 +33,8 @@ export class RehearsalFormComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   isEditing = signal(false);
+  /** Photos picked for a new profile; uploaded once the row exists. */
+  private photos = viewChild(ProfilePhotosComponent);
   profileId = signal<string | null>(null);
   error = signal('');
   /** True when the existing profile could not be loaded — saving would overwrite it with blanks. */
@@ -121,6 +124,7 @@ export class RehearsalFormComponent implements OnInit {
       this.error.set('No se pudo guardar el local. Inténtalo de nuevo.');
       return;
     }
+    if (!this.isEditing()) await this.photos()?.save(user.id);
     this.toast.success(this.isEditing() ? 'Local actualizado.' : 'Local publicado. ¡Ya aparece en el directorio!');
     this.router.navigate(['/rehearsal', data.id]);
     } catch {

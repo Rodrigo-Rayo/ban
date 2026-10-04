@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal, computed, viewChild, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -12,6 +12,7 @@ import { CITIES } from '../../core/constants/cities';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { optionalUrl, optionalPositiveNumber } from '../../core/utils/form-validators';
 import { LEGAL_INFO } from '../legal/legal-info';
+import { ProfilePhotosComponent } from '../../shared/components/profile-photos/profile-photos.component';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
 
@@ -24,7 +25,7 @@ function toNumberOrNull(value: unknown): number | null {
 
 @Component({
     selector: 'app-onboarding',
-    imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink],
+    imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink, ProfilePhotosComponent],
     templateUrl: './onboarding.component.html'
 })
 export class OnboardingComponent implements OnInit {
@@ -48,6 +49,8 @@ export class OnboardingComponent implements OnInit {
   needsConsent = signal(false);
   pendingConfirmation = signal(false);
   pendingEmail = signal('');
+  /** Photos picked on the last step of a new profile; uploaded once the profile row exists. */
+  private photos = viewChild(ProfilePhotosComponent);
   /** Validation message for chip-based steps (instruments / genres). */
   stepError = signal('');
 
@@ -576,13 +579,14 @@ export class OnboardingComponent implements OnInit {
             age_confirmed: true,
           } }).catch(() => undefined);
         }
+        if (!this.isEditing()) await this.photos()?.save(userId);
         localStorage.removeItem('bandyou_role');
         if (this.isEditing()) {
           this.toast.success('Perfil actualizado.');
           this.router.navigate(['/dashboard']);
         } else {
           this.toast.success('Perfil creado.');
-          // The photo is saved on the profile row, so the panel (which has "Cambiar foto") is the landing page.
+          // The panel shows the new profile (photo included) and is where it is managed from.
           // Listeners have no photo to add and go straight to the front page.
           this.router.navigate([role === 'listener' ? '/home' : '/dashboard']);
         }
