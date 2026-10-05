@@ -102,6 +102,9 @@
         }
       </section>
 
+      <!-- La quedada de BandYou: renders nothing until its tables exist -->
+      <app-quedada-status class="block empty:hidden" [province]="userCity()" variant="home"/>
+
       <!-- Destacado: carrusel compacto (el hueco reservado para promoción de pago más adelante) -->
       @if (loading() || featuredSlides().length > 0) {
       <section aria-labelledby="destacado-title" aria-roledescription="carrusel" class="lg:order-first">

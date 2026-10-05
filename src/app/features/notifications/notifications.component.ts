@@ -21,7 +21,7 @@ const ENTITY_ROUTES: Readonly<Record<string, string>> = {
 /** IconComponent name per notification type; anything else gets the bell. */
 const TYPE_ICONS: Readonly<Record<string, string>> = {
   application: 'mic', favorite: 'heart', booking: 'book-open', rsvp: 'calendar',
-  review: 'star', message: 'message', event_reminder: 'calendar',
+  review: 'star', message: 'message', event_reminder: 'calendar', quedada: 'star',
 };
 
 @Component({
@@ -104,6 +104,7 @@ export class NotificationsComponent implements OnInit {
 
   getRoute(n: AppNotification): string[] | null {
     const hasValidId = !!n.entity_id && UUID_RE.test(n.entity_id);
+    if (n.type === 'quedada') return ['/quedada'];
     if (n.type === 'message') {
       return n.entity_type === 'conversation' && hasValidId
         ? ['/inbox', n.entity_id!]

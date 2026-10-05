@@ -1,3 +1,4 @@
+import { QuedadaStatusComponent } from '../quedada/quedada-status.component';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -95,7 +96,7 @@ const NEW_PEOPLE_LIMIT = 8;
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-home',
-    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent],
+    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent],
     templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit {
