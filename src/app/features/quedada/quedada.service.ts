@@ -36,6 +36,8 @@ export class QuedadaService {
   private features = inject(MediaFeaturesService);
   private readonly demo: DemoState | null = readDemo();
   private demoStore = this.demo ? demoData(this.demo) : null;
+  /** quedada_run_draws is asked at most once per cycle and session (pg_cron covers the rest). */
+  private drawsAsked = new Set<string>();
 
   get demoState(): DemoState | null { return this.demo; }
 
@@ -77,6 +79,9 @@ export class QuedadaService {
   }
 
   /** Winner of a drawn cycle; triggers the (idempotent) draw once if it has not run yet. */
+  /** Allows the draw RPC again (e.g. the countdown reached zero on this device). */
+  retryDraw(cycle: QuedadaCycle) { this.drawsAsked.delete(cycleKey(cycle)); }
+
   async winner(cycle: QuedadaCycle, province: string): Promise<QuedadaWinner | null> {
     if (this.demoStore) return this.demoStore.winner;
     const read = async (): Promise<QuedadaWinner | null> => {
@@ -92,6 +97,9 @@ export class QuedadaService {
     try {
       const found = await read();
       if (found) return found;
+      const key = cycleKey(cycle);
+      if (this.drawsAsked.has(key)) return null;
+      this.drawsAsked.add(key);
       const { data: drawn } = await this.supabase.client.rpc('quedada_run_draws');
       return typeof drawn === 'number' && drawn > 0 ? await read() : null;
     } catch { return null; }
@@ -163,7 +171,7 @@ export class QuedadaService {
     const q = this.supabase.client.from('quedada_attendees');
     const { error } = going
       ? await q.insert({ event_id: eventId })
-      : await q.delete().eq('event_id', eventId).eq('user_id', (await this.supabase.auth.getUser()).data.user?.id ?? '');
+      : await q.delete().eq('event_id', eventId).eq('user_id', (await this.supabase.auth.getSession()).data.session?.user.id ?? '');
     return !error || error.code === '23505';
   }
 

@@ -175,13 +175,19 @@ export class QuedadaPageComponent {
       const city = this.auth.userProfileData()?.city;
       if (city && !NO_PROVINCE.includes(city) && !this.pickedByHand) this.province.set(city);
     });
-    effect(() => { if (this.loggedIn()) void this.loadMine(); });
+    effect(() => {
+      const uid = this.auth.user()?.id ?? (this.svc.demoState ? 'demo-me' : null);
+      if (uid) void this.loadMine(uid);
+    });
   }
 
-  private async loadMine() {
-    const uid = this.auth.user()?.id ?? (this.svc.demoState ? 'demo-me' : null);
+  private mineSeq = 0;
+
+  private async loadMine(uid = this.auth.user()?.id ?? (this.svc.demoState ? 'demo-me' : null)) {
     if (!uid) return;
+    const seq = ++this.mineSeq;
     const [events, entry] = await Promise.all([this.svc.myEligibleEvents(uid), this.svc.myEntry(uid, openCycle(this.svc.now()))]);
+    if (seq !== this.mineSeq) return;
     this.myEvents.set(events);
     this.myEntry.set(entry);
   }

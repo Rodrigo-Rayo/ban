@@ -34,6 +34,10 @@ export function nextCycle(c: QuedadaCycle): QuedadaCycle {
   return c.month === 12 ? { year: c.year + 1, month: 1 } : { year: c.year, month: c.month + 1 };
 }
 
+export function previousCycle(c: QuedadaCycle): QuedadaCycle {
+  return c.month === 1 ? { year: c.year - 1, month: 12 } : { year: c.year, month: c.month - 1 };
+}
+
 export function drawAt(c: QuedadaCycle): Date {
   return madridInstant(c.year, c.month, DRAW_DAY, DRAW_HOUR);
 }

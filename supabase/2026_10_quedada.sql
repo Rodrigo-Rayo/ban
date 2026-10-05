@@ -18,6 +18,12 @@
 
 BEGIN;
 
+-- ── Tipo de notificación nuevo ('quedada') ────────────────────────────────
+-- notifications_type_check solo permitía los tipos anteriores.
+ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_check;
+ALTER TABLE notifications ADD CONSTRAINT notifications_type_check
+  CHECK (type IN ('message', 'application', 'rsvp', 'review', 'system', 'favorite', 'event_reminder', 'booking', 'quedada')) NOT VALID;
+
 -- ── Fechas del ciclo ───────────────────────────────────────────────────────
 -- p_cycle = primer día del mes. Sorteo: día 10 a las 20:00 en Madrid.
 CREATE OR REPLACE FUNCTION quedada_draw_at(p_cycle date)
@@ -63,6 +69,9 @@ BEGIN
   IF coalesce(ev.city, '') IN ('', 'Otra') THEN
     RAISE EXCEPTION 'El bolo tiene que tener una provincia.' USING ERRCODE = 'P0001', HINT = 'quedada';
   END IF;
+  IF (SELECT p_id FROM owner_profile(auth.uid())) IS NULL THEN
+    RAISE EXCEPTION 'Crea tu perfil para inscribir un bolo.' USING ERRCODE = 'P0001', HINT = 'quedada';
+  END IF;
   NEW.user_id  := auth.uid();
   NEW.cycle    := quedada_open_cycle();
   NEW.province := ev.city;
@@ -91,7 +100,8 @@ CREATE POLICY "quedada entries withdraw own" ON quedada_entries FOR DELETE TO au
 CREATE TABLE IF NOT EXISTS quedada_winners (
   cycle         date NOT NULL,
   province      text NOT NULL,
-  event_id      uuid NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  -- SET NULL, not CASCADE: deleting the winning gig must not reopen the draw.
+  event_id      uuid REFERENCES events(id) ON DELETE SET NULL,
   entries_count int  NOT NULL DEFAULT 1,
   drawn_at      timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (cycle, province)
@@ -145,16 +155,34 @@ BEGIN
       drawn := drawn + 1;
       SELECT user_id INTO owner FROM events WHERE id = picked;
       IF owner IS NOT NULL THEN
-        INSERT INTO notifications (user_id, type, title, body, entity_type, entity_id)
-        VALUES (owner, 'quedada', '¡Tu bolo ha ganado la quedada de BandYou!',
-                'Lo promocionamos en la portada de ' || r.province || ' hasta el día del bolo. ¡Anima a la gente a ir!',
-                'event', picked);
+        -- A failed notice must never undo the draw.
+        BEGIN
+          INSERT INTO notifications (user_id, type, title, body, entity_type, entity_id)
+          VALUES (owner, 'quedada', '¡Tu bolo ha ganado la quedada de BandYou!',
+                  'Lo promocionamos en la portada de ' || r.province || ' hasta el día del bolo. ¡Anima a la gente a ir!',
+                  'event', picked);
+        EXCEPTION WHEN others THEN NULL;
+        END;
       END IF;
     END IF;
   END LOOP;
   RETURN drawn;
 END;
 $$;
+
+-- Un bolo ganador no puede cambiar de fecha ni de provincia.
+CREATE OR REPLACE FUNCTION quedada_lock_winner_event()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF (NEW.date IS DISTINCT FROM OLD.date OR NEW.city IS DISTINCT FROM OLD.city) AND quedada_is_winner(OLD.id) THEN
+    RAISE EXCEPTION 'Este bolo ha ganado la quedada: no se puede cambiar la fecha ni la provincia.' USING ERRCODE = 'P0001', HINT = 'quedada';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS trg_quedada_lock_winner_event ON events;
+CREATE TRIGGER trg_quedada_lock_winner_event BEFORE UPDATE OF date, city ON events
+  FOR EACH ROW EXECUTE FUNCTION quedada_lock_winner_event();
 
 -- ── "¡Voy!" ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS quedada_attendees (
@@ -272,6 +300,7 @@ $$;
 -- ── Permisos de las funciones ─────────────────────────────────────────────
 REVOKE EXECUTE ON FUNCTION quedada_entry_check()     FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION quedada_comment_author()  FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION quedada_lock_winner_event() FROM PUBLIC, anon, authenticated;
 GRANT  EXECUTE ON FUNCTION quedada_run_draws()            TO anon, authenticated;
 GRANT  EXECUTE ON FUNCTION quedada_attendee_count(uuid)   TO anon, authenticated;
 GRANT  EXECUTE ON FUNCTION quedada_comment_count(uuid)    TO anon, authenticated;

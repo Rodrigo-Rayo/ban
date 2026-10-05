@@ -115,6 +115,7 @@ export class QuedadaSocialComponent {
   readonly commentTotal = signal(0);
   readonly sending = signal(false);
   draft = '';
+  private seq = 0;
 
   constructor() {
     effect(() => { void this.load(this.winner().event.id, this.loggedIn()); });
@@ -123,14 +124,17 @@ export class QuedadaSocialComponent {
   private myId(): string | null { return this.auth.user()?.id ?? (this.svc.demoState ? 'demo-me' : null); }
 
   private async load(eventId: string, loggedIn: boolean) {
+    const seq = ++this.seq;
     const uid = this.myId();
     const [count, total] = await Promise.all([this.svc.attendeeCount(eventId), this.svc.commentCount(eventId)]);
+    if (seq !== this.seq) return;
     this.count.set(count);
     this.commentTotal.set(total);
     if (!loggedIn) return;
     const [people, going, comments] = await Promise.all([
       this.svc.people(eventId), uid ? this.svc.amGoing(eventId, uid) : Promise.resolve(false), this.svc.comments(eventId),
     ]);
+    if (seq !== this.seq) return;
     this.people.set(people);
     this.going.set(going);
     this.comments.set(comments);

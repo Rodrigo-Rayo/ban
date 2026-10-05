@@ -19,8 +19,8 @@ const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   quedada:          { table: 'quedada_entries', column: 'id' },
 };
 
-/** Postgres "undefined_column": the SQL has not been run yet. */
-const UNDEFINED_COLUMN = '42703';
+/** "The SQL has not been run yet": undefined column / undefined table (Postgres or PostgREST cache). */
+const NOT_THERE = ['42703', '42P01', 'PGRST204', 'PGRST205'];
 
 /**
  * Detects, once per session, whether the photo columns exist. Until the SQL is
@@ -63,7 +63,7 @@ export class MediaFeaturesService {
         this.states[feature].set(true);
         return true;
       }
-      if (error.code !== UNDEFINED_COLUMN) this.pending.delete(feature);
+      if (!NOT_THERE.includes(error.code)) this.pending.delete(feature);
     } catch {
       this.pending.delete(feature);
     }

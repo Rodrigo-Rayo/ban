@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { QuedadaEntry, QuedadaService, QuedadaWinner } from './quedada.service';
 import { CountdownComponent } from '../../shared/components/countdown/countdown.component';
 import {
-  QuedadaCycle, drawAt, drawnCycle, gigInstant, madridMonth, monthName, openCycle,
+  QuedadaCycle, drawAt, drawnCycle, gigInstant, madridMonth, monthName, openCycle, previousCycle,
 } from '../../core/utils/quedada-cycle';
 import { dateParts } from '../../core/utils/date';
 
@@ -41,7 +41,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
             Inscribe el tuyo antes del <strong>10 de {{ monthLabel(s.open) }} a las 20:00</strong>.
           </p>
           <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 mb-1.5">Sorteo en</p>
-          <app-countdown [target]="drawTime(s.open)" [offsetMs]="offset" (done)="reload()"/>
+          <app-countdown [target]="drawTime(s.open)" [offsetMs]="offset" (done)="onCountdownDone()"/>
           <p class="text-sm mt-4 font-semibold">
             @if (noProvince()) {
               Elige tu provincia en tu perfil para participar.
@@ -82,12 +82,12 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
               @if (s.phase === 'winner') {
                 <p class="font-mono text-xs font-bold uppercase tracking-wide mt-2 text-poster-paper/80">{{ gigLine(w) }}</p>
                 <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 mb-1.5 text-poster-yellow">Faltan</p>
-                <app-countdown [target]="gigTime(w)" [offsetMs]="offset" tone="light" (done)="reload()"/>
+                <app-countdown [target]="gigTime(w)" [offsetMs]="offset" tone="light" (done)="onCountdownDone()"/>
                 <p class="text-sm mt-4 font-semibold">{{ going() > 0 ? going() + (going() === 1 ? ' persona va' : ' personas van') + '. ¿Te apuntas?' : 'Sé el primero en apuntarte.' }}</p>
               }
               @if (s.phase === 'after') {
                 <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 mb-1.5 text-poster-yellow">Próximo sorteo en</p>
-                <app-countdown [target]="drawTime(s.open)" [offsetMs]="offset" tone="light" (done)="reload()"/>
+                <app-countdown [target]="drawTime(s.open)" [offsetMs]="offset" tone="light" (done)="onCountdownDone()"/>
               }
               <div class="flex flex-wrap gap-2 mt-4">
                 @if (s.phase === 'winner' && variant() === 'home') {
@@ -142,20 +142,38 @@ export class QuedadaStatusComponent {
     if (!this.snapshot()) this.loading.set(true);
     const now = this.svc.now();
     const open = openCycle(now);
-    const drawn = drawnCycle(now);
+    // Before this month's draw, last month's winner may still be about to play (late on the 31st).
+    const drawn = drawnCycle(now) ?? previousCycle(madridMonth(now));
     const real = !NO_PROVINCE.includes(province);
     const [winner, entries] = await Promise.all([
-      drawn && real ? this.svc.winner(drawn, province) : Promise.resolve(null),
+      real ? this.svc.winner(drawn, province) : Promise.resolve(null),
       real ? this.svc.entries(open, province) : Promise.resolve([]),
     ]);
-    if (seq !== this.seq) return;
+    const going = winner ? await this.svc.attendeeCount(winner.event.id) : 0;
+    if (seq !== this.seq) return; // a newer load (province change) won
     let phase: QuedadaPhase = 'signup';
-    if (winner) phase = gigInstant(winner.event.date, winner.event.time).getTime() + GIG_LENGTH_MS > now.getTime() ? 'winner' : 'after';
-    if (winner) this.going.set(await this.svc.attendeeCount(winner.event.id));
+    if (winner) {
+      const ended = gigInstant(winner.event.date, winner.event.time).getTime() + GIG_LENGTH_MS <= now.getTime();
+      // Last month's winner only matters while its gig is still on; once played, sign-up leads.
+      phase = !ended ? 'winner' : drawnCycle(now) ? 'after' : 'signup';
+    }
+    this.going.set(going);
     const snap = { phase, open, entries, winner };
     this.snapshot.set(snap);
     this.loading.set(false);
     this.loaded.emit(snap);
+  }
+
+  /** A countdown hit zero: reload now and again shortly after (the device clock may run ahead of the server). */
+  onCountdownDone() {
+    const drawn = drawnCycle(this.svc.now());
+    if (drawn) this.svc.retryDraw(drawn);
+    this.reload();
+    setTimeout(() => {
+      const again = drawnCycle(this.svc.now());
+      if (again) this.svc.retryDraw(again);
+      this.reload();
+    }, 6000);
   }
 
   monthLabel(c: QuedadaCycle): string { return monthName(c); }
