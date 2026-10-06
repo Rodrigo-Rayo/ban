@@ -102,8 +102,8 @@
         }
       </section>
 
-      <!-- La quedada de BandYou, where Destacado was (first on desktop); renders nothing until its tables exist -->
-      <app-quedada-status class="block empty:hidden lg:order-first" [province]="userCity()" variant="home"/>
+      <!-- La quedada de BandYou, first in the column on every screen; renders nothing until its tables exist -->
+      <app-quedada-status class="block empty:hidden order-first"[province]="userCity()" variant="home"/>
 
       <!-- Destacado: carrusel compacto (el hueco reservado para promoción de pago más adelante) -->
       <!-- Destacado: hidden for now (showFeatured); it returns with paid promotions -->
