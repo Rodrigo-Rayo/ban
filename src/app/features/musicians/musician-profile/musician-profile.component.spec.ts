@@ -1,3 +1,4 @@
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MusicianProfileComponent } from './musician-profile.component';
@@ -100,6 +101,7 @@ describe('MusicianProfileComponent', () => {
         { provide: ToastService,     useValue: toastSpy },
         { provide: Router,           useValue: routerSpy },
         { provide: ActivatedRoute,   useValue: routeMock },
+        { provide: MediaFeaturesService, useValue: { has: () => Promise.resolve(false) } },
       ],
     })
     .overrideComponent(MusicianProfileComponent, { set: { imports: [], template: '<div></div>' } })

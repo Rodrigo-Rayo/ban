@@ -22,6 +22,7 @@ const ENTITY_ROUTES: Readonly<Record<string, string>> = {
 const TYPE_ICONS: Readonly<Record<string, string>> = {
   application: 'mic', favorite: 'heart', booking: 'book-open', rsvp: 'calendar',
   review: 'star', message: 'message', event_reminder: 'calendar', quedada: 'star',
+  post_alert: 'megaphone',
 };
 
 @Component({

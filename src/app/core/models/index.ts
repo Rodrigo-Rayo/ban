@@ -18,6 +18,8 @@ export interface Musician {
   instagram_url: string | null;
   soundcloud_url: string | null;
   website_url: string | null;
+  /** "También doy clases" (supabase/2026_10_lessons_alerts.sql); absent until that SQL is run. */
+  gives_lessons?: boolean | null;
   created_at: string;
 }
 

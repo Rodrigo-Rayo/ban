@@ -64,9 +64,12 @@ export class OnboardingComponent implements OnInit {
   selectedSlots = signal<string[]>([]);
   /** Bands: "Disponibles para bolos". Days/slots above double as rehearsal days. */
   openToGigs = signal(false);
+  /** Musician: "También doy clases" (musicians.gives_lessons, once it exists). */
+  givesLessons = signal(false);
   private features = inject(MediaFeaturesService);
   /** Band availability fields exist in the live DB (see MediaFeaturesService). */
   readonly bandAvailability = this.features.state('bandAvailability');
+  readonly canGiveLessons = this.features.state('giveLessons');
   /** Musicians, bands and teachers got a phone column with supabase/2026_10_private_contact.sql. */
   readonly contactPhoneAvailable = this.features.state('profileContact');
 
@@ -317,6 +320,7 @@ export class OnboardingComponent implements OnInit {
 
   async ngOnInit() {
     void this.features.has('bandAvailability');
+    void this.features.has('giveLessons');
     void this.features.has('profileContact');
     // Read stored role synchronously before any async operations so later
     // Supabase responses never race-overwrite a role the user already picked.
@@ -435,6 +439,7 @@ export class OnboardingComponent implements OnInit {
       if (data.genres)      this.selectedGenres.set(data.genres.split(',').map((s: string) => s.trim()).filter(Boolean));
       if (data.instrument)  this.selectedInstruments.set(data.instrument.split(',').map((s: string) => s.trim()).filter(Boolean));
       if (data.level)       this.selectedLevel.set(data.level);
+      if (role === 'musician') this.givesLessons.set(!!data.gives_lessons);
       if (role === 'band') {
         if (data.rehearsal_days)  this.selectedDays.set(data.rehearsal_days.split(',').filter(Boolean));
         if (data.rehearsal_slots) this.selectedSlots.set(data.rehearsal_slots.split(',').filter(Boolean));
@@ -520,6 +525,7 @@ export class OnboardingComponent implements OnInit {
         influences: z.influences, experience: z.experience,
         availability_days: this.selectedDays().join(','),
         availability_slots: this.selectedSlots().join(','),
+        ...(this.canGiveLessons() ? { gives_lessons: this.givesLessons() } : {}),
       }, { onConflict: 'user_id' });
       saveError = error;
     } else if (role === 'band') {

@@ -396,7 +396,7 @@
     <!-- ══ CLASES ══ -->
     @if (activeTab() === 'teachers' && !loading()) {
       <div id="panel-teachers">
-      @if (teachers().length === 0) {
+      @if (teachers().length === 0 && lessonMusicians().length === 0) {
         <div class="empty-state">
           @if (emptyMode() === 'query') {
             <ng-container *ngTemplateOutlet="emptyQuery"/>
@@ -429,6 +429,23 @@
             </a>
           }
         </div>
+      }
+      @if (lessonMusicians().length) {
+        <section aria-labelledby="lesson-musicians-title" class="mt-8">
+          <h2 id="lesson-musicians-title" class="font-display text-2xl leading-none mb-3">Músicos que también dan clases</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            @for (m of lessonMusicians(); track m.id) {
+              <a [routerLink]="['/musicians', m.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
+                <ng-container *ngTemplateOutlet="photo; context: { name: m.name, url: m.avatar_url }"/>
+                <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
+                  <h3 class="font-display uppercase text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ m.name }}</h3>
+                  <p class="text-[13px] text-ink-muted truncate">{{ m.instrument || 'Músico' }}@if (m.city) { · {{ m.city }} }</p>
+                  <div class="flex flex-wrap gap-1.5"><span class="tag-night">Da clases</span></div>
+                </div>
+              </a>
+            }
+          </div>
+        </section>
       }
       </div><!-- /panel-teachers -->
     }

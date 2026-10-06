@@ -4,6 +4,7 @@ import { OnboardingComponent } from './onboarding.component';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
+import { MediaFeaturesService } from '../../core/services/media-features.service';
 
 const USER = { id: 'user-1', user_metadata: { terms_accepted_at: '2026-01-01' } };
 const MUSICIAN_ROW = { id: 'm1', name: 'Lola', city: 'Madrid', genre: 'Rock', instrument: 'Guitarra' };
@@ -11,7 +12,7 @@ const MUSICIAN_ROW = { id: 'm1', name: 'Lola', city: 'Madrid', genre: 'Rock', in
 /** Thenable query builder: every chained call returns itself, awaiting resolves to `result`. */
 function builder(result: { data: unknown; error: unknown }) {
   const b: Record<string, unknown> = {};
-  for (const m of ['select', 'eq', 'upsert', 'delete', 'update']) b[m] = () => b;
+  for (const m of ['select', 'eq', 'upsert', 'delete', 'update', 'limit']) b[m] = () => b;
   b['maybeSingle'] = () => Promise.resolve(result);
   b['single'] = () => Promise.resolve(result);
   b['then'] = (res: (v: unknown) => unknown) => Promise.resolve(result).then(res);
@@ -137,6 +138,27 @@ describe('OnboardingComponent', () => {
       expect(nativeConfirm).not.toHaveBeenCalled();
       expect(router.navigate).not.toHaveBeenCalled();
       expect(toast.success).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('"También doy clases" (musicians.gives_lessons)', () => {
+    it('loads the saved choice and sends it on save', async () => {
+      await setup({ table: 'musicians', row: { ...MUSICIAN_ROW, gives_lessons: true } });
+      const supabase = TestBed.inject(SupabaseService) as unknown as { client: { from: (t: string) => Record<string, unknown> } };
+      const upserts: Record<string, unknown>[] = [];
+      const original = supabase.client.from;
+      supabase.client.from = (t: string) => {
+        const b = original(t);
+        const up = b['upsert'] as (row: Record<string, unknown>) => unknown;
+        b['upsert'] = (row: Record<string, unknown>) => { if (t === 'musicians') upserts.push(row); return up(row); };
+        return b;
+      };
+      await TestBed.inject(MediaFeaturesService).has('giveLessons');
+      expect(component.canGiveLessons()).toBeTrue();
+      expect(component.givesLessons()).toBeTrue();
+      component.givesLessons.set(false);
+      await component.onSubmit();
+      expect(upserts.at(-1)?.['gives_lessons']).toBeFalse();
     });
   });
 });

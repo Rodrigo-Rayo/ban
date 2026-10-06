@@ -28,6 +28,7 @@ export function preferredFeedCity(profileCity: string | null | undefined, cached
 }
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { PostAlertsComponent } from './post-alerts/post-alerts.component';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { timeAgo } from '../../core/utils/display.utils';
 import { askLabel, askStampClass, POST_TYPE_OPTIONS, SE_BUSCA_MAX_DAYS, SE_BUSCA_PERIODS, sinceISO } from '../../core/utils/se-busca';
@@ -75,7 +76,7 @@ export function mergeSeBusca(posts: Post[], vacancies: OpenVacancy[], morePosts:
 
 @Component({
     selector: 'app-feed',
-    imports: [FormsModule, RouterLink, IconComponent],
+    imports: [FormsModule, RouterLink, IconComponent, PostAlertsComponent],
     templateUrl: './feed.component.html'
 })
 export class FeedComponent implements OnInit {

@@ -611,6 +611,13 @@
               <p id="onb-availability-label" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Disponibilidad <span class="text-ink-muted">(opcional)</span></p>
               <ng-container [ngTemplateOutlet]="dayPicker"/>
             </div>
+            @if (canGiveLessons()) {
+              <label class="flex items-center gap-3 min-h-[44px] text-sm text-ink cursor-pointer">
+                <input type="checkbox" class="w-5 h-5 accent-primary-500 flex-shrink-0"
+                       [checked]="givesLessons()" (change)="givesLessons.set($any($event.target).checked)"/>
+                <span><strong>También doy clases</strong> <span class="text-ink-muted">· saldrás en Buscar → Clases con tu instrumento</span></span>
+              </label>
+            }
           }
           @if (role() === 'teacher') {
             <div class="grid sm:grid-cols-2 gap-4">

@@ -15,6 +15,7 @@ import { AvatarUploadComponent } from '../../shared/components/avatar-upload/ava
 import { SpaceGalleryComponent, SpaceKind } from '../../shared/components/space-gallery/space-gallery.component';
 import { Event as AppEvent, EventGenre, PostType } from '../../core/models';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
+import { EmailPrefsComponent } from './email-prefs/email-prefs.component';
 import { MediaUploadService, MEDIA_ACCEPT, mediaPickError } from '../../core/services/media-upload.service';
 
 interface DashboardProfile {
@@ -48,7 +49,7 @@ export type DashboardTab = 'events' | 'posts' | 'gear';
 
 @Component({
     selector: 'app-dashboard',
-    imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent, SpaceGalleryComponent],
+    imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent, SpaceGalleryComponent, EmailPrefsComponent],
     templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit, OnDestroy {

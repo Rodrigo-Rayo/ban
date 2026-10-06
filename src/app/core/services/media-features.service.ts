@@ -6,9 +6,11 @@ import { SupabaseService } from './supabase.service';
  * band availability (supabase/2026_10_provinces_band_availability.sql) and private contact
  * (supabase/2026_10_private_contact.sql: has_contact, phone on every profile table) and
  * Se busca titles (supabase/2026_10_post_title.sql), La quedada (supabase/2026_10_quedada.sql)
- * and event addresses (supabase/2026_10_event_address.sql).
+ * event addresses (supabase/2026_10_event_address.sql), "También doy clases" and Se busca alerts
+ * (supabase/2026_10_lessons_alerts.sql) and email notice settings (supabase/2026_10_email_notifications.sql).
  */
-export type MediaFeature = 'eventImage' | 'venuePhotos' | 'rehearsalPhotos' | 'bandAvailability' | 'profileContact' | 'postTitle' | 'quedada' | 'eventAddress';
+export type MediaFeature = 'eventImage' | 'venuePhotos' | 'rehearsalPhotos' | 'bandAvailability' | 'profileContact' | 'postTitle' | 'quedada' | 'eventAddress'
+  | 'giveLessons' | 'postAlerts' | 'emailPrefs';
 
 const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   eventImage:      { table: 'events',           column: 'image_url' },
@@ -19,6 +21,9 @@ const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   postTitle:        { table: 'posts',          column: 'title' },
   quedada:          { table: 'quedada_entries', column: 'id' },
   eventAddress:     { table: 'events',          column: 'address' },
+  giveLessons:      { table: 'musicians',       column: 'gives_lessons' },
+  postAlerts:       { table: 'post_alerts',     column: 'id' },
+  emailPrefs:       { table: 'notification_prefs', column: 'user_id' },
 };
 
 /** "The SQL has not been run yet": undefined column / undefined table (Postgres or PostgREST cache). */
@@ -43,6 +48,9 @@ export class MediaFeaturesService {
     postTitle: signal(false),
     quedada: signal(false),
     eventAddress: signal(false),
+    giveLessons: signal(false),
+    postAlerts: signal(false),
+    emailPrefs: signal(false),
   };
 
   /** Latest known availability (false until a probe confirms it). */

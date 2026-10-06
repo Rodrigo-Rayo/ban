@@ -16,6 +16,7 @@ import { joinWeekdays } from '../../../core/utils/weekdays';
 
 export { joinWeekdays };
 import { Musician } from '../../../core/models';
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
 
 /** Columns rendered by the profile page (avoid select('*')). */
 const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
@@ -36,6 +37,9 @@ export class MusicianProfileComponent implements OnInit {
   private favSvc = inject(FavoritesService);
   private seo = inject(SeoService);
   private toast = inject(ToastService);
+  private features = inject(MediaFeaturesService);
+  /** Started at construction so it runs alongside the route setup, not before the profile query. */
+  private readonly lessonsProbe = this.features.has('giveLessons');
 
   musician = signal<Musician | null>(null);
   availabilityDays = computed(() => parseList(this.musician()?.availability_days));
@@ -80,13 +84,15 @@ export class MusicianProfileComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.loading.set(false); return; }
     try {
+      // gives_lessons is only named once the column exists (cached per session).
+      const columns = MUSICIAN_COLUMNS + (await this.lessonsProbe ? ', gives_lessons' : '');
       const [{ data }, { data: { session } }] = await Promise.all([
-        this.supabase.client.from('musicians').select(MUSICIAN_COLUMNS).eq('id', id).maybeSingle(),
+        this.supabase.client.from('musicians').select(columns).eq('id', id).maybeSingle<Musician>(),
         this.supabase.auth.getSession(),
       ]);
       this.musician.set(data as Musician | null);
       if (data) {
-        this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url, undefined, data.instrument);
+        this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url ?? undefined, undefined, data.instrument);
         this.seo.injectJsonLd({
           '@context': 'https://schema.org',
           '@type': 'Person',

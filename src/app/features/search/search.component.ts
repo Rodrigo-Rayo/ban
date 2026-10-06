@@ -69,6 +69,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   venues         = signal<VenueResult[]>([]);
   teachers       = signal<TeacherResult[]>([]);
   rehearsals     = signal<RehearsalResult[]>([]);
+  /** Clases tab: musicians who ticked "También doy clases" (first 30, same filters). */
+  lessonMusicians = signal<MusicianResult[]>([]);
 
 
   genres = GENRES;
@@ -281,9 +283,13 @@ export class SearchComponent implements OnInit, OnDestroy {
     const seq = ++this.fetchSeq;
     this.searchError.set(false);
     try {
-      const data = await this.fetchPage(0);
+      const [data, lessons] = await Promise.all([
+        this.fetchPage(0),
+        this.activeTab() === 'teachers' ? this.fetchLessonMusicians() : Promise.resolve([]),
+      ]);
       if (seq !== this.fetchSeq) return;
       this.setResults(data);
+      this.lessonMusicians.set(lessons);
       this.hasMore.set(data.length === this.LIMIT);
     } catch (err) {
       if (!environment.production) console.error('[Search] fetchPage error:', err);
@@ -329,6 +335,24 @@ export class SearchComponent implements OnInit, OnDestroy {
     else if (tab === 'venues') this.venues.update(r => [...r, ...data as VenueResult[]]);
     else if (tab === 'teachers') this.teachers.update(r => [...r, ...data as TeacherResult[]]);
     else if (tab === 'rehearsal') this.rehearsals.update(r => [...r, ...data as RehearsalResult[]]);
+  }
+
+  /** Musicians who also teach; empty until musicians.gives_lessons exists or on any error. */
+  private async fetchLessonMusicians(): Promise<MusicianResult[]> {
+    try {
+      if (!(await this.features.has('giveLessons'))) return [];
+      const city = this.selectedCity();
+      const instrument = this.selectedInstrument();
+      const query = this.searchQuery().trim();
+      let q = this.supabase.client.from('musicians').select(SearchComponent.SEARCH_COLS.musicians).eq('gives_lessons', true);
+      if (city !== 'Toda España') q = q.eq('city', city);
+      if (instrument) q = q.ilike('instrument', `%${instrument}%`);
+      if (query) q = q.ilike('name', `%${query}%`);
+      const { data, error } = await q.order('created_at', { ascending: false }).range(0, this.LIMIT - 1);
+      return error ? [] : (data ?? []) as MusicianResult[];
+    } catch {
+      return [];
+    }
   }
 
   private static readonly SEARCH_COLS = {
