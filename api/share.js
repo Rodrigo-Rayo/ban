@@ -21,7 +21,7 @@ const POST_LABELS = {
 /** Per route: table, columns, and how a row becomes a preview. */
 const TYPES = {
   musicians: {
-    table: 'musicians', cols: 'name,instrument,city,description,avatar_url',
+    table: 'musicians', cols: 'name,instrument,genre,city,description,avatar_url',
     meta: r => ({ title: r.name, kicker: [r.instrument, r.city].filter(Boolean).join(' · '), text: r.description, image: r.avatar_url }),
   },
   bands: {
@@ -88,6 +88,43 @@ async function fetchRow(type, id) {
   return rows[0] || null;
 }
 
+// Province slug for the "more in <province>" link of each page type (api/hub.js pages).
+const HUB_FOR = { musicians: 'busco-musicos', bands: 'busco-banda', venues: 'salas-de-conciertos', teachers: 'clases-de-musica',
+  rehearsal: 'locales-de-ensayo', events: 'conciertos', posts: 'busco-banda' };
+const SCHEMA_FOR = { musicians: 'Person', bands: 'MusicGroup', venues: 'MusicVenue', teachers: 'Person', rehearsal: 'LocalBusiness' };
+
+function slugify(s) {
+  return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+/**
+ * The same facts the app shows, as plain HTML inside <app-root> for crawlers that do not
+ * run JavaScript (AI assistants). Angular replaces it on boot, so people never see it.
+ */
+function botBody(type, row, m, url) {
+  const city = row.city || '';
+  const hub = HUB_FOR[type];
+  const more = hub ? `<p><a href="/${hub}${city && city !== 'Otra' ? '/' + slugify(city) : ''}">Más en BandYou${city ? ' ' + escapeHtml(city) : ''}</a> · <a href="/">BandYou, la red musical de España</a></p>` : '';
+  return `<main><p>${escapeHtml(m.kicker || '')}</p><h1>${escapeHtml(m.title)}</h1>`
+    + (m.text ? `<p>${escapeHtml(clip(m.text, 1200))}</p>` : '')
+    + `<p><a href="${escapeHtml(url)}">Ver en BandYou</a> (escribir mensaje, guardar, compartir).</p>${more}</main>`;
+}
+
+function botJsonLd(type, row, m, url) {
+  let ld = null;
+  if (type === 'events') {
+    ld = { '@type': 'Event', name: row.title, startDate: row.date, eventStatus: 'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+      location: { '@type': 'Place', name: row.venue || row.city || 'España', address: { '@type': 'PostalAddress', addressLocality: row.city || '', addressCountry: 'ES' } } };
+  } else if (SCHEMA_FOR[type]) {
+    ld = { '@type': SCHEMA_FOR[type], name: m.title,
+      ...(row.city ? { address: { '@type': 'PostalAddress', addressLocality: row.city, addressCountry: 'ES' } } : {}) };
+  }
+  if (!ld) return '';
+  ld = { '@context': 'https://schema.org', ...ld, url, ...(m.text ? { description: clip(m.text, 300) } : {}) };
+  return `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
+}
+
 /** Replaces the content of an existing tag in index.html (or the whole tag), leaving everything else as built. */
 function setMeta(html, { title, description, url, image, type, noindex }) {
   const t = escapeHtml(title), d = escapeHtml(description), u = escapeHtml(url), i = escapeHtml(image);
@@ -140,5 +177,8 @@ module.exports = async function handler(req, res) {
   const description = clip([m.kicker, m.text].filter(Boolean).join(' — ') || 'En BandYou, la red musical de España.', 200);
   res.statusCode = 200;
   res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
-  res.end(setMeta(html, { title: `${clip(m.title, 70)} · BandYou`, description, url, image: safeImage(m.image), type: m.type }));
+  const page = setMeta(html, { title: `${clip(m.title, 70)} · BandYou`, description, url, image: safeImage(m.image), type: m.type })
+    .replace('<app-root></app-root>', `<app-root>${botBody(type, row, m, url)}</app-root>`)
+    .replace('</head>', `${botJsonLd(type, row, m, url)}</head>`);
+  res.end(page);
 };
