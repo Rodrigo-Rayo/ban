@@ -50,13 +50,13 @@ const PROFILE_ROUTE_BY_ROLE: Readonly<Record<string, string>> = {
   rehearsal: 'rehearsal',
 };
 
-/** The account's profile (type and row id), or null when it has none or the lookup fails. */
-export async function findOwnProfile(client: Client, userId: string | null | undefined): Promise<{ role: string; id: string } | null> {
+/** The account's profile (type, row id and public name), or null when it has none or the lookup fails. */
+export async function findOwnProfile(client: Client, userId: string | null | undefined): Promise<{ role: string; id: string; name: string } | null> {
   if (!userId) return null;
   try {
     const hits = await Promise.all(Object.entries(PROFILE_TABLE_BY_ROLE).map(async ([role, table]) => {
-      const { data } = await client.from(table).select('id').eq('user_id', userId).maybeSingle();
-      return data?.id ? { role, id: data.id as string } : null;
+      const { data } = await client.from(table).select('id, name').eq('user_id', userId).maybeSingle();
+      return data?.id ? { role, id: data.id as string, name: String(data.name ?? '').trim() } : null;
     }));
     return hits.find(h => h !== null) ?? null;
   } catch {
@@ -71,4 +71,13 @@ export async function findOwnProfile(client: Client, userId: string | null | und
 export async function findProfileLink(client: Client, userId: string | null | undefined): Promise<string | null> {
   const own = await findOwnProfile(client, userId);
   return own ? `/${PROFILE_ROUTE_BY_ROLE[own.role]}/${own.id}` : null;
+}
+
+/**
+ * Who is behind the account `userId`, as shown to visitors: profile name and public
+ * page. Null for accounts without a profile (or when the lookup fails).
+ */
+export async function findPublicProfile(client: Client, userId: string | null | undefined): Promise<{ name: string; link: string } | null> {
+  const own = await findOwnProfile(client, userId);
+  return own ? { name: own.name, link: `/${PROFILE_ROUTE_BY_ROLE[own.role]}/${own.id}` } : null;
 }

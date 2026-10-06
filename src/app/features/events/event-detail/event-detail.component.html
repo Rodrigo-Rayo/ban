@@ -113,7 +113,7 @@
           }
           @if (event()!.contact_email) {
             <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[44px]">
-              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Organiza</dt>
+              <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Contacto</dt>
               <dd class="min-w-0 text-right">
                 <a [href]="'mailto:' + event()!.contact_email"
                    class="text-sm font-bold text-primary-600 hover:text-primary-700 underline underline-offset-2 inline-flex items-center min-h-[44px] [overflow-wrap:anywhere] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
@@ -123,6 +123,22 @@
             </div>
           }
         </dl>
+
+        <!-- Who published it -->
+        @if (organizer(); as org) {
+          <section aria-label="Quién publica el evento" class="mt-4 flex items-center gap-3">
+            @if (organizerAvatar(); as photo) {
+              <img [src]="avatarSrc(photo, 96)" alt="" width="48" height="48" class="w-12 h-12 object-cover flex-shrink-0 border-[1.5px] border-ink"/>
+            } @else {
+              <div class="avatar w-12 h-12 text-2xl" aria-hidden="true">{{ initialOf(org.name) }}</div>
+            }
+            <div class="flex-1 min-w-0">
+              <p class="meta mb-0.5">Organiza</p>
+              <p class="font-display text-xl uppercase text-ink truncate">{{ org.name }}</p>
+            </div>
+            <a [routerLink]="org.link" class="btn-secondary text-xs min-h-[44px] flex-shrink-0">Ver perfil</a>
+          </section>
+        }
 
         <!-- Story image for Instagram/WhatsApp (every screen size) -->
         <div class="mt-4">

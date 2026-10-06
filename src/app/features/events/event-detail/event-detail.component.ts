@@ -15,6 +15,9 @@ import { Event as AppEvent } from '../../../core/models';
 import { mapsUrl } from '../../../core/utils/maps';
 import { ShareCard, StoryImage, shareImage, slugFile } from '../../../core/utils/share-card';
 import { storyFeedback } from '../../../core/utils/story-feedback';
+import { findPublicProfile } from '../../../core/utils/profile-check';
+import { avatarSrc } from '../../../core/utils/display.utils';
+import { fetchProfileAvatar, initialOf } from '../../inbox/profile-avatar';
 
 const RELATED_COLUMNS = 'id, title, venue, city, date, time, genre, price';
 const RELATED_LIMIT = 3;
@@ -58,6 +61,12 @@ export class EventDetailComponent implements OnInit {
     const uid = this.currentUserId();
     return !!uid && uid === this.event()?.user_id;
   });
+
+  /** Who published the event (profile name and page); null while loading or without a profile. */
+  organizer = signal<{ name: string; link: string } | null>(null);
+  organizerAvatar = signal<string | null>(null);
+  readonly initialOf = initialOf;
+  readonly avatarSrc = avatarSrc;
 
   makingImage = signal(false);
 
@@ -139,6 +148,7 @@ export class EventDetailComponent implements OnInit {
       if (data) {
         this.story.prepare();
         void this.loadRelated(data);
+        void this.loadOrganizer(data.user_id);
         this.seo.setEvent(data.title, data.date, data.city, data.description ?? undefined);
         this.seo.injectJsonLd({
           '@context': 'https://schema.org',
@@ -176,6 +186,17 @@ export class EventDetailComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Non-critical: who published it. Without a profile (or on failure) the block stays hidden. */
+  private async loadOrganizer(userId: string | null | undefined) {
+    const [profile, photo] = await Promise.all([
+      findPublicProfile(this.supabase.client, userId),
+      fetchProfileAvatar(this.supabase, userId),
+    ]);
+    if (!profile?.name) return;
+    this.organizer.set(profile);
+    this.organizerAvatar.set(photo);
   }
 
   /** Non-critical: next upcoming events, same city first. Failures hide the strip. */

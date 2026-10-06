@@ -1,4 +1,4 @@
-import { findProfileLink, needsOnboarding } from './profile-check';
+import { findProfileLink, findPublicProfile, needsOnboarding } from './profile-check';
 
 /** Fake client: `rows` maps a table to what `.maybeSingle()` resolves to. */
 function client(rows: Record<string, { data: unknown; error?: unknown }>) {
@@ -58,5 +58,16 @@ describe('findProfileLink', () => {
     expect(await findProfileLink(client({}), null)).toBeNull();
     const broken = { from: () => { throw new Error('offline'); } } as any;
     expect(await findProfileLink(broken, 'u')).toBeNull();
+  });
+});
+
+describe('findPublicProfile', () => {
+  it('gives the profile name and its public page', async () => {
+    expect(await findPublicProfile(client({ bands: { data: { id: 'b1', name: ' Los Ruidos ' } } }), 'u'))
+      .toEqual({ name: 'Los Ruidos', link: '/bands/b1' });
+  });
+
+  it('returns null for accounts without a profile', async () => {
+    expect(await findPublicProfile(client({}), 'u')).toBeNull();
   });
 });
