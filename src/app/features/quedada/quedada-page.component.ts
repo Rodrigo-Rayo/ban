@@ -20,7 +20,7 @@ import { dateParts } from '../../core/utils/date';
       <header class="page-head">
         <div class="page-head-inner">
           <div>
-            <p class="page-kicker">Ayudamos a las bandas pequeñas a darse a conocer</p>
+            <p class="page-kicker">Ayudamos a las bandas a darse a conocer</p>
             <h1 class="page-title">La quedada de BandYou</h1>
           </div>
         </div>
@@ -171,7 +171,7 @@ export class QuedadaPageComponent {
   constructor() {
     this.seo.set({
       title: 'La quedada de BandYou',
-      description: 'Ayudamos a las bandas pequeñas a darse a conocer: cada mes sorteamos un bolo por provincia, lo promocionamos y quedamos para ir. Inscribe el tuyo gratis.',
+      description: 'Ayudamos a las bandas a darse a conocer: cada mes sorteamos un bolo por provincia, lo promocionamos y quedamos para ir. Inscribe el tuyo gratis.',
     });
     // The profile's province once it is known, unless the visitor already picked one.
     effect(() => {

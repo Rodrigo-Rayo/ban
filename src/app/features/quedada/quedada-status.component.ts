@@ -68,7 +68,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
           <ng-container [ngTemplateOutlet]="brand" [ngTemplateOutletContext]="{ sub: monthLabel(s.open) + (noProvince() ? '' : ' en ' + province()) }"/>
           <h2 [id]="uid + '-t'" class="font-display uppercase leading-[0.95] mt-3" [class]="variant() === 'page' ? 'text-5xl sm:text-6xl' : 'text-4xl sm:text-5xl'">¡Bandas!<br>¡Esto os interesa!</h2>
           <p class="text-[15px] leading-snug mt-3 max-w-[52ch]">
-            <strong>Ayudamos a las bandas pequeñas a darse a conocer.</strong>
+            <strong>Ayudamos a las bandas a darse a conocer.</strong>
             Cada mes sorteamos un bolo por provincia, lo promocionamos en toda la web y quedamos para ir.
             ¿Tocas en {{ monthLabel(s.open) }}? Inscribe tu bolo antes del <strong>{{ drawText(s.open) }} a las 20:00</strong>.
           </p>
