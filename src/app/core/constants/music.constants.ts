@@ -1,7 +1,8 @@
 /** Canonical music genres used across the Bandyou app. */
 export const GENRES: string[] = [
   'Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk',
-  'Reggae', 'Punk', 'Clásico', 'Experimental', 'Hip-Hop', 'Bossa Nova',
+  'Reggae', 'Punk', 'Clásico', 'Experimental', 'Hip-Hop', 'Rap', 'Trap / Urbano', 'Funk / Soul',
+  'Ska', 'Rumba', 'Cantautor', 'Hardcore', 'Latino', 'Versiones', 'Bossa Nova',
 ];
 
 /** Canonical instrument list used across the Bandyou app. */

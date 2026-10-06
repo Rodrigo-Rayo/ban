@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { genrePattern } from '../utils/genre-match';
 
 /** Band data shown next to a vacancy. */
 export interface VacancyBand {
@@ -60,7 +61,7 @@ export class VacanciesService {
     if (!byId.size) return [];
 
     let q = db.from('band_vacancies').select(VACANCY_COLS).eq('open', true).in('band_id', [...byId.keys()]);
-    if (genre) q = q.ilike('genre', `%${genre}%`);
+    if (genre) q = q.filter('genre', 'imatch', genrePattern(genre));
     if (instrument) q = q.ilike('instrument', `%${instrument}%`);
     if (query) q = q.ilike('instrument', `%${query}%`);
     if (since) q = q.gte('created_at', since);

@@ -7,6 +7,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
+import { genrePattern } from '../../core/utils/genre-match';
 import { avatarColor } from '../../core/utils/display.utils';
 import { environment } from '../../../environments/environment';
 import { localToday } from '../../core/utils/date';
@@ -337,7 +338,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       const instrument = this.selectedInstrument();
       let q = this.supabase.client.from('musicians').select(SearchComponent.SEARCH_COLS.musicians);
       if (city !== 'Toda España') q = q.eq('city', city);
-      if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
+      if (genre && genre !== 'Todos') q = q.filter('genre', 'imatch', genrePattern(genre));
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
       if (query) { q = q.ilike('name', `%${query}%`); }
       const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
@@ -361,7 +362,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'bands') {
       let q = this.supabase.client.from('bands').select(SearchComponent.SEARCH_COLS.bands);
       if (city !== 'Toda España') q = q.eq('city', city);
-      if (genre && genre !== 'Todos') q = q.ilike('genre', `%${genre}%`);
+      if (genre && genre !== 'Todos') q = q.filter('genre', 'imatch', genrePattern(genre));
       if (query) q = q.ilike('name', `%${query}%`);
       const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       if (error) throw error;
@@ -371,7 +372,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'venues') {
       let q = this.supabase.client.from('venues').select(SearchComponent.SEARCH_COLS.venues);
       if (city !== 'Toda España') q = q.eq('city', city);
-      if (genre && genre !== 'Todos') q = q.ilike('genres', `%${genre}%`);
+      if (genre && genre !== 'Todos') q = q.filter('genres', 'imatch', genrePattern(genre));
       if (query) q = q.ilike('name', `%${query}%`);
       const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       if (error) throw error;
