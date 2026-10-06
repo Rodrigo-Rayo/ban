@@ -32,9 +32,11 @@ describe('EventDetailComponent', () => {
   let toastSpy: jasmine.SpyObj<ToastService>;
   let confirmSpy: jasmine.SpyObj<ConfirmService>;
   let eventImageAvailable: boolean;
+  let eventAddressAvailable: boolean;
 
   beforeEach(() => {
     eventImageAvailable = false;
+    eventAddressAvailable = false;
     supabaseSpy = {
       auth: {
         getSession: jasmine.createSpy('getSession').and.returnValue(
@@ -64,7 +66,7 @@ describe('EventDetailComponent', () => {
         { provide: ConfirmService, useValue: confirmSpy },
         { provide: SeoService, useValue: { setEvent: () => {}, injectJsonLd: () => {} } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'ev1' } } } },
-        { provide: MediaFeaturesService, useValue: { has: () => Promise.resolve(eventImageAvailable) } },
+        { provide: MediaFeaturesService, useValue: { has: (f: string) => Promise.resolve(f === 'eventAddress' ? eventAddressAvailable : eventImageAvailable) } },
       ],
     });
 
@@ -219,6 +221,28 @@ describe('EventDetailComponent', () => {
       expect(component.posterUrl()).toBe('https://cdn.test/media/u1/events/p.jpg');
       component.posterError.set(true);
       expect(component.posterUrl()).toBeNull();
+    });
+
+    it('does not request address while the column does not exist', async () => {
+      const builder = mockBuilder({ data: EVENT });
+      supabaseSpy.client.from.and.returnValue(builder);
+      await component.ngOnInit();
+      expect(builder.select.calls.first().args[0]).not.toContain('address');
+    });
+
+    it('requests address once available and uses it for "Cómo llegar"', async () => {
+      eventAddressAvailable = true;
+      const builder = mockBuilder({ data: { ...EVENT, venue: 'Sala Caracol', address: 'C/ Bernardino Obregón 18' } });
+      supabaseSpy.client.from.and.returnValue(builder);
+      await component.ngOnInit();
+      expect(builder.select.calls.first().args[0]).toContain('address');
+      expect(new URL(component.directionsUrl()).searchParams.get('query'))
+        .toBe('Sala Caracol, C/ Bernardino Obregón 18, Madrid, España');
+    });
+
+    it('"Cómo llegar" falls back to venue and province for events without address', () => {
+      component.event.set({ ...EVENT, venue: 'Sala Caracol' });
+      expect(new URL(component.directionsUrl()).searchParams.get('query')).toBe('Sala Caracol, Madrid, España');
     });
 
     it('shows error toast on exception', async () => {

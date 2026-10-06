@@ -12,6 +12,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { formatLongDate, formatTime, localToday } from '../../../core/utils/date';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { Event as AppEvent } from '../../../core/models';
+import { mapsUrl } from '../../../core/utils/maps';
 
 const RELATED_COLUMNS = 'id, title, venue, city, date, time, genre, price';
 const RELATED_LIMIT = 3;
@@ -56,6 +57,12 @@ export class EventDetailComponent implements OnInit {
     return !!uid && uid === this.event()?.user_id;
   });
 
+  /** "Cómo llegar": works without an address too (venue + province). */
+  readonly directionsUrl = computed(() => {
+    const e = this.event();
+    return e ? mapsUrl([e.venue, e.address, e.city]) : '';
+  });
+
   readonly priceLabel = computed(() => {
     const price = this.event()?.price;
     if (!price) return '';
@@ -84,8 +91,9 @@ export class EventDetailComponent implements OnInit {
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     try {
-      // image_url is only requested once the column exists (cached per session).
-      const columns: string = (await this.features.has('eventImage')) ? `${EVENT_COLUMNS}, image_url` : EVENT_COLUMNS;
+      // image_url and address are only requested once their columns exist (cached per session).
+      const [hasImage, hasAddress] = await Promise.all([this.features.has('eventImage'), this.features.has('eventAddress')]);
+      const columns = [EVENT_COLUMNS, hasImage ? 'image_url' : '', hasAddress ? 'address' : ''].filter(Boolean).join(', ');
       const [{ data }, { data: { session } }] = await Promise.all([
         this.supabase.client.from('events').select(columns).eq('id', id!).maybeSingle<AppEvent>(),
         this.supabase.auth.getSession(),
@@ -108,7 +116,12 @@ export class EventDetailComponent implements OnInit {
           location: {
             '@type': 'Place',
             name: data.venue || data.city || 'España',
-            address: { '@type': 'PostalAddress', addressLocality: data.city || '', addressCountry: 'ES' },
+            address: {
+              '@type': 'PostalAddress',
+              ...(data.address ? { streetAddress: data.address } : {}),
+              addressLocality: data.city || '',
+              addressCountry: 'ES',
+            },
           },
         });
       } else {

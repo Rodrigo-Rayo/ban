@@ -123,6 +123,34 @@ describe('EventFormComponent poster (feature-detected)', () => {
     expect(component.error()).toContain('No se pudo subir el cartel');
   });
 
+  it('address: saved trimmed when the column exists', async () => {
+    const component = await setup(true);
+    expect(component.canAddAddress()).toBeTrue();
+    component.form.patchValue({ address: '  C/ de la Palma 12, Madrid ' });
+    await component.onSubmit();
+    expect(insert.calls.mostRecent().args[0].address).toBe('C/ de la Palma 12, Madrid');
+  });
+
+  it('address: never named while the column does not exist, or when left blank', async () => {
+    let component = await setup(false);
+    component.form.patchValue({ address: 'C/ de la Palma 12' });
+    await component.onSubmit();
+    expect('address' in insert.calls.mostRecent().args[0]).toBeFalse();
+
+    TestBed.resetTestingModule();
+    component = await setup(true);
+    component.form.patchValue({ address: '   ' });
+    await component.onSubmit();
+    expect('address' in insert.calls.mostRecent().args[0]).toBeFalse();
+  });
+
+  it('address: longer than 160 characters keeps the form invalid', async () => {
+    const component = await setup(true);
+    component.form.patchValue({ address: 'x'.repeat(161) });
+    await component.onSubmit();
+    expect(insert).not.toHaveBeenCalled();
+  });
+
   it('rejects a non-image poster with a Spanish message', async () => {
     const component = await setup(true);
     pick(component, new File(['x'], 'cartel.pdf', { type: 'application/pdf' }));

@@ -5,9 +5,10 @@ import { SupabaseService } from './supabase.service';
  * Optional columns that may not exist yet in the live DB: photos (supabase/audit_2026_10_photos.sql)
  * band availability (supabase/2026_10_provinces_band_availability.sql) and private contact
  * (supabase/2026_10_private_contact.sql: has_contact, phone on every profile table) and
- * Se busca titles (supabase/2026_10_post_title.sql) and La quedada (supabase/2026_10_quedada.sql).
+ * Se busca titles (supabase/2026_10_post_title.sql), La quedada (supabase/2026_10_quedada.sql)
+ * and event addresses (supabase/2026_10_event_address.sql).
  */
-export type MediaFeature = 'eventImage' | 'venuePhotos' | 'rehearsalPhotos' | 'bandAvailability' | 'profileContact' | 'postTitle' | 'quedada';
+export type MediaFeature = 'eventImage' | 'venuePhotos' | 'rehearsalPhotos' | 'bandAvailability' | 'profileContact' | 'postTitle' | 'quedada' | 'eventAddress';
 
 const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   eventImage:      { table: 'events',           column: 'image_url' },
@@ -17,6 +18,7 @@ const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   profileContact:   { table: 'musicians',      column: 'has_contact' },
   postTitle:        { table: 'posts',          column: 'title' },
   quedada:          { table: 'quedada_entries', column: 'id' },
+  eventAddress:     { table: 'events',          column: 'address' },
 };
 
 /** "The SQL has not been run yet": undefined column / undefined table (Postgres or PostgREST cache). */
@@ -40,6 +42,7 @@ export class MediaFeaturesService {
     profileContact: signal(false),
     postTitle: signal(false),
     quedada: signal(false),
+    eventAddress: signal(false),
   };
 
   /** Latest known availability (false until a probe confirms it). */

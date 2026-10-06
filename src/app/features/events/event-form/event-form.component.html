@@ -55,6 +55,17 @@
               </div>
             </div>
 
+            @if (canAddAddress()) {
+              <div>
+                <label for="event-address" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Dirección <span class="font-normal normal-case text-ink-muted">(opcional)</span></label>
+                <input id="event-address" formControlName="address" type="text" maxlength="160" autocomplete="street-address"
+                  placeholder="Calle, número y localidad" class="input-field"
+                  aria-describedby="event-address-hint"
+                  [attr.aria-invalid]="isInvalid('address')"/>
+                <p id="event-address-hint" class="text-xs text-ink-muted mt-1.5">Para que la gente llegue sin perderse: en la ficha saldrá un botón «Cómo llegar».</p>
+              </div>
+            }
+
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label for="event-date" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Fecha <span class="text-signal-red" aria-hidden="true">*</span></label>

@@ -144,6 +144,8 @@ export interface Event {
   ticket_url: string | null;
   /** Poster (supabase/audit_2026_10_photos.sql); absent until that SQL is run. */
   image_url?: string | null;
+  /** Street address (supabase/2026_10_event_address.sql); absent until that SQL is run. */
+  address?: string | null;
   created_at: string;
 }
 

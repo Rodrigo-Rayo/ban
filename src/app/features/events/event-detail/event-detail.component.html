@@ -93,6 +93,18 @@
               <dd class="text-sm font-bold text-ink text-right min-w-0">{{ time(event()!.time) }}</dd>
             </div>
           }
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[44px]">
+            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Lugar</dt>
+            <dd class="min-w-0 text-right">
+              @if (event()!.address) {
+                <span class="block text-sm font-bold text-ink [overflow-wrap:anywhere]">{{ event()!.address }}</span>
+              }
+              <a [href]="directionsUrl()" target="_blank" rel="noopener noreferrer"
+                 class="text-sm font-bold text-primary-600 hover:text-primary-700 underline underline-offset-2 inline-flex items-center gap-1 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                Cómo llegar <app-icon name="external-link" [size]="14"/><span class="sr-only"> (se abre Google Maps)</span>
+              </a>
+            </dd>
+          </div>
           @if (priceLabel()) {
             <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
               <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Precio</dt>

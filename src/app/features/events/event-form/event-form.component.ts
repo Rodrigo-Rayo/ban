@@ -32,6 +32,8 @@ export class EventFormComponent implements OnDestroy {
 
   /** Poster upload is offered only once events.image_url exists (see MediaFeaturesService). */
   readonly canAddPoster = this.features.state('eventImage');
+  /** The address field only exists once events.address does. */
+  readonly canAddAddress = this.features.state('eventAddress');
   readonly posterAccept = MEDIA_ACCEPT;
   posterFile = signal<File | null>(null);
   posterPreview = signal<string | null>(null);
@@ -39,6 +41,7 @@ export class EventFormComponent implements OnDestroy {
 
   constructor() {
     void this.features.has('eventImage');
+    void this.features.has('eventAddress');
   }
 
   onPosterChange(event: Event) {
@@ -86,6 +89,7 @@ export class EventFormComponent implements OnDestroy {
   form = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(5)]],
     venue: ['', Validators.required],
+    address: ['', Validators.maxLength(160)],
     city: ['Madrid', Validators.required],
     date: ['', [Validators.required, futureDate]],
     // events.time is NOT NULL in the database: an empty value made the insert fail with 400.
@@ -147,6 +151,8 @@ export class EventFormComponent implements OnDestroy {
           contact_email: v.contactEmail,
           ticket_url: v.ticketUrl,
           ...(imageUrl ? { image_url: imageUrl } : {}),
+          // Never name address unless the column exists.
+          ...(this.canAddAddress() && v.address?.trim() ? { address: v.address.trim() } : {}),
         })
         .select('id')
         .single();
