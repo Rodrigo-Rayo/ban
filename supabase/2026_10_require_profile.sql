@@ -51,7 +51,15 @@ BEGIN
 END;
 $$;
 
+-- Anuncios de Se busca siempre con título (la web ya lo pide). NOT VALID: los
+-- anuncios antiguos sin título se quedan como están; los nuevos lo necesitan.
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS title text;
+ALTER TABLE public.posts DROP CONSTRAINT IF EXISTS posts_title_required;
+ALTER TABLE public.posts ADD CONSTRAINT posts_title_required
+  CHECK (title IS NOT NULL AND btrim(title) <> '') NOT VALID;
+
 COMMIT;
 
 -- Verificar (debe listar una fila por tabla existente):
 --   SELECT tablename FROM pg_policies WHERE policyname = 'require profile to create' ORDER BY 1;
+--   SELECT conname FROM pg_constraint WHERE conname = 'posts_title_required';
