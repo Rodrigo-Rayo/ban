@@ -16,6 +16,7 @@ import { avatarColor } from '../../../core/utils/display.utils';
 import { Teacher, Review } from '../../../core/models';
 import { formatLongDate, localToday } from '../../../core/utils/date';
 import { LESSON_REQUEST_TITLE, lessonRequestBody } from '../../../core/utils/notification-copy';
+import { ProfileGateService } from '../../../core/services/profile-gate.service';
 
 const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avatar_url, hourly_rate, experience_years, level, modality, website_url, youtube_url';
 
@@ -30,6 +31,7 @@ export class TeacherProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
+  private gate = inject(ProfileGateService);
   private messagesService = inject(MessagesService);
   private favSvc = inject(FavoritesService);
   private notifSvc = inject(NotificationsService);
@@ -166,6 +168,7 @@ export class TeacherProfileComponent implements OnInit {
 
   async submitReview() {
     if (!this.currentUserId()) { this.goToLogin(); return; }
+    if (!(await this.gate.ensure())) return;
     this.reviewLoading.set(true);
     this.reviewError.set(null);
     try {

@@ -4,6 +4,7 @@ import { MediaFeaturesService } from '../../core/services/media-features.service
 import { environment } from '../../../environments/environment';
 import { QuedadaCycle, cycleKey, eligibleDates, openCycle } from '../../core/utils/quedada-cycle';
 import { demoData, DemoState, DEMO_STATES } from './quedada-demo';
+import { ProfileGateService, PROFILE_REQUIRED_MESSAGE } from '../../core/services/profile-gate.service';
 
 export interface QuedadaEvent {
   id: string; user_id: string; title: string; venue: string | null; city: string;
@@ -33,6 +34,7 @@ type Row = Record<string, unknown>;
 @Injectable({ providedIn: 'root' })
 export class QuedadaService {
   private supabase = inject(SupabaseService);
+  private gate = inject(ProfileGateService);
   private features = inject(MediaFeaturesService);
   private readonly demo: DemoState | null = readDemo();
   private demoStore = this.demo ? demoData(this.demo) : null;
@@ -129,6 +131,7 @@ export class QuedadaService {
   /** Signs a gig up for the open cycle. Returns an error message, or null when it worked. */
   async signUp(eventId: string): Promise<string | null> {
     if (this.demoStore) { this.demoStore.myEntry = { id: 'demo-entry', event_id: eventId }; return null; }
+    if (!(await this.gate.ensure({ toast: false }))) return PROFILE_REQUIRED_MESSAGE;
     const { error } = await this.supabase.client.from('quedada_entries').insert({ event_id: eventId });
     if (!error) return null;
     if (error.code === '23505') return 'Ya tienes un bolo inscrito en este sorteo.';
@@ -168,6 +171,7 @@ export class QuedadaService {
 
   async setGoing(eventId: string, going: boolean): Promise<boolean> {
     if (this.demoStore) { this.demoStore.going = going; return true; }
+    if (going && !(await this.gate.ensure())) return true; // gate already explained it; nothing changes
     const q = this.supabase.client.from('quedada_attendees');
     const { error } = going
       ? await q.insert({ event_id: eventId })
@@ -202,6 +206,7 @@ export class QuedadaService {
       }];
       return null;
     }
+    if (!(await this.gate.ensure({ toast: false }))) return PROFILE_REQUIRED_MESSAGE;
     const { error } = await this.supabase.client.from('quedada_comments').insert({ event_id: eventId, text });
     if (!error) return null;
     return error.hint === 'rate_limit' || error.hint === 'quedada' ? error.message : 'No se pudo publicar el comentario.';

@@ -1,3 +1,4 @@
+import { ProfileGateService } from '../../../core/services/profile-gate.service';
 import { TestBed } from '@angular/core/testing';
 import { computed, signal } from '@angular/core';
 import { PostAlertsComponent, alertLabel } from './post-alerts.component';
@@ -29,6 +30,7 @@ describe('PostAlertsComponent', () => {
     TestBed.configureTestingModule({
       imports: [PostAlertsComponent],
       providers: [
+        { provide: ProfileGateService, useValue: { ensure: () => Promise.resolve(true) } },
         { provide: SupabaseService, useValue: { client: client() } },
         { provide: AuthService, useValue: { isLoggedIn: computed(() => !!session()), user: computed(() => (session() ? { id: 'u1' } : null)) } },
         { provide: MediaFeaturesService, useValue: { has: () => Promise.resolve(true), state: () => signal(true).asReadonly() } },

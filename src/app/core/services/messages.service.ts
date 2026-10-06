@@ -4,6 +4,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { Conversation, Message } from '../models';
 import { environment } from '../../../environments/environment';
+import { ProfileGateService } from './profile-gate.service';
 
 export interface InboxUpdate { senderName: string; preview: string; conversationId: string; }
 
@@ -30,6 +31,7 @@ function truncate(text: string, max: number): string {
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
   private supabase = inject(SupabaseService);
+  private gate = inject(ProfileGateService);
 
   /** Tracks which conversation the user is currently viewing. */
   activeChatConversationId = signal<string | null>(null);
@@ -107,6 +109,7 @@ export class MessagesService {
     if (!user) return { error: 'Debes iniciar sesión para enviar mensajes.' };
     if (!otherUserId) return { error: 'Este perfil aún no tiene cuenta activa.' };
     if (user.id === otherUserId) return { error: 'No puedes enviarte mensajes a ti mismo.' };
+    if (!(await this.gate.ensure({ toast: false }))) return { error: 'Crea tu perfil para escribir mensajes. Sin perfil solo puedes mirar.' };
 
     const myId = user.id;
     const u1 = myId < otherUserId ? myId : otherUserId;

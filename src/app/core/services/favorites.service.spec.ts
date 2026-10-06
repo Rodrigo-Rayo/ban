@@ -1,3 +1,4 @@
+import { ProfileGateService } from './profile-gate.service';
 import { TestBed } from '@angular/core/testing';
 import { FavoritesService } from './favorites.service';
 import { SupabaseService } from './supabase.service';
@@ -30,6 +31,7 @@ describe('FavoritesService', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        { provide: ProfileGateService, useValue: { ensure: () => Promise.resolve(true) } },
         FavoritesService,
         { provide: SupabaseService, useValue: { client: mockClient } },
         { provide: NotificationsService, useValue: notifSpy },

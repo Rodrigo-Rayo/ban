@@ -3,6 +3,7 @@ import { SupabaseService } from './supabase.service';
 import { NotificationsService } from './notifications.service';
 import { Favorite } from '../models';
 import { FAVORITE_NOTICE_TITLE } from '../utils/notification-copy';
+import { ProfileGateService } from './profile-gate.service';
 
 /** Profile kinds whose owner hears about a new favorite, and the table that holds the owner. */
 const OWNER_TABLES: Readonly<Record<string, string>> = {
@@ -12,6 +13,7 @@ const OWNER_TABLES: Readonly<Record<string, string>> = {
 @Injectable({ providedIn: 'root' })
 export class FavoritesService {
   private supabase = inject(SupabaseService);
+  private gate = inject(ProfileGateService);
   private notifSvc = inject(NotificationsService);
 
   async isFavorite(userId: string, entityType: string, entityId: string): Promise<boolean> {
@@ -31,6 +33,7 @@ export class FavoritesService {
       if (error) throw new Error(error.message);
       return false;
     }
+    if (!(await this.gate.ensure())) return false;
     const { error } = await this.supabase.client.from('favorites')
       .upsert(
         { user_id: userId, entity_type: entityType, entity_id: entityId },

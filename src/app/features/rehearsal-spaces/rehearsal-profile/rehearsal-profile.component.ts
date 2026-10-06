@@ -14,6 +14,7 @@ import { SpaceGalleryComponent } from '../../../shared/components/space-gallery/
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { RehearsalSpace, Review } from '../../../core/models';
+import { ProfileGateService } from '../../../core/services/profile-gate.service';
 
 const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, hourly_rate, capacity, opening_hours, instagram_url, website_url';
 
@@ -28,6 +29,7 @@ export class RehearsalProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
+  private gate = inject(ProfileGateService);
   private messagesService = inject(MessagesService);
   private favSvc = inject(FavoritesService);
   private seo = inject(SeoService);
@@ -137,6 +139,7 @@ export class RehearsalProfileComponent implements OnInit {
 
   async submitReview() {
     if (!this.currentUserId()) { this.goToLogin(); return; }
+    if (!(await this.gate.ensure())) return;
     this.reviewLoading.set(true);
     this.reviewError.set(null);
     try {

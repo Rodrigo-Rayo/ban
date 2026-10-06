@@ -4,6 +4,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+import { ProfileGateService } from '../../../core/services/profile-gate.service';
 
 export interface PostAlert { id: string; city: string | null; instrument: string | null }
 
@@ -67,6 +68,7 @@ export class PostAlertsComponent {
 
   readonly auth = inject(AuthService);
   private supabase = inject(SupabaseService);
+  private gate = inject(ProfileGateService);
   private features = inject(MediaFeaturesService);
   private toast = inject(ToastService);
 
@@ -105,6 +107,7 @@ export class PostAlertsComponent {
   async add(): Promise<void> {
     const userId = this.auth.user()?.id;
     if (!userId || this.busy() || !this.canCreate()) return;
+    if (!(await this.gate.ensure())) return;
     this.busy.set(true);
     try {
       const { data, error } = await this.supabase.client

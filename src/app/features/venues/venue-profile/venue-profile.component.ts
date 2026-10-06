@@ -15,6 +15,7 @@ import { SpaceGalleryComponent } from '../../../shared/components/space-gallery/
 import { avatarColor } from '../../../core/utils/display.utils';
 import { Venue, Review } from '../../../core/models';
 import { ListPipe } from '../../../shared/pipes/list.pipe';
+import { ProfileGateService } from '../../../core/services/profile-gate.service';
 
 const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, capacity, genres, instagram_url, website_url';
 
@@ -29,6 +30,7 @@ export class VenueProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private supabase = inject(SupabaseService);
+  private gate = inject(ProfileGateService);
   private messagesService = inject(MessagesService);
   private favSvc = inject(FavoritesService);
   private seo = inject(SeoService);
@@ -138,6 +140,7 @@ export class VenueProfileComponent implements OnInit {
 
   async submitReview() {
     if (!this.currentUserId()) { this.goToLogin(); return; }
+    if (!(await this.gate.ensure())) return;
     this.reviewLoading.set(true);
     this.reviewError.set(null);
     try {

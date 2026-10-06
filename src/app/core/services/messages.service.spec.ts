@@ -1,3 +1,4 @@
+import { ProfileGateService } from './profile-gate.service';
 import { TestBed } from '@angular/core/testing';
 import { MessagesService, MAX_MESSAGE_LENGTH } from './messages.service';
 import { SupabaseService } from './supabase.service';
@@ -77,6 +78,7 @@ describe('MessagesService', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        { provide: ProfileGateService, useValue: { ensure: () => Promise.resolve(true) } },
         MessagesService,
         { provide: SupabaseService, useValue: mockSupabase },
         { provide: NotificationsService, useValue: mockNotifSvc },
@@ -250,6 +252,13 @@ describe('MessagesService', () => {
       mockSupabase.setFromResponse('conversations', { data: { id: 'conv-existing' }, error: null, count: null });
       const result = await service.getOrCreateConversation(otherUser.id);
       expect(result).toEqual(jasmine.objectContaining({ id: 'conv-existing' }));
+    });
+
+    it('refuses to start a chat for accounts without a profile', async () => {
+      mockSupabase.setUser(fakeUser);
+      TestBed.inject(ProfileGateService).ensure = () => Promise.resolve(false);
+      const result = await service.getOrCreateConversation('user-other');
+      expect(result).toEqual({ error: jasmine.stringContaining('Crea tu perfil') });
     });
 
     it('creates new conversation and returns id when none exists', async () => {
