@@ -1,5 +1,6 @@
 import { Component, signal, inject, OnInit, effect } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 import { SupabaseService } from '../../core/services/supabase.service';
 import { VacanciesService } from '../../core/services/vacancies.service';
@@ -14,7 +15,7 @@ interface LandingPerson { id: string; name: string; city: string | null; instrum
 
 @Component({
     selector: 'app-landing',
-    imports: [RouterLink],
+    imports: [RouterLink, IconComponent],
     templateUrl: './landing.component.html'
 })
 export class LandingComponent implements OnInit {

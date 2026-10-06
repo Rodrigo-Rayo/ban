@@ -140,13 +140,15 @@
 
 <!-- FOOTER (same as the global one) ───────────────────── -->
 <footer class="border-t-2 border-ink mt-8 px-4 sm:px-6 py-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-  <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
+  <div class="flex items-center justify-between sm:justify-start gap-3">
+    <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
+    <a [href]="instagramUrl" target="_blank" rel="noopener noreferrer" aria-label="Instagram de BandYou (se abre en una pestaña nueva)" title="Instagram" class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-ink-muted hover:text-primary-500 transition-colors"><app-icon name="instagram" [size]="24"/></a>
+  </div>
   <nav aria-label="Legal" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
     <a routerLink="/legal/aviso-legal" class="hover:text-ink py-1">Aviso legal</a>
     <a routerLink="/legal/privacidad" class="hover:text-ink py-1">Privacidad</a>
     <a routerLink="/legal/terminos" class="hover:text-ink py-1">Términos</a>
     <a routerLink="/legal/cookies" class="hover:text-ink py-1">Cookies</a>
     <a [href]="'mailto:' + contactEmail" class="hover:text-ink py-1">Contacto</a>
-    <a [href]="instagramUrl" target="_blank" rel="noopener noreferrer" class="hover:text-ink py-1">Instagram<span class="sr-only"> (se abre en una pestaña nueva)</span></a>
   </nav>
 </footer>
