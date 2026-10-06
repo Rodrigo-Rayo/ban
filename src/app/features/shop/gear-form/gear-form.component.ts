@@ -182,6 +182,19 @@ export class GearFormComponent implements OnInit, OnDestroy {
     this.error.set('');
     try {
 
+    // New listings carry the seller's public name: without a profile it would read "Usuario".
+    // Checked before uploading so no photos are left behind.
+    let sellerName: string | null = null;
+    if (!this.editId()) {
+      sellerName = this.userProfile()?.name
+        ?? ((await this.supabase.client.rpc('get_profile_name', { p_user_id: user.id })).data as string | null);
+      if (!sellerName?.trim()) {
+        this.toast.error('Crea tu perfil para vender en la tienda.');
+        this.router.navigate(['/onboarding']);
+        return;
+      }
+    }
+
     const newImageUrls = (await Promise.all(
       this.imageFiles.map(async (raw) => {
         // Shrunk in the browser first (longest side 1600 px, WebP): visitors download exactly what is uploaded.
@@ -231,7 +244,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
       condition:           this.form.condition,
       city:                this.form.city,
       images:              allImages,
-      seller_name:         profile?.name ?? ((await this.supabase.client.rpc('get_profile_name', { p_user_id: user.id })).data as string | null) ?? 'Usuario',
+      seller_name:         sellerName,
       seller_profile_type: profile?.type ?? null,
       seller_profile_id:   profile?.id ?? null,
     }).select().single();

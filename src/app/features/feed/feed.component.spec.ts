@@ -1,3 +1,4 @@
+import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
@@ -110,6 +111,8 @@ describe('FeedComponent', () => {
         { provide: ActivatedRoute,  useValue: routeMock },
         { provide: VacanciesService, useValue: vacanciesSpy },
         { provide: ConfirmService, useValue: { ask: confirmAsk } },
+        // Optional columns absent by default; tests that need titles opt in.
+        { provide: MediaFeaturesService, useValue: { has: () => Promise.resolve(false), state: () => () => false } },
       ],
     })
     .overrideComponent(FeedComponent, { set: { imports: [], template: '<div></div>' } })
@@ -192,6 +195,33 @@ describe('FeedComponent', () => {
     expect(insertBuilder.insert).toHaveBeenCalledWith(
       jasmine.objectContaining({ user_id: 'u1', text: 'Looking for band' })
     );
+  });
+
+  it('submitPost sends people without a profile to onboarding instead of posting as "Usuario"', async () => {
+    const insertBuilder = mockBuilder({ data: null, error: null });
+    supabaseSpy.client.from.and.returnValue(insertBuilder);
+    supabaseSpy.client.rpc.and.returnValue(Promise.resolve({ data: null, error: null }));
+    component.currentUser.set({ id: 'u1', email: 'test@test.com' } as any);
+    component.newPost.text = 'Busco banda';
+    await component.submitPost();
+    expect(insertBuilder.insert).not.toHaveBeenCalled();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/onboarding']);
+  });
+
+  it('submitPost re-checks titles at publish time and never posts untitled once they exist', async () => {
+    const insertBuilder = mockBuilder({ data: null, error: null });
+    supabaseSpy.client.from.and.returnValue(insertBuilder);
+    const features = TestBed.inject(MediaFeaturesService);
+    spyOn(features, 'has').and.resolveTo(true);
+    (component as any).postTitleAvailable = () => true;
+    component.currentUser.set({ id: 'u1', email: 'test@test.com' } as any);
+    component.newPost.text = 'Busco banda';
+    component.newPost.title = '';
+    await component.submitPost();
+    expect(insertBuilder.insert).not.toHaveBeenCalled();
+    component.newPost.title = 'Batería busca banda de rock';
+    await component.submitPost();
+    expect(insertBuilder.insert).toHaveBeenCalledWith(jasmine.objectContaining({ title: 'Batería busca banda de rock' }));
   });
 
   it('11. submitPost resets newPost.text to empty string on success', async () => {

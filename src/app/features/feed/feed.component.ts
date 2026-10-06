@@ -218,6 +218,7 @@ export class FeedComponent implements OnInit {
       });
 
       if (user) {
+        void this.features.has('postTitle');
         await this.auth.loadUserProfile(user.id);
         const profile = this.auth.userProfileData();
         if (profile) {
@@ -335,17 +336,32 @@ export class FeedComponent implements OnInit {
     this.error.set('');
 
     try {
+      // Re-check now: the form may have opened before the title probe answered, and a
+      // post must never go out untitled once titles exist.
+      const hasTitle = await this.features.has('postTitle');
+      if (hasTitle && !this.canPublish()) {
+        this.toast.error('Ponle un título al anuncio.');
+        return;
+      }
       const profile = this.userProfile();
+      // Never fall back to the email: listeners have their name in profiles (via RPC).
+      const authorName = profile?.name
+        ?? ((await this.supabase.client.rpc('get_profile_name', { p_user_id: user.id })).data as string | null);
+      if (!authorName?.trim()) {
+        // Every account needs a profile: without one the post would read "Usuario".
+        this.toast.error('Crea tu perfil para publicar en Se busca.');
+        this.router.navigate(['/onboarding']);
+        return;
+      }
       const { error } = await this.supabase.client.from('posts').insert({
         user_id: user.id,
         type: this.newPost.type,
-        ...(this.postTitleAvailable() ? { title: this.newPost.title.trim() } : {}),
+        ...(hasTitle ? { title: this.newPost.title.trim() } : {}),
         text: this.newPost.text.trim(),
         city: this.newPost.city,
         instrument: this.newPost.instrument,
         genre: this.newPost.genre,
-        // Never fall back to the email: listeners have their name in profiles (via RPC).
-        author_name: profile?.name ?? ((await this.supabase.client.rpc('get_profile_name', { p_user_id: user.id })).data as string | null) ?? 'Usuario',
+        author_name: authorName,
         author_profile_type: profile?.type ?? null,
         author_profile_id: profile?.id ?? null,
       });

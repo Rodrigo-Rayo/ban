@@ -119,6 +119,7 @@ describe('GearFormComponent', () => {
   // ---------------------------------------------------------------------------
   function readyToSubmit() {
     component.currentUser.set(fakeUser as any);
+    component.userProfile.set({ id: 'm-1', name: 'Lola', type: 'musician' } as any);
     component.form.title = 'Test Guitar';
     component.form.price = 100;
     component.imageFiles = [];   // no uploads needed
@@ -283,6 +284,15 @@ describe('GearFormComponent', () => {
     readyToSubmit();
     await component.submit();
     expect(capturedDuringSubmit).toBeTrue();
+  });
+
+  it('sends sellers without a profile to onboarding before uploading anything', async () => {
+    readyToSubmit();
+    component.userProfile.set(null);
+    (supabaseSpy.client as any).rpc = jasmine.createSpy('rpc').and.resolveTo({ data: null, error: null });
+    await component.submit();
+    expect(supabaseSpy.client.from).not.toHaveBeenCalledWith('gear_listings');
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/onboarding']);
   });
 
   it('17. submit resets submitting to false in finally on success', async () => {
