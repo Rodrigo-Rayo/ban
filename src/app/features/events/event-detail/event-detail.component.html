@@ -124,6 +124,14 @@
           }
         </dl>
 
+        <!-- Story image for Instagram/WhatsApp (every screen size) -->
+        <div class="mt-4">
+        <button type="button" (click)="shareStory()" [attr.aria-busy]="makingImage()"
+          class="btn-ghost min-h-[44px] w-full sm:w-auto" [class.opacity-60]="makingImage()">
+          <app-icon name="camera" [size]="16"/> {{ makingImage() ? 'Creando imagen…' : 'Imagen para historias' }}
+        </button>
+        </div>
+
         <!-- Actions (tablet/desktop; mobile uses the sticky bar) -->
         <div class="hidden sm:flex flex-col gap-2 mt-5">
           @if (event()!.ticket_url) {

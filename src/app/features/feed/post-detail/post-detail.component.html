@@ -99,6 +99,12 @@
           </div>
         </section>
 
+        <!-- Story image for Instagram/WhatsApp (every screen size) -->
+        <button type="button" (click)="shareStory()" [attr.aria-busy]="makingImage()"
+          class="btn-ghost min-h-[44px] w-full sm:w-auto" [class.opacity-60]="makingImage()">
+          <app-icon name="camera" [size]="16"/> {{ makingImage() ? 'Creando imagen…' : 'Imagen para historias' }}
+        </button>
+
         <!-- Actions (tablet and desktop; phones use the bottom bar) -->
         <section aria-label="Acciones" class="hidden sm:flex gap-2">
           @if (isOwner()) {

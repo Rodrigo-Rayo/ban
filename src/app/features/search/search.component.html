@@ -106,6 +106,13 @@
               {{ selectedGenre() }} <span aria-hidden="true">×</span>
             </button>
           }
+          @if (gigsFilterOn()) {
+            <button type="button" (click)="gigsOnly.set(false); filterChanged()"
+              class="tag min-h-[44px] px-3 gap-1.5 hover:bg-ink hover:text-poster-paper transition-colors"
+              aria-label="Quitar filtro: disponibles para bolos">
+              Disponibles para bolos <span aria-hidden="true">×</span>
+            </button>
+          }
         </div>
       }
 
@@ -128,6 +135,16 @@
             <option value="">Género</option>
             @for (g of genres; track g) { <option [value]="g">{{ g }}</option> }
           </select>
+        }
+        @if (activeTab() === 'bands' && canFilterGigs()) {
+          <button type="button" (click)="gigsOnly.set(!gigsOnly()); filterChanged()" [attr.aria-pressed]="gigsOnly()"
+            class="min-h-[44px] px-3 border-2 border-ink font-mono text-xs font-bold uppercase flex items-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            [class.bg-ink]="gigsOnly()" [class.text-poster-paper]="gigsOnly()"
+            [class.bg-dark-800]="!gigsOnly()" [class.text-ink]="!gigsOnly()">
+            <span class="w-4 h-4 border-2 flex items-center justify-center shrink-0" aria-hidden="true"
+              [class.border-poster-paper]="gigsOnly()" [class.border-ink]="!gigsOnly()">@if (gigsOnly()) { ✓ }</span>
+            Disponibles para bolos
+          </button>
         }
         @if (hasActiveFilters()) {
           <button type="button" (click)="clearFilters()"
@@ -257,8 +274,11 @@
               <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
                 <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ band.name }}</h2>
                 @if (band.city) { <p class="text-[13px] text-ink-muted truncate">{{ band.city }}</p> }
-                @if (band.looking_for || band.genre) {
+                @if (band.looking_for || band.genre || band.open_to_gigs) {
                   <div class="flex flex-wrap gap-1.5">
+                    @if (band.open_to_gigs) {
+                      <span class="tag-night">Bolos</span>
+                    }
                     @if (band.looking_for) {
                       <span class="tag-accent">Busca {{ band.looking_for.trim() }}</span>
                     }

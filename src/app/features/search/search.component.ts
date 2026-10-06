@@ -18,7 +18,7 @@ import { MediaFeaturesService } from '../../core/services/media-features.service
 type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 'rehearsal';
 
 interface MusicianResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; genre: string; availability_days?: string | null; created_at: string; user_id: string; }
-interface BandResult { id: string; name: string; city: string; avatar_url: string | null; genre: string; looking_for?: string | null; created_at: string; user_id: string; }
+interface BandResult { id: string; name: string; city: string; avatar_url: string | null; genre: string; looking_for?: string | null; open_to_gigs?: boolean | null; created_at: string; user_id: string; }
 interface VenueResult { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; genres: string | null; created_at: string; user_id: string; }
 interface EventResult { id: string; title: string; venue: string; city: string; date: string; time: string | null; genre: string; description: string | null; price?: string | null; image_url?: string | null; created_at: string; user_id: string; }
 interface TeacherResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; hourly_rate: number | null; modality?: string | null; created_at: string; user_id: string; }
@@ -44,6 +44,12 @@ export class SearchComponent implements OnInit, OnDestroy {
   selectedGenre = signal('');
   selectedCity = signal('Toda España');
   selectedInstrument = signal('');
+  /** Bands tab: only bands marked "Disponibles para bolos" (URL ?bolos=1). */
+  gigsOnly = signal(false);
+  /** The filter only exists once bands.open_to_gigs does. */
+  readonly canFilterGigs = this.features.state('bandAvailability');
+  /** Applied only when the column exists: a stale ?bolos=1 must not claim to filter. */
+  readonly gigsFilterOn = computed(() => this.gigsOnly() && this.canFilterGigs());
   userCity = signal('');
 
   loading = signal(false);
@@ -97,6 +103,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    void this.features.has('bandAvailability');
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.isLoggedIn.set(!!user);
@@ -150,6 +157,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       // filter from an earlier URL kept applying invisibly).
       this.selectedGenre.set(params['genre'] || '');
       this.selectedInstrument.set(params['instrument'] || '');
+      this.gigsOnly.set(tab === 'bands' && params['bolos'] === '1');
       // Don't overwrite text the user is still typing (debounced navigation pending).
       if (this.searchDebounceTimer === undefined) this.searchQuery.set(params['q'] || '');
 
@@ -219,14 +227,16 @@ export class SearchComponent implements OnInit, OnDestroy {
   readonly activeFilterCount = computed(() =>
     (this.selectedCity() !== 'Toda España' ? 1 : 0) +
     (this.selectedInstrument() ? 1 : 0) +
-    (this.selectedGenre() ? 1 : 0)
+    (this.selectedGenre() ? 1 : 0) +
+    (this.gigsFilterOn() ? 1 : 0)
   );
 
   readonly hasActiveFilters = computed(() =>
     !!this.searchQuery() ||
     !!this.selectedGenre() ||
     this.selectedCity() !== 'Toda España' ||
-    !!this.selectedInstrument()
+    !!this.selectedInstrument() ||
+    this.gigsFilterOn()
   );
 
   async setTab(tab: SearchType) {
@@ -235,6 +245,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.selectedGenre.set('');
     const hasInstrumentTab = tab === 'musicians' || tab === 'teachers';
     if (!hasInstrumentTab) this.selectedInstrument.set('');
+    if (tab !== 'bands') this.gigsOnly.set(false);
     this.filterChanged();
   }
 
@@ -259,6 +270,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (q) params['q'] = q;
     const inst = this.selectedInstrument();
     if (inst) params['instrument'] = inst;
+    if (this.gigsFilterOn() && this.activeTab() === 'bands') params['bolos'] = '1';
     this.router.navigate([], { queryParams: params, replaceUrl: true });
   }
 
@@ -360,7 +372,10 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
 
     if (tab === 'bands') {
-      let q = this.supabase.client.from('bands').select(SearchComponent.SEARCH_COLS.bands);
+      // open_to_gigs is only named once the column exists (cached per session).
+      const hasGigs = await this.features.has('bandAvailability');
+      let q = this.supabase.client.from('bands').select(hasGigs ? `${SearchComponent.SEARCH_COLS.bands},open_to_gigs` : SearchComponent.SEARCH_COLS.bands);
+      if (hasGigs && this.gigsOnly()) q = q.eq('open_to_gigs', true);
       if (city !== 'Toda España') q = q.eq('city', city);
       if (genre && genre !== 'Todos') q = q.filter('genre', 'imatch', genrePattern(genre));
       if (query) q = q.ilike('name', `%${query}%`);
@@ -405,11 +420,11 @@ export class SearchComponent implements OnInit, OnDestroy {
   /** Why the list is empty decides the empty-state copy. */
   readonly emptyMode = computed<'query' | 'filters' | 'none'>(() =>
     this.searchQuery().trim() ? 'query'
-      : (this.selectedCity() !== 'Toda España' || this.selectedInstrument() || this.selectedGenre()) ? 'filters' : 'none');
+      : (this.selectedCity() !== 'Toda España' || this.selectedInstrument() || this.selectedGenre() || this.gigsFilterOn()) ? 'filters' : 'none');
 
   /** Initials from first + last word ("Sofía López" -> "SL"). */
   initials(name: string | null | undefined): string {
-    const words = (name ?? '').trim().split(/s+/).filter(Boolean);
+    const words = (name ?? '').trim().split(/\s+/).filter(Boolean);
     if (words.length === 0) return '?';
     const first = words[0].charAt(0);
     const last = words.length > 1 ? words[words.length - 1].charAt(0) : '';
@@ -421,6 +436,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.selectedCity.set(this.userCity() || 'Toda España');
     this.searchQuery.set('');
     this.selectedInstrument.set('');
+    this.gigsOnly.set(false);
     this.filterChanged();
   }
 

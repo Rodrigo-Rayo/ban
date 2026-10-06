@@ -15,6 +15,8 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { avatarSrc, timeAgo } from '../../../core/utils/display.utils';
 import { askLabel, askStampClass } from '../../../core/utils/se-busca';
+import { ShareCard, StoryImage, shareImage, slugFile } from '../../../core/utils/share-card';
+import { storyFeedback } from '../../../core/utils/story-feedback';
 import { fetchProfileAvatar, initialOf } from '../../inbox/profile-avatar';
 
 const POST_COLUMNS = 'id, user_id, type, text, city, instrument, genre, author_name, author_profile_type, author_profile_id, created_at';
@@ -58,6 +60,7 @@ export class PostDetailComponent implements OnInit {
   contacting = signal(false);
   deleting = signal(false);
   linkCopied = signal(false);
+  makingImage = signal(false);
   related = signal<Post[]>([]);
   authorAvatar = signal<string | null>(null);
   currentUser = signal<any>(null);
@@ -85,7 +88,10 @@ export class PostDetailComponent implements OnInit {
       this.currentUser.set(user);
       if (error) { this.toast.error('No se pudo cargar el anuncio.'); return; }
       this.post.set(data);
+      // One story image per post: rendered when idle so the tap can share at once.
+      this.story = new StoryImage(() => this.storyCard());
       if (data) {
+        this.story.prepare();
         const label = askLabel(data.type, data.instrument);
         const desc = data.text?.slice(0, 155) ?? `${label} — BandYou`;
         this.seo.set({ title: data.title?.trim() || `${label} · ${data.author_name}`, description: desc, type: 'article' });
@@ -168,6 +174,35 @@ export class PostDetailComponent implements OnInit {
       return;
     }
     this.router.navigate(['/inbox', result.id]);
+  }
+
+  private story = new StoryImage(() => this.storyCard());
+
+  /** Story-sized poster of this ask, for Instagram/WhatsApp. */
+  private storyCard(): ShareCard | null {
+    const p = this.post();
+    return p ? {
+      kicker: ['Se busca', p.city].filter(Boolean).join(' · '),
+      stamp: askLabel(p.type, p.instrument),
+      title: p.title?.trim() || p.text.trim().slice(0, 90),
+      lines: [p.author_name ?? ''],
+    } : null;
+  }
+
+  /** Share sheet (Instagram, WhatsApp…) or download. */
+  async shareStory() {
+    const p = this.post();
+    if (!p || this.makingImage()) return;
+    this.makingImage.set(true);
+    try {
+      const blob = await this.story.blob();
+      const result = await shareImage(blob, slugFile(`${askLabel(p.type, p.instrument)} ${p.city ?? ''}`), window.location.href);
+      storyFeedback(result, this.toast);
+    } catch {
+      this.toast.error('No se pudo crear la imagen.');
+    } finally {
+      this.makingImage.set(false);
+    }
   }
 
   /** Web Share API when available, clipboard otherwise. */

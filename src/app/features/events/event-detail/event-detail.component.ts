@@ -13,6 +13,8 @@ import { formatLongDate, formatTime, localToday } from '../../../core/utils/date
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { Event as AppEvent } from '../../../core/models';
 import { mapsUrl } from '../../../core/utils/maps';
+import { ShareCard, StoryImage, shareImage, slugFile } from '../../../core/utils/share-card';
+import { storyFeedback } from '../../../core/utils/story-feedback';
 
 const RELATED_COLUMNS = 'id, title, venue, city, date, time, genre, price';
 const RELATED_LIMIT = 3;
@@ -57,6 +59,41 @@ export class EventDetailComponent implements OnInit {
     return !!uid && uid === this.event()?.user_id;
   });
 
+  makingImage = signal(false);
+
+  private readonly story = new StoryImage(() => this.storyCard());
+
+  /** Story-sized poster of this gig, for Instagram/WhatsApp. */
+  private storyCard(): ShareCard | null {
+    const e = this.event();
+    if (!e?.date) return null;
+    const [y, m, d] = e.date.slice(0, 10).split('-').map(Number);
+    const day = new Date(y, m - 1, d);
+    const fmt = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('es-ES', o).format(day).replace('.', '');
+    return {
+      kicker: ['Concierto', e.city].filter(Boolean).join(' · '),
+      title: e.title,
+      lines: [e.venue, e.time ? `${formatTime(e.time)} h` : ''],
+      date: { weekday: fmt({ weekday: 'short' }), day: String(d), month: fmt({ month: 'short' }) },
+    };
+  }
+
+  /** Share sheet (Instagram, WhatsApp…) or download. */
+  async shareStory() {
+    const e = this.event();
+    if (!e || this.makingImage()) return;
+    this.makingImage.set(true);
+    try {
+      const blob = await this.story.blob();
+      const result = await shareImage(blob, slugFile(`${e.title} ${e.city ?? ''}`), `https://www.bandyou.es/events/${e.id}`);
+      storyFeedback(result, this.toast);
+    } catch {
+      this.toast.error('No se pudo crear la imagen.');
+    } finally {
+      this.makingImage.set(false);
+    }
+  }
+
   /** "Cómo llegar": works without an address too (venue + province). */
   readonly directionsUrl = computed(() => {
     const e = this.event();
@@ -100,6 +137,7 @@ export class EventDetailComponent implements OnInit {
       ]);
       this.event.set(data);
       if (data) {
+        this.story.prepare();
         void this.loadRelated(data);
         this.seo.setEvent(data.title, data.date, data.city, data.description ?? undefined);
         this.seo.injectJsonLd({

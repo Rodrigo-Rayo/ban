@@ -66,7 +66,8 @@ const STORAGE_ITEMS: readonly StorageItem[] = [
               que eliges) y, según la LSSI-CE y la Guía sobre el uso de cookies de la AEPD, está
               <strong>exento de consentimiento</strong>. Por eso solo te mostramos un aviso informativo y no un
               botón de aceptar o rechazar. No usamos cookies ni almacenamiento de publicidad, analítica, redes
-              sociales o seguimiento, propios ni de terceros.
+              sociales o seguimiento, propios ni de terceros, en tu dispositivo. Contamos las visitas de forma agregada y anónima
+              (Vercel Web Analytics), sin cookies ni nada guardado en tu dispositivo.
             </p>
             <div class="overflow-x-auto">
               <table>
