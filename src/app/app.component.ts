@@ -11,6 +11,7 @@ import { NotificationPermissionBannerComponent } from './shared/components/notif
 import { AuthService } from './core/services/auth.service';
 import { PushNotificationService } from './core/services/push-notification.service';
 import { SeoService } from './core/services/seo.service';
+import { INSTAGRAM_URL } from './core/constants/social';
 
 @Component({
     selector: 'app-root',
@@ -28,6 +29,7 @@ import { SeoService } from './core/services/seo.service';
             <a routerLink="/legal/privacidad" class="hover:text-ink min-h-[44px] inline-flex items-center">Privacidad</a>
             <a routerLink="/legal/terminos" class="hover:text-ink min-h-[44px] inline-flex items-center">Términos</a>
             <a routerLink="/legal/cookies" class="hover:text-ink min-h-[44px] inline-flex items-center">Cookies</a>
+            <a [href]="instagramUrl" target="_blank" rel="noopener noreferrer" class="hover:text-ink min-h-[44px] inline-flex items-center">Instagram<span class="sr-only"> (se abre en una pestaña nueva)</span></a>
           </nav>
         </footer>
       }
@@ -40,6 +42,7 @@ import { SeoService } from './core/services/seo.service';
   `
 })
 export class AppComponent {
+  readonly instagramUrl = INSTAGRAM_URL;
   private router = inject(Router);
   private scroller = inject(ViewportScroller);
   auth = inject(AuthService);

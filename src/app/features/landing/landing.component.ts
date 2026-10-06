@@ -7,6 +7,7 @@ import { SeoService } from '../../core/services/seo.service';
 import { AuthService } from '../../core/services/auth.service';
 import { avatarColor } from '../../core/utils/display.utils';
 import { LEGAL_INFO } from '../legal/legal-info';
+import { INSTAGRAM_URL } from '../../core/constants/social';
 
 interface LandingVacancy { id: string; instrument: string; genre: string | null; bands: { id: string; name: string; city: string | null; genre: string | null } | null; }
 interface LandingPerson { id: string; name: string; city: string | null; instrument: string | null; avatar_url: string | null; }
@@ -18,6 +19,7 @@ interface LandingPerson { id: string; name: string; city: string | null; instrum
 })
 export class LandingComponent implements OnInit {
   readonly contactEmail = LEGAL_INFO.legalEmail;
+  readonly instagramUrl = INSTAGRAM_URL;
   readonly avatarColor = avatarColor;
   private supabase = inject(SupabaseService);
   private vacanciesSvc = inject(VacanciesService);
