@@ -50,8 +50,8 @@ export class SeoService {
 
   set(options: SeoOptions) {
     const appName = 'BandYou';
-    const fullTitle = options.title ? `${options.title} · ${appName}` : `${appName} — La red musical de España`;
-    const desc = options.description ?? 'Directorio de músicos, bandas, salas y profesores. Mensajes directos, agenda de eventos.';
+    const fullTitle = options.title ? `${options.title} · ${appName}` : 'BandYou — Encuentra banda y músicos en España';
+    const desc = options.description ?? 'La red musical de España: encuentra banda o músicos para tu banda, locales de ensayo, clases y salas en tu provincia. Gratis.';
     const image = options.image || `${SITE_URL}/og-default.jpg`;
     const url = options.url ?? this.currentCanonicalUrl();
     const type = options.type ?? 'website';
@@ -75,7 +75,7 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:url', content: url });
     this.meta.updateTag({ property: 'og:site_name', content: 'BandYou' });
     this.meta.updateTag({ property: 'og:locale', content: 'es_ES' });
-    this.meta.updateTag({ property: 'og:image:alt', content: options.title ? `${options.title} — BandYou` : 'BandYou — La red musical de España' });
+    this.meta.updateTag({ property: 'og:image:alt', content: options.title ? `${options.title} — BandYou` : 'BandYou — Encuentra banda y músicos en España' });
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
     this.meta.updateTag({ name: 'twitter:title', content: fullTitle });
     this.meta.updateTag({ name: 'twitter:description', content: desc });

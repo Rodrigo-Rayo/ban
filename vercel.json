@@ -8,12 +8,32 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/llms-full.txt",
+      "destination": "/llms.txt"
+    },
+    {
+      "source": "/:kind(busco-banda|busco-musicos|musicos|bandas|locales-de-ensayo|clases-de-musica|salas-de-conciertos|conciertos)",
+      "destination": "/api/hub?kind=:kind"
+    },
+    {
+      "source": "/:kind(busco-banda|busco-musicos|musicos|bandas|locales-de-ensayo|clases-de-musica|salas-de-conciertos|conciertos)/:prov",
+      "destination": "/api/hub?kind=:kind&prov=:prov"
+    },
+    {
+      "source": "/guias",
+      "destination": "/api/hub?kind=guias"
+    },
+    {
+      "source": "/guias/:slug",
+      "destination": "/api/hub?kind=guias&slug=:slug"
+    },
+    {
       "source": "/:type(musicians|bands|venues|teachers|rehearsal|events|shop|posts)/:id",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(bot|Bot|BOT|facebookexternalhit|Facebot|WhatsApp|SkypeUriPreview|Embedly|vkShare|Iframely|Google-InspectionTool|Mastodon|Pleroma).*"
+          "value": ".*(bot|Bot|BOT|facebookexternalhit|Facebot|WhatsApp|SkypeUriPreview|Embedly|vkShare|Iframely|Google-InspectionTool|Mastodon|Pleroma|ChatGPT-User|Perplexity-User|Claude-User|Claude-Web|Applebot|Google-Extended|meta-externalagent|Bytespider|cohere-ai|YouBot|DuckAssistBot).*"
         }
       ],
       "destination": "/api/share?type=:type&id=:id"

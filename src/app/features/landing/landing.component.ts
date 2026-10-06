@@ -76,29 +76,11 @@ export class LandingComponent implements OnInit {
     }
 
     this.seo.set({
-      description: 'BandYou — La red musical de España. Conecta con músicos, bandas, salas, profesores y locales de ensayo. Mensajes directos, agenda de eventos.',
+      description: 'La red musical de España: encuentra banda o músicos para tu banda, locales de ensayo, clases y salas en tu provincia. Gratis.',
       url: 'https://www.bandyou.es/',
     });
 
-    this.seo.injectJsonLd({
-      '@context': 'https://schema.org',
-      '@graph': [
-        {
-          '@type': 'Organization',
-          name: 'BandYou',
-          url: 'https://www.bandyou.es',
-          logo: 'https://www.bandyou.es/icon-512.png',
-          description: 'La red musical de España. Conecta con músicos, bandas, salas de conciertos, profesores y locales de ensayo. Gratis.',
-          address: { '@type': 'PostalAddress', addressCountry: 'ES' },
-        },
-        {
-          '@type': 'WebSite',
-          name: 'BandYou',
-          url: 'https://www.bandyou.es/',
-          inLanguage: 'es-ES',
-        },
-      ],
-    });
+    // Organization + WebSite (with SearchAction) are static in index.html, readable without JS.
 
     try {
       const [vac, ppl] = await Promise.all([

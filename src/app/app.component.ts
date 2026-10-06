@@ -22,12 +22,19 @@ import { INSTAGRAM_URL } from './core/constants/social';
     <main id="main-content" tabindex="-1" class="pb-16 lg:pb-0">
       <router-outlet />
       @if (showFooter()) {
-        <footer class="border-t-2 border-ink mt-8 px-4 sm:px-6 py-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between"
+        <footer class="border-t-2 border-ink mt-8 px-4 sm:px-6 py-6 flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-center sm:justify-between"
                 [class.pb-24]="hasActionBar()" [class.sm:pb-6]="hasActionBar()">
           <div class="flex items-center justify-between sm:justify-start gap-3">
             <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
             <a [href]="instagramUrl" target="_blank" rel="noopener noreferrer" aria-label="Instagram de BandYou (se abre en una pestaña nueva)" title="Instagram" class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-ink-muted hover:text-primary-500 transition-colors"><app-icon name="instagram" [size]="24"/></a>
           </div>
+<nav aria-label="Explorar" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
+            <a href="/busco-banda" class="hover:text-ink min-h-[44px] inline-flex items-center">Busco banda</a>
+            <a href="/busco-musicos" class="hover:text-ink min-h-[44px] inline-flex items-center">Busco músicos</a>
+            <a href="/locales-de-ensayo" class="hover:text-ink min-h-[44px] inline-flex items-center">Locales de ensayo</a>
+            <a href="/clases-de-musica" class="hover:text-ink min-h-[44px] inline-flex items-center">Clases</a>
+            <a href="/guias" class="hover:text-ink min-h-[44px] inline-flex items-center">Guías</a>
+          </nav>
           <nav aria-label="Legal" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
             <a routerLink="/legal/aviso-legal" class="hover:text-ink min-h-[44px] inline-flex items-center">Aviso legal</a>
             <a routerLink="/legal/privacidad" class="hover:text-ink min-h-[44px] inline-flex items-center">Privacidad</a>

@@ -194,7 +194,7 @@ export class FeedComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.seo.set({ title: 'Se busca', description: 'Bandas que buscan músicos, músicos que buscan banda y colaboraciones en toda España. Publica gratis tu anuncio.' });
+    this.seo.set({ title: 'Se busca: busco banda o músicos', description: 'Anuncios de bandas que buscan músico y de músicos que buscan banda o colaboraciones en toda España. Publica gratis tu anuncio en BandYou.' });
     try {
       const { data: { user } } = await this.supabase.auth.getUser();
       this.currentUser.set(user);

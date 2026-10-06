@@ -119,12 +119,12 @@ export class SearchComponent implements OnInit, OnDestroy {
     }
 
     const tabTitles: Record<SearchType, string> = {
-      musicians: 'Músicos en España',
-      bands: 'Bandas de música',
-      venues: 'Salas de conciertos',
-      events: 'Agenda de eventos',
-      teachers: 'Clases de música',
-      rehearsal: 'Locales de ensayo',
+      musicians: 'Músicos en España: encuentra músico para tu banda',
+      bands: 'Bandas que buscan músico en España',
+      venues: 'Salas de conciertos en España',
+      events: 'Agenda de conciertos',
+      teachers: 'Clases de música: profesores por provincia',
+      rehearsal: 'Locales de ensayo por horas',
     };
     const tabDescriptions: Record<SearchType, string> = {
       musicians: 'Encuentra músicos en tu ciudad por instrumento, estilo y nivel, y escríbeles directamente. Gratis en BandYou.',
