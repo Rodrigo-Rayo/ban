@@ -53,7 +53,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
                 <span class="text-ink/70">· {{ going() }} {{ going() === 1 ? 'va' : 'van' }}</span>
               </span>
             } @else {
-              <span class="block font-display uppercase text-xl leading-tight truncate mt-1">¡Bandas! Sorteamos un bolo{{ noProvince() ? '' : ' en ' + province() }}</span>
+              <span class="block font-display uppercase text-xl leading-tight truncate mt-1">Tu bolo, en la portada{{ noProvince() ? '' : ' de ' + province() }}</span>
               <span class="flex items-baseline gap-2 flex-wrap text-xs font-semibold">
                 <span>Sorteo en</span><app-countdown [target]="drawTime(s.open)" [offsetMs]="offset" [compact]="true" (done)="onCountdownDone()"/>
                 <span class="text-ink/70">· {{ s.entries.length }} {{ s.entries.length === 1 ? 'inscrito' : 'inscritos' }}</span>
@@ -217,7 +217,7 @@ export class QuedadaStatusComponent {
       return `La quedada de BandYou: ganador ${s.winner.event.owner_name}, ${this.gigLine(s.winner)}. ${this.going()} personas van. Ver la quedada.`;
     }
     const where = this.noProvince() ? '' : ` en ${this.province()}`;
-    return `La quedada de BandYou: sorteamos un bolo${where} el 10 de ${this.monthLabel(s.open)} a las 20:00. ${s.entries.length} inscritos. Ver la quedada.`;
+    return `La quedada de BandYou: tu bolo, en la portada${where ? ' de' + where.replace(' en', '') : ''}. Sorteo el 10 de ${this.monthLabel(s.open)} a las 20:00. ${s.entries.length} inscritos. Ver la quedada.`;
   }
 
   entryNames(entries: QuedadaEntry[]): string {
