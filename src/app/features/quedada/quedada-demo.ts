@@ -5,7 +5,7 @@ import type { QuedadaComment, QuedadaEntry, QuedadaEvent, QuedadaPerson, Quedada
  * Fake data for trying "La quedada" locally (/quedada?demo=…, /home?demo=…).
  * Never used in production builds (see readDemo in quedada.service.ts).
  */
-export const DEMO_STATES = ['inscripcion', 'ganador', 'asifue', 'vacio'] as const;
+export const DEMO_STATES = ['inscripcion', 'ganador', 'vacio'] as const;
 export type DemoState = typeof DEMO_STATES[number];
 
 export interface DemoStore {
@@ -33,7 +33,7 @@ export function demoData(state: DemoState): DemoStore {
   const now = state === 'inscripcion' || state === 'vacio'
     ? new Date(draw.getTime() - 4 * DAY + 3 * 3_600_000)
     : new Date(draw.getTime() + 2 * DAY);
-  const gig = state === 'asifue' ? new Date(now.getTime() - DAY) : new Date(now.getTime() + 6 * DAY + 5 * 3_600_000);
+  const gig = new Date(now.getTime() + 6 * DAY + 5 * 3_600_000);
 
   const entries: QuedadaEntry[] = state === 'vacio' ? [] : [
     { id: 'e1', user_id: 'u-1', created_at: '', event: event('1', 'Presentación de "Ruido Blanco"', 'Los Desafinados', gig, 'Sala Clamores') },
@@ -46,7 +46,7 @@ export function demoData(state: DemoState): DemoStore {
   return {
     now,
     entries,
-    winner: state === 'ganador' || state === 'asifue'
+    winner: state === 'ganador'
       ? { cycle: cycleKey(month), province: 'Madrid', entries_count: 3, event: entries[0].event }
       : null,
     myEvents: [event('mine', 'Concierto en Moby Dick', 'Tu banda', new Date(gig.getTime() + 2 * DAY), 'Moby Dick Club')],

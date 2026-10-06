@@ -27,7 +27,7 @@ type Row = Record<string, unknown>;
  * Data of "La quedada de BandYou" (supabase/2026_10_quedada.sql). Every read
  * degrades to "nothing" on error so the home never breaks because of it.
  *
- * Demo mode (local only, never in production): /quedada?demo=inscripcion|ganador|asifue|vacio
+ * Demo mode (local only, never in production): /quedada?demo=inscripcion|ganador|vacio
  * renders fake data and never touches the database.
  */
 @Injectable({ providedIn: 'root' })

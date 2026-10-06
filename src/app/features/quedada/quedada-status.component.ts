@@ -7,7 +7,7 @@ import {
 } from '../../core/utils/quedada-cycle';
 import { dateParts } from '../../core/utils/date';
 
-export type QuedadaPhase = 'signup' | 'winner' | 'after';
+export type QuedadaPhase = 'signup' | 'winner';
 
 export interface QuedadaSnapshot {
   phase: QuedadaPhase;
@@ -16,15 +16,15 @@ export interface QuedadaSnapshot {
   winner: QuedadaWinner | null;
 }
 
-/** After this long past the start time, a gig counts as played ("¡Así fue!"). */
+/** After this long past the start time a gig counts as played and sign-up for the next draw takes over. */
 const GIG_LENGTH_MS = 4 * 3_600_000;
 
 /** Provinces where nobody can take part (no real province chosen). */
 export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
 
 /**
- * "La quedada de BandYou" status block: sign-up with a countdown to the draw,
- * the winner with a countdown to the gig, or "¡Así fue!" once it has been played.
+ * "La quedada de BandYou" status block: sign-up with a countdown to the draw, or
+ * the winner with a countdown to the gig. Once the gig is over, sign-up returns.
  * Used on the home (compact) and at the top of /quedada.
  */
 @Component({
@@ -67,38 +67,22 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
             }
             <div class="p-4 sm:p-6 min-w-0">
               <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-poster-yellow">
-                La quedada de BandYou · {{ s.phase === 'after' ? 'Así fue' : 'Ganador de ' + monthLabel(cycleOf(w)) + ' en ' + w.province }}
+                La quedada de BandYou · Ganador de {{ monthLabel(cycleOf(w)) }} en {{ w.province }}
               </p>
               <h2 [id]="uid + '-t'" class="font-display uppercase leading-[0.95] mt-1.5 [overflow-wrap:anywhere]" [class]="variant() === 'page' ? 'text-5xl sm:text-6xl' : 'text-4xl sm:text-5xl'">
-                {{ s.phase === 'after' ? '¡Así fue!' : w.event.owner_name }}
+                {{ w.event.owner_name }}
               </h2>
-              <p class="text-[15px] mt-2 [overflow-wrap:anywhere]">
-                @if (s.phase === 'after') {
-                  {{ going() > 0 ? going() + (going() === 1 ? ' persona fue' : ' personas fuisteis') : 'Gracias a todos los que fuisteis' }} a ver a <strong>{{ w.event.owner_name }}</strong>.
-                } @else {
-                  <strong>{{ w.event.title }}</strong>
-                }
-              </p>
-              @if (s.phase === 'winner') {
-                <p class="font-mono text-xs font-bold uppercase tracking-wide mt-2 text-poster-paper/80">{{ gigLine(w) }}</p>
+              <p class="text-[15px] mt-2 [overflow-wrap:anywhere]"><strong>{{ w.event.title }}</strong></p>
+              <p class="font-mono text-xs font-bold uppercase tracking-wide mt-2 text-poster-paper/80">{{ gigLine(w) }}</p>
                 <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 mb-1.5 text-poster-yellow">Faltan</p>
                 <app-countdown [target]="gigTime(w)" [offsetMs]="offset" tone="light" (done)="onCountdownDone()"/>
-                <p class="text-sm mt-4 font-semibold">{{ going() > 0 ? going() + (going() === 1 ? ' persona va' : ' personas van') + '. ¿Te apuntas?' : 'Sé el primero en apuntarte.' }}</p>
+              <p class="text-sm mt-4 font-semibold">{{ going() > 0 ? going() + (going() === 1 ? ' persona va' : ' personas van') + '. ¿Te apuntas?' : 'Sé el primero en apuntarte.' }}</p>
+              @if (variant() === 'home') {
+                <a routerLink="/quedada" [queryParams]="demoParams" class="btn-primary mt-4 min-h-[44px] text-xs px-5">¡Voy! · Ver la quedada</a>
               }
-              @if (s.phase === 'after') {
-                <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 mb-1.5 text-poster-yellow">Próximo sorteo en</p>
-                <app-countdown [target]="drawTime(s.open)" [offsetMs]="offset" tone="light" (done)="onCountdownDone()"/>
-              }
-              <div class="flex flex-wrap gap-2 mt-4">
-                @if (s.phase === 'winner' && variant() === 'home') {
-                  <a routerLink="/quedada" [queryParams]="demoParams" class="btn-primary min-h-[44px] text-xs px-5">¡Voy! · Ver la quedada</a>
-                }
-                @if (s.phase === 'after') {
-                  <a routerLink="/quedada" [queryParams]="demoParams" fragment="inscribir" class="btn-primary min-h-[44px] text-xs px-5">Inscribe tu bolo para {{ monthLabel(s.open) }}</a>
-                }
-              </div>
               <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 text-poster-paper/70">
-                Próximo sorteo: 10 de {{ monthLabel(s.open) }} · {{ s.entries.length }} {{ s.entries.length === 1 ? 'bolo inscrito' : 'bolos inscritos' }}
+                Próximo sorteo: 10 de {{ monthLabel(s.open) }} a las 20:00 · {{ s.entries.length }} {{ s.entries.length === 1 ? 'bolo inscrito' : 'bolos inscritos' }} ·
+                <a routerLink="/quedada" [queryParams]="demoParams" fragment="inscribir" class="underline hover:text-poster-yellow">Inscribe el tuyo</a>
               </p>
             </div>
           </div>
@@ -151,12 +135,9 @@ export class QuedadaStatusComponent {
     ]);
     const going = winner ? await this.svc.attendeeCount(winner.event.id) : 0;
     if (seq !== this.seq) return; // a newer load (province change) won
-    let phase: QuedadaPhase = 'signup';
-    if (winner) {
-      const ended = gigInstant(winner.event.date, winner.event.time).getTime() + GIG_LENGTH_MS <= now.getTime();
-      // Last month's winner only matters while its gig is still on; once played, sign-up leads.
-      phase = !ended ? 'winner' : drawnCycle(now) ? 'after' : 'signup';
-    }
+    // The winner is on show until its gig is over; then sign-up for the next draw takes over.
+    const playing = !!winner && gigInstant(winner.event.date, winner.event.time).getTime() + GIG_LENGTH_MS > now.getTime();
+    const phase: QuedadaPhase = playing ? 'winner' : 'signup';
     this.going.set(going);
     const snap = { phase, open, entries, winner };
     this.snapshot.set(snap);

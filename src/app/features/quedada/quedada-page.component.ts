@@ -32,7 +32,6 @@ import { dateParts } from '../../core/utils/date';
             MODO DEMO (solo en local): datos inventados, nada se guarda.
             Fases: <a class="underline" href="/quedada?demo=inscripcion">inscripción</a> ·
             <a class="underline" href="/quedada?demo=ganador">ganador</a> ·
-            <a class="underline" href="/quedada?demo=asifue">así fue</a> ·
             <a class="underline" href="/quedada?demo=vacio">sin inscritos</a>
           </p>
         }
@@ -47,11 +46,9 @@ import { dateParts } from '../../core/utils/date';
         <app-quedada-status [province]="province()" [refresh]="refreshKey()" variant="page" (loaded)="snapshot.set($event)"/>
 
         @if (snapshot(); as s) {
-          @if (s.winner && s.phase !== 'signup') {
+          @if (s.winner && s.phase === 'winner') {
             <div>
-              @if (s.phase === 'winner') {
-                <a [routerLink]="['/events', s.winner.event.id]" class="btn-secondary min-h-[44px] text-xs px-5 mb-6">Ver el bolo completo</a>
-              }
+              <a [routerLink]="['/events', s.winner.event.id]" class="btn-secondary min-h-[44px] text-xs px-5 mb-6">Ver el bolo completo</a>
               <app-quedada-social [winner]="s.winner"/>
             </div>
           }
