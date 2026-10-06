@@ -28,13 +28,6 @@ import { INSTAGRAM_URL } from './core/constants/social';
             <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
             <a [href]="instagramUrl" target="_blank" rel="noopener noreferrer" aria-label="Instagram de BandYou (se abre en una pestaña nueva)" title="Instagram" class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-ink-muted hover:text-primary-500 transition-colors"><app-icon name="instagram" [size]="24"/></a>
           </div>
-<nav aria-label="Explorar" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
-            <a href="/busco-banda" class="hover:text-ink min-h-[44px] inline-flex items-center">Busco banda</a>
-            <a href="/busco-musicos" class="hover:text-ink min-h-[44px] inline-flex items-center">Busco músicos</a>
-            <a href="/locales-de-ensayo" class="hover:text-ink min-h-[44px] inline-flex items-center">Locales de ensayo</a>
-            <a href="/clases-de-musica" class="hover:text-ink min-h-[44px] inline-flex items-center">Clases</a>
-            <a href="/guias" class="hover:text-ink min-h-[44px] inline-flex items-center">Guías</a>
-          </nav>
           <nav aria-label="Legal" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
             <a routerLink="/legal/aviso-legal" class="hover:text-ink min-h-[44px] inline-flex items-center">Aviso legal</a>
             <a routerLink="/legal/privacidad" class="hover:text-ink min-h-[44px] inline-flex items-center">Privacidad</a>

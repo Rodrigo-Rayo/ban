@@ -33,7 +33,12 @@
     "/**",
     "!/**/*.*",
     "!/**/*__*",
-    "!/**/*__*/**"
+    "!/**/*__*/**",
+    "!/busco-banda", "!/busco-banda/**", "!/busco-musicos", "!/busco-musicos/**",
+    "!/musicos", "!/musicos/**", "!/bandas", "!/bandas/**",
+    "!/locales-de-ensayo", "!/locales-de-ensayo/**", "!/clases-de-musica", "!/clases-de-musica/**",
+    "!/salas-de-conciertos", "!/salas-de-conciertos/**", "!/conciertos", "!/conciertos/**",
+    "!/guias", "!/guias/**"
   ],
   "dataGroups": [
     {
