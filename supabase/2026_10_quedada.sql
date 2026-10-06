@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS quedada_winners (
   drawn_at      timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (cycle, province)
 );
+CREATE INDEX IF NOT EXISTS quedada_winners_event_idx ON quedada_winners (event_id);
 ALTER TABLE quedada_winners ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "quedada winners read" ON quedada_winners;
 CREATE POLICY "quedada winners read" ON quedada_winners FOR SELECT TO anon, authenticated USING (true);

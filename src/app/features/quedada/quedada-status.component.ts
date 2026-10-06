@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet } from '@angular/common';
 import { QuedadaEntry, QuedadaService, QuedadaWinner } from './quedada.service';
@@ -36,15 +36,14 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
       @if (variant() === 'home') {
         <!-- Home: one compact strip that links to /quedada; the full poster lives on that page -->
         <a routerLink="/quedada" [queryParams]="demoParams"
-           class="press group relative flex items-center gap-3 bg-poster-yellow text-ink border-2 border-ink shadow-[4px_4px_0_0_#141210] p-3 pr-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-           [attr.aria-label]="compactLabel(s)">
+           class="press group relative flex items-center gap-3 bg-poster-yellow text-ink border-2 border-ink shadow-[4px_4px_0_0_#141210] p-3 pr-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
           @if (s.phase === 'winner' && s.winner) {
             <span class="absolute -top-2.5 right-3 rotate-[4deg] bg-primary-500 text-white border-2 border-ink font-display uppercase text-sm leading-none px-2 py-1" aria-hidden="true">¡Ganador!</span>
             @if (s.winner.event.image_url) {
               <img [src]="s.winner.event.image_url" alt="" class="w-12 h-16 object-cover border-2 border-ink -rotate-2 flex-shrink-0 bg-ink" loading="lazy"/>
             }
           }
-          <span class="flex-1 min-w-0" aria-hidden="true">
+          <span class="flex-1 min-w-0">
             <span class="inline-block -rotate-1 bg-ink text-poster-yellow font-display uppercase text-sm leading-none px-2 py-1">★ La quedada de BandYou</span>
             @if (s.phase === 'winner' && s.winner; as w) {
               <span class="block font-display uppercase text-xl leading-tight truncate mt-1">{{ w.event.owner_name }}</span>
@@ -156,9 +155,11 @@ export class QuedadaStatusComponent {
   /** Demo mode shifts the clock. */
   readonly offset = this.svc.now().getTime() - Date.now();
   private seq = 0;
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => { this.refresh(); void this.load(this.province()); });
+    inject(DestroyRef).onDestroy(() => { if (this.retryTimer) clearTimeout(this.retryTimer); });
   }
 
   reload() { void this.load(this.province()); }
@@ -190,7 +191,8 @@ export class QuedadaStatusComponent {
   onCountdownDone() {
     const retry = () => { drawnCycles(this.svc.now()).forEach(c => this.svc.retryDraw(c)); this.reload(); };
     retry();
-    setTimeout(retry, 6000);
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    this.retryTimer = setTimeout(retry, 6000);
   }
 
   monthLabel(c: QuedadaCycle): string { return monthName(c); }
@@ -205,14 +207,6 @@ export class QuedadaStatusComponent {
     const p = dateParts(w.event.date.slice(0, 10));
     const when = p ? `${p.weekday} ${p.day} ${p.month}` : w.event.date;
     return [when, w.event.time?.slice(0, 5), w.event.venue].filter(Boolean).join(' · ');
-  }
-  /** One sentence for screen readers on the compact home strip. */
-  compactLabel(s: QuedadaSnapshot): string {
-    if (s.phase === 'winner' && s.winner) {
-      return `La quedada de BandYou: ganador ${s.winner.event.owner_name}, ${this.gigLine(s.winner)}. ${this.going()} personas van. Ver la quedada.`;
-    }
-    const where = this.noProvince() ? '' : ` en ${this.province()}`;
-    return `La quedada de BandYou: tu bolo, en la portada${where ? ' de' + where.replace(' en', '') : ''}. Sorteo de ${this.monthLabel(s.open)} el ${drawLabel(s.open)} a las 20:00. ${s.entries.length} inscritos. Ver la quedada.`;
   }
 
   entryNames(entries: QuedadaEntry[]): string {

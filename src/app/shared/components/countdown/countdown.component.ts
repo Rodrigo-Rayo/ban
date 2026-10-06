@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
 
 export interface CountdownParts { days: number; hours: number; minutes: number; seconds: number }
 
@@ -63,6 +63,8 @@ export class CountdownComponent {
   });
 
   constructor() {
+    // A new target is a new countdown: it may fire `done` again.
+    effect(() => { this.target(); this.fired = false; });
     const timer = setInterval(() => {
       this.tick.set(Date.now());
       const p = this.parts();

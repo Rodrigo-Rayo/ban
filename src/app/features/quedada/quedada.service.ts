@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { environment } from '../../../environments/environment';
@@ -214,9 +214,10 @@ export class QuedadaService {
   }
 }
 
-/** ?demo=… only outside production builds. */
-function readDemo(): DemoState | null {
-  if (environment.production || typeof location === 'undefined') return null;
-  const value = new URLSearchParams(location.search).get('demo') as DemoState | null;
+/** ?demo=… only in dev mode (ng serve). Two independent checks: dev mode and the environment flag. */
+export function readDemo(search = typeof location === 'undefined' ? '' : location.search, devMode = isDevMode()): DemoState | null {
+  if (!devMode || environment.production) return null;
+  if (!search) return null;
+  const value = new URLSearchParams(search).get('demo') as DemoState | null;
   return value && (DEMO_STATES as readonly string[]).includes(value) ? value : null;
 }
