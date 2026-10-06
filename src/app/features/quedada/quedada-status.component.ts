@@ -33,7 +33,36 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
   imports: [RouterLink, NgTemplateOutlet, CountdownComponent],
   template: `
     @if (snapshot(); as s) {
-      @if (s.phase === 'signup') {
+      @if (variant() === 'home') {
+        <!-- Home: one compact strip that links to /quedada; the full poster lives on that page -->
+        <a routerLink="/quedada" [queryParams]="demoParams"
+           class="press group relative flex items-center gap-3 bg-poster-yellow text-ink border-2 border-ink shadow-[4px_4px_0_0_#141210] p-3 pr-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+           [attr.aria-label]="compactLabel(s)">
+          @if (s.phase === 'winner' && s.winner) {
+            <span class="absolute -top-2.5 right-3 rotate-[4deg] bg-primary-500 text-white border-2 border-ink font-display uppercase text-sm leading-none px-2 py-1" aria-hidden="true">¡Ganador!</span>
+            @if (s.winner.event.image_url) {
+              <img [src]="s.winner.event.image_url" alt="" class="w-12 h-16 object-cover border-2 border-ink -rotate-2 flex-shrink-0 bg-ink" loading="lazy"/>
+            }
+          }
+          <span class="flex-1 min-w-0" aria-hidden="true">
+            <span class="inline-block -rotate-1 bg-ink text-poster-yellow font-display uppercase text-sm leading-none px-2 py-1">★ La quedada de BandYou</span>
+            @if (s.phase === 'winner' && s.winner; as w) {
+              <span class="block font-display uppercase text-xl leading-tight truncate mt-1">{{ w.event.owner_name }}</span>
+              <span class="flex items-baseline gap-2 flex-wrap text-xs font-semibold">
+                <span>Faltan</span><app-countdown [target]="gigTime(w)" [offsetMs]="offset" [compact]="true" (done)="onCountdownDone()"/>
+                <span class="text-ink/70">· {{ going() }} {{ going() === 1 ? 'va' : 'van' }}</span>
+              </span>
+            } @else {
+              <span class="block font-display uppercase text-xl leading-tight truncate mt-1">¡Bandas! Sorteamos un bolo{{ noProvince() ? '' : ' en ' + province() }}</span>
+              <span class="flex items-baseline gap-2 flex-wrap text-xs font-semibold">
+                <span>Sorteo en</span><app-countdown [target]="drawTime(s.open)" [offsetMs]="offset" [compact]="true" (done)="onCountdownDone()"/>
+                <span class="text-ink/70">· {{ s.entries.length }} {{ s.entries.length === 1 ? 'inscrito' : 'inscritos' }}</span>
+              </span>
+            }
+          </span>
+          <span class="font-display text-2xl leading-none flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">→</span>
+        </a>
+      } @else if (s.phase === 'signup') {
         <section class="bg-poster-yellow text-ink border-2 border-ink shadow-[5px_5px_0_0_#141210] p-4 sm:p-6" [attr.aria-labelledby]="uid + '-t'">
           <ng-container [ngTemplateOutlet]="brand" [ngTemplateOutletContext]="{ sub: monthLabel(s.open) + (noProvince() ? '' : ' en ' + province()) }"/>
           <h2 [id]="uid + '-t'" class="font-display uppercase leading-[0.95] mt-3" [class]="variant() === 'page' ? 'text-5xl sm:text-6xl' : 'text-4xl sm:text-5xl'">¡Bandas!<br>¡Esto os interesa!</h2>
@@ -94,7 +123,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
         </section>
       }
     } @else if (loading()) {
-      <div class="h-64 border-2 border-ink/30 bg-dark-800/40 animate-pulse" aria-hidden="true"></div>
+      <div class="border-2 border-ink/30 bg-dark-800/40 animate-pulse" [class]="variant() === 'home' ? 'h-20' : 'h-64'" aria-hidden="true"></div>
     }
 
     <!-- The brand label: like a strip of black tape on the poster -->
@@ -182,6 +211,15 @@ export class QuedadaStatusComponent {
     const when = p ? `${p.weekday} ${p.day} ${p.month}` : w.event.date;
     return [when, w.event.time?.slice(0, 5), w.event.venue].filter(Boolean).join(' · ');
   }
+  /** One sentence for screen readers on the compact home strip. */
+  compactLabel(s: QuedadaSnapshot): string {
+    if (s.phase === 'winner' && s.winner) {
+      return `La quedada de BandYou: ganador ${s.winner.event.owner_name}, ${this.gigLine(s.winner)}. ${this.going()} personas van. Ver la quedada.`;
+    }
+    const where = this.noProvince() ? '' : ` en ${this.province()}`;
+    return `La quedada de BandYou: sorteamos un bolo${where} el 10 de ${this.monthLabel(s.open)} a las 20:00. ${s.entries.length} inscritos. Ver la quedada.`;
+  }
+
   entryNames(entries: QuedadaEntry[]): string {
     const names = entries.map(e => e.event.owner_name);
     return names.length > 4 ? `${names.slice(0, 4).join(', ')} y ${names.length - 4} más` : names.join(', ');

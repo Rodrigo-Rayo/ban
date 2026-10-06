@@ -15,6 +15,13 @@ export function countdownParts(ms: number): CountdownParts {
 @Component({
   selector: 'app-countdown',
   template: `
+    @if (compact()) {
+      <span class="inline-flex items-baseline gap-1 font-mono font-bold tabular-nums whitespace-nowrap" role="timer" [attr.aria-label]="label()">
+        @for (cell of cells(); track cell.unit) {
+          <span aria-hidden="true"><span class="font-display text-lg leading-none">{{ cell.value }}</span><span class="text-[10px] uppercase ml-px mr-0.5">{{ cell.short }}</span></span>
+        }
+      </span>
+    } @else {
     <div class="flex items-stretch gap-1.5 sm:gap-2" role="timer" [attr.aria-label]="label()">
       @for (cell of cells(); track cell.unit) {
         <div class="flex flex-col items-center justify-center min-w-[3.25rem] sm:min-w-[4rem] px-1.5 py-1.5 border-2 border-ink"
@@ -24,12 +31,15 @@ export function countdownParts(ms: number): CountdownParts {
         </div>
       }
     </div>
+    }
   `,
 })
 export class CountdownComponent {
   readonly target = input.required<Date>();
   readonly offsetMs = input(0);
   readonly tone = input<'dark' | 'light'>('dark');
+  /** One inline line ("3d 20h 59m 57s") instead of the four boxes. */
+  readonly compact = input(false);
   readonly done = output<void>();
 
   private readonly tick = signal(Date.now());
@@ -40,10 +50,10 @@ export class CountdownComponent {
     const p = this.parts();
     const two = (n: number) => String(n).padStart(2, '0');
     return [
-      { unit: p.days === 1 ? 'día' : 'días', value: String(p.days) },
-      { unit: 'horas', value: two(p.hours) },
-      { unit: 'min', value: two(p.minutes) },
-      { unit: 'seg', value: two(p.seconds) },
+      { unit: p.days === 1 ? 'día' : 'días', short: 'd', value: String(p.days) },
+      { unit: 'horas', short: 'h', value: two(p.hours) },
+      { unit: 'min', short: 'm', value: two(p.minutes) },
+      { unit: 'seg', short: 's', value: two(p.seconds) },
     ];
   });
   /** Screen readers get one calm sentence (the role=timer region is not announced every second). */

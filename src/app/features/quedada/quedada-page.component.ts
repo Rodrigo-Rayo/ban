@@ -34,6 +34,11 @@ import { dateParts } from '../../core/utils/date';
             <a class="underline" href="/quedada?demo=ganador">ganador</a> ·
             <a class="underline" href="/quedada?demo=vacio">sin inscritos</a>
           </p>
+          <div>
+            <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted mb-2">Así se ve en la portada:</p>
+            <app-quedada-status [province]="province()" variant="home"/>
+          </div>
+          <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted -mb-4">Y así en esta página:</p>
         }
 
         <div class="flex flex-wrap items-center gap-3">
