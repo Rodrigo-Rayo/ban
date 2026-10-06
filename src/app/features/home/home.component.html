@@ -102,11 +102,12 @@
         }
       </section>
 
-      <!-- La quedada de BandYou: renders nothing until its tables exist -->
-      <app-quedada-status class="block empty:hidden" [province]="userCity()" variant="home"/>
+      <!-- La quedada de BandYou, where Destacado was (first on desktop); renders nothing until its tables exist -->
+      <app-quedada-status class="block empty:hidden lg:order-first" [province]="userCity()" variant="home"/>
 
       <!-- Destacado: carrusel compacto (el hueco reservado para promoción de pago más adelante) -->
-      @if (loading() || featuredSlides().length > 0) {
+      <!-- Destacado: hidden for now (showFeatured); it returns with paid promotions -->
+      @if (showFeatured && (loading() || featuredSlides().length > 0)) {
       <section aria-labelledby="destacado-title" aria-roledescription="carrusel" class="lg:order-first">
         <h2 id="destacado-title" class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted mb-2">Destacado</h2>
         @if (loading()) {

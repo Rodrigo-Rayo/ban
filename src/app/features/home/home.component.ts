@@ -194,6 +194,9 @@ export class HomeComponent implements OnInit {
    * One "Se busca" list: open vacancies (user's city first), then board posts.
    * A band's "buscamos músico" post is skipped when that band already shows a vacancy.
    */
+  /** Destacado carousel: off while La quedada takes its place; back on with paid promotions. */
+  readonly showFeatured = false;
+
   readonly seBuscaItems = computed<SeBuscaItem[]>(() => {
     const vacancies: SeBuscaItem[] = this.vacanciesSorted()
       .filter(v => !!v.bands)
