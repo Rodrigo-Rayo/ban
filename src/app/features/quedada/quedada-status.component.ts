@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { NgTemplateOutlet } from '@angular/common';
 import { QuedadaEntry, QuedadaService, QuedadaWinner } from './quedada.service';
 import { CountdownComponent } from '../../shared/components/countdown/countdown.component';
 import {
@@ -29,15 +30,16 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
  */
 @Component({
   selector: 'app-quedada-status',
-  imports: [RouterLink, CountdownComponent],
+  imports: [RouterLink, NgTemplateOutlet, CountdownComponent],
   template: `
     @if (snapshot(); as s) {
       @if (s.phase === 'signup') {
         <section class="bg-poster-yellow text-ink border-2 border-ink shadow-[5px_5px_0_0_#141210] p-4 sm:p-6" [attr.aria-labelledby]="uid + '-t'">
-          <p class="font-mono text-[11px] font-bold uppercase tracking-wide">La quedada de BandYou · {{ monthLabel(s.open) }}</p>
-          <h2 [id]="uid + '-t'" class="font-display uppercase leading-[0.95] mt-1.5" [class]="variant() === 'page' ? 'text-5xl sm:text-6xl' : 'text-4xl sm:text-5xl'">¡Bandas!<br>¡Esto os interesa!</h2>
+          <ng-container [ngTemplateOutlet]="brand" [ngTemplateOutletContext]="{ sub: monthLabel(s.open) + (noProvince() ? '' : ' en ' + province()) }"/>
+          <h2 [id]="uid + '-t'" class="font-display uppercase leading-[0.95] mt-3" [class]="variant() === 'page' ? 'text-5xl sm:text-6xl' : 'text-4xl sm:text-5xl'">¡Bandas!<br>¡Esto os interesa!</h2>
           <p class="text-[15px] leading-snug mt-3 max-w-[52ch]">
-            Cada mes sorteamos <strong>un bolo por provincia</strong>, lo promocionamos en toda la web y quedamos para ir.
+            <strong>Ayudamos a las bandas pequeñas a darse a conocer.</strong>
+            Cada mes sorteamos un bolo por provincia, lo promocionamos en toda la web y quedamos para ir.
             Inscribe el tuyo antes del <strong>10 de {{ monthLabel(s.open) }} a las 20:00</strong>.
           </p>
           <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 mb-1.5">Sorteo en</p>
@@ -60,29 +62,32 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
           </div>
         </section>
       } @else if (s.winner; as w) {
-        <section class="bg-ink text-poster-paper border-2 border-ink shadow-[5px_5px_0_0_#c23a1f] overflow-hidden" [attr.aria-labelledby]="uid + '-t'">
+        <!-- Same yellow poster as the sign-up, now with a red "¡Ganador!" stamp; the gig's own poster on the side when it has one -->
+        <section class="relative bg-poster-yellow text-ink border-2 border-ink shadow-[5px_5px_0_0_#141210]" [attr.aria-labelledby]="uid + '-t'">
+          <span class="absolute -top-3 right-3 sm:right-5 z-10 rotate-[4deg] bg-primary-500 text-white border-2 border-ink font-display uppercase text-lg sm:text-xl leading-none px-3 py-1.5 shadow-[2px_2px_0_0_#141210]" aria-hidden="true">¡Ganador!</span>
           <div class="grid" [class.sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]]="!!w.event.image_url">
             @if (w.event.image_url) {
-              <img [src]="w.event.image_url" alt="" class="w-full h-48 sm:h-full object-cover border-b-2 sm:border-b-0 sm:border-r-2 border-ink" loading="lazy"/>
+              <div class="p-3 sm:p-4 sm:pr-0">
+                <img [src]="w.event.image_url" [alt]="'Cartel: ' + w.event.title"
+                     class="w-full aspect-[3/4] max-h-60 sm:max-h-none object-cover border-2 border-ink -rotate-1 shadow-[3px_3px_0_0_#141210] bg-ink" loading="lazy"/>
+              </div>
             }
             <div class="p-4 sm:p-6 min-w-0">
-              <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-poster-yellow">
-                La quedada de BandYou · Ganador de {{ monthLabel(cycleOf(w)) }} en {{ w.province }}
-              </p>
-              <h2 [id]="uid + '-t'" class="font-display uppercase leading-[0.95] mt-1.5 [overflow-wrap:anywhere]" [class]="variant() === 'page' ? 'text-5xl sm:text-6xl' : 'text-4xl sm:text-5xl'">
+              <ng-container [ngTemplateOutlet]="brand" [ngTemplateOutletContext]="{ sub: 'Ganador de ' + monthLabel(cycleOf(w)) + ' en ' + w.province }"/>
+              <h2 [id]="uid + '-t'" class="font-display uppercase leading-[0.95] mt-3 [overflow-wrap:anywhere]" [class]="variant() === 'page' ? 'text-5xl sm:text-6xl' : 'text-4xl sm:text-5xl'">
                 {{ w.event.owner_name }}
               </h2>
               <p class="text-[15px] mt-2 [overflow-wrap:anywhere]"><strong>{{ w.event.title }}</strong></p>
-              <p class="font-mono text-xs font-bold uppercase tracking-wide mt-2 text-poster-paper/80">{{ gigLine(w) }}</p>
-                <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 mb-1.5 text-poster-yellow">Faltan</p>
-                <app-countdown [target]="gigTime(w)" [offsetMs]="offset" tone="light" (done)="onCountdownDone()"/>
+              <p class="font-mono text-xs font-bold uppercase tracking-wide mt-2">{{ gigLine(w) }}</p>
+              <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 mb-1.5">Faltan</p>
+              <app-countdown [target]="gigTime(w)" [offsetMs]="offset" (done)="onCountdownDone()"/>
               <p class="text-sm mt-4 font-semibold">{{ going() > 0 ? going() + (going() === 1 ? ' persona va' : ' personas van') + '. ¿Te apuntas?' : 'Sé el primero en apuntarte.' }}</p>
               @if (variant() === 'home') {
                 <a routerLink="/quedada" [queryParams]="demoParams" class="btn-primary mt-4 min-h-[44px] text-xs px-5">¡Voy! · Ver la quedada</a>
               }
-              <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 text-poster-paper/70">
+              <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 text-ink/70">
                 Próximo sorteo: 10 de {{ monthLabel(s.open) }} a las 20:00 · {{ s.entries.length }} {{ s.entries.length === 1 ? 'bolo inscrito' : 'bolos inscritos' }} ·
-                <a routerLink="/quedada" [queryParams]="demoParams" fragment="inscribir" class="underline hover:text-poster-yellow">Inscribe el tuyo</a>
+                <a routerLink="/quedada" [queryParams]="demoParams" fragment="inscribir" class="underline hover:text-primary-600">Inscribe el tuyo</a>
               </p>
             </div>
           </div>
@@ -91,6 +96,14 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
     } @else if (loading()) {
       <div class="h-64 border-2 border-ink/30 bg-dark-800/40 animate-pulse" aria-hidden="true"></div>
     }
+
+    <!-- The brand label: like a strip of black tape on the poster -->
+    <ng-template #brand let-sub="sub">
+      <p class="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span class="inline-block -rotate-1 bg-ink text-poster-yellow font-display uppercase text-xl sm:text-2xl leading-none px-2.5 py-1.5">★ La quedada de BandYou</span>
+        <span class="font-mono text-[11px] font-bold uppercase tracking-wide">{{ sub }}</span>
+      </p>
+    </ng-template>
   `,
 })
 export class QuedadaStatusComponent {

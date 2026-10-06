@@ -20,6 +20,9 @@ export interface DemoStore {
 }
 
 const DAY = 86_400_000;
+
+/** A made-up gig poster (SVG data URL), so the demo shows the poster slot. */
+const DEMO_POSTER = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400"><rect width="300" height="400" fill="#c23a1f"/><circle cx="230" cy="90" r="120" fill="#e8b931" opacity=".9"/><rect x="0" y="250" width="300" height="150" fill="#141210"/><text x="20" y="215" font-family="Impact,Anton,sans-serif" font-size="58" fill="#141210">LOS</text><text x="20" y="300" font-family="Impact,Anton,sans-serif" font-size="46" fill="#f2ebdd">DESAFINADOS</text><text x="20" y="345" font-family="monospace" font-size="16" font-weight="bold" fill="#e8b931">RUIDO BLANCO · EN DIRECTO</text><text x="20" y="372" font-family="monospace" font-size="14" fill="#f2ebdd">SALA CLAMORES · MADRID</text></svg>');
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 function event(id: string, title: string, owner: string, date: Date, venue: string): QuedadaEvent {
@@ -36,7 +39,7 @@ export function demoData(state: DemoState): DemoStore {
   const gig = new Date(now.getTime() + 6 * DAY + 5 * 3_600_000);
 
   const entries: QuedadaEntry[] = state === 'vacio' ? [] : [
-    { id: 'e1', user_id: 'u-1', created_at: '', event: event('1', 'Presentación de "Ruido Blanco"', 'Los Desafinados', gig, 'Sala Clamores') },
+    { id: 'e1', user_id: 'u-1', created_at: '', event: { ...event('1', 'Presentación de "Ruido Blanco"', 'Los Desafinados', gig, 'Sala Clamores'), image_url: DEMO_POSTER } },
     { id: 'e2', user_id: 'u-2', created_at: '', event: event('2', 'Jam de funk', 'Groove Machine', new Date(gig.getTime() + 3 * DAY), 'El Junco') },
     { id: 'e3', user_id: 'u-3', created_at: '', event: event('3', 'Acústico en el barrio', 'Marilyn', new Date(gig.getTime() + 5 * DAY), 'La Fídula') },
   ];
