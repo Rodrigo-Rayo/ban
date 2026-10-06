@@ -1,4 +1,4 @@
-import { cycleKey, drawAt, madridMonth } from '../../core/utils/quedada-cycle';
+import { cycleKey, drawAt, madridInstant, madridMonth, nextCycle } from '../../core/utils/quedada-cycle';
 import type { QuedadaComment, QuedadaEntry, QuedadaEvent, QuedadaPerson, QuedadaWinner } from './quedada.service';
 
 /**
@@ -30,13 +30,15 @@ function event(id: string, title: string, owner: string, date: Date, venue: stri
 }
 
 export function demoData(state: DemoState): DemoStore {
-  const month = madridMonth(new Date());
+  // The demo cycle is next month: its draw is on the 20th of this month.
+  const month = nextCycle(madridMonth(new Date()));
   const draw = drawAt(month);
   // Inscription states sit 4 days before the draw; winner states after it.
   const now = state === 'inscripcion' || state === 'vacio'
     ? new Date(draw.getTime() - 4 * DAY + 3 * 3_600_000)
     : new Date(draw.getTime() + 2 * DAY);
-  const gig = new Date(now.getTime() + 6 * DAY + 5 * 3_600_000);
+  // Gigs fall inside the demo cycle's month.
+  const gig = madridInstant(month.year, month.month, 6, 21, 30);
 
   const entries: QuedadaEntry[] = state === 'vacio' ? [] : [
     { id: 'e1', user_id: 'u-1', created_at: '', event: { ...event('1', 'Presentación de "Ruido Blanco"', 'Los Desafinados', gig, 'Sala Clamores'), image_url: DEMO_POSTER } },
@@ -52,7 +54,10 @@ export function demoData(state: DemoState): DemoStore {
     winner: state === 'ganador'
       ? { cycle: cycleKey(month), province: 'Madrid', entries_count: 3, event: entries[0].event }
       : null,
-    myEvents: [event('mine', 'Concierto en Moby Dick', 'Tu banda', new Date(gig.getTime() + 2 * DAY), 'Moby Dick Club')],
+    // Your own gig belongs to the cycle that is open for sign-up in each phase.
+    myEvents: [event('mine', 'Concierto en Moby Dick', 'Tu banda',
+      state === 'ganador' ? madridInstant(nextCycle(month).year, nextCycle(month).month, 12, 21, 30) : new Date(gig.getTime() + 2 * DAY),
+      'Moby Dick Club')],
     myEntry: null,
     people,
     going: false,

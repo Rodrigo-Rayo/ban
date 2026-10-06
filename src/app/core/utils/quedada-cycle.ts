@@ -1,11 +1,12 @@
 /**
  * Dates of "La quedada de BandYou" — mirrors supabase/2026_10_quedada.sql.
- * A cycle is a month. Entries close and the draw happens on day 10 at 20:00
- * (Madrid time); valid gigs are dated from day 10 to the last day of that month.
+ * A cycle is a calendar month and covers the gigs of that month (1st → last day).
+ * Its draw happens the month before, on day 20 at 20:00 (Madrid time), which is
+ * also when entries for it close; entries for the following month open right then.
  */
 export interface QuedadaCycle { year: number; month: number } // month 1–12
 
-export const DRAW_DAY = 10;
+export const DRAW_DAY = 20;
 export const DRAW_HOUR = 20;
 const ZONE = 'Europe/Madrid';
 
@@ -38,20 +39,23 @@ export function previousCycle(c: QuedadaCycle): QuedadaCycle {
   return c.month === 1 ? { year: c.year - 1, month: 12 } : { year: c.year, month: c.month - 1 };
 }
 
+/** Draw of a cycle: day 20 of the month BEFORE it, 20:00 Madrid. */
 export function drawAt(c: QuedadaCycle): Date {
-  return madridInstant(c.year, c.month, DRAW_DAY, DRAW_HOUR);
+  const before = previousCycle(c);
+  return madridInstant(before.year, before.month, DRAW_DAY, DRAW_HOUR);
 }
 
-/** Cycle anyone signing up right now joins: this month until its draw, next month after. */
+/** Cycle anyone signing up right now joins: the next one whose draw is still ahead. */
 export function openCycle(now: Date): QuedadaCycle {
-  const month = madridMonth(now);
-  return now < drawAt(month) ? month : nextCycle(month);
+  const next = nextCycle(madridMonth(now));
+  return now < drawAt(next) ? next : nextCycle(next);
 }
 
-/** Cycle whose winner may be on show: this month once drawn, otherwise none. */
-export function drawnCycle(now: Date): QuedadaCycle | null {
-  const month = madridMonth(now);
-  return now >= drawAt(month) ? month : null;
+/** Cycles already drawn whose winners may still be on show, soonest first (this month, then next). */
+export function drawnCycles(now: Date): QuedadaCycle[] {
+  const current = madridMonth(now);
+  const next = nextCycle(current);
+  return now >= drawAt(next) ? [current, next] : [current];
 }
 
 /** 'YYYY-MM-01', as stored in quedada_entries.cycle / quedada_winners.cycle. */
@@ -59,16 +63,21 @@ export function cycleKey(c: QuedadaCycle): string {
   return `${c.year}-${String(c.month).padStart(2, '0')}-01`;
 }
 
-/** Valid gig dates for a cycle, inclusive: ['YYYY-MM-10', 'YYYY-MM-<last>']. */
+/** Valid gig dates for a cycle, inclusive: the whole month. */
 export function eligibleDates(c: QuedadaCycle): [string, string] {
   const last = new Date(Date.UTC(c.year, c.month, 0)).getUTCDate();
   const mm = String(c.month).padStart(2, '0');
-  return [`${c.year}-${mm}-${String(DRAW_DAY).padStart(2, '0')}`, `${c.year}-${mm}-${last}`];
+  return [`${c.year}-${mm}-01`, `${c.year}-${mm}-${last}`];
 }
 
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 export function monthName(c: QuedadaCycle): string {
   return MONTHS[c.month - 1];
+}
+
+/** "20 de octubre" — when entries for a cycle close and it is drawn. */
+export function drawLabel(c: QuedadaCycle): string {
+  return `${DRAW_DAY} de ${monthName(previousCycle(c))}`;
 }
 
 /** When a gig starts (date + optional 'HH:MM', Madrid time); 21:00 when the time is unknown. */

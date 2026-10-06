@@ -4,7 +4,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { QuedadaEntry, QuedadaService, QuedadaWinner } from './quedada.service';
 import { CountdownComponent } from '../../shared/components/countdown/countdown.component';
 import {
-  QuedadaCycle, drawAt, drawnCycle, gigInstant, madridMonth, monthName, openCycle, previousCycle,
+  QuedadaCycle, drawAt, drawLabel, drawnCycles, gigInstant, madridMonth, monthName, openCycle,
 } from '../../core/utils/quedada-cycle';
 import { dateParts } from '../../core/utils/date';
 
@@ -52,6 +52,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
                 <span>Faltan</span><app-countdown [target]="gigTime(w)" [offsetMs]="offset" [compact]="true" (done)="onCountdownDone()"/>
                 <span class="text-ink/70">· {{ going() }} {{ going() === 1 ? 'va' : 'van' }}</span>
               </span>
+              <span class="block font-mono text-[10px] font-bold uppercase tracking-wide text-ink/70 mt-0.5 truncate">Sorteo de {{ monthLabel(s.open) }}: {{ drawText(s.open) }} · inscribe tu bolo</span>
             } @else {
               <span class="block font-display uppercase text-xl leading-tight truncate mt-1">Tu bolo, en la portada{{ noProvince() ? '' : ' de ' + province() }}</span>
               <span class="flex items-baseline gap-2 flex-wrap text-xs font-semibold">
@@ -69,7 +70,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
           <p class="text-[15px] leading-snug mt-3 max-w-[52ch]">
             <strong>Ayudamos a las bandas pequeñas a darse a conocer.</strong>
             Cada mes sorteamos un bolo por provincia, lo promocionamos en toda la web y quedamos para ir.
-            Inscribe el tuyo antes del <strong>10 de {{ monthLabel(s.open) }} a las 20:00</strong>.
+            ¿Tocas en {{ monthLabel(s.open) }}? Inscribe tu bolo antes del <strong>{{ drawText(s.open) }} a las 20:00</strong>.
           </p>
           <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 mb-1.5">Sorteo en</p>
           <app-countdown [target]="drawTime(s.open)" [offsetMs]="offset" (done)="onCountdownDone()"/>
@@ -115,7 +116,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
                 <a routerLink="/quedada" [queryParams]="demoParams" class="btn-primary mt-4 min-h-[44px] text-xs px-5">¡Voy! · Ver la quedada</a>
               }
               <p class="font-mono text-[11px] font-bold uppercase tracking-wide mt-4 text-ink/70">
-                Próximo sorteo: 10 de {{ monthLabel(s.open) }} a las 20:00 · {{ s.entries.length }} {{ s.entries.length === 1 ? 'bolo inscrito' : 'bolos inscritos' }} ·
+                Sorteo de {{ monthLabel(s.open) }}: {{ drawText(s.open) }} a las 20:00 · {{ s.entries.length }} {{ s.entries.length === 1 ? 'bolo inscrito' : 'bolos inscritos' }} ·
                 <a routerLink="/quedada" [queryParams]="demoParams" fragment="inscribir" class="underline hover:text-primary-600">Inscribe el tuyo</a>
               </p>
             </div>
@@ -168,18 +169,16 @@ export class QuedadaStatusComponent {
     if (!this.snapshot()) this.loading.set(true);
     const now = this.svc.now();
     const open = openCycle(now);
-    // Before this month's draw, last month's winner may still be about to play (late on the 31st).
-    const drawn = drawnCycle(now) ?? previousCycle(madridMonth(now));
     const real = !NO_PROVINCE.includes(province);
-    const [winner, entries] = await Promise.all([
-      real ? this.svc.winner(drawn, province) : Promise.resolve(null),
+    // This month's winner and, once drawn, next month's: the first whose gig is not over is on show.
+    const [winners, entries] = await Promise.all([
+      real ? Promise.all(drawnCycles(now).map(c => this.svc.winner(c, province))) : Promise.resolve([]),
       real ? this.svc.entries(open, province) : Promise.resolve([]),
     ]);
+    const winner = winners.find(w => !!w && gigInstant(w.event.date, w.event.time).getTime() + GIG_LENGTH_MS > now.getTime()) ?? null;
     const going = winner ? await this.svc.attendeeCount(winner.event.id) : 0;
     if (seq !== this.seq) return; // a newer load (province change) won
-    // The winner is on show until its gig is over; then sign-up for the next draw takes over.
-    const playing = !!winner && gigInstant(winner.event.date, winner.event.time).getTime() + GIG_LENGTH_MS > now.getTime();
-    const phase: QuedadaPhase = playing ? 'winner' : 'signup';
+    const phase: QuedadaPhase = winner ? 'winner' : 'signup';
     this.going.set(going);
     const snap = { phase, open, entries, winner };
     this.snapshot.set(snap);
@@ -189,17 +188,13 @@ export class QuedadaStatusComponent {
 
   /** A countdown hit zero: reload now and again shortly after (the device clock may run ahead of the server). */
   onCountdownDone() {
-    const drawn = drawnCycle(this.svc.now());
-    if (drawn) this.svc.retryDraw(drawn);
-    this.reload();
-    setTimeout(() => {
-      const again = drawnCycle(this.svc.now());
-      if (again) this.svc.retryDraw(again);
-      this.reload();
-    }, 6000);
+    const retry = () => { drawnCycles(this.svc.now()).forEach(c => this.svc.retryDraw(c)); this.reload(); };
+    retry();
+    setTimeout(retry, 6000);
   }
 
   monthLabel(c: QuedadaCycle): string { return monthName(c); }
+  drawText(c: QuedadaCycle): string { return drawLabel(c); }
   drawTime(c: QuedadaCycle): Date { return drawAt(c); }
   gigTime(w: QuedadaWinner): Date { return gigInstant(w.event.date, w.event.time); }
   cycleOf(w: QuedadaWinner): QuedadaCycle {
@@ -217,7 +212,7 @@ export class QuedadaStatusComponent {
       return `La quedada de BandYou: ganador ${s.winner.event.owner_name}, ${this.gigLine(s.winner)}. ${this.going()} personas van. Ver la quedada.`;
     }
     const where = this.noProvince() ? '' : ` en ${this.province()}`;
-    return `La quedada de BandYou: tu bolo, en la portada${where ? ' de' + where.replace(' en', '') : ''}. Sorteo el 10 de ${this.monthLabel(s.open)} a las 20:00. ${s.entries.length} inscritos. Ver la quedada.`;
+    return `La quedada de BandYou: tu bolo, en la portada${where ? ' de' + where.replace(' en', '') : ''}. Sorteo de ${this.monthLabel(s.open)} el ${drawLabel(s.open)} a las 20:00. ${s.entries.length} inscritos. Ver la quedada.`;
   }
 
   entryNames(entries: QuedadaEntry[]): string {

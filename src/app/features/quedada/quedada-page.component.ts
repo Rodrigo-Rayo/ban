@@ -8,7 +8,7 @@ import { CITIES } from '../../core/constants/cities';
 import { QuedadaEvent, QuedadaService } from './quedada.service';
 import { NO_PROVINCE, QuedadaSnapshot, QuedadaStatusComponent } from './quedada-status.component';
 import { QuedadaSocialComponent } from './quedada-social.component';
-import { eligibleDates, monthName, openCycle } from '../../core/utils/quedada-cycle';
+import { drawLabel, eligibleDates, monthName, openCycle } from '../../core/utils/quedada-cycle';
 import { dateParts } from '../../core/utils/date';
 
 /** /quedada — "La quedada de BandYou": status, sign-up, the winner's page and the rules. */
@@ -62,7 +62,7 @@ import { dateParts } from '../../core/utils/date';
           <section id="inscribir" class="card-flat p-4 sm:p-6 scroll-mt-24" aria-labelledby="q-signup-title">
             <h2 id="q-signup-title" class="text-3xl leading-none">Inscribe tu bolo</h2>
             <p class="text-sm text-ink-muted mt-2">
-              Sorteo de {{ month() }}: bolos en tu provincia entre el {{ range()[0] }} y el {{ range()[1] }}. Uno por cuenta.
+              Sorteo de {{ month() }}: bolos en tu provincia del {{ range()[0] }} al {{ range()[1] }}. Inscripción hasta el {{ drawText() }} a las 20:00. Uno por cuenta.
             </p>
             @if (!loggedIn()) {
               <a routerLink="/auth/login" class="btn-primary mt-4 min-h-[48px] px-8 text-sm">Entrar para inscribir mi bolo</a>
@@ -118,8 +118,8 @@ import { dateParts } from '../../core/utils/date';
         <section aria-labelledby="q-how-title">
           <h2 id="q-how-title" class="text-3xl leading-none">Cómo funciona</h2>
           <ol class="mt-4 grid sm:grid-cols-3 gap-3">
-            <li class="card-flat p-4"><p class="font-display text-4xl text-primary-500 leading-none">01</p><p class="font-bold mt-2">Inscribe tu bolo</p><p class="text-sm text-ink-muted mt-1">Hasta el día 10 a las 20:00. Un bolo de tu Agenda en tu provincia, entre el 10 y fin de mes.</p></li>
-            <li class="card-flat p-4"><p class="font-display text-4xl text-primary-500 leading-none">02</p><p class="font-bold mt-2">Sorteo automático</p><p class="text-sm text-ink-muted mt-1">El día 10 a las 20:00 sale un ganador al azar en cada provincia. Sin votos ni trampas.</p></li>
+            <li class="card-flat p-4"><p class="font-display text-4xl text-primary-500 leading-none">01</p><p class="font-bold mt-2">Inscribe tu bolo</p><p class="text-sm text-ink-muted mt-1">Cada mes tiene su sorteo. Inscribe un bolo de tu Agenda de ese mes, en tu provincia, hasta el día 20 del mes anterior a las 20:00.</p></li>
+            <li class="card-flat p-4"><p class="font-display text-4xl text-primary-500 leading-none">02</p><p class="font-bold mt-2">Sorteo automático</p><p class="text-sm text-ink-muted mt-1">El día 20 a las 20:00 sale un ganador al azar en cada provincia. Sin votos ni trampas.</p></li>
             <li class="card-flat p-4"><p class="font-display text-4xl text-primary-500 leading-none">03</p><p class="font-bold mt-2">¡Quedamos!</p><p class="text-sm text-ink-muted mt-1">Lo promocionamos en la portada de tu provincia. Apúntate, comenta y ve a conocer gente de la escena.</p></li>
           </ol>
         </section>
@@ -129,8 +129,8 @@ import { dateParts } from '../../core/utils/date';
           <summary class="font-display uppercase text-2xl cursor-pointer">Bases del sorteo</summary>
           <ol class="list-decimal pl-5 mt-4 text-sm leading-relaxed flex flex-col gap-2">
             <li>Participar es gratis. Puede inscribirse cualquier cuenta de BandYou que haya publicado un bolo en la Agenda.</li>
-            <li>Cada cuenta puede inscribir un bolo por sorteo. El bolo debe celebrarse en la provincia indicada y entre el día 10 y el último día del mes del sorteo.</li>
-            <li>Las inscripciones cierran el día 10 de cada mes a las 20:00 (hora peninsular). Hasta entonces puedes retirar tu inscripción.</li>
+            <li>Cada mes tiene su propio sorteo. Cada cuenta puede inscribir un bolo por sorteo, que debe celebrarse en la provincia indicada y dentro de ese mes.</li>
+            <li>Las inscripciones de cada mes cierran el día 20 del mes anterior a las 20:00 (hora peninsular). Hasta entonces puedes retirar tu inscripción.</li>
             <li>El sorteo es automático y aleatorio entre los bolos inscritos de cada provincia. Si solo hay uno, gana ese.</li>
             <li>El premio es promocional: el bolo se muestra destacado en la portada de su provincia y en esta página hasta el día del concierto. No incluye dinero ni otros premios, salvo que se anuncie lo contrario.</li>
             <li>El concierto lo organiza la banda o la sala, no BandYou. Quienes se apuntan van por su cuenta.</li>
@@ -156,6 +156,7 @@ export class QuedadaPageComponent {
   readonly myEntry = signal<{ id: string; event_id: string } | null>(null);
   readonly busy = signal(false);
   readonly month = computed(() => monthName(openCycle(this.svc.now())));
+  readonly drawText = computed(() => drawLabel(openCycle(this.svc.now())));
   readonly range = computed(() => eligibleDates(openCycle(this.svc.now())).map(d => {
     const p = dateParts(d);
     return p ? `${p.day} ${p.month}` : d;
@@ -199,7 +200,7 @@ export class QuedadaPageComponent {
     const error = await this.svc.signUp(e.id);
     this.busy.set(false);
     if (error) { this.toast.error(error); return; }
-    this.toast.success('¡Bolo inscrito! El sorteo es el día 10 a las 20:00.');
+    this.toast.success(`¡Bolo inscrito! El sorteo es el ${this.drawText()} a las 20:00.`);
     if (e.city && e.city !== this.province()) this.province.set(e.city);
     await this.loadMine();
     this.refreshStatus();

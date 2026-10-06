@@ -2,12 +2,12 @@
 -- La quedada de BandYou (2026-10). Idempotente. Solo AÑADE cosas nuevas: no
 -- modifica ni borra nada de lo que ya existe.
 --
--- Cada mes, en cada provincia:
---   · Inscripción: una cuenta inscribe UNO de sus bolos de la Agenda (como mucho
---     uno por mes). Se cierra el día 10 a las 20:00 (hora de Madrid).
---   · Bolos válidos: en esa provincia y con fecha entre el día 10 y el último
---     día de ese mes.
---   · Sorteo automático: pasado el día 10 a las 20:00, la base de datos elige un
+-- Cada mes tiene su sorteo, en cada provincia (ej.: el sorteo de NOVIEMBRE):
+--   · Bolos válidos: de esa provincia y con fecha en noviembre (del 1 al 30).
+--   · Inscripción: una cuenta inscribe UNO de sus bolos de la Agenda. Se cierra
+--     el 20 de OCTUBRE a las 20:00 (hora de Madrid); justo entonces se abre la
+--     de diciembre.
+--   · Sorteo automático: el 20 de octubre a las 20:00 la base de datos elige un
 --     ganador al azar entre los inscritos de cada provincia. Lo dispara la propia
 --     web (la primera visita después de la hora) y, si pg_cron está activado,
 --     también una tarea cada 15 minutos. Es idempotente: nunca hay dos ganadores.
@@ -25,20 +25,21 @@ ALTER TABLE notifications ADD CONSTRAINT notifications_type_check
   CHECK (type IN ('message', 'application', 'rsvp', 'review', 'system', 'favorite', 'event_reminder', 'booking', 'quedada')) NOT VALID;
 
 -- ── Fechas del ciclo ───────────────────────────────────────────────────────
--- p_cycle = primer día del mes. Sorteo: día 10 a las 20:00 en Madrid.
+-- p_cycle = primer día del mes del sorteo. Se sortea el día 20 del mes ANTERIOR
+-- a las 20:00 en Madrid.
 CREATE OR REPLACE FUNCTION quedada_draw_at(p_cycle date)
 RETURNS timestamptz LANGUAGE sql STABLE AS $$
-  SELECT ((date_trunc('month', p_cycle)::date + 9) + time '20:00') AT TIME ZONE 'Europe/Madrid'
+  SELECT (((date_trunc('month', p_cycle) - interval '1 month')::date + 19) + time '20:00') AT TIME ZONE 'Europe/Madrid'
 $$;
 
--- Ciclo al que se apunta quien se inscribe AHORA: el de este mes hasta su
--- sorteo, el del mes siguiente después.
+-- Ciclo al que se apunta quien se inscribe AHORA: el del mes que viene hasta
+-- su sorteo (día 20), el del siguiente después.
 CREATE OR REPLACE FUNCTION quedada_open_cycle()
 RETURNS date LANGUAGE sql STABLE AS $$
   SELECT CASE
-    WHEN now() < quedada_draw_at(date_trunc('month', now() AT TIME ZONE 'Europe/Madrid')::date)
-      THEN date_trunc('month', now() AT TIME ZONE 'Europe/Madrid')::date
-    ELSE (date_trunc('month', now() AT TIME ZONE 'Europe/Madrid') + interval '1 month')::date
+    WHEN now() < quedada_draw_at((date_trunc('month', now() AT TIME ZONE 'Europe/Madrid') + interval '1 month')::date)
+      THEN (date_trunc('month', now() AT TIME ZONE 'Europe/Madrid') + interval '1 month')::date
+    ELSE (date_trunc('month', now() AT TIME ZONE 'Europe/Madrid') + interval '2 months')::date
   END
 $$;
 
@@ -75,8 +76,8 @@ BEGIN
   NEW.user_id  := auth.uid();
   NEW.cycle    := quedada_open_cycle();
   NEW.province := ev.city;
-  IF ev.day < NEW.cycle + 9 OR ev.day >= (NEW.cycle + interval '1 month')::date THEN
-    RAISE EXCEPTION 'El bolo tiene que ser entre el día 10 y el final del mes del sorteo.' USING ERRCODE = 'P0001', HINT = 'quedada';
+  IF ev.day < NEW.cycle OR ev.day >= (NEW.cycle + interval '1 month')::date THEN
+    RAISE EXCEPTION 'El bolo tiene que ser del mismo mes del sorteo.' USING ERRCODE = 'P0001', HINT = 'quedada';
   END IF;
   RETURN NEW;
 END;
@@ -142,7 +143,7 @@ BEGIN
     JOIN events ev ON ev.id = e.event_id
     WHERE e.cycle = r.cycle AND e.province = r.province
       AND ev.city = r.province
-      AND ev.date::date >= r.cycle + 9
+      AND ev.date::date >= r.cycle
       AND ev.date::date < (r.cycle + interval '1 month')::date
     ORDER BY random()
     LIMIT 1;
