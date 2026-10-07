@@ -9,11 +9,9 @@ import { LEGAL_INFO } from '../../../features/legal/legal-info';
   selector: 'app-report-link',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p class="flex justify-center pt-10 pb-4">
-      <a [href]="href()" class="inline-flex items-center min-h-[44px] px-2 font-mono text-[10px] uppercase tracking-wide text-ink-muted hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
-        Denunciar {{ what() }}
-      </a>
-    </p>
+    <a [href]="href()" class="inline-flex items-center min-h-[44px] font-mono text-[10px] uppercase tracking-wide text-ink-muted hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+      Denunciar {{ what() }}
+    </a>
   `,
 })
 export class ReportLinkComponent {
