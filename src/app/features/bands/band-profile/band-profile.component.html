@@ -110,7 +110,6 @@
           </button>
         </div>
       </div>
-      @if (!isOwner()) { <div class="mt-4"><app-report-link what="este perfil"/></div> }
       </aside>
 
       <!-- Info column -->
@@ -377,6 +376,7 @@
         }
       </div>
     </div>
+    @if (!isOwner()) { <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10"><app-report-link what="este perfil"/></div> }
   }
 
   <!-- ── APPLY MODAL OVERLAY ── -->
