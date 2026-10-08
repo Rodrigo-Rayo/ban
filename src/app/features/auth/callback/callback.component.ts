@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { needsOnboarding } from '../../../core/utils/profile-check';
+import { readEmailLink } from './email-link';
 
 @Component({
   selector: 'app-callback',
@@ -41,6 +42,22 @@ export class CallbackComponent implements OnInit {
       this.router.navigate(['/auth/login'], {
         queryParams: { error: hash.get('error_description') || hashError },
       });
+      return;
+    }
+
+    // Our own email templates link to bandyou.es with a token_hash (better for spam
+    // filters than a link to the Supabase domain): verify it here.
+    const emailLink = readEmailLink(window.location.search);
+    if (emailLink) {
+      const { data, error } = await this.supabase.auth.verifyOtp({ token_hash: emailLink.tokenHash, type: emailLink.type });
+      if (error || !data.session) {
+        this.router.navigate(['/auth/login'], {
+          queryParams: { error: 'El enlace ha caducado o ya se usó. Pide uno nuevo.' },
+        });
+        return;
+      }
+      if (emailLink.type === 'recovery') this.router.navigate(['/auth/reset-password']);
+      else await this.redirect(data.session.user.id);
       return;
     }
 
