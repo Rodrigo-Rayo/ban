@@ -17,12 +17,14 @@ import { Venue, Review } from '../../../core/models';
 import { ListPipe } from '../../../shared/pipes/list.pipe';
 import { ProfileGateService } from '../../../core/services/profile-gate.service';
 import { posterNameSize } from '../../../core/utils/poster-name';
+import { StoryButtonComponent } from '../../../shared/components/story-button/story-button.component';
+import { ShareCard, slugFile } from '../../../core/utils/share-card';
 
 const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, capacity, genres, instagram_url, website_url';
 
 @Component({
     selector: 'app-venue-profile',
-    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
+    imports: [StoryButtonComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
     templateUrl: './venue-profile.component.html'
 })
 export class VenueProfileComponent implements OnInit {
@@ -56,6 +58,22 @@ export class VenueProfileComponent implements OnInit {
   sending = signal(false);
   msgError = signal<string | null>(null);
   linkShared = signal(false);
+
+  /** Story image of this profile ("Tu cartel para historias"). */
+  readonly storyCard = computed((): ShareCard | null => {
+    const p = this.venue();
+    if (!p) return null;
+    return {
+      kicker: ['Sala de conciertos', p.city].filter(Boolean).join(' · '),
+      title: p.name,
+      lines: [p.genres ?? ''],
+    };
+  });
+  readonly storyFile = computed(() => slugFile(this.venue()?.name ?? 'bandyou'));
+  readonly storyUrl = computed(() => {
+    const id = this.venue()?.id;
+    return id ? `https://www.bandyou.es/venues/${id}` : 'https://www.bandyou.es';
+  });
 
   readonly posterLine = computed(() => this.venue()?.city ?? '');
   readonly avgRating = computed(() => {

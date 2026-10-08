@@ -102,6 +102,8 @@
           </button>
         }
       }
+      <app-story-button class="block mt-4" [card]="storyCard()" [filename]="storyFile()" [url]="storyUrl()"
+        [label]="isOwner() ? 'Tu cartel para historias' : 'Imagen para historias'"/>
       <!-- One action bar: fixed single row above the bottom nav on mobile, plain block from sm up -->
       <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink px-3 py-2 sm:static sm:z-auto sm:bg-transparent sm:border-0 sm:p-0 sm:mt-5">
         @if (msgError()) {

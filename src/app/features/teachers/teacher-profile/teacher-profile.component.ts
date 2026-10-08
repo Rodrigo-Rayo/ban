@@ -18,12 +18,14 @@ import { formatLongDate, localToday } from '../../../core/utils/date';
 import { LESSON_REQUEST_TITLE, lessonRequestBody } from '../../../core/utils/notification-copy';
 import { ProfileGateService } from '../../../core/services/profile-gate.service';
 import { posterNameSize } from '../../../core/utils/poster-name';
+import { StoryButtonComponent } from '../../../shared/components/story-button/story-button.component';
+import { ShareCard, slugFile } from '../../../core/utils/share-card';
 
 const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avatar_url, hourly_rate, experience_years, level, modality, website_url, youtube_url';
 
 @Component({
     selector: 'app-teacher-profile',
-    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, ProfileContactComponent],
+    imports: [StoryButtonComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, ProfileContactComponent],
     templateUrl: './teacher-profile.component.html'
 })
 export class TeacherProfileComponent implements OnInit {
@@ -68,6 +70,22 @@ export class TeacherProfileComponent implements OnInit {
   bookingLoading = signal(false);
   bookingSuccess = signal(false);
   linkShared = signal(false);
+
+  /** Story image of this profile ("Tu cartel para historias"). */
+  readonly storyCard = computed((): ShareCard | null => {
+    const p = this.teacher();
+    if (!p) return null;
+    return {
+      kicker: ['Clases de música', p.city].filter(Boolean).join(' · '),
+      title: p.name,
+      lines: [p.instrument],
+    };
+  });
+  readonly storyFile = computed(() => slugFile(this.teacher()?.name ?? 'bandyou'));
+  readonly storyUrl = computed(() => {
+    const id = this.teacher()?.id;
+    return id ? `https://www.bandyou.es/teachers/${id}` : 'https://www.bandyou.es';
+  });
 
   readonly posterLine = computed(() => ['Clases', this.teacher()?.instrument, this.teacher()?.city].filter(Boolean).join(' · '));
   readonly avgRating = computed(() => {

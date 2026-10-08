@@ -16,12 +16,14 @@ import { avatarColor } from '../../../core/utils/display.utils';
 import { RehearsalSpace, Review } from '../../../core/models';
 import { ProfileGateService } from '../../../core/services/profile-gate.service';
 import { posterNameSize } from '../../../core/utils/poster-name';
+import { StoryButtonComponent } from '../../../shared/components/story-button/story-button.component';
+import { ShareCard, slugFile } from '../../../core/utils/share-card';
 
 const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, hourly_rate, capacity, opening_hours, instagram_url, website_url';
 
 @Component({
     selector: 'app-rehearsal-profile',
-    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
+    imports: [StoryButtonComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
     templateUrl: './rehearsal-profile.component.html'
 })
 export class RehearsalProfileComponent implements OnInit {
@@ -56,6 +58,22 @@ export class RehearsalProfileComponent implements OnInit {
   reviewError = signal<string | null>(null);
   myReview = signal<Review | null>(null);
   linkShared = signal(false);
+
+  /** Story image of this profile ("Tu cartel para historias"). */
+  readonly storyCard = computed((): ShareCard | null => {
+    const p = this.space();
+    if (!p) return null;
+    return {
+      kicker: ['Local de ensayo', p.city].filter(Boolean).join(' · '),
+      title: p.name,
+      lines: [],
+    };
+  });
+  readonly storyFile = computed(() => slugFile(this.space()?.name ?? 'bandyou'));
+  readonly storyUrl = computed(() => {
+    const id = this.space()?.id;
+    return id ? `https://www.bandyou.es/rehearsal/${id}` : 'https://www.bandyou.es';
+  });
 
   readonly posterLine = computed(() => this.space()?.city ?? '');
   readonly avgRating = computed(() => {

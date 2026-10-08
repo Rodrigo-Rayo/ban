@@ -98,6 +98,8 @@
           Reservar en su web<svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M8 7h9v9"/></svg><span class="sr-only"> (se abre en una pestaña nueva)</span>
         </a>
       }
+      <app-story-button class="block mt-4" [card]="storyCard()" [filename]="storyFile()" [url]="storyUrl()"
+        [label]="isOwner() ? 'Tu cartel para historias' : 'Imagen para historias'"/>
       <!-- One action bar: fixed single row above the bottom nav on mobile, plain block from sm up -->
       <div class="fixed bottom-above-nav left-0 right-0 z-30 bg-dark-900 border-t-2 border-ink px-3 py-2 sm:static sm:z-auto sm:bg-transparent sm:border-0 sm:p-0 sm:mt-5">
         @if (msgError()) {

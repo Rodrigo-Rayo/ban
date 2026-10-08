@@ -26,6 +26,8 @@ import { environment } from '../../../../environments/environment';
 import { posterNameSize } from '../../../core/utils/poster-name';
 import { ListenPlayerComponent } from '../../../shared/components/listen-player/listen-player.component';
 import { firstEmbed } from '../../../core/utils/media-embed';
+import { StoryButtonComponent } from '../../../shared/components/story-button/story-button.component';
+import { ShareCard, slugFile } from '../../../core/utils/share-card';
 
 interface VacancyApplication {
   id: string;
@@ -46,7 +48,7 @@ const MAX_MEMBERS = 50;
 
 @Component({
     selector: 'app-band-profile',
-    imports: [ListenPlayerComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, ProfileContactComponent],
+    imports: [StoryButtonComponent, ListenPlayerComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, ProfileContactComponent],
     templateUrl: './band-profile.component.html'
 })
 export class BandProfileComponent implements OnInit {
@@ -193,6 +195,24 @@ export class BandProfileComponent implements OnInit {
   readonly rehearsalSlots = computed(() => parseList(this.band()?.rehearsal_slots));
   readonly openToGigs = computed(() => !!this.band()?.open_to_gigs);
   readonly hasAvailability = computed(() => this.openToGigs() || !!this.rehearsalDaysText() || this.rehearsalSlots().length > 0);
+
+  /** Story image of this profile ("Tu cartel para historias"). */
+  readonly storyCard = computed((): ShareCard | null => {
+    const p = this.band();
+    if (!p) return null;
+    const open = this.openVacancies();
+    return {
+      kicker: ['Banda', p.city].filter(Boolean).join(' · '),
+      stamp: open.length === 1 ? `Busca ${open[0].instrument.toLowerCase()}` : open.length > 1 ? 'Busca músicos' : undefined,
+      title: p.name,
+      lines: [p.genre, this.members().length > 1 ? `${this.members().length} miembros` : ''],
+    };
+  });
+  readonly storyFile = computed(() => slugFile(this.band()?.name ?? 'bandyou'));
+  readonly storyUrl = computed(() => {
+    const id = this.band()?.id;
+    return id ? `https://www.bandyou.es/bands/${id}` : 'https://www.bandyou.es';
+  });
 
   readonly posterLine = computed(() => [this.band()?.genre, this.band()?.city].filter(Boolean).join(' · '));
   /** "Tu mejor tema" can be added (its column exists). */

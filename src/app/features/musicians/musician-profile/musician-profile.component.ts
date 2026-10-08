@@ -20,6 +20,8 @@ import { MediaFeaturesService } from '../../../core/services/media-features.serv
 import { posterNameSize } from '../../../core/utils/poster-name';
 import { ListenPlayerComponent } from '../../../shared/components/listen-player/listen-player.component';
 import { firstEmbed } from '../../../core/utils/media-embed';
+import { StoryButtonComponent } from '../../../shared/components/story-button/story-button.component';
+import { ShareCard, slugFile } from '../../../core/utils/share-card';
 
 /** Columns rendered by the profile page (avoid select('*')). */
 const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
@@ -27,7 +29,7 @@ const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, descriptio
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-musician-profile',
-    imports: [ListenPlayerComponent, ReportLinkComponent, RouterLink, IconComponent, AvatarUploadComponent, ProfileContactComponent],
+    imports: [StoryButtonComponent, ListenPlayerComponent, ReportLinkComponent, RouterLink, IconComponent, AvatarUploadComponent, ProfileContactComponent],
     templateUrl: './musician-profile.component.html'
 })
 export class MusicianProfileComponent implements OnInit {
@@ -52,6 +54,22 @@ export class MusicianProfileComponent implements OnInit {
   availabilitySlots = computed(() => parseList(this.musician()?.availability_slots));
   /** "Lunes y jueves": only the listed weekdays, in week order, as plain text. */
   availableDaysText = computed(() => joinWeekdays(this.availabilityDays()));
+  /** Story image of this profile ("Tu cartel para historias"). */
+  readonly storyCard = computed((): ShareCard | null => {
+    const p = this.musician();
+    if (!p) return null;
+    return {
+      kicker: ['Músico', p.city].filter(Boolean).join(' · '),
+      title: p.name,
+      lines: [p.instrument, p.genre],
+    };
+  });
+  readonly storyFile = computed(() => slugFile(this.musician()?.name ?? 'bandyou'));
+  readonly storyUrl = computed(() => {
+    const id = this.musician()?.id;
+    return id ? `https://www.bandyou.es/musicians/${id}` : 'https://www.bandyou.es';
+  });
+
   posterLine = computed(() => [this.musician()?.instrument, this.musician()?.city].filter(Boolean).join(' · '));
   /** "Tu mejor tema" can be added (its column exists). */
   readonly canAddDemo = this.features.state('demoUrl');
