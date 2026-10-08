@@ -15,6 +15,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { avatarColor } from '../../../core/utils/display.utils';
 import { RehearsalSpace, Review } from '../../../core/models';
 import { ProfileGateService } from '../../../core/services/profile-gate.service';
+import { posterNameSize } from '../../../core/utils/poster-name';
 
 const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, hourly_rate, capacity, opening_hours, instagram_url, website_url';
 
@@ -24,6 +25,8 @@ const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar
     templateUrl: './rehearsal-profile.component.html'
 })
 export class RehearsalProfileComponent implements OnInit {
+  /** Long names get smaller type so they do not cover the photo. */
+  readonly posterNameSize = posterNameSize;
   readonly avatarColor = avatarColor;
 
   private route = inject(ActivatedRoute);

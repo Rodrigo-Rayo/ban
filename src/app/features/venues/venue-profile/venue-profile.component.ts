@@ -16,6 +16,7 @@ import { avatarColor } from '../../../core/utils/display.utils';
 import { Venue, Review } from '../../../core/models';
 import { ListPipe } from '../../../shared/pipes/list.pipe';
 import { ProfileGateService } from '../../../core/services/profile-gate.service';
+import { posterNameSize } from '../../../core/utils/poster-name';
 
 const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url, capacity, genres, instagram_url, website_url';
 
@@ -25,6 +26,8 @@ const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url
     templateUrl: './venue-profile.component.html'
 })
 export class VenueProfileComponent implements OnInit {
+  /** Long names get smaller type so they do not cover the photo. */
+  readonly posterNameSize = posterNameSize;
   readonly avatarColor = avatarColor;
 
   private route = inject(ActivatedRoute);

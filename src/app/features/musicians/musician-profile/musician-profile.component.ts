@@ -17,6 +17,7 @@ import { joinWeekdays } from '../../../core/utils/weekdays';
 export { joinWeekdays };
 import { Musician } from '../../../core/models';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
+import { posterNameSize } from '../../../core/utils/poster-name';
 
 /** Columns rendered by the profile page (avoid select('*')). */
 const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
@@ -28,6 +29,8 @@ const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, descriptio
     templateUrl: './musician-profile.component.html'
 })
 export class MusicianProfileComponent implements OnInit {
+  /** Long names get smaller type so they do not cover the photo. */
+  readonly posterNameSize = posterNameSize;
   readonly avatarColor = avatarColor;
 
   private route = inject(ActivatedRoute);

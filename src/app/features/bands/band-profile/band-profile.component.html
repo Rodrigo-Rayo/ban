@@ -54,7 +54,7 @@
           } @else if (band()!.looking_for) {
           <span class="absolute right-0 top-3 max-w-[75%] bg-poster-yellow text-ink border-2 border-r-0 border-ink font-mono text-xs font-bold uppercase tracking-wide px-3 py-1.5">Busca {{ band()!.looking_for }}</span>
           }
-          <div class="absolute inset-x-3 bottom-3"><h1 class="w-fit max-w-full bg-ink px-3 py-1.5 font-display text-[clamp(2.25rem,11vw,4.75rem)] sm:text-7xl lg:text-5xl leading-[1.1] text-poster-paper [overflow-wrap:break-word] hyphens-auto [hyphenate-limit-chars:8_4_4]">{{ band()!.name }}</h1></div>
+          <div class="absolute inset-x-3 bottom-3"><h1 [class]="posterNameSize(band()!.name)" class="w-fit max-w-full bg-ink px-3 py-1.5 font-display leading-[1.1] text-poster-paper [overflow-wrap:break-word] hyphens-auto [hyphenate-limit-chars:8_4_4]">{{ band()!.name }}</h1></div>
         </div>
         @if (posterLine()) {
           <p class="bg-primary-500 text-white border-2 border-t-0 border-ink px-3 py-2 font-display uppercase text-xl sm:text-2xl leading-tight [overflow-wrap:anywhere]">{{ posterLine() }}</p>

@@ -23,6 +23,7 @@ import {
 } from './application-notice';
 import { Band, BandVacancy, BandMember } from '../../../core/models';
 import { environment } from '../../../../environments/environment';
+import { posterNameSize } from '../../../core/utils/poster-name';
 
 interface VacancyApplication {
   id: string;
@@ -47,6 +48,8 @@ const MAX_MEMBERS = 50;
     templateUrl: './band-profile.component.html'
 })
 export class BandProfileComponent implements OnInit {
+  /** Long names get smaller type so they do not cover the photo. */
+  readonly posterNameSize = posterNameSize;
   readonly avatarColor = avatarColor;
 
   private route = inject(ActivatedRoute);

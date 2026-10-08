@@ -17,6 +17,7 @@ import { Teacher, Review } from '../../../core/models';
 import { formatLongDate, localToday } from '../../../core/utils/date';
 import { LESSON_REQUEST_TITLE, lessonRequestBody } from '../../../core/utils/notification-copy';
 import { ProfileGateService } from '../../../core/services/profile-gate.service';
+import { posterNameSize } from '../../../core/utils/poster-name';
 
 const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avatar_url, hourly_rate, experience_years, level, modality, website_url, youtube_url';
 
@@ -26,6 +27,8 @@ const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avata
     templateUrl: './teacher-profile.component.html'
 })
 export class TeacherProfileComponent implements OnInit {
+  /** Long names get smaller type so they do not cover the photo. */
+  readonly posterNameSize = posterNameSize;
   readonly avatarColor = avatarColor;
 
   private route = inject(ActivatedRoute);
