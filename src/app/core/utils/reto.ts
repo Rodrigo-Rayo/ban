@@ -18,29 +18,14 @@ export interface ChallengeEntry {
   author_name: string | null;
   author_profile_type: string | null;
   author_profile_id: string | null;
-  votes: number;
   created_at: string;
 }
 
-/** entries: you can still take part (and vote) · voting: only votes · closed: there is a winner. */
-export type ChallengePhase = 'entries' | 'voting' | 'closed';
+/** entries: you can still take part · closed: the reto is over (entries stay on show). */
+export type ChallengePhase = 'entries' | 'closed';
 
-export function challengePhase(c: Pick<Challenge, 'entries_until' | 'votes_until'>, now: Date = new Date()): ChallengePhase {
-  const t = now.getTime();
-  if (t < Date.parse(c.entries_until)) return 'entries';
-  if (t < Date.parse(c.votes_until)) return 'voting';
-  return 'closed';
-}
-
-/** Most votes first; on a tie, whoever entered first. */
-export function rankEntries(entries: readonly ChallengeEntry[]): ChallengeEntry[] {
-  return [...entries].sort((a, b) => b.votes - a.votes || a.created_at.localeCompare(b.created_at));
-}
-
-/** The winner once voting has closed (needs at least one vote). */
-export function challengeWinner(entries: readonly ChallengeEntry[]): ChallengeEntry | null {
-  const top = rankEntries(entries)[0];
-  return top && top.votes > 0 ? top : null;
+export function challengePhase(c: Pick<Challenge, 'entries_until'>, now: Date = new Date()): ChallengePhase {
+  return now.getTime() < Date.parse(c.entries_until) ? 'entries' : 'closed';
 }
 
 /** "Quedan 3 días", "Quedan 5 horas", "Quedan unos minutos"; '' once past. */

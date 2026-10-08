@@ -22,7 +22,7 @@
     } @else if (!challenge()) {
       <div class="empty-state">
         <p class="font-display text-2xl uppercase text-ink">Pronto, el primer reto</p>
-        <p class="text-sm text-ink-muted mb-3 max-w-[300px]">Cada mes, un tema: subes tu versión, la gente vota y el ganador sale en la portada.</p>
+        <p class="text-sm text-ink-muted mb-3 max-w-[300px]">Cada mes, un tema: subes tu versión y descubres la de otros músicos y bandas.</p>
         <a routerLink="/feed" class="btn-secondary text-sm min-h-[44px]">Ir a Se busca</a>
       </div>
     } @else {
@@ -36,25 +36,19 @@
             <a [href]="challenge()!.reference_url" target="_blank" rel="noopener noreferrer" class="btn-ghost min-h-[44px] w-fit">Escuchar la base ↗</a>
           }
 
-          @if (winner(); as w) {
-            <section aria-label="Ganador" class="border-2 border-ink bg-poster-yellow px-4 py-3">
-              <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink">Ganador</p>
-              <p class="font-display text-3xl uppercase leading-none text-ink [overflow-wrap:anywhere] mt-1">{{ w.author_name || 'Sin nombre' }}</p>
-              <p class="text-sm text-ink mt-1">{{ w.votes }} {{ w.votes === 1 ? 'voto' : 'votos' }}</p>
-            </section>
-          }
+          <p class="text-sm text-ink-muted">Las que más nos gusten las compartiremos en el Instagram de BandYou.</p>
 
           @if (phase() === 'entries') {
             <section aria-labelledby="enter-title" class="border-2 border-ink px-4 py-4 bg-dark-800">
               <h2 id="enter-title" class="font-display text-2xl uppercase leading-tight">Participa</h2>
               @if (!userId()) {
-                <p class="text-sm text-ink-muted mt-1 mb-3">Crea tu cuenta gratis para participar y votar.</p>
+                <p class="text-sm text-ink-muted mt-1 mb-3">Crea tu cuenta gratis para participar.</p>
                 <a routerLink="/auth/register" class="btn-primary min-h-[48px] w-full">Crear cuenta</a>
               } @else if (!hasProfile()) {
                 <p class="text-sm text-ink-muted mt-1 mb-3">Necesitas tu perfil para participar.</p>
                 <a routerLink="/onboarding" class="btn-primary min-h-[48px] w-full">Crear mi perfil</a>
               } @else if (myEntry(); as mine) {
-                <p class="text-sm text-ink mt-1">Ya participas. Comparte tu enlace para que te voten.</p>
+                <p class="text-sm text-ink mt-1">Ya participas. Comparte tu vídeo para que lo vea más gente.</p>
                 <button type="button" (click)="withdraw(mine)" [disabled]="busy()" class="btn-ghost min-h-[44px] mt-3 text-signal-red disabled:opacity-50">Retirar mi participación</button>
               } @else {
                 <p class="text-sm text-ink-muted mt-1 mb-3">Súbelo a tu Instagram, YouTube, TikTok o SoundCloud y pega aquí el enlace.</p>
@@ -83,15 +77,11 @@
           @if (entries().length === 0) {
             <p class="text-base text-ink-muted mt-4">Aún no hay nadie. Sé el primero y llévate todas las miradas.</p>
           } @else {
-            @if (phase() !== 'closed' && userId()) {
-              <p class="text-sm text-ink-muted mt-2">Tienes un voto. Puedes cambiarlo hasta que cierre la votación.</p>
-            }
-            <ol class="flex flex-col mt-2">
-              @for (e of ranked(); track e.id; let i = $index) {
+            <ul class="flex flex-col mt-2">
+              @for (e of entries(); track e.id) {
                 <li class="border-b border-ink/15 py-4 flex flex-col gap-3">
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">#{{ i + 1 }} · {{ e.votes }} {{ e.votes === 1 ? 'voto' : 'votos' }}</p>
                       @if (profileRoute(e); as route) {
                         <a [routerLink]="route" class="font-display text-2xl uppercase leading-tight text-ink hover:text-primary-600 [overflow-wrap:anywhere]">{{ e.author_name || 'Sin nombre' }}</a>
                       } @else {
@@ -99,14 +89,7 @@
                       }
                       @if (e.caption) { <p class="text-[15px] text-ink mt-1 [overflow-wrap:anywhere]">{{ e.caption }}</p> }
                     </div>
-                    @if (phase() !== 'closed' && e.user_id !== userId()) {
-                      <button type="button" (click)="toggleVote(e)" [disabled]="busy()"
-                        [attr.aria-label]="(myVote() === e.id ? 'Quitar mi voto a ' : 'Votar a ') + (e.author_name || 'este participante')"
-                        class="min-h-[44px] px-4 flex-shrink-0 disabled:opacity-50"
-                        [class]="myVote() === e.id ? 'btn-night' : 'btn-secondary'">
-                        {{ myVote() === e.id ? 'Votado ✓' : 'Votar' }}
-                      </button>
-                    } @else if (e.user_id === userId()) {
+                    @if (e.user_id === userId()) {
                       <span class="tag flex-shrink-0">Tú</span>
                     }
                   </div>
@@ -117,7 +100,7 @@
                   }
                 </li>
               }
-            </ol>
+            </ul>
           }
         </section>
       </div>

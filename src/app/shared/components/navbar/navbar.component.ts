@@ -1,3 +1,4 @@
+import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { Component, inject, signal, computed, effect, untracked, OnInit, OnDestroy, DestroyRef, HostListener, ElementRef } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -42,6 +43,10 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   { label: 'Salas',    link: '/search', query: { tab: 'venues' } },
   { label: 'Tienda',   link: '/shop' },
 ];
+
+/** Shown after the other sections once the Reto del mes exists (supabase/2026_10_escena.sql). */
+const RETO_SECTION: NavSection = { label: 'Reto', link: '/reto' };
+const SECTIONS_WITH_RETO: readonly NavSection[] = [...NAV_SECTIONS, RETO_SECTION];
 
 /** Content to publish (first group of the sheet). */
 export const PUBLISH_CONTENT: readonly PublishOption[] = [
@@ -93,7 +98,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
   publishOpen = false;
   accountOpen = false;
-  readonly sections = NAV_SECTIONS;
+  private features = inject(MediaFeaturesService);
+  private readonly retoOn = this.features.state('reto');
+  private readonly retoProbe = this.features.has('reto');
+  get sections(): readonly NavSection[] { return this.retoOn() ? SECTIONS_WITH_RETO : NAV_SECTIONS; }
   /** Content group, plus the band vacancy when the user has a band profile. */
   readonly publishItems = computed<readonly PublishOption[]>(() => {
     const vacancy = bandVacancyOption(this.auth.userProfileType(), this.auth.userProfileData()?.id);

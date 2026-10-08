@@ -12,8 +12,8 @@
 --    las que compartir una fecha. Lleva fecha (obligatoria) y sala (posts.venue).
 -- 3. Reto del mes: challenges (los crea el dueño a mano, ver el final),
 --    challenge_entries (un enlace por cuenta y reto) y challenge_votes (un voto
---    por cuenta y reto, con perfil; se puede cambiar). Votar y retirar el voto
---    van por challenge_vote() / challenge_unvote().
+--    por cuenta y reto, con perfil; se puede cambiar). La web ya no usa los votos
+--    (se quitaron); las tablas y funciones quedan sin uso.
 --
 -- Solo añade cosas: no cambia ni borra nada de lo que hay. La web lo activa sola.
 -- Supabase → SQL Editor → pegar todo → Run.
@@ -374,7 +374,7 @@ INSERT INTO public.challenges (slug, title, brief, reference_url, entries_until,
 VALUES (
   '2026-11-clasico-espanol',
   'Tu versión de un clásico del rock español',
-  'Elige un clásico del rock o el pop español y hazlo tuyo: solo, con tu banda, en acústico o como quieras. Súbelo a tu YouTube, Instagram, TikTok o SoundCloud y pega aquí el enlace. Máximo un minuto y medio. Gana el que más votos tenga al cierre.',
+  'Elige un clásico del rock o el pop español y hazlo tuyo: solo, con tu banda, en acústico o como quieras. Súbelo a tu YouTube, Instagram, TikTok o SoundCloud y pega aquí el enlace. Máximo un minuto y medio. Las que más nos gusten las compartiremos en el Instagram de BandYou.',
   NULL,
   timestamp '2026-11-15 20:00' AT TIME ZONE 'Europe/Madrid',
   timestamp '2026-11-22 20:00' AT TIME ZONE 'Europe/Madrid'

@@ -8,7 +8,7 @@ import { SeoService } from '../../core/services/seo.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { mediaEmbed } from '../../core/utils/media-embed';
-import { Challenge, ChallengeEntry, challengePhase, challengeWinner, entryHost, isValidEntryUrl, rankEntries, timeLeft } from '../../core/utils/reto';
+import { Challenge, ChallengeEntry, challengePhase, entryHost, isValidEntryUrl, timeLeft } from '../../core/utils/reto';
 import { ListenPlayerComponent } from '../../shared/components/listen-player/listen-player.component';
 import { RetoService } from './reto.service';
 
@@ -19,8 +19,8 @@ export const MAX_CAPTION_LENGTH = 140;
 
 /**
  * Reto del mes: one theme a month. People post their take on their own Instagram,
- * YouTube, TikTok… and paste the link here; everyone votes (one vote each, not for
- * yourself) and the most voted wins when voting closes.
+ * YouTube, TikTok… and paste the link here; every take is on show, newest first.
+ * No votes: BandYou shares the best ones on its own channels.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,7 +44,6 @@ export class RetoPageComponent implements OnInit {
   readonly failed = signal(false);
   readonly challenge = signal<Challenge | null>(null);
   readonly entries = signal<ChallengeEntry[]>([]);
-  readonly myVote = signal<string | null>(null);
   readonly busy = signal(false);
   /** Read from Supabase on load (the auth signal may not be filled yet on a hard reload). */
   readonly userId = signal<string | null>(null);
@@ -55,19 +54,16 @@ export class RetoPageComponent implements OnInit {
   form = { url: '', caption: '' };
 
   readonly phase = computed(() => { const c = this.challenge(); return c ? challengePhase(c, this.now()) : null; });
-  readonly ranked = computed(() => rankEntries(this.entries()));
-  readonly winner = computed(() => (this.phase() === 'closed' ? challengeWinner(this.entries()) : null));
   readonly myEntry = computed(() => this.entries().find(e => e.user_id === this.userId()) ?? null);
   readonly deadline = computed(() => {
     const c = this.challenge();
     if (!c) return '';
     if (this.phase() === 'entries') return `Participa hasta el ${this.dateText(c.entries_until)} · ${timeLeft(c.entries_until, this.now())}`;
-    if (this.phase() === 'voting') return `Votación abierta hasta el ${this.dateText(c.votes_until)} · ${timeLeft(c.votes_until, this.now())}`;
-    return `Cerrado el ${this.dateText(c.votes_until)}`;
+    return `Cerrado el ${this.dateText(c.entries_until)}`;
   });
 
   async ngOnInit() {
-    this.seo.set({ title: 'Reto del mes', description: 'Cada mes, un reto musical en BandYou: sube tu versión, vota a los demás y gana un hueco en la portada.' });
+    this.seo.set({ title: 'Reto del mes', description: 'Cada mes, un reto musical en BandYou: sube tu versión y descubre la de otros músicos y bandas.' });
     const tick = setInterval(() => this.now.set(new Date()), 60000);
     this.destroyRef.onDestroy(() => clearInterval(tick));
     try {
@@ -85,13 +81,7 @@ export class RetoPageComponent implements OnInit {
   }
 
   private async refresh(challengeId: string) {
-    const uid = this.userId();
-    const [entries, vote] = await Promise.all([
-      this.reto.entries(challengeId),
-      uid ? this.reto.myVote(challengeId, uid) : Promise.resolve(null),
-    ]);
-    this.entries.set(entries);
-    this.myVote.set(vote);
+    this.entries.set(await this.reto.entries(challengeId));
   }
 
   urlOk(): boolean { return isValidEntryUrl(this.form.url); }
@@ -105,7 +95,7 @@ export class RetoPageComponent implements OnInit {
       // Name and profile link are filled in by the database from the account's own profile.
       await this.reto.enter(c.id, uid, { url: this.form.url.trim(), caption: this.form.caption.trim() || null });
       this.form = { url: '', caption: '' };
-      this.toast.success('¡Ya participas! Compártelo para que te voten.');
+      this.toast.success('¡Ya participas! Compártelo para que lo vea más gente.');
       await this.refresh(c.id);
     } catch {
       this.toast.error('No se pudo enviar. Revisa el enlace o inténtalo de nuevo.');
@@ -117,7 +107,7 @@ export class RetoPageComponent implements OnInit {
   async withdraw(e: ChallengeEntry) {
     const c = this.challenge(), uid = this.userId();
     if (!c || !uid) return;
-    const ok = await this.confirm.ask({ title: '¿Retirar tu participación?', message: 'Se perderán los votos que tengas.', confirmLabel: 'Retirar', danger: true });
+    const ok = await this.confirm.ask({ title: '¿Retirar tu participación?', message: 'Dejará de verse en el reto.', confirmLabel: 'Retirar', danger: true });
     if (!ok) return;
     this.busy.set(true);
     try {
@@ -125,28 +115,6 @@ export class RetoPageComponent implements OnInit {
       await this.refresh(c.id);
     } catch {
       this.toast.error('No se pudo retirar.');
-    } finally {
-      this.busy.set(false);
-    }
-  }
-
-  async toggleVote(e: ChallengeEntry) {
-    const c = this.challenge(), uid = this.userId();
-    if (!c) return;
-    if (!uid) { this.router.navigate(['/auth/login']); return; }
-    if (this.busy() || e.user_id === uid) return;
-    this.busy.set(true);
-    try {
-      if (this.myVote() === e.id) await this.reto.unvote(c.id);
-      else await this.reto.vote(e.id);
-      await this.refresh(c.id);
-    } catch (err) {
-      // A double tap can race the first vote (duplicate key): the first one already counted.
-      if ((err as { code?: string })?.code !== '23505') {
-        const e = err as { code?: string; message?: string };
-        this.toast.error(e?.code === 'P0001' && e.message ? e.message : 'No se pudo guardar tu voto.');
-      }
-      await this.refresh(c.id).catch(() => undefined);
     } finally {
       this.busy.set(false);
     }

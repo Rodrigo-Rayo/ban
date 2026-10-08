@@ -1,29 +1,11 @@
-import { ChallengeEntry, challengePhase, challengeWinner, entryHost, isValidEntryUrl, rankEntries, timeLeft } from './reto';
-
-const entry = (id: string, votes: number, created_at: string): ChallengeEntry => ({
-  id, challenge_id: 'c', user_id: 'u' + id, url: 'https://youtu.be/x', caption: null,
-  author_name: null, author_profile_type: null, author_profile_id: null, votes, created_at,
-});
+import { challengePhase, entryHost, isValidEntryUrl, timeLeft } from './reto';
 
 describe('reto', () => {
-  const c = { entries_until: '2026-11-15T19:00:00Z', votes_until: '2026-11-22T19:00:00Z' };
+  const c = { entries_until: '2026-11-15T19:00:00Z' };
 
-  it('moves from entries to voting to closed', () => {
+  it('is open until entries close', () => {
     expect(challengePhase(c, new Date('2026-11-01T00:00:00Z'))).toBe('entries');
-    expect(challengePhase(c, new Date('2026-11-15T19:00:00Z'))).toBe('voting');
-    expect(challengePhase(c, new Date('2026-11-22T19:00:01Z'))).toBe('closed');
-  });
-
-  it('ranks by votes, then by who entered first', () => {
-    const list = [entry('a', 2, '2026-11-02'), entry('b', 5, '2026-11-03'), entry('c', 5, '2026-11-01')];
-    expect(rankEntries(list).map(e => e.id)).toEqual(['c', 'b', 'a']);
-    expect(list.map(e => e.id)).toEqual(['a', 'b', 'c']); // not mutated
-  });
-
-  it('has no winner without votes', () => {
-    expect(challengeWinner([])).toBeNull();
-    expect(challengeWinner([entry('a', 0, '2026-11-01')])).toBeNull();
-    expect(challengeWinner([entry('a', 1, '2026-11-01')])?.id).toBe('a');
+    expect(challengePhase(c, new Date('2026-11-15T19:00:00Z'))).toBe('closed');
   });
 
   it('says how long is left', () => {

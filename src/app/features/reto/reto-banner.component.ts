@@ -33,9 +33,8 @@ export class RetoBannerComponent implements OnInit {
       const c = await this.reto.current();
       if (!c) return;
       const phase: ChallengePhase = challengePhase(c);
-      if (phase === 'closed') { this.status.set('Ya hay ganador'); this.cta.set('Ver quién ganó'); }
-      else if (phase === 'voting') { this.status.set(timeLeft(c.votes_until) || 'Votación abierta'); this.cta.set('Vota a tu favorito'); }
-      else { this.status.set(timeLeft(c.entries_until) || 'Abierto'); this.cta.set('Participa y vota'); }
+      if (phase === 'closed') { this.status.set('Cerrado'); this.cta.set('Ver las versiones'); }
+      else { this.status.set(timeLeft(c.entries_until) || 'Abierto'); this.cta.set('Participa'); }
       this.challenge.set(c);
     } catch { /* the home works without it */ }
   }
