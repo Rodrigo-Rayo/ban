@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>La Maqueta · laboratorio</title>
-<link rel="stylesheet" href="maqueta.css?v=3">
+<link rel="stylesheet" href="maqueta.css?v=5">
 </head>
 <body>
 <header class="top">
@@ -69,7 +69,8 @@
         <label class="check"><input type="radio" name="mode" value="speaker" checked> Sin cascos, solo el móvil</label>
         <label class="check"><input type="radio" name="mode" value="phones"> Con cascos (mejor calidad, mejor con cable)</label>
       </fieldset>
-      <p class="hint">Sonará 1 compás de cuenta atrás y la grabación se corta sola al final. Sin cascos, el móvil quita de tu grabación lo que suena por el altavoz.</p>
+      <p class="hint">Sonará 1 compás de cuenta atrás y la grabación se corta sola al final. Sin cascos, el metrónomo es visual (los cuadros) y al terminar se quita de tu grabación lo que sonaba por el altavoz.</p>
+      <div class="beats" id="beats" hidden aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       <button class="btn rec" id="rec" type="button">● Grabar mi parte</button>
       <p class="status big-status" id="rec-status"></p>
     </div>
@@ -96,6 +97,6 @@
   </section>
 </main>
 
-<script src="maqueta.js?v=3"></script>
+<script src="maqueta.js?v=5"></script>
 </body>
 </html>

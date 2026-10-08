@@ -369,55 +369,239 @@
   }
 
   // ── recording ───────────────────────────────────────────────────────────
+  // ── bleed removal (recording without headphones) ────────────────────────
+  /**
+   * The last bleedLag found the speaker clearly in the take. Measured: real bleed gives a
+   * peak 0.4–0.7 high standing out ×17–50; no bleed ~0.02–0.1 and ×1.1–3 by chance.
+   */
+  const bleedIsClear = () => bleedLag.score > 0.2 && bleedLag.prominence > 6;
+  /** In-place iterative radix-2 FFT (inverse when `inv`). */
+  function fft(re, im, inv) {
+    const n = re.length;
+    for (let i = 1, j = 0; i < n; i++) {
+      let bit = n >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+      const ang = (inv ? 2 : -2) * Math.PI / len;
+      const wr = Math.cos(ang), wi = Math.sin(ang);
+      for (let i = 0; i < n; i += len) {
+        let cr = 1, ci = 0;
+        for (let k = 0; k < len / 2; k++) {
+          const ar = re[i + k + len / 2], ai = im[i + k + len / 2];
+          const tr = ar * cr - ai * ci, ti = ar * ci + ai * cr;
+          re[i + k + len / 2] = re[i + k] - tr; im[i + k + len / 2] = im[i + k] - ti;
+          re[i + k] += tr; im[i + k] += ti;
+          const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr;
+        }
+      }
+    }
+    if (inv) for (let i = 0; i < n; i++) { re[i] /= n; im[i] /= n; }
+  }
+
+  /** Exactly what the speaker played during the take (same rate as the capture). */
+  async function renderReference(list, gain, length) {
+    const oc = new OfflineAudioContext(1, length, ctx.sampleRate);
+    const g = oc.createGain(); g.gain.value = gain; g.connect(oc.destination);
+    for (const t of list) { const s = oc.createBufferSource(); s.buffer = t.play; s.connect(g); s.start(0); }
+    return (await oc.startRendering()).getChannelData(0);
+  }
+
+  /**
+   * Removes from the microphone take what the speaker was playing. We know that signal
+   * exactly, so the speaker→mic path is estimated per frequency over the whole take
+   * (H = Σ M·X* / Σ |X|²: the player's own sound is unrelated to it and averages out)
+   * and the filtered reference is subtracted (STFT, √Hann analysis and synthesis, 75 % overlap: the windows add up to 2).
+   */
+  /**
+   * How much later the speaker sound shows up in the take (seconds, −0.1…+0.5 s).
+   * GCC-PHAT on a 1/4-rate copy: whitening makes the true delay a sharp peak even for
+   * tonal, beat-repeating music. Sets bleedLag.score (peak height) and .prominence
+   * (peak / best other peak) so callers can ignore an unclear answer.
+   */
+  function bleedLag(mic, ref) {
+    const sr = ctx ? ctx.sampleRate : 48000, D = 4;
+    const len = Math.min(Math.floor(Math.min(mic.length, ref.length) / D), Math.round(8 * sr / D));
+    let n = 1; while (n < 2 * len) n <<= 1;
+    const mr = new Float64Array(n), mi = new Float64Array(n), xr = new Float64Array(n), xi = new Float64Array(n);
+    for (let i = 0; i < len; i++) {
+      let a = 0, b = 0;
+      for (let k = 0; k < D; k++) { a += mic[i * D + k]; b += ref[i * D + k]; }
+      mr[i] = a; xr[i] = b;
+    }
+    fft(mr, mi, false); fft(xr, xi, false);
+    for (let k = 0; k < n; k++) {
+      const cr = mr[k] * xr[k] + mi[k] * xi[k], ci = mi[k] * xr[k] - mr[k] * xi[k];
+      const mag = Math.hypot(cr, ci) + 1e-12;
+      mr[k] = cr / mag; mi[k] = ci / mag;
+    }
+    fft(mr, mi, true);
+    const lo = -Math.round(0.1 * sr / D), hi = Math.round(0.5 * sr / D), guard = Math.round(0.003 * sr / D);
+    const val = l => mr[(l + n) % n];
+    let best = 0, bestV = -Infinity;
+    for (let l = lo; l <= hi; l++) { const v = val(l); if (v > bestV) { bestV = v; best = l; } }
+    let second = 1e-12;
+    for (let l = lo; l <= hi; l++) if (Math.abs(l - best) > guard) second = Math.max(second, val(l));
+    bleedLag.score = bestV;
+    bleedLag.prominence = bestV / second;
+    return best * D / sr;
+  }
+
+  async function removeBleed(mic, ref, onProgress) {
+    // Line the reference up with where it really landed in the take (calibration or not),
+    // so the per-frequency model only has to cover the room, not the device delay.
+    const sr = ctx ? ctx.sampleRate : 48000;
+    const lagS = Math.round(bleedLag(mic, ref) * sr);
+    // No clear trace of the speaker in the take: there is nothing to remove, and a model
+    // fitted to noise would only dull the player's sound.
+    if (!bleedIsClear()) return { data: mic, reducedDb: 0, lagMs: 0, skipped: true };
+    if (lagS) {
+      const moved = new Float32Array(ref.length);
+      for (let i = 0; i < ref.length; i++) { const j = i - lagS; moved[i] = j >= 0 && j < ref.length ? ref[j] : 0; }
+      ref = moved;
+    }
+    const N = 2048, HOP = 512, B = N / 2 + 1;
+    const SUPP = 0.5, SUPP_FLOOR = 0.2;
+    const win = new Float64Array(N);
+    for (let i = 0; i < N; i++) win[i] = Math.sqrt(0.5 - 0.5 * Math.cos(2 * Math.PI * i / N));
+    const frames = Math.max(1, Math.ceil((mic.length + N) / HOP));
+    const at = (a, i) => (i >= 0 && i < a.length ? a[i] : 0);
+    const mr = new Float64Array(N), mi = new Float64Array(N), xr = new Float64Array(N), xi = new Float64Array(N);
+    const load = (f) => {
+      const o = f * HOP - N;
+      for (let i = 0; i < N; i++) { mr[i] = at(mic, o + i) * win[i]; xr[i] = at(ref, o + i) * win[i]; mi[i] = 0; xi[i] = 0; }
+      fft(mr, mi, false); fft(xr, xi, false);
+    };
+    const sr_ = new Float64Array(B), si_ = new Float64Array(B), sxx = new Float64Array(B);
+    for (let f = 0; f < frames; f++) {
+      load(f);
+      for (let k = 0; k < B; k++) {
+        sr_[k] += mr[k] * xr[k] + mi[k] * xi[k];
+        si_[k] += mi[k] * xr[k] - mr[k] * xi[k];
+        sxx[k] += xr[k] * xr[k] + xi[k] * xi[k];
+      }
+      if (f % 64 === 0) { onProgress(f / frames / 2); await wait(0); }
+    }
+    let mean = 0; for (let k = 0; k < B; k++) mean += sxx[k]; mean /= B;
+    const hr = new Float64Array(B), hi = new Float64Array(B);
+    for (let k = 0; k < B; k++) { const d = sxx[k] + mean * 1e-3 + 1e-12; hr[k] = sr_[k] / d; hi[k] = si_[k] / d; }
+    const out = new Float32Array(mic.length);
+    let before = 0, after = 0;
+    for (let f = 0; f < frames; f++) {
+      load(f);
+      for (let k = 0; k < B; k++) {
+        const yr = hr[k] * xr[k] - hi[k] * xi[k], yi = hr[k] * xi[k] + hi[k] * xr[k];
+        let er = mr[k] - yr, ei = mi[k] - yi;
+        // What the linear model misses (speaker distortion) is turned down where the
+        // predicted bleed dominates the bin; the player's own sound is left alone.
+        const pe = er * er + ei * ei, py = yr * yr + yi * yi;
+        const g = Math.max(SUPP_FLOOR, 1 - SUPP * py / (pe + 1e-12));
+        er *= g; ei *= g;
+        mr[k] = er; mi[k] = ei;
+        if (k > 0 && k < B - 1) { mr[N - k] = er; mi[N - k] = -ei; }
+      }
+      fft(mr, mi, true);
+      const o = f * HOP - N;
+      for (let i = 0; i < N; i++) { const j = o + i; if (j >= 0 && j < out.length) out[j] += mr[i] * win[i] / 2; }
+      if (f % 64 === 0) { onProgress(0.5 + f / frames / 2); await wait(0); }
+    }
+    for (let i = 0; i < mic.length; i++) { before += mic[i] * mic[i]; after += out[i] * out[i]; }
+    return { data: out, reducedDb: 10 * Math.log10((before + 1e-12) / (after + 1e-12)), lagMs: Math.round(lagS / sr * 1000) };
+  }
+
+  // ── visual metronome ────────────────────────────────────────────────────
+  function beatsView(t0, loopStart, end) {
+    const cells = [...document.querySelectorAll('#beats span')];
+    $('beats').hidden = false;
+    let raf = 0;
+    const frame = () => {
+      const now = ctx.currentTime;
+      const from = now < loopStart ? t0 : loopStart;
+      const beat = Math.floor((now - from) / beatDur());
+      cells.forEach((c, i) => {
+        c.classList.toggle('on', now >= t0 && now < end && beat % 4 === i);
+        c.classList.toggle('count', now < loopStart);
+      });
+      if (now < end) raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    return () => { cancelAnimationFrame(raf); cells.forEach(c => c.classList.remove('on', 'count')); };
+  }
+
+  // ── recording ───────────────────────────────────────────────────────────
   async function record() {
     if (busy) return;
     busy = true;
     stopAll();
     const st = $('rec-status');
     const btn = $('rec');
+    let stopBeats = () => {};
     try {
-      const noPhones = document.querySelector('input[name="mode"]:checked')?.value !== 'phones';
-      await ensureCtx(); await ensureMic(noPhones);
+      const speaker = document.querySelector('input[name="mode"]:checked')?.value !== 'phones';
+      await ensureCtx(); await ensureMic(false);
       await ensureBase();
       const t0 = ctx.currentTime + 0.35;
       const loopStart = t0 + barDur();
       const end = loopStart + loopDur();
-      // count-in + metronome
+      // Count-in always; during the take the click only with headphones (through the
+      // speaker it would land in the recording: the squares on screen keep time instead).
       for (let b = 0; b < 4; b++) click(t0 + b * beatDur(), b === 0);
-      if ($('click-on').checked) {
+      if (!speaker && $('click-on').checked) {
         for (let b = 0; b < bars() * 4; b++) click(loopStart + b * beatDur(), b % 4 === 0, 0.18);
       }
-      // what is already there, once
-      for (const t of tracks.filter(x => !x.muted)) {
-        const s = ctx.createBufferSource(); s.buffer = t.play; s.connect(ctx.destination); s.start(loopStart);
+      const backing = tracks.filter(x => !x.muted);
+      const backingGain = speaker ? 0.6 : 1;
+      const bus = ctx.createGain(); bus.gain.value = backingGain; bus.connect(ctx.destination);
+      for (const t of backing) {
+        const s = ctx.createBufferSource(); s.buffer = t.play; s.connect(bus); s.start(loopStart);
         playing.push(s);
       }
       startCapture();
+      stopBeats = beatsView(t0, loopStart, end);
       btn.classList.add('on'); btn.disabled = true;
       const tick = setInterval(() => {
         const now = ctx.currentTime;
         if (now < loopStart) st.textContent = `Preparado… ${Math.ceil((loopStart - now) / beatDur())}`;
         else if (now < end) {
           const lvl = capture.level;
-          const bars = '▮'.repeat(Math.min(8, Math.ceil(lvl * 8))).padEnd(8, '▯');
-          st.textContent = `● Grabando · ${(end - now).toFixed(1)} s · ${bars}${lvl >= 0.99 ? ' ¡Demasiado alto!' : ''}`;
+          const meter = '▮'.repeat(Math.min(8, Math.ceil(lvl * 8))).padEnd(8, '▯');
+          st.textContent = `● Grabando · ${(end - now).toFixed(1)} s · ${meter}${lvl >= 0.99 ? ' ¡Demasiado alto!' : ''}`;
         }
       }, 80);
       await wait((end + 0.35 - ctx.currentTime) * 1000);
       clearInterval(tick);
+      stopBeats();
       const cap = stopCapture();
       playing = [];
       const offset = calib ? calib.s : 0;
-      const { data, coverage } = slice(cap, loopStart + offset, loopDur());
+      let { data, coverage } = slice(cap, loopStart + offset, loopDur());
+      const clipped = cap.clips / Math.max(1, data.length);
+      let cleaned = '';
+      if (speaker && backing.length) {
+        st.textContent = 'Quitando lo que sonaba por el altavoz… 0%';
+        const ref = await renderReference(backing, backingGain, data.length);
+        // The speaker sound in the take tells the device's real round trip: put the take in time
+        // with it (works without calibrating; also refines an old calibration).
+        const lag = bleedLag(data, ref);
+        const sure = bleedIsClear();
+        if (sure && Math.abs(lag) > 0.003) ({ data, coverage } = slice(cap, loopStart + offset + lag, loopDur()));
+        cleaned = sure
+          ? ` · puesto a tiempo solo: ${Math.round((offset + lag) * 1000)} ms (fiabilidad ${bleedLag.score.toFixed(2)}, destaca x${bleedLag.prominence.toFixed(1)})`
+          : ` · retraso no claro (fiabilidad ${bleedLag.score.toFixed(2)}, destaca x${bleedLag.prominence.toFixed(1)}): se usa la calibración`;
+        const r = await removeBleed(data, ref, p => { st.textContent = `Quitando lo que sonaba por el altavoz… ${Math.round(p * 100)}%`; });
+        data = r.data;
+        cleaned += r.skipped ? ' · no se coló el altavoz: grabación sin tocar' : ` · altavoz quitado ${r.reducedDb.toFixed(1)} dB`;
+      }
       let peak = 0;
       for (const x of data) peak = Math.max(peak, Math.abs(x));
       // Only a gentle lift for very quiet takes: boosting more brings up noise and harshness.
       const gain = peak > 0 && peak < 0.25 ? Math.min(2.5, 0.6 / peak) : 1;
-      const clipped = cap.clips / Math.max(1, data.length);
       const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
       const out = buf.getChannelData(0);
-      for (let i = 0; i < data.length; i++) out[i] = data[i] * gain;
-      diag.lastRec = `${noPhones ? 'sin cascos (cancelación de eco)' : 'con cascos'} · cobertura ${(coverage * 100).toFixed(1)}% · pico ${peak.toFixed(2)} · saturado ${(clipped * 100).toFixed(2)}% · ganancia x${gain.toFixed(1)} · bloques ${cap.chunks.length}` + (calib ? '' : ' · SIN CALIBRAR');
+      for (let i = 0; i < data.length; i++) out[i] = Math.max(-1, Math.min(1, data[i] * gain));
+      diag.lastRec = `${speaker ? 'sin cascos' : 'con cascos'}${cleaned} · cobertura ${(coverage * 100).toFixed(1)}% · pico ${peak.toFixed(2)} · saturado ${(clipped * 100).toFixed(2)}% · ganancia x${gain.toFixed(1)} · bloques ${cap.chunks.length}` + (calib ? '' : ' · SIN CALIBRAR');
       addTrack({ inst: $('rec-inst').value, who: $('rec-name').value.trim(), raw: buf, base: false });
       st.textContent = clipped > 0.001
         ? 'Grabado, pero el micro se saturó (por eso puede sonar distorsionado). Aléjate un poco o toca más suave y repite.'
@@ -427,6 +611,7 @@
     } catch (e) {
       st.textContent = micError(e);
     } finally {
+      stopBeats();
       btn.classList.remove('on'); btn.disabled = false;
       busy = false;
       updateDiag();
