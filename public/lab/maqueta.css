@@ -1,0 +1,55 @@
+@font-face { font-family: Anton; src: url(fonts/anton.woff2); font-display: swap; }
+@font-face { font-family: IS; font-weight: 500; src: url(fonts/is500.woff2); font-display: swap; }
+@font-face { font-family: IS; font-weight: 700; src: url(fonts/is700.woff2); font-display: swap; }
+@font-face { font-family: JB; font-weight: 700; src: url(fonts/jb700.woff2); font-display: swap; }
+:root { --paper:#f2ebdd; --card:#faf6ee; --ink:#141210; --red:#c23a1f; --yellow:#e8b931; --muted:#6b6358; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 500 16px/1.45 IS, system-ui, sans-serif; }
+.top { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 2px solid var(--ink); }
+.logo { font-family: Anton; font-size: 26px; letter-spacing: .5px; }
+.logo span { color: var(--red); }
+.lab { font: 700 11px JB, monospace; text-transform: uppercase; letter-spacing: 1px; background: var(--yellow); border: 2px solid var(--ink); padding: 3px 8px; }
+main { max-width: 640px; margin: 0 auto; padding: 16px 16px 60px; }
+h1 { font-family: Anton; font-size: 48px; text-transform: uppercase; margin: 8px 0 4px; line-height: 1; }
+h2 { font-family: Anton; font-size: 24px; text-transform: uppercase; margin: 0 0 8px; display: flex; gap: 10px; align-items: center; }
+h2 .n { background: var(--red); color: #fff; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+.lead { margin: 0 0 16px; color: #3d3830; }
+.card { background: var(--card); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); padding: 16px; margin-bottom: 18px; }
+.hint { font-size: 14px; color: #3d3830; margin: 4px 0 12px; }
+.status { font: 700 12px JB, monospace; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); min-height: 1em; margin: 10px 0 0; }
+.big-status { font-size: 15px; color: var(--ink); }
+.btn { font: 700 14px JB, monospace; text-transform: uppercase; letter-spacing: .5px; background: var(--red); color: #fff; border: 2px solid var(--ink);
+  min-height: 48px; padding: 10px 16px; cursor: pointer; box-shadow: 3px 3px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn:disabled { opacity: .5; }
+.btn.ghost { background: var(--card); color: var(--ink); }
+.btn.big { width: 100%; font-size: 16px; background: var(--ink); }
+.btn.rec { width: 100%; font-size: 16px; }
+.btn.rec.on { background: var(--ink); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { background: var(--red); } }
+label { display: block; font: 700 11px JB, monospace; text-transform: uppercase; letter-spacing: .5px; }
+label small { text-transform: none; color: var(--muted); }
+input[type=text], input[type=number], select { display: block; width: 100%; margin-top: 4px; font: 500 16px IS, sans-serif; padding: 10px; border: 2px solid var(--ink); background: #fff; min-height: 46px; border-radius: 0; }
+.grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+.grid label:first-child, .grid label:nth-child(2), .grid label:nth-child(3) { grid-column: 1 / -1; }
+.row { display: flex; gap: 8px; align-items: stretch; }
+.row input { flex: 0 0 96px; min-width: 0; }
+.row .btn { flex: 1; }
+.row .btn { margin-top: 4px; white-space: nowrap; padding: 6px 10px; font-size: 11px; }
+.check { display: flex; gap: 8px; align-items: center; margin-top: 12px; text-transform: none; font: 500 15px IS, sans-serif; }
+.check input { width: 20px; height: 20px; }
+.transport { margin-bottom: 10px; }
+.tracks { list-style: none; padding: 0; margin: 0 0 14px; }
+.track { border-top: 1px solid rgba(20,18,16,.18); padding: 10px 0; }
+.track .head { display: flex; align-items: center; gap: 8px; }
+.track .inst { font-family: Anton; font-size: 20px; text-transform: uppercase; min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.track .who { font-size: 13px; color: var(--muted); }
+.track button { font: 700 11px JB, monospace; min-width: 44px; min-height: 40px; border: 2px solid var(--ink); background: var(--card); cursor: pointer; }
+.track button.muted { background: var(--ink); color: var(--paper); }
+.track .wave { width: 100%; height: 34px; display: block; margin: 6px 0 4px; background: rgba(20,18,16,.05); }
+.track .offset { display: flex; align-items: center; gap: 8px; font: 700 11px JB, monospace; color: var(--muted); }
+.track .offset input { flex: 1; }
+.rec-box { border-top: 3px solid var(--ink); padding-top: 14px; display: grid; gap: 12px; }
+canvas#poster { width: 100%; max-width: 270px; display: block; margin: 12px 0; border: 2px solid var(--ink); }
+.diag pre { font: 12px/1.5 JB, monospace; white-space: pre-wrap; margin: 0; background: #fff; border: 1px solid rgba(20,18,16,.2); padding: 10px; }

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>La Maqueta · laboratorio</title>
+<link rel="stylesheet" href="maqueta.css?v=2">
+</head>
+<body>
+<header class="top">
+  <div class="logo">BAND<span>YOU</span></div>
+  <span class="lab">Laboratorio · prueba</span>
+</header>
+
+<main>
+  <h1>La Maqueta</h1>
+  <p class="lead">Prueba técnica: graba tu parte sobre un bucle corto, desde el móvil. Nada se guarda en ningún servidor.</p>
+
+  <!-- 1 · calibration -->
+  <section class="card" id="calib-card">
+    <h2><span class="n">1</span> Calibrar el móvil</h2>
+    <p class="hint">Una vez por móvil. <b>Sin cascos</b>, en silencio y con el volumen alto: sonarán unos clics y el micro los escuchará para medir el retraso.</p>
+    <button class="btn" id="calib-btn" type="button">Calibrar (5 s)</button>
+    <p class="status" id="calib-status"></p>
+  </section>
+
+  <!-- 2 · song -->
+  <section class="card">
+    <h2><span class="n">2</span> La canción</h2>
+    <div class="grid">
+      <label>Título<input id="title" type="text" maxlength="40" value="Noche en Lavapiés"></label>
+      <label>Acordes <small>(opcional)</small><input id="chords" type="text" maxlength="40" placeholder="Am – F – C – G"></label>
+      <label>Tempo (BPM)
+        <span class="row"><input id="bpm" type="number" min="60" max="180" value="90"><button class="btn ghost" id="tap" type="button">Marcar con el dedo</button></span>
+      </label>
+      <label>Duración
+        <select id="bars"><option value="4">4 compases</option><option value="8">8 compases</option></select>
+      </label>
+    </div>
+    <p class="status" id="len-status"></p>
+    <label class="check"><input id="click-on" type="checkbox" checked> Metrónomo mientras grabas</label>
+  </section>
+
+  <!-- 3 · board -->
+  <section class="card">
+    <h2><span class="n">3</span> La tabla</h2>
+    <div class="transport">
+      <button class="btn big" id="play" type="button">▶ Escuchar todo</button>
+    </div>
+    <ul class="tracks" id="tracks"></ul>
+    <div class="rec-box">
+      <label>Tu instrumento
+        <select id="rec-inst">
+          <option>Guitarra</option><option>Guitarra 2</option><option>Bajo</option><option>Batería</option>
+          <option>Voz</option><option>Teclado</option><option>Otro</option>
+        </select>
+      </label>
+      <label>Tu nombre<input id="rec-name" type="text" maxlength="24" placeholder="Cómo firmas"></label>
+      <p class="hint">🎧 <b>Ponte cascos</b> (mejor con cable). Sonará 1 compás de cuenta atrás y la grabación se corta sola al final.</p>
+      <button class="btn rec" id="rec" type="button">● Grabar mi parte</button>
+      <p class="status big-status" id="rec-status"></p>
+    </div>
+  </section>
+
+  <!-- 4 · export -->
+  <section class="card">
+    <h2><span class="n">4</span> Vídeo para Instagram</h2>
+    <p class="hint">Vertical, con la mezcla y los nombres. Tarda lo que dura el vídeo (2 vueltas del bucle).</p>
+    <button class="btn" id="export" type="button">Crear vídeo</button>
+    <canvas id="poster" width="1080" height="1920"></canvas>
+    <p class="status" id="export-status"></p>
+    <div class="row" id="export-actions" hidden>
+      <button class="btn" id="share" type="button">Compartir</button>
+      <button class="btn ghost" id="download" type="button">Descargar</button>
+    </div>
+  </section>
+
+  <!-- 5 · diagnostics -->
+  <section class="card diag">
+    <h2><span class="n">5</span> Diagnóstico</h2>
+    <p class="hint">Haz una captura de esto y mándasela a Rodrigo.</p>
+    <pre id="diag">—</pre>
+  </section>
+</main>
+
+<script src="maqueta.js?v=2"></script>
+</body>
+</html>
