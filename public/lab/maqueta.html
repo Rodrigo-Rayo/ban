@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>La Maqueta · laboratorio</title>
-<link rel="stylesheet" href="maqueta.css?v=5">
+<link rel="stylesheet" href="maqueta.css?v=6">
 </head>
 <body>
 <header class="top">
@@ -55,6 +55,7 @@
     <div class="transport">
       <button class="btn big" id="play" type="button">▶ Escuchar todo</button>
     </div>
+    <label class="check"><input id="polish" type="checkbox" checked> <span>Pulir sonido <small>(compresión, ecualización y reverb, como en un estudio)</small></span></label>
     <ul class="tracks" id="tracks"></ul>
     <div class="rec-box">
       <label>Tu instrumento
@@ -67,12 +68,25 @@
       <fieldset class="mode">
         <legend>¿Cómo grabas?</legend>
         <label class="check"><input type="radio" name="mode" value="speaker" checked> Sin cascos, solo el móvil</label>
-        <label class="check"><input type="radio" name="mode" value="phones"> Con cascos (mejor calidad, mejor con cable)</label>
+        <label class="check"><input type="radio" name="mode" value="phones"> Con cascos de cable</label>
       </fieldset>
+      <p class="hint">¿Cascos inalámbricos? Quítatelos para grabar: por Bluetooth el móvil graba con calidad de llamada y con retraso.</p>
+      <label id="vol-box">Volumen de la base mientras grabas <small>(más bajo = tu parte sale más limpia)</small>
+        <input id="rec-vol" type="range" min="0.2" max="1" step="0.05" value="0.6">
+      </label>
       <p class="hint">Sonará 1 compás de cuenta atrás y la grabación se corta sola al final. Sin cascos, el metrónomo es visual (los cuadros) y al terminar se quita de tu grabación lo que sonaba por el altavoz.</p>
       <div class="beats" id="beats" hidden aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       <button class="btn rec" id="rec" type="button">● Grabar mi parte</button>
       <p class="status big-status" id="rec-status"></p>
+      <div class="review" id="review" hidden>
+        <p class="review-title">¿Te quedas con esta toma?</p>
+        <button class="btn big" id="review-play" type="button">▶ Escucharla con todo</button>
+        <button class="btn" id="review-solo" type="button">▶ Solo mi parte</button>
+        <div class="review-actions">
+          <button class="btn rec" id="review-keep" type="button">✓ Me la quedo</button>
+          <button class="btn" id="review-redo" type="button">↺ Repetir</button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -97,6 +111,6 @@
   </section>
 </main>
 
-<script src="maqueta.js?v=5"></script>
+<script src="maqueta.js?v=6"></script>
 </body>
 </html>

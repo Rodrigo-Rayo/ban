@@ -279,6 +279,59 @@
     }
   }
 
+  // ── polish: the "studio" chain ──────────────────────────────────────────
+  /** Short room/plate impulse: decaying noise, darker as it fades. */
+  let irCache = null;
+  function impulse(c) {
+    if (irCache && irCache.sampleRate === c.sampleRate) return irCache;
+    const len = Math.round(c.sampleRate * 1.6);
+    const ir = c.createBuffer(1, len, c.sampleRate);
+    const d = ir.getChannelData(0);
+    let lp = 0;
+    for (let i = 0; i < len; i++) {
+      const t = i / len;
+      lp += (0.6 - 0.5 * t) * ((Math.random() * 2 - 1) - lp);
+      d[i] = lp * Math.pow(1 - t, 3);
+    }
+    irCache = ir;
+    return ir;
+  }
+
+  /**
+   * Builds the mix bus on context `c` and returns `input(track)`: the node each track plays into.
+   * Polished: recorded parts get a low cut, compression and make-up gain, everything shares a
+   * little reverb, and a final compressor keeps the mix loud without clipping.
+   */
+  function mixBus(c, dest) {
+    if (!$('polish').checked) return () => dest;
+    const glue = c.createDynamicsCompressor();
+    glue.threshold.value = -14; glue.ratio.value = 2.5; glue.attack.value = 0.02; glue.release.value = 0.25; glue.knee.value = 8;
+    const out = c.createGain(); out.gain.value = 1.15;
+    const limit = c.createDynamicsCompressor();
+    limit.threshold.value = -3; limit.ratio.value = 20; limit.attack.value = 0.002; limit.release.value = 0.1; limit.knee.value = 0;
+    glue.connect(out); out.connect(limit); limit.connect(dest);
+    const verb = c.createConvolver(); verb.buffer = impulse(c);
+    const verbOut = c.createGain(); verbOut.gain.value = 0.35;
+    verb.connect(verbOut); verbOut.connect(glue);
+    return (t) => {
+      const send = c.createGain();
+      send.connect(verb);
+      if (t.base) { send.gain.value = 0.08; const g = c.createGain(); g.connect(glue); g.connect(send); return g; }
+      const bass = /bajo/i.test(t.inst || '');
+      const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = bass ? 35 : 90; hp.Q.value = 0.7;
+      const mud = c.createBiquadFilter(); mud.type = 'peaking'; mud.frequency.value = 300; mud.Q.value = 1; mud.gain.value = bass ? 0 : -3;
+      const air = c.createBiquadFilter(); air.type = 'highshelf'; air.frequency.value = 6000; air.gain.value = bass ? 0 : 2.5;
+      const comp = c.createDynamicsCompressor();
+      comp.threshold.value = -24; comp.ratio.value = 3.5; comp.attack.value = 0.008; comp.release.value = 0.18; comp.knee.value = 10;
+      const makeup = c.createGain(); makeup.gain.value = 1.6;
+      hp.connect(mud); mud.connect(air); air.connect(comp); comp.connect(makeup);
+      makeup.connect(glue);
+      send.gain.value = /voz/i.test(t.inst || '') ? 0.3 : bass ? 0.05 : 0.2;
+      makeup.connect(send);
+      return hp;
+    };
+  }
+
   // ── transport ───────────────────────────────────────────────────────────
   function stopAll() {
     for (const s of playing) { try { s.stop(); } catch { /* already stopped */ } }
@@ -314,10 +367,11 @@
     const list = (only || tracks).filter(t => only || !t.muted);
     if (!list.length) { $('rec-status').textContent = 'Aún no hay nada que escuchar: elige una base o graba la primera parte.'; return; }
     const at = ctx.currentTime + 0.08;
+    const input = mixBus(ctx, ctx.destination);
     for (const t of list) {
       const s = ctx.createBufferSource();
       s.buffer = t.play; s.loop = true;
-      s.connect(ctx.destination); s.start(at);
+      s.connect(input(t)); s.start(at);
       playing.push(s);
     }
     $('play').textContent = '■ Parar';
@@ -530,6 +584,47 @@
     return () => { cancelAnimationFrame(raf); cells.forEach(c => c.classList.remove('on', 'count')); };
   }
 
+  // ── wireless headphones ─────────────────────────────────────────────────
+  const BT_RE = /bluetooth|airpods|buds|headset|hands-?free|manos libres|beats|\bbt\b|wh-1000|wf-1000|jabra|soundcore/i;
+  let btWarned = false;
+  /** Bluetooth headphones switch the phone to call quality and add delay: worth a warning. */
+  async function bluetoothName() {
+    try {
+      const label = micStream?.getAudioTracks()[0]?.label || '';
+      if (BT_RE.test(label)) return label;
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      const hit = devs.find(d => d.kind === 'audiooutput' && d.deviceId === 'default' && BT_RE.test(d.label));
+      return hit ? hit.label : '';
+    } catch { return ''; }
+  }
+
+  // ── take review ─────────────────────────────────────────────────────────
+  let pending = null;
+  function showReview(take) {
+    pending = take;
+    $('review').hidden = false;
+    $('rec').hidden = true;
+    $('review').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function closeReview() {
+    stopAll();
+    pending = null;
+    $('review').hidden = true;
+    $('rec').hidden = false;
+  }
+  function keepTake() {
+    if (!pending) return;
+    const t = pending;
+    closeReview();
+    addTrack(t);
+    $('rec-status').textContent = 'Añadida a la tabla. Si va adelantada o atrasada, mueve su «Ajuste».';
+  }
+  function playPending(solo) {
+    if (!pending) return;
+    const take = { ...pending, play: pending.raw };
+    playAll(solo ? [take] : [...tracks.filter(t => !t.muted), take]);
+  }
+
   // ── recording ───────────────────────────────────────────────────────────
   async function record() {
     if (busy) return;
@@ -541,6 +636,13 @@
     try {
       const speaker = document.querySelector('input[name="mode"]:checked')?.value !== 'phones';
       await ensureCtx(); await ensureMic(false);
+      const bt = await bluetoothName();
+      diag.bt = bt || 'no detectados';
+      if (bt && !btWarned) {
+        btWarned = true;
+        st.textContent = `Parece que tienes cascos inalámbricos conectados (${bt}). Desconéctalos y graba con el móvil solo: por Bluetooth suena fatal y va con retraso. Si no lo son, pulsa Grabar otra vez.`;
+        return;
+      }
       await ensureBase();
       const t0 = ctx.currentTime + 0.35;
       const loopStart = t0 + barDur();
@@ -552,7 +654,7 @@
         for (let b = 0; b < bars() * 4; b++) click(loopStart + b * beatDur(), b % 4 === 0, 0.18);
       }
       const backing = tracks.filter(x => !x.muted);
-      const backingGain = speaker ? 0.6 : 1;
+      const backingGain = speaker ? Number($('rec-vol').value) || 0.6 : 1;
       const bus = ctx.createGain(); bus.gain.value = backingGain; bus.connect(ctx.destination);
       for (const t of backing) {
         const s = ctx.createBufferSource(); s.buffer = t.play; s.connect(bus); s.start(loopStart);
@@ -601,13 +703,13 @@
       const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
       const out = buf.getChannelData(0);
       for (let i = 0; i < data.length; i++) out[i] = Math.max(-1, Math.min(1, data[i] * gain));
-      diag.lastRec = `${speaker ? 'sin cascos' : 'con cascos'}${cleaned} · cobertura ${(coverage * 100).toFixed(1)}% · pico ${peak.toFixed(2)} · saturado ${(clipped * 100).toFixed(2)}% · ganancia x${gain.toFixed(1)} · bloques ${cap.chunks.length}` + (calib ? '' : ' · SIN CALIBRAR');
-      addTrack({ inst: $('rec-inst').value, who: $('rec-name').value.trim(), raw: buf, base: false });
+      diag.lastRec = `${speaker ? `sin cascos (base al ${Math.round(backingGain * 100)}%)` : 'con cascos'}${cleaned} · cobertura ${(coverage * 100).toFixed(1)}% · pico ${peak.toFixed(2)} · saturado ${(clipped * 100).toFixed(2)}% · ganancia x${gain.toFixed(1)} · bloques ${cap.chunks.length}` + (calib ? '' : ' · SIN CALIBRAR');
+      showReview({ inst: $('rec-inst').value, who: $('rec-name').value.trim(), raw: buf, base: false });
       st.textContent = clipped > 0.001
-        ? 'Grabado, pero el micro se saturó (por eso puede sonar distorsionado). Aléjate un poco o toca más suave y repite.'
+        ? 'El micro se saturó (por eso puede sonar distorsionado). Mejor repite alejándote un poco o tocando más suave.'
         : coverage < 0.97
-        ? 'Grabado, pero se perdió audio por el camino (mira el diagnóstico). Escúchalo y repite si hace falta.'
-        : (calib ? '¡Grabado! Dale a «Escuchar todo». Si va adelantado o atrasado, mueve su «Ajuste».' : '¡Grabado! Sin calibrar puede ir desfasado: usa su «Ajuste» o calibra en el paso 1.');
+        ? 'Se perdió audio por el camino (mira el diagnóstico). Escúchala antes de quedártela.'
+        : 'Escúchala y decide.';
     } catch (e) {
       st.textContent = micError(e);
     } finally {
@@ -709,8 +811,10 @@
       const total = loopDur() * 2;
       const sr = ctx.sampleRate;
       const oc = new OfflineAudioContext(1, Math.round((total + 0.3) * sr), sr);
-      for (const t of active) for (const at of [0, loopDur()]) {
-        const s = oc.createBufferSource(); s.buffer = t.play; s.connect(oc.destination); s.start(at);
+      const input = mixBus(oc, oc.destination);
+      for (const t of active) {
+        const node = input(t);
+        for (const at of [0, loopDur()]) { const s = oc.createBufferSource(); s.buffer = t.play; s.connect(node); s.start(at); }
       }
       const mix = await oc.startRendering();
       const md = mix.getChannelData(0);
@@ -799,6 +903,7 @@
       `Navegador: ${navigator.userAgent}`,
       `Audio: ${ctx ? `${ctx.sampleRate} Hz · base ${((ctx.baseLatency || 0) * 1000).toFixed(0)} ms · salida ${((ctx.outputLatency || 0) * 1000).toFixed(0)} ms · ${ctx.state}` : 'sin iniciar'}`,
       `Micro: ${diag.mic}`,
+      `Cascos inalámbricos: ${diag.bt || 'sin comprobar'}`,
       `Calibración: ${calib ? `${Math.round(calib.s * 1000)} ms (${calib.n}/6, ±${calib.spreadMs} ms)` : 'no hecha'}`,
       `Marca de tiempo del audio: ${diag.playbackTime}`,
       `Última grabación: ${diag.lastRec}`,
@@ -813,6 +918,14 @@
   // ── wire up ─────────────────────────────────────────────────────────────
   $('calib-btn').addEventListener('click', calibrate);
   $('rec').addEventListener('click', record);
+  $('review-play').addEventListener('click', () => playPending(false));
+  $('review-solo').addEventListener('click', () => playPending(true));
+  $('review-keep').addEventListener('click', keepTake);
+  $('review-redo').addEventListener('click', () => { closeReview(); record(); });
+  $('polish').addEventListener('change', restartIfPlaying);
+  const syncMode = () => { $('vol-box').hidden = document.querySelector('input[name="mode"]:checked')?.value === 'phones'; };
+  document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener('change', syncMode));
+  syncMode();
   $('play').addEventListener('click', () => playAll());
   $('export').addEventListener('click', exportVideo);
   $('share').addEventListener('click', share);
