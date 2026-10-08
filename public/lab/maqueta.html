@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>La Maqueta · laboratorio</title>
-<link rel="stylesheet" href="maqueta.css?v=2">
+<link rel="stylesheet" href="maqueta.css?v=3">
 </head>
 <body>
 <header class="top">
@@ -37,6 +37,13 @@
       <label>Duración
         <select id="bars"><option value="4">4 compases</option><option value="8">8 compases</option></select>
       </label>
+      <label>Base de batería <small>(opcional)</small>
+        <select id="style">
+          <option value="none">Sin base (solo metrónomo)</option>
+          <option value="rock">Rock</option><option value="pop">Pop</option><option value="funk">Funk</option>
+          <option value="balada">Balada</option><option value="blues">Blues</option><option value="jazz">Jazz</option>
+        </select>
+      </label>
     </div>
     <p class="status" id="len-status"></p>
     <label class="check"><input id="click-on" type="checkbox" checked> Metrónomo mientras grabas</label>
@@ -57,7 +64,12 @@
         </select>
       </label>
       <label>Tu nombre<input id="rec-name" type="text" maxlength="24" placeholder="Cómo firmas"></label>
-      <p class="hint">🎧 <b>Ponte cascos</b> (mejor con cable). Sonará 1 compás de cuenta atrás y la grabación se corta sola al final.</p>
+      <fieldset class="mode">
+        <legend>¿Cómo grabas?</legend>
+        <label class="check"><input type="radio" name="mode" value="speaker" checked> Sin cascos, solo el móvil</label>
+        <label class="check"><input type="radio" name="mode" value="phones"> Con cascos (mejor calidad, mejor con cable)</label>
+      </fieldset>
+      <p class="hint">Sonará 1 compás de cuenta atrás y la grabación se corta sola al final. Sin cascos, el móvil quita de tu grabación lo que suena por el altavoz.</p>
       <button class="btn rec" id="rec" type="button">● Grabar mi parte</button>
       <p class="status big-status" id="rec-status"></p>
     </div>
@@ -84,6 +96,6 @@
   </section>
 </main>
 
-<script src="maqueta.js?v=2"></script>
+<script src="maqueta.js?v=3"></script>
 </body>
 </html>

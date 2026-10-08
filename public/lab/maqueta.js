@@ -11,7 +11,9 @@
 
   let ctx = null;
   let micStream = null;
-  let capture = null;          // { chunks: [{t, data}], on: bool }
+  let micAec = null;           // echo cancellation of the open mic stream
+  let ctxFresh = false;        // context re-created after the mic first opened (iOS)
+  let capture = null;          // { chunks: [Float32Array], t0, on, level, clips }
   let tracks = [];             // { id, inst, who, raw, play, muted, offsetMs, base }
   let playing = [];            // live BufferSources of the transport
   let busy = false;
@@ -45,23 +47,52 @@
     return ctx;
   }
 
-  async function ensureMic() {
-    if (micStream && micStream.getAudioTracks()[0]?.readyState === 'live') return micStream;
-    micStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
+  function releaseMic() {
+    if (!micStream) return;
+    micStream.getTracks().forEach(t => t.stop());
+    const n = micStream._nodes;
+    if (n) { try { n.src.disconnect(); n.proc.disconnect(); n.sink.disconnect(); } catch { /* gone */ } }
+    micStream = null;
+  }
+
+  /** Raw mic (aec = false) for headphones and calibration; with echo cancellation to record without them. */
+  async function ensureMic(aec) {
+    if (micStream && micAec === aec && micStream.getAudioTracks()[0]?.readyState === 'live') return micStream;
+    releaseMic();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: aec, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
     });
+    // iPhone: opening the mic switches the audio session and can leave a context created
+    // before it crackling or "robotic". Start a fresh one once the mic is open.
+    if (!ctxFresh) {
+      ctxFresh = true;
+      stopAll();
+      try { await ctx.close(); } catch { /* already closed */ }
+      ctx = null;
+      await ensureCtx();
+    }
+    micStream = stream;
+    micAec = aec;
     const s = micStream.getAudioTracks()[0].getSettings();
     diag.mic = `${micStream.getAudioTracks()[0].label || 'micro'} · eco ${s.echoCancellation} · ruido ${s.noiseSuppression} · ganancia ${s.autoGainControl}` +
-      (s.latency !== undefined ? ` · lat ${(s.latency * 1000).toFixed(0)} ms` : '');
+      (s.sampleRate ? ` · ${s.sampleRate} Hz` : '') + (s.latency !== undefined ? ` · lat ${(s.latency * 1000).toFixed(0)} ms` : '');
     const src = ctx.createMediaStreamSource(micStream);
     const proc = ctx.createScriptProcessor(BLOCK, 1, 1);
     const sink = ctx.createGain();
     sink.gain.value = 0;
     proc.onaudioprocess = e => {
       if (!capture?.on) return;
-      const hasPT = typeof e.playbackTime === 'number' && e.playbackTime > 0;
-      diag.playbackTime = hasPT ? 'sí' : 'no (menos preciso)';
-      capture.chunks.push({ t: hasPT ? e.playbackTime : ctx.currentTime, data: new Float32Array(e.inputBuffer.getChannelData(0)) });
+      // One continuous timeline from the first block: per-block timestamps jitter.
+      if (capture.t0 === null) {
+        const hasPT = typeof e.playbackTime === 'number' && e.playbackTime > 0;
+        diag.playbackTime = hasPT ? 'sí' : 'no (menos preciso)';
+        capture.t0 = hasPT ? e.playbackTime : ctx.currentTime;
+      }
+      const d = new Float32Array(e.inputBuffer.getChannelData(0));
+      let pk = 0;
+      for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; if (a >= 0.99) capture.clips++; }
+      capture.level = pk;
+      capture.chunks.push(d);
     };
     src.connect(proc);
     proc.connect(sink);
@@ -71,7 +102,7 @@
     return micStream;
   }
 
-  function startCapture() { capture = { chunks: [], on: true }; }
+  function startCapture() { capture = { chunks: [], t0: null, on: true, level: 0, clips: 0 }; }
   function stopCapture() { if (capture) capture.on = false; return capture; }
 
   /** Samples captured between `from` and `from + dur` (context time), zero where nothing arrived. */
@@ -79,12 +110,14 @@
     const sr = ctx.sampleRate;
     const out = new Float32Array(Math.round(dur * sr));
     let covered = 0;
+    let n = 0;
     for (const c of cap.chunks) {
-      const i0 = Math.round((c.t - from) * sr);
-      for (let k = 0; k < c.data.length; k++) {
+      const i0 = Math.round((cap.t0 + n / sr - from) * sr);
+      for (let k = 0; k < c.length; k++) {
         const i = i0 + k;
-        if (i >= 0 && i < out.length) { out[i] = c.data[k]; covered++; }
+        if (i >= 0 && i < out.length) { out[i] = c[k]; covered++; }
       }
+      n += c.length;
     }
     return { data: out, coverage: covered / out.length };
   }
@@ -109,25 +142,38 @@
     return b;
   }
 
-  /** A simple rock beat for the loop, rendered offline (the "base" track). */
+  /** 16 steps per bar: k = kick (kv volume), s = snare, g = ghost snare, h = hi-hat (hv volume),
+   *  r = ride; swing pushes the off-beat eighths to the triplet (blues shuffle, jazz). */
+  const STYLES = {
+    rock:      { label: 'Rock',      k: [0, 8, 10], s: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14], hv: 0.2 },
+    pop:       { label: 'Pop',       k: [0, 6, 8], s: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14], hv: 0.16 },
+    funk:      { label: 'Funk',      k: [0, 3, 10], s: [4, 12], g: [7, 15], h: [...Array(16).keys()], hv: 0.1 },
+    balada:    { label: 'Balada',    k: [0], s: [8], h: [0, 2, 4, 6, 8, 10, 12, 14], hv: 0.1 },
+    blues:     { label: 'Blues',     k: [0, 8], s: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14], hv: 0.16, swing: true },
+    jazz:      { label: 'Jazz',      k: [0, 4, 8, 12], kv: 0.25, s: [], h: [4, 12], hv: 0.08, r: [0, 4, 6, 8, 12, 14], swing: true },
+  };
+  const styleKey = () => $('style').value;
+
+  /** The base beat of the chosen style, rendered offline. */
   async function renderDrums() {
+    const st = STYLES[styleKey()] || STYLES.rock;
     const sr = ctx.sampleRate;
     const oc = new OfflineAudioContext(1, Math.round(loopDur() * sr), sr);
     const noise = noiseBuffer(oc, 0.3);
     const eighth = beatDur() / 2;
-    const kick = t => {
+    const kick = (t, v) => {
       const o = oc.createOscillator(); const g = oc.createGain();
       o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
-      g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
       o.connect(g).connect(oc.destination); o.start(t); o.stop(t + 0.4);
     };
-    const snare = t => {
+    const snare = (t, v) => {
       const n = oc.createBufferSource(); n.buffer = noise;
       const f = oc.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.8;
-      const g = oc.createGain(); g.gain.setValueAtTime(0.6, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      const g = oc.createGain(); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
       n.connect(f).connect(g).connect(oc.destination); n.start(t); n.stop(t + 0.2);
       const o = oc.createOscillator(); const g2 = oc.createGain(); o.type = 'triangle'; o.frequency.value = 190;
-      g2.gain.setValueAtTime(0.3, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      g2.gain.setValueAtTime(v / 2, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
       o.connect(g2).connect(oc.destination); o.start(t); o.stop(t + 0.1);
     };
     const hat = (t, v) => {
@@ -136,12 +182,22 @@
       const g = oc.createGain(); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
       n.connect(f).connect(g).connect(oc.destination); n.start(t); n.stop(t + 0.06);
     };
+    const ride = t => {
+      const n = oc.createBufferSource(); n.buffer = noise;
+      const f = oc.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 5200; f.Q.value = 1.2;
+      const g = oc.createGain(); g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      n.connect(f).connect(g).connect(oc.destination); n.start(t); n.stop(t + 0.3);
+    };
+    const step = eighth / 2;
     for (let b = 0; b < bars(); b++) {
-      for (let e = 0; e < 8; e++) {
-        const t = b * barDur() + e * eighth;
-        hat(t, e % 2 ? 0.12 : 0.22);
-        if (e === 0 || e === 4 || (e === 5 && b % 2 === 1)) kick(t);
-        if (e === 2 || e === 6) snare(t);
+      for (let e = 0; e < 16; e++) {
+        // swung off-beat eighth: from half a beat to two thirds of it
+        const t = b * barDur() + e * step + (st.swing && e % 4 === 2 ? beatDur() / 6 : 0);
+        if (st.h.includes(e)) hat(t, e % 4 === 0 ? st.hv * 1.4 : st.hv);
+        if (st.r?.includes(e)) ride(t);
+        if (st.k.includes(e)) kick(t, st.kv ?? 0.9);
+        if (st.s.includes(e)) snare(t, 0.6);
+        if (st.g?.includes(e)) snare(t, 0.15);
       }
     }
     return oc.startRendering();
@@ -160,7 +216,8 @@
   }
 
   function addTrack(t) {
-    tracks.push({ id: Math.random().toString(36).slice(2), muted: false, offsetMs: 0, ...t, play: t.raw });
+    const track = { id: Math.random().toString(36).slice(2), muted: false, offsetMs: 0, ...t, play: t.raw };
+    if (t.base) tracks.unshift(track); else tracks.push(track);
     lockSong();
     renderTracks();
   }
@@ -229,17 +286,23 @@
     $('play').textContent = '▶ Escuchar todo';
   }
 
+  /** The base beat of the chosen style (none = metronome only). */
   async function ensureBase() {
-    if (!tracks.length) addTrack({ inst: 'Batería (base)', who: '', raw: await renderDrums(), base: true });
+    if (styleKey() === 'none' || tracks.some(t => t.base)) return;
+    addTrack({ inst: `Batería · ${STYLES[styleKey()].label}`, who: '', raw: await renderDrums(), base: true });
   }
 
-  /** Tempo or length changed before anything was recorded: the base follows. */
+  /** Style, tempo or length changed: the base follows (tempo only while nothing is recorded). */
   async function rebuildBase() {
     showLength();
-    if (!ctx || tracks.some(t => !t.base)) return;
+    lockSong();
+    if (!ctx) return;
+    const wasPlaying = playing.length > 0;
     stopAll();
-    tracks = [];
+    tracks = tracks.filter(t => !t.base);
     await ensureBase();
+    renderTracks();
+    if (wasPlaying) playAll();
   }
 
   async function playAll(only) {
@@ -249,7 +312,7 @@
     stopAll();
     if (wasPlaying && !only) return;
     const list = (only || tracks).filter(t => only || !t.muted);
-    if (!list.length) return;
+    if (!list.length) { $('rec-status').textContent = 'Aún no hay nada que escuchar: elige una base o graba la primera parte.'; return; }
     const at = ctx.currentTime + 0.08;
     for (const t of list) {
       const s = ctx.createBufferSource();
@@ -269,7 +332,7 @@
     stopAll();
     const st = $('calib-status');
     try {
-      await ensureCtx(); await ensureMic();
+      await ensureCtx(); await ensureMic(false);
       st.textContent = 'Escuchando… no toques nada';
       const t0 = ctx.currentTime + 0.4;
       const clicks = Array.from({ length: 6 }, (_, i) => t0 + 0.5 + i * 0.6);
@@ -313,7 +376,8 @@
     const st = $('rec-status');
     const btn = $('rec');
     try {
-      await ensureCtx(); await ensureMic();
+      const noPhones = document.querySelector('input[name="mode"]:checked')?.value !== 'phones';
+      await ensureCtx(); await ensureMic(noPhones);
       await ensureBase();
       const t0 = ctx.currentTime + 0.35;
       const loopStart = t0 + barDur();
@@ -333,7 +397,11 @@
       const tick = setInterval(() => {
         const now = ctx.currentTime;
         if (now < loopStart) st.textContent = `Preparado… ${Math.ceil((loopStart - now) / beatDur())}`;
-        else if (now < end) st.textContent = `● Grabando · ${(end - now).toFixed(1)} s`;
+        else if (now < end) {
+          const lvl = capture.level;
+          const bars = '▮'.repeat(Math.min(8, Math.ceil(lvl * 8))).padEnd(8, '▯');
+          st.textContent = `● Grabando · ${(end - now).toFixed(1)} s · ${bars}${lvl >= 0.99 ? ' ¡Demasiado alto!' : ''}`;
+        }
       }, 80);
       await wait((end + 0.35 - ctx.currentTime) * 1000);
       clearInterval(tick);
@@ -343,13 +411,17 @@
       const { data, coverage } = slice(cap, loopStart + offset, loopDur());
       let peak = 0;
       for (const x of data) peak = Math.max(peak, Math.abs(x));
-      const gain = peak > 0 && peak < 0.5 ? Math.min(4, 0.7 / peak) : 1;
+      // Only a gentle lift for very quiet takes: boosting more brings up noise and harshness.
+      const gain = peak > 0 && peak < 0.25 ? Math.min(2.5, 0.6 / peak) : 1;
+      const clipped = cap.clips / Math.max(1, data.length);
       const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
       const out = buf.getChannelData(0);
       for (let i = 0; i < data.length; i++) out[i] = data[i] * gain;
-      diag.lastRec = `cobertura ${(coverage * 100).toFixed(1)}% · pico ${peak.toFixed(2)} · ganancia x${gain.toFixed(1)} · bloques ${cap.chunks.length}` + (calib ? '' : ' · SIN CALIBRAR');
+      diag.lastRec = `${noPhones ? 'sin cascos (cancelación de eco)' : 'con cascos'} · cobertura ${(coverage * 100).toFixed(1)}% · pico ${peak.toFixed(2)} · saturado ${(clipped * 100).toFixed(2)}% · ganancia x${gain.toFixed(1)} · bloques ${cap.chunks.length}` + (calib ? '' : ' · SIN CALIBRAR');
       addTrack({ inst: $('rec-inst').value, who: $('rec-name').value.trim(), raw: buf, base: false });
-      st.textContent = coverage < 0.97
+      st.textContent = clipped > 0.001
+        ? 'Grabado, pero el micro se saturó (por eso puede sonar distorsionado). Aléjate un poco o toca más suave y repite.'
+        : coverage < 0.97
         ? 'Grabado, pero se perdió audio por el camino (mira el diagnóstico). Escúchalo y repite si hace falta.'
         : (calib ? '¡Grabado! Dale a «Escuchar todo». Si va adelantado o atrasado, mueve su «Ajuste».' : '¡Grabado! Sin calibrar puede ir desfasado: usa su «Ajuste» o calibra en el paso 1.');
     } catch (e) {
@@ -563,6 +635,7 @@
   $('tap').addEventListener('click', tap);
   $('bpm').addEventListener('change', rebuildBase);
   $('bars').addEventListener('change', rebuildBase);
+  $('style').addEventListener('change', rebuildBase);
   if (calib) $('calib-status').textContent = `Ya calibrado en este móvil: ${Math.round(calib.s * 1000)} ms. Puedes repetirlo.`;
   showLength();
   updateDiag();
