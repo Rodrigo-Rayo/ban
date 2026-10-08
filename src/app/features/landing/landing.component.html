@@ -30,10 +30,10 @@
 <!-- TEASERS · contenido real, solo si hay datos ──────── -->
 @if (vacancies().length > 0 || people().length > 0) {
   <section class="px-4 sm:px-8 lg:px-14 pb-14 max-w-7xl mx-auto" aria-label="Lo que se cuece ahora">
-    <div class="grid gap-10 lg:gap-14" [class.lg:grid-cols-2]="vacancies().length > 0 && people().length > 0">
+    <div class="grid grid-cols-1 gap-10 lg:gap-14" [class.lg:grid-cols-2]="vacancies().length > 0 && people().length > 0">
 
       @if (vacancies().length > 0) {
-        <div>
+        <div class="min-w-0">
           <div class="rule-label">
             <span>Se busca</span>
             <a routerLink="/feed" [queryParams]="{ver:'bandas'}" class="underline min-h-[44px] inline-flex items-center">Ver todo en Se busca</a>
@@ -55,7 +55,7 @@
       }
 
       @if (people().length > 0) {
-        <div>
+        <div class="min-w-0">
           <div class="rule-label">
             <span>Recién llegados</span>
             <a routerLink="/search" [queryParams]="{tab:'musicians'}" class="underline min-h-[44px] inline-flex items-center">Ver músicos</a>
