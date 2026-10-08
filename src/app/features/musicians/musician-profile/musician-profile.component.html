@@ -60,6 +60,12 @@
             <dd class="text-sm font-bold text-ink text-right min-w-0 [overflow-wrap:anywhere]">{{ musician()!.genre }}</dd>
           </div>
         }
+        @if (gigSaves() > 0) {
+          <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
+            <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Medallas</dt>
+            <dd class="text-right"><span class="tag-accent font-bold" [attr.title]="'Ha salvado ' + gigSaves() + (gigSaves() === 1 ? ' bolo' : ' bolos')">Salvabolos{{ gigSaves() > 1 ? ' ×' + gigSaves() : '' }}</span></dd>
+          </div>
+        }
         @if (musician()!.gives_lessons) {
           <div class="flex items-center justify-between gap-4 py-2 border-b border-ink/15 min-h-[40px]">
             <dt class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted">Clases</dt>

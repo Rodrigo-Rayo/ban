@@ -50,6 +50,8 @@ export class MusicianProfileComponent implements OnInit {
   private readonly demoProbe = this.features.has('demoUrl');
 
   musician = signal<Musician | null>(null);
+  /** Salvabolos medals: gigs this musician saved (supabase/2026_10_escena.sql). */
+  gigSaves = signal(0);
   availabilityDays = computed(() => parseList(this.musician()?.availability_days));
   availabilitySlots = computed(() => parseList(this.musician()?.availability_slots));
   /** "Lunes y jueves": only the listed weekdays, in week order, as plain text. */
@@ -126,6 +128,7 @@ export class MusicianProfileComponent implements OnInit {
         this.supabase.auth.getSession(),
       ]);
       this.musician.set(data as Musician | null);
+      if (data?.user_id) void this.loadGigSaves(data.user_id);
       if (data) {
         this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url ?? undefined, undefined, data.instrument);
         this.seo.injectJsonLd({
@@ -152,6 +155,16 @@ export class MusicianProfileComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Counts the medals once the Salvabolos SQL exists; any failure just shows none. */
+  private async loadGigSaves(userId: string) {
+    try {
+      if (!(await this.features.has('escena'))) return;
+      const { count, error } = await this.supabase.client.from('gig_saves')
+        .select('id', { count: 'exact', head: true }).eq('saver_user_id', userId);
+      if (!error && this.musician()?.user_id === userId) this.gigSaves.set(count ?? 0);
+    } catch { /* non-critical */ }
   }
 
   async toggleFav() {

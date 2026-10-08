@@ -1,4 +1,4 @@
-import { addDaysISO, gigLabel, isValidGigDate, shareText } from './se-busca';
+import { addDaysISO, askLabel, canBeUrgent, dateLabel, gigLabel, isValidGigDate, shareText } from './se-busca';
 
 describe('shareText', () => {
   it('turns asks into a question for the group', () => {
@@ -34,5 +34,27 @@ describe('gig dates', () => {
 
   it('adds days across months', () => {
     expect(addDaysISO('2026-10-31', 1)).toBe('2026-11-01');
+  });
+});
+
+describe('Salvabolos and shared bills', () => {
+  const today = '2026-10-08';
+
+  it('offers Salvabolos only for gigs in the next 7 days', () => {
+    expect(canBeUrgent('2026-10-08', today)).toBeTrue();
+    expect(canBeUrgent('2026-10-15', today)).toBeTrue();
+    expect(canBeUrgent('2026-10-16', today)).toBeFalse();
+    expect(canBeUrgent('2026-10-07', today)).toBeFalse();
+    expect(canBeUrgent('', today)).toBeFalse();
+  });
+
+  it('labels a shared bill as a cartel, a stand-in as a bolo', () => {
+    expect(dateLabel('shared_bill', '2026-10-09', today)).toBe('Cartel mañana');
+    expect(dateLabel('band_seeking_musician', '2026-10-09', today)).toBe('Bolo mañana');
+    expect(dateLabel('shared_bill', null, today)).toBe('');
+  });
+
+  it('a shared bill looks for bands', () => {
+    expect(askLabel('shared_bill')).toBe('Busca bandas');
   });
 });

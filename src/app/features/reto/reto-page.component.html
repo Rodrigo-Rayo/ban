@@ -1,0 +1,126 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+  <header class="page-head bg-dark-900">
+    <div class="page-head-inner">
+      <div class="min-w-0">
+        <p class="page-kicker">Reto del mes</p>
+        <h1 class="page-title [overflow-wrap:anywhere]">{{ challenge()?.title || 'Reto del mes' }}</h1>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-wrap py-5">
+    @if (loading()) {
+      <div class="animate-pulse space-y-3 max-w-2xl" role="status" aria-label="Cargando el reto">
+        <div class="h-10 bg-dark-700"></div>
+        <div class="h-24 bg-dark-700"></div>
+      </div>
+    } @else if (failed()) {
+      <div class="empty-state">
+        <p class="font-display text-2xl uppercase text-ink">No se pudo cargar</p>
+        <p class="text-sm text-ink-muted">Recarga la página en un momento.</p>
+      </div>
+    } @else if (!challenge()) {
+      <div class="empty-state">
+        <p class="font-display text-2xl uppercase text-ink">Pronto, el primer reto</p>
+        <p class="text-sm text-ink-muted mb-3 max-w-[300px]">Cada mes, un tema: subes tu versión, la gente vota y el ganador sale en la portada.</p>
+        <a routerLink="/feed" class="btn-secondary text-sm min-h-[44px]">Ir a Se busca</a>
+      </div>
+    } @else {
+      <div class="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-10 gap-y-8 items-start">
+
+        <!-- The brief + taking part -->
+        <aside class="min-w-0 flex flex-col gap-5">
+          <p class="bg-ink text-poster-paper border-2 border-ink px-3 py-2 font-mono text-xs font-bold uppercase tracking-wide">{{ deadline() }}</p>
+          <p class="text-lg text-ink leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">{{ challenge()!.brief }}</p>
+          @if (challenge()!.reference_url) {
+            <a [href]="challenge()!.reference_url" target="_blank" rel="noopener noreferrer" class="btn-ghost min-h-[44px] w-fit">Escuchar la base ↗</a>
+          }
+
+          @if (winner(); as w) {
+            <section aria-label="Ganador" class="border-2 border-ink bg-poster-yellow px-4 py-3">
+              <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink">Ganador</p>
+              <p class="font-display text-3xl uppercase leading-none text-ink [overflow-wrap:anywhere] mt-1">{{ w.author_name || 'Sin nombre' }}</p>
+              <p class="text-sm text-ink mt-1">{{ w.votes }} {{ w.votes === 1 ? 'voto' : 'votos' }}</p>
+            </section>
+          }
+
+          @if (phase() === 'entries') {
+            <section aria-labelledby="enter-title" class="border-2 border-ink px-4 py-4 bg-dark-800">
+              <h2 id="enter-title" class="font-display text-2xl uppercase leading-tight">Participa</h2>
+              @if (!userId()) {
+                <p class="text-sm text-ink-muted mt-1 mb-3">Crea tu cuenta gratis para participar y votar.</p>
+                <a routerLink="/auth/register" class="btn-primary min-h-[48px] w-full">Crear cuenta</a>
+              } @else if (!hasProfile()) {
+                <p class="text-sm text-ink-muted mt-1 mb-3">Necesitas tu perfil para participar.</p>
+                <a routerLink="/onboarding" class="btn-primary min-h-[48px] w-full">Crear mi perfil</a>
+              } @else if (myEntry(); as mine) {
+                <p class="text-sm text-ink mt-1">Ya participas. Comparte tu enlace para que te voten.</p>
+                <button type="button" (click)="withdraw(mine)" [disabled]="busy()" class="btn-ghost min-h-[44px] mt-3 text-signal-red disabled:opacity-50">Retirar mi participación</button>
+              } @else {
+                <p class="text-sm text-ink-muted mt-1 mb-3">Súbelo a tu Instagram, YouTube, TikTok o SoundCloud y pega aquí el enlace.</p>
+                <label for="entry-url" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Enlace</label>
+                <input id="entry-url" type="url" inputmode="url" [(ngModel)]="form.url" placeholder="https://www.instagram.com/reel/…" class="input-field min-h-[44px]" autocomplete="off"
+                  aria-describedby="entry-url-hint" [attr.aria-invalid]="!!form.url && !urlOk()"/>
+                <p id="entry-url-hint" aria-live="polite" class="text-xs mt-1.5" [class.text-ink-muted]="!form.url || urlOk()" [class.text-signal-red]="!!form.url && !urlOk()" [class.font-bold]="!!form.url && !urlOk()">
+                  {{ form.url && !urlOk() ? 'Ese enlace no vale: tiene que ser de YouTube, Instagram, TikTok, SoundCloud, Spotify o Facebook.' : 'Que sea público, para que todos puedan verlo.' }}
+                </p>
+                <label for="entry-caption" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5 mt-3">Una línea <span class="text-ink-muted">(opcional)</span></label>
+                <input id="entry-caption" type="text" [(ngModel)]="form.caption" [maxlength]="MAX_CAPTION_LENGTH" placeholder="Ej: versión acústica de «Maldito duende»" class="input-field min-h-[44px]" autocomplete="off"/>
+                <button type="button" (click)="submit()" [disabled]="!canSubmit()" class="btn-primary min-h-[48px] w-full mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
+                  {{ busy() ? 'Enviando…' : 'Participar' }}
+                </button>
+              }
+            </section>
+          }
+        </aside>
+
+        <!-- Entries -->
+        <section aria-labelledby="entries-title" class="min-w-0">
+          <div class="flex items-end justify-between gap-3 border-t border-dark-600 pt-3">
+            <h2 id="entries-title" class="font-display text-3xl leading-none">Participantes</h2>
+            <span class="meta">{{ entries().length }}</span>
+          </div>
+          @if (entries().length === 0) {
+            <p class="text-base text-ink-muted mt-4">Aún no hay nadie. Sé el primero y llévate todas las miradas.</p>
+          } @else {
+            @if (phase() !== 'closed' && userId()) {
+              <p class="text-sm text-ink-muted mt-2">Tienes un voto. Puedes cambiarlo hasta que cierre la votación.</p>
+            }
+            <ol class="flex flex-col mt-2">
+              @for (e of ranked(); track e.id; let i = $index) {
+                <li class="border-b border-ink/15 py-4 flex flex-col gap-3">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">#{{ i + 1 }} · {{ e.votes }} {{ e.votes === 1 ? 'voto' : 'votos' }}</p>
+                      @if (profileRoute(e); as route) {
+                        <a [routerLink]="route" class="font-display text-2xl uppercase leading-tight text-ink hover:text-primary-600 [overflow-wrap:anywhere]">{{ e.author_name || 'Sin nombre' }}</a>
+                      } @else {
+                        <p class="font-display text-2xl uppercase leading-tight text-ink [overflow-wrap:anywhere]">{{ e.author_name || 'Sin nombre' }}</p>
+                      }
+                      @if (e.caption) { <p class="text-[15px] text-ink mt-1 [overflow-wrap:anywhere]">{{ e.caption }}</p> }
+                    </div>
+                    @if (phase() !== 'closed' && e.user_id !== userId()) {
+                      <button type="button" (click)="toggleVote(e)" [disabled]="busy()"
+                        [attr.aria-label]="(myVote() === e.id ? 'Quitar mi voto a ' : 'Votar a ') + (e.author_name || 'este participante')"
+                        class="min-h-[44px] px-4 flex-shrink-0 disabled:opacity-50"
+                        [class]="myVote() === e.id ? 'btn-night' : 'btn-secondary'">
+                        {{ myVote() === e.id ? 'Votado ✓' : 'Votar' }}
+                      </button>
+                    } @else if (e.user_id === userId()) {
+                      <span class="tag flex-shrink-0">Tú</span>
+                    }
+                  </div>
+                  @if (playsHere(e)) {
+                    <app-listen-player [links]="[e.url]" [who]="'a ' + (e.author_name || 'este participante')"/>
+                  } @else if (hostOf(e); as host) {
+                    <a [href]="e.url" target="_blank" rel="noopener noreferrer nofollow ugc" class="btn-ghost min-h-[44px] w-fit">Ver en {{ host }} ↗</a>
+                  }
+                </li>
+              }
+            </ol>
+          }
+        </section>
+      </div>
+    }
+  </div>
+</div>

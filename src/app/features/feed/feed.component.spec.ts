@@ -431,8 +431,8 @@ describe('FeedComponent', () => {
   });
 
   it('33. the type picker offers the shared emoji-free options', () => {
-    expect(component.postTypes.map(t => t.label)).toContain('Buscamos músico');
-    expect(component.postTypes.every(t => !/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(t.label))).toBeTrue();
+    expect(component.postTypes().map(t => t.label)).toContain('Buscamos músico');
+    expect(component.postTypes().every(t => !/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(t.label))).toBeTrue();
   });
 
   describe('post titles', () => {
@@ -480,7 +480,7 @@ describe('FeedComponent', () => {
     it('"Bandas buscan" lists band posts plus the full vacancies list', async () => {
       component.section.set('bandas');
       await component.loadPosts();
-      expect(fromBuilder.in).toHaveBeenCalledWith('type', ['band_seeking_musician']);
+      expect(fromBuilder.in).toHaveBeenCalledWith('type', ['band_seeking_musician', 'shared_bill']);
       expect(vacanciesSpy.listOpen).toHaveBeenCalledWith(jasmine.objectContaining({ limit: 30 }));
     });
 

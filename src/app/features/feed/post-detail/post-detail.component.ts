@@ -14,7 +14,8 @@ import { Post, PostType } from '../../../core/models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { avatarSrc, timeAgo } from '../../../core/utils/display.utils';
-import { askLabel, askStampClass, gigLabel, shareText } from '../../../core/utils/se-busca';
+import { askLabel, askStampClass, dateLabel, shareText } from '../../../core/utils/se-busca';
+import { GigSavedComponent } from './gig-saved.component';
 import { localToday } from '../../../core/utils/date';
 import { ShareCard, StoryImage, shareImage, slugFile } from '../../../core/utils/share-card';
 import { storyFeedback } from '../../../core/utils/story-feedback';
@@ -31,7 +32,7 @@ export function heroStampFor(type: PostType): string {
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-post-detail',
-    imports: [ReportLinkComponent, RouterLink, IconComponent],
+    imports: [ReportLinkComponent, RouterLink, IconComponent, GigSavedComponent],
     templateUrl: './post-detail.component.html'
 })
 export class PostDetailComponent implements OnInit {
@@ -126,7 +127,7 @@ export class PostDetailComponent implements OnInit {
   /** "GUITARRA · MADRID" strip under the poster. */
   readonly posterLine = computed(() => {
     const p = this.post();
-    return p ? [p.instrument, p.city, p.genre].filter(Boolean).join(' · ') : '';
+    return p ? [p.instrument, p.venue?.trim() || null, p.city, p.genre].filter(Boolean).join(' · ') : '';
   });
 
   /**
@@ -135,9 +136,18 @@ export class PostDetailComponent implements OnInit {
    */
   /** "Bolo el sáb 14 oct" for one-gig asks; says so once the date has passed. */
   readonly gigStamp = computed(() => {
-    const date = this.post()?.gig_date;
-    if (!date) return '';
-    return date < localToday() ? 'Este bolo ya pasó' : gigLabel(date);
+    const p = this.post();
+    const date = p?.gig_date;
+    if (!p || !date) return '';
+    if (date < localToday()) return p.type === 'shared_bill' ? 'Esta fecha ya pasó' : 'Este bolo ya pasó';
+    return dateLabel(p.type, date);
+  });
+
+  /** Salvabolos (giving the medal) applies to stand-ins for a dated gig. */
+  readonly isGigAsk = computed(() => {
+    const p = this.post();
+    return this.features.state('escena')() && !!p?.gig_date && p.type === 'band_seeking_musician'
+      && p.gig_date <= localToday(); // the medal can be given from the gig day on
   });
 
   readonly sheet = computed((): { label: string; value: string }[] => {
@@ -269,7 +279,7 @@ export class PostDetailComponent implements OnInit {
 
   /** Post columns, plus `title` once the column exists (supabase/2026_10_post_title.sql). */
   private async postColumns(): Promise<string> {
-    const [title, gig] = await Promise.all([this.features.has('postTitle'), this.features.has('postGigDate')]);
-    return POST_COLUMNS + (title ? ', title' : '') + (gig ? ', gig_date' : '');
+    const [title, gig, escena] = await Promise.all([this.features.has('postTitle'), this.features.has('postGigDate'), this.features.has('escena')]);
+    return POST_COLUMNS + (title ? ', title' : '') + (gig ? ', gig_date' : '') + (escena ? ', urgent, venue' : '');
   }
 }

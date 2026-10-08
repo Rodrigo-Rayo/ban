@@ -4,7 +4,7 @@ const { list, rest, shortDate, today, daysAgo } = require('./_seo-data');
 
 const SEEKS = {
   musician_seeking_band: 'Busca banda', band_seeking_musician: 'Busca músico', collab: 'Busca colaboración',
-  looking_for_rehearsal: 'Busca local', session_offer: 'Ofrece sesiones', other: 'Anuncio',
+  looking_for_rehearsal: 'Busca local', session_offer: 'Ofrece sesiones', shared_bill: 'Busca bandas', other: 'Anuncio',
 };
 const askLabel = p => (p.type === 'band_seeking_musician' && p.instrument ? `Busca ${String(p.instrument).toLowerCase()}` : SEEKS[p.type] || 'Anuncio');
 const en = prov => (prov ? `en ${prov}` : 'en España');

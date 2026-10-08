@@ -8,7 +8,7 @@ import { dateParts, localToday } from './date';
  * Red is reserved for primary actions, never for stamps.
  */
 const SEEKING: ReadonlySet<PostType> = new Set<PostType>([
-  'musician_seeking_band', 'band_seeking_musician', 'looking_for_rehearsal', 'collab',
+  'musician_seeking_band', 'band_seeking_musician', 'looking_for_rehearsal', 'collab', 'shared_bill',
 ]);
 
 export function askStampClass(type: PostType | 'vacancy'): 'tag-accent' | 'tag-night' {
@@ -24,6 +24,7 @@ export function askLabel(type: PostType | 'vacancy', instrument?: string | null)
     case 'musician_seeking_band': return 'Busca banda';
     case 'looking_for_rehearsal': return 'Busca local';
     case 'collab': return 'Busca colaboración';
+    case 'shared_bill': return 'Busca bandas';
     case 'session_offer': return 'Ofrece sesiones';
     case 'event_announcement': return 'Evento';
     case 'gear_sale': return 'Vende equipo';
@@ -53,8 +54,12 @@ export const POST_TYPE_OPTIONS: readonly { id: PostType; label: string; hint: st
   { id: 'collab',                label: 'Busco colaboración', hint: 'Grabar, componer, un proyecto puntual' },
   { id: 'looking_for_rehearsal', label: 'Busco local',        hint: 'Un sitio para ensayar' },
   { id: 'session_offer',         label: 'Ofrezco sesiones',   hint: 'Tocas para grabaciones o directos' },
+  { id: 'shared_bill',           label: 'Cartel compartido',  hint: 'Tenéis fecha y buscáis bandas para tocar juntos' },
   { id: 'other',                 label: 'Otro',               hint: 'Cualquier otra cosa' },
 ];
+
+/** Post types that only exist once supabase/2026_10_escena.sql has run. */
+export const ESCENA_POST_TYPES: ReadonlySet<PostType> = new Set<PostType>(['shared_bill']);
 
 /**
  * Text that goes with a shared Se busca link (WhatsApp groups and the like). Asks
@@ -83,6 +88,20 @@ export function gigLabel(date: string | null | undefined, today: string = localT
   if (date === addDaysISO(today, 1)) return 'Bolo mañana';
   const parts = dateParts(date);
   return parts ? `Bolo el ${parts.weekday} ${parts.day} ${parts.month}` : '';
+}
+
+/** Salvabolos: a stand-in can be asked for urgently for gigs up to this many days ahead (same as the database). */
+export const URGENT_MAX_DAYS = 7;
+
+/** The gig is close enough to ask for a stand-in urgently. */
+export function canBeUrgent(date: string, today: string = localToday()): boolean {
+  return isValidGigDate(date, today) && date <= addDaysISO(today, URGENT_MAX_DAYS);
+}
+
+/** A shared bill reads "Cartel el sáb 14 oct"; a gig post "Bolo el sáb 14 oct". */
+export function dateLabel(type: PostType, date: string | null | undefined, today: string = localToday()): string {
+  const gig = gigLabel(date, today);
+  return type === 'shared_bill' && gig ? gig.replace(/^Bolo/, 'Cartel') : gig;
 }
 
 /** A valid gig date for a new post: today up to GIG_MAX_DAYS_AHEAD days ahead. */

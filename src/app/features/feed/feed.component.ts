@@ -31,7 +31,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { PostAlertsComponent } from './post-alerts/post-alerts.component';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { timeAgo } from '../../core/utils/display.utils';
-import { addDaysISO, askLabel, askStampClass, gigLabel, GIG_MAX_DAYS_AHEAD, isValidGigDate, POST_TYPE_OPTIONS, SE_BUSCA_MAX_DAYS, SE_BUSCA_PERIODS, sinceISO } from '../../core/utils/se-busca';
+import { addDaysISO, askLabel, askStampClass, canBeUrgent, dateLabel, ESCENA_POST_TYPES, GIG_MAX_DAYS_AHEAD, isValidGigDate, POST_TYPE_OPTIONS, SE_BUSCA_MAX_DAYS, SE_BUSCA_PERIODS, sinceISO } from '../../core/utils/se-busca';
 import { localToday } from '../../core/utils/date';
 
 export type SeBuscaSection = 'todo' | 'bandas' | 'musicos' | 'otros';
@@ -39,7 +39,7 @@ export type SeBuscaSection = 'todo' | 'bandas' | 'musicos' | 'otros';
 /** "Se busca" sections; `types` = post types listed in each (null = all). */
 export const SE_BUSCA_SECTIONS: readonly { id: SeBuscaSection; label: string; types: PostType[] | null }[] = [
   { id: 'todo',    label: 'Todo',                   types: null },
-  { id: 'bandas',  label: 'Bandas buscan',          types: ['band_seeking_musician'] },
+  { id: 'bandas',  label: 'Bandas buscan',          types: ['band_seeking_musician', 'shared_bill'] },
   { id: 'musicos', label: 'Músicos buscan',         types: ['musician_seeking_band'] },
   { id: 'otros',   label: 'Colaboraciones y otros', types: ['collab', 'session_offer', 'looking_for_rehearsal', 'event_announcement', 'gear_sale', 'other'] },
 ];
@@ -99,6 +99,9 @@ export class FeedComponent implements OnInit {
   readonly MAX_TITLE_LENGTH = 60;
   /** posts.gig_date exists (supabase/2026_10_listen_and_gig_date.sql): "Buscamos músico" for one gig. */
   readonly gigDateAvailable = this.features.state('postGigDate');
+  /** Salvabolos + Cartel compartido (supabase/2026_10_escena.sql). */
+  readonly escenaAvailable = this.features.state('escena');
+  readonly MAX_VENUE_LENGTH = 80;
   get gigMinDate(): string { return localToday(); }
   get gigMaxDate(): string { return addDaysISO(localToday(), GIG_MAX_DAYS_AHEAD); }
   private readonly sectionNav = viewChild<ElementRef<HTMLElement>>('sectionNav');
@@ -144,13 +147,18 @@ export class FeedComponent implements OnInit {
     /** "Es para un bolo con fecha" (band_seeking_musician only). */
     forGig: false,
     gigDate: '',
+    /** Salvabolos: tell the musicians of that instrument in the province right away. */
+    urgent: false,
+    /** Shared bill: where. */
+    venue: '',
   };
 
   readonly cities = CITIES_WITH_ALL;
   readonly instruments = INSTRUMENTS;
   readonly genres = GENRES;
 
-  readonly postTypes = POST_TYPE_OPTIONS;
+  /** Picker options: types from supabase/2026_10_escena.sql appear once it has run. */
+  readonly postTypes = computed(() => POST_TYPE_OPTIONS.filter(t => this.escenaAvailable() || !ESCENA_POST_TYPES.has(t.id)));
 
   onInstrumentChange(val: string) {
     this.filterInstrument.set(val);
@@ -228,6 +236,7 @@ export class FeedComponent implements OnInit {
       if (user) {
         void this.features.has('postTitle');
         void this.features.has('postGigDate');
+        void this.features.has('escena');
         await this.auth.loadUserProfile(user.id);
         const profile = this.auth.userProfileData();
         if (profile) {
@@ -281,8 +290,8 @@ export class FeedComponent implements OnInit {
 
   /** Post columns, plus `title` once the column exists. */
   private async postCols(): Promise<string> {
-    const [title, gig] = await Promise.all([this.features.has('postTitle'), this.features.has('postGigDate')]);
-    return FeedComponent.POST_COLS + (title ? ',title' : '') + (gig ? ',gig_date' : '');
+    const [title, gig, escena] = await Promise.all([this.features.has('postTitle'), this.features.has('postGigDate'), this.features.has('escena')]);
+    return FeedComponent.POST_COLS + (title ? ',title' : '') + (gig ? ',gig_date' : '') + (escena ? ',urgent,venue' : '');
   }
 
   async loadPosts() {
@@ -350,7 +359,11 @@ export class FeedComponent implements OnInit {
     try {
       // Re-check now: the form may have opened before the title probe answered, and a
       // post must never go out untitled once titles exist.
-      const [hasTitle, hasGigDate] = await Promise.all([this.features.has('postTitle'), this.features.has('postGigDate')]);
+      const [hasTitle, hasGigDate, hasEscena] = await Promise.all([this.features.has('postTitle'), this.features.has('postGigDate'), this.features.has('escena')]);
+      if (ESCENA_POST_TYPES.has(this.newPost.type) && !hasEscena) {
+        this.toast.error('Ese tipo de anuncio aún no está disponible.');
+        return;
+      }
       if (hasTitle && !this.canPublish()) {
         this.toast.error('Ponle un título al anuncio.');
         return;
@@ -370,6 +383,8 @@ export class FeedComponent implements OnInit {
         type: this.newPost.type,
         ...(hasTitle ? { title: this.newPost.title.trim() } : {}),
         ...(hasGigDate && this.isGigPost() ? { gig_date: this.newPost.gigDate } : {}),
+        ...(hasEscena && this.isUrgentPost() ? { urgent: true } : {}),
+        ...(hasEscena && this.newPost.type === 'shared_bill' && this.newPost.venue.trim() ? { venue: this.newPost.venue.trim() } : {}),
         text: this.newPost.text.trim(),
         city: this.newPost.city,
         instrument: this.newPost.instrument,
@@ -383,10 +398,11 @@ export class FeedComponent implements OnInit {
         this.toast.error(publishErrorMessage(error, 'No se pudo publicar. Intenta de nuevo.'));
         return;
       }
-      this.newPost = { type: this.defaultPostType(), title: '', text: '', city: 'Madrid', instrument: '', genre: '', forGig: false, gigDate: '' };
+      const wasUrgent = this.isUrgentPost();
+      this.newPost = { type: this.defaultPostType(), title: '', text: '', city: 'Madrid', instrument: '', genre: '', forGig: false, gigDate: '', urgent: false, venue: '' };
       this.showForm.set(false);
       this.formOnly.set(false);
-      this.toast.success('Anuncio publicado.');
+      this.toast.success(wasUrgent ? 'Publicado. Ya hemos avisado a los músicos de tu provincia.' : 'Anuncio publicado.');
       await this.loadPosts();
     } finally {
       this.submitting.set(false);
@@ -435,6 +451,7 @@ export class FeedComponent implements OnInit {
     const text = this.newPost.text.trim();
     if (!text || text.length > this.MAX_POST_LENGTH) return false;
     if (this.isGigPost() && !isValidGigDate(this.newPost.gigDate)) return false;
+    if (this.newPost.type === 'shared_bill' && this.newPost.venue.trim().length > this.MAX_VENUE_LENGTH) return false;
     if (!this.postTitleAvailable()) return true;
     const title = this.newPost.title.trim();
     return !!title && title.length <= this.MAX_TITLE_LENGTH;
@@ -442,7 +459,20 @@ export class FeedComponent implements OnInit {
 
   /** The form is asking for one gig: "Buscamos músico" with "Es para un bolo con fecha" ticked. */
   isGigPost(): boolean {
-    return this.gigDateAvailable() && this.newPost.type === 'band_seeking_musician' && this.newPost.forGig;
+    if (!this.gigDateAvailable()) return false;
+    if (this.newPost.type === 'shared_bill') return this.escenaAvailable();
+    return this.newPost.type === 'band_seeking_musician' && this.newPost.forGig;
+  }
+
+  /** Salvabolos can be offered: a stand-in for one instrument, for a gig in the next 7 days. */
+  canAskUrgent(): boolean {
+    return this.escenaAvailable() && this.newPost.type === 'band_seeking_musician' && this.isGigPost()
+      && !!this.newPost.instrument && canBeUrgent(this.newPost.gigDate);
+  }
+
+  /** The post goes out as Salvabolos (offered and ticked). */
+  isUrgentPost(): boolean {
+    return this.canAskUrgent() && this.newPost.urgent;
   }
 
   /** The gig date in the form is usable (always true when the form is not asking for one). */
@@ -452,7 +482,12 @@ export class FeedComponent implements OnInit {
 
   /** "Bolo el sáb 14 oct" for posts asking for one gig; '' otherwise. */
   gigFor(item: SeBuscaItem): string {
-    return item.kind === 'post' ? gigLabel(item.post.gig_date) : '';
+    return item.kind === 'post' ? dateLabel(item.post.type, item.post.gig_date) : '';
+  }
+
+  /** Salvabolos: an urgent stand-in. */
+  isUrgent(item: SeBuscaItem): boolean {
+    return item.kind === 'post' && !!item.post.urgent;
   }
 
   /** Who is asking: the band, or the post's author. */
@@ -475,7 +510,7 @@ export class FeedComponent implements OnInit {
     const instrumentInStamp = p.type === 'band_seeking_musician' && !!p.instrument;
     // With a title as headline, the author moves to this line.
     const author = p.title?.trim() ? (p.author_name || 'Usuario') : null;
-    return [author, instrumentInStamp ? null : p.instrument, p.genre, p.city].filter(Boolean).join(' · ');
+    return [author, instrumentInStamp ? null : p.instrument, p.genre, p.venue?.trim() || null, p.city].filter(Boolean).join(' · ');
   }
 
   detailText(item: SeBuscaItem): string | null {

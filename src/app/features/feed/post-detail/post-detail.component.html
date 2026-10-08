@@ -50,7 +50,12 @@
             <div class="relative flex items-start justify-between gap-3">
               <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-poster-paper/80 pt-1">{{ timeAgo(post()!.created_at) }}</span>
               @if (gigStamp(); as gig) {
-                <span class="bg-poster-yellow text-ink border-2 border-ink font-mono text-xs font-bold uppercase tracking-wide px-2.5 py-1 text-right">{{ gig }}</span>
+                <span class="flex flex-col items-end gap-1">
+                  @if (post()!.urgent) {
+                    <span class="bg-poster-yellow text-ink border-2 border-ink font-display uppercase text-lg leading-none px-2.5 py-1">Salvabolos</span>
+                  }
+                  <span class="bg-poster-yellow text-ink border-2 border-ink font-mono text-xs font-bold uppercase tracking-wide px-2.5 py-1 text-right">{{ gig }}</span>
+                </span>
               }
             </div>
             <div class="relative mt-4 sm:mt-10 min-w-0">
@@ -83,6 +88,10 @@
           </div>
           <p class="text-lg sm:text-xl text-ink leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">@for (part of textParts(); track $index) {@if (part.href) {<a [href]="part.href" target="_blank" rel="noopener noreferrer nofollow ugc" class="underline decoration-2 underline-offset-4 hover:text-primary-600">{{ linkLabel(part.href) }}</a>} @else {{{ part.text }}}}</p>
         </section>
+
+        @if (isGigAsk()) {
+          <app-gig-saved [post]="post()!" [isOwner]="isOwner()" [me]="currentUser()?.id ?? null"/>
+        }
 
         <!-- Author -->
         <section aria-label="Autor del anuncio" class="border-t border-ink/15 pt-4">

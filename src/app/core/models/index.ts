@@ -163,7 +163,9 @@ export type PostType =
   | 'gear_sale'
   | 'looking_for_rehearsal'
   | 'collab'
-  | 'other';
+  | 'other'
+  /** Bands looking for bands to share a date (escena feature). */
+  | 'shared_bill';
 
 export interface Post {
   id: string;
@@ -180,6 +182,10 @@ export interface Post {
   author_profile_id: string | null;
   /** "Buscamos músico" for one gig on this date (postGigDate feature); null = ongoing. */
   gig_date?: string | null;
+  /** Salvabolos: stand-in needed for a gig in the next 7 days (escena feature). */
+  urgent?: boolean | null;
+  /** Venue of a shared bill (escena feature). */
+  venue?: string | null;
   created_at: string;
 }
 

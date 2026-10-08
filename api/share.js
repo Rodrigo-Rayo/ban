@@ -15,7 +15,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const POST_LABELS = {
   musician_seeking_band: 'Busca banda', band_seeking_musician: 'Busca músico', collab: 'Busca colaboración',
   looking_for_rehearsal: 'Busca local', session_offer: 'Ofrece sesiones', event_announcement: 'Concierto',
-  gear_sale: 'Vende equipo', other: 'Anuncio',
+  gear_sale: 'Vende equipo', shared_bill: 'Busca bandas', other: 'Anuncio',
 };
 
 /** Per route: table, columns, and how a row becomes a preview. */

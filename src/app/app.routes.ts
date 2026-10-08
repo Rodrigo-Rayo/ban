@@ -81,6 +81,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/events/event-form/event-form.component').then(m => m.EventFormComponent),
   },
   {
+    path: 'reto', title: 'Reto del mes · BandYou',
+    loadComponent: () => import('./features/reto/reto-page.component').then(m => m.RetoPageComponent),
+  },
+  {
     path: 'quedada', title: 'La quedada · BandYou',
     loadComponent: () => import('./features/quedada/quedada-page.component').then(m => m.QuedadaPageComponent),
   },
