@@ -31,7 +31,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { PostAlertsComponent } from './post-alerts/post-alerts.component';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { timeAgo } from '../../core/utils/display.utils';
-import { askLabel, askStampClass, POST_TYPE_OPTIONS, SE_BUSCA_MAX_DAYS, SE_BUSCA_PERIODS, sinceISO } from '../../core/utils/se-busca';
+import { addDaysISO, askLabel, askStampClass, gigLabel, GIG_MAX_DAYS_AHEAD, isValidGigDate, POST_TYPE_OPTIONS, SE_BUSCA_MAX_DAYS, SE_BUSCA_PERIODS, sinceISO } from '../../core/utils/se-busca';
+import { localToday } from '../../core/utils/date';
 
 export type SeBuscaSection = 'todo' | 'bandas' | 'musicos' | 'otros';
 
@@ -96,6 +97,10 @@ export class FeedComponent implements OnInit {
   /** posts.title exists (supabase/2026_10_post_title.sql): new posts must have one. */
   readonly postTitleAvailable = this.features.state('postTitle');
   readonly MAX_TITLE_LENGTH = 60;
+  /** posts.gig_date exists (supabase/2026_10_listen_and_gig_date.sql): "Buscamos músico" for one gig. */
+  readonly gigDateAvailable = this.features.state('postGigDate');
+  get gigMinDate(): string { return localToday(); }
+  get gigMaxDate(): string { return addDaysISO(localToday(), GIG_MAX_DAYS_AHEAD); }
   private readonly sectionNav = viewChild<ElementRef<HTMLElement>>('sectionNav');
 
   posts = signal<Post[]>([]);
@@ -136,6 +141,9 @@ export class FeedComponent implements OnInit {
     city: 'Madrid',
     instrument: '',
     genre: '',
+    /** "Es para un bolo con fecha" (band_seeking_musician only). */
+    forGig: false,
+    gigDate: '',
   };
 
   readonly cities = CITIES_WITH_ALL;
@@ -219,6 +227,7 @@ export class FeedComponent implements OnInit {
 
       if (user) {
         void this.features.has('postTitle');
+        void this.features.has('postGigDate');
         await this.auth.loadUserProfile(user.id);
         const profile = this.auth.userProfileData();
         if (profile) {
@@ -272,7 +281,8 @@ export class FeedComponent implements OnInit {
 
   /** Post columns, plus `title` once the column exists. */
   private async postCols(): Promise<string> {
-    return FeedComponent.POST_COLS + (await this.features.has('postTitle') ? ',title' : '');
+    const [title, gig] = await Promise.all([this.features.has('postTitle'), this.features.has('postGigDate')]);
+    return FeedComponent.POST_COLS + (title ? ',title' : '') + (gig ? ',gig_date' : '');
   }
 
   async loadPosts() {
@@ -286,6 +296,7 @@ export class FeedComponent implements OnInit {
       let q = this.supabase.client.from('posts').select(await this.postCols())
         .gte('created_at', this.listSince)
         .order('created_at', { ascending: false });
+      if (await this.features.has('postGigDate')) q = q.or(`gig_date.is.null,gig_date.gte.${localToday()}`);
       if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
       const types = this.sectionTypes();
       if (types) q = q.in('type', types);
@@ -313,6 +324,7 @@ export class FeedComponent implements OnInit {
         .order('created_at', { ascending: false })
         .lt('created_at', last?.created_at ?? new Date().toISOString())
         .gte('created_at', this.listSince || sinceISO(this.filterDays()));
+      if (await this.features.has('postGigDate')) q = q.or(`gig_date.is.null,gig_date.gte.${localToday()}`);
       if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
       const types = this.sectionTypes();
       if (types) q = q.in('type', types);
@@ -338,7 +350,7 @@ export class FeedComponent implements OnInit {
     try {
       // Re-check now: the form may have opened before the title probe answered, and a
       // post must never go out untitled once titles exist.
-      const hasTitle = await this.features.has('postTitle');
+      const [hasTitle, hasGigDate] = await Promise.all([this.features.has('postTitle'), this.features.has('postGigDate')]);
       if (hasTitle && !this.canPublish()) {
         this.toast.error('Ponle un título al anuncio.');
         return;
@@ -357,6 +369,7 @@ export class FeedComponent implements OnInit {
         user_id: user.id,
         type: this.newPost.type,
         ...(hasTitle ? { title: this.newPost.title.trim() } : {}),
+        ...(hasGigDate && this.isGigPost() ? { gig_date: this.newPost.gigDate } : {}),
         text: this.newPost.text.trim(),
         city: this.newPost.city,
         instrument: this.newPost.instrument,
@@ -370,7 +383,7 @@ export class FeedComponent implements OnInit {
         this.toast.error(publishErrorMessage(error, 'No se pudo publicar. Intenta de nuevo.'));
         return;
       }
-      this.newPost = { type: this.defaultPostType(), title: '', text: '', city: 'Madrid', instrument: '', genre: '' };
+      this.newPost = { type: this.defaultPostType(), title: '', text: '', city: 'Madrid', instrument: '', genre: '', forGig: false, gigDate: '' };
       this.showForm.set(false);
       this.formOnly.set(false);
       this.toast.success('Anuncio publicado.');
@@ -421,9 +434,25 @@ export class FeedComponent implements OnInit {
   canPublish(): boolean {
     const text = this.newPost.text.trim();
     if (!text || text.length > this.MAX_POST_LENGTH) return false;
+    if (this.isGigPost() && !isValidGigDate(this.newPost.gigDate)) return false;
     if (!this.postTitleAvailable()) return true;
     const title = this.newPost.title.trim();
     return !!title && title.length <= this.MAX_TITLE_LENGTH;
+  }
+
+  /** The form is asking for one gig: "Buscamos músico" with "Es para un bolo con fecha" ticked. */
+  isGigPost(): boolean {
+    return this.gigDateAvailable() && this.newPost.type === 'band_seeking_musician' && this.newPost.forGig;
+  }
+
+  /** The gig date in the form is usable (always true when the form is not asking for one). */
+  gigDateOk(): boolean {
+    return !this.isGigPost() || isValidGigDate(this.newPost.gigDate);
+  }
+
+  /** "Bolo el sáb 14 oct" for posts asking for one gig; '' otherwise. */
+  gigFor(item: SeBuscaItem): string {
+    return item.kind === 'post' ? gigLabel(item.post.gig_date) : '';
   }
 
   /** Who is asking: the band, or the post's author. */

@@ -10,7 +10,7 @@ import { RegistrationStateService } from '../../core/services/registration-state
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { CITIES } from '../../core/constants/cities';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
-import { optionalUrl, optionalPositiveNumber } from '../../core/utils/form-validators';
+import { optionalUrl, optionalPositiveNumber, optionalPlayableUrl } from '../../core/utils/form-validators';
 import { LEGAL_INFO } from '../legal/legal-info';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { ProfilePhotosComponent } from '../../shared/components/profile-photos/profile-photos.component';
@@ -22,6 +22,12 @@ function toNumberOrNull(value: unknown): number | null {
   if (value === '' || value === null || value === undefined) return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+}
+
+/** What goes into demo_url: null when empty, always https (the column requires it). */
+export function demoUrlValue(raw: string | null | undefined): string | null {
+  const value = String(raw ?? '').trim();
+  return value ? value.replace(/^http:\/\//i, 'https://') : null;
 }
 
 @Component({
@@ -70,6 +76,8 @@ export class OnboardingComponent implements OnInit {
   /** Band availability fields exist in the live DB (see MediaFeaturesService). */
   readonly bandAvailability = this.features.state('bandAvailability');
   readonly canGiveLessons = this.features.state('giveLessons');
+  /** "Tu mejor tema" (musicians/bands.demo_url) once its column exists. */
+  readonly canAddDemo = this.features.state('demoUrl');
   /** Musicians, bands and teachers got a phone column with supabase/2026_10_private_contact.sql. */
   readonly contactPhoneAvailable = this.features.state('profileContact');
 
@@ -114,6 +122,7 @@ export class OnboardingComponent implements OnInit {
     youtube_url:      ['', optionalUrl],
     instagram_url:    ['', optionalUrl],
     soundcloud_url:   ['', optionalUrl],
+    demo_url:         ['', optionalPlayableUrl],
     website_url:      ['', optionalUrl],
     phone:            ['', Validators.pattern(/^[+\d\s\-().]{0,20}$/)],
     address:          [''],
@@ -321,6 +330,7 @@ export class OnboardingComponent implements OnInit {
   async ngOnInit() {
     void this.features.has('bandAvailability');
     void this.features.has('giveLessons');
+    void this.features.has('demoUrl');
     void this.features.has('profileContact');
     // Read stored role synchronously before any async operations so later
     // Supabase responses never race-overwrite a role the user already picked.
@@ -428,6 +438,7 @@ export class OnboardingComponent implements OnInit {
         youtube_url:    data.youtube_url ?? '',
         instagram_url:  data.instagram_url ?? '',
         soundcloud_url: data.soundcloud_url ?? '',
+        demo_url:       data.demo_url ?? '',
         website_url:    data.website_url ?? '',
         phone:          data.phone ?? '',
         address:        data.address ?? '',
@@ -526,6 +537,7 @@ export class OnboardingComponent implements OnInit {
         availability_days: this.selectedDays().join(','),
         availability_slots: this.selectedSlots().join(','),
         ...(this.canGiveLessons() ? { gives_lessons: this.givesLessons() } : {}),
+        ...(this.canAddDemo() ? { demo_url: demoUrlValue(z.demo_url) } : {}),
       }, { onConflict: 'user_id' });
       saveError = error;
     } else if (role === 'band') {
@@ -537,6 +549,7 @@ export class OnboardingComponent implements OnInit {
         spotify_url: z.spotify_url, youtube_url: z.youtube_url,
         instagram_url: z.instagram_url, soundcloud_url: z.soundcloud_url,
         website_url: z.website_url,
+        ...(this.canAddDemo() ? { demo_url: demoUrlValue(z.demo_url) } : {}),
         ...(this.bandAvailability() ? {
           rehearsal_days: this.selectedDays().join(','),
           rehearsal_slots: this.selectedSlots().join(','),

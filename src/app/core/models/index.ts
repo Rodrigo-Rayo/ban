@@ -20,6 +20,8 @@ export interface Musician {
   website_url: string | null;
   /** "También doy clases" (supabase/2026_10_lessons_alerts.sql); absent until that SQL is run. */
   gives_lessons?: boolean | null;
+  /** Featured track or video, plays on the profile (demoUrl feature). */
+  demo_url?: string | null;
   created_at: string;
 }
 
@@ -43,6 +45,8 @@ export interface Band {
   rehearsal_days?: string | null;
   rehearsal_slots?: string | null;
   open_to_gigs?: boolean | null;
+  /** Featured track or video, plays on the profile (demoUrl feature). */
+  demo_url?: string | null;
   created_at: string;
 }
 
@@ -174,6 +178,8 @@ export interface Post {
   author_name: string | null;
   author_profile_type: string | null;
   author_profile_id: string | null;
+  /** "Buscamos músico" for one gig on this date (postGigDate feature); null = ongoing. */
+  gig_date?: string | null;
   created_at: string;
 }
 

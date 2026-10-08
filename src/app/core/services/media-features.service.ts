@@ -7,10 +7,11 @@ import { SupabaseService } from './supabase.service';
  * (supabase/2026_10_private_contact.sql: has_contact, phone on every profile table) and
  * Se busca titles (supabase/2026_10_post_title.sql), La quedada (supabase/2026_10_quedada.sql)
  * event addresses (supabase/2026_10_event_address.sql), "También doy clases" and Se busca alerts
- * (supabase/2026_10_lessons_alerts.sql) and email notice settings (supabase/2026_10_email_notifications.sql).
+ * (supabase/2026_10_lessons_alerts.sql), email notice settings (supabase/2026_10_email_notifications.sql),
+ * the profile "tema destacado" and gig dates on Se busca (supabase/2026_10_listen_and_gig_date.sql).
  */
 export type MediaFeature = 'eventImage' | 'venuePhotos' | 'rehearsalPhotos' | 'bandAvailability' | 'profileContact' | 'postTitle' | 'quedada' | 'eventAddress'
-  | 'giveLessons' | 'postAlerts' | 'emailPrefs';
+  | 'giveLessons' | 'postAlerts' | 'emailPrefs' | 'demoUrl' | 'postGigDate';
 
 const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   eventImage:      { table: 'events',           column: 'image_url' },
@@ -24,6 +25,8 @@ const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   giveLessons:      { table: 'musicians',       column: 'gives_lessons' },
   postAlerts:       { table: 'post_alerts',     column: 'id' },
   emailPrefs:       { table: 'notification_prefs', column: 'user_id' },
+  demoUrl:          { table: 'musicians',       column: 'demo_url' },
+  postGigDate:      { table: 'posts',           column: 'gig_date' },
 };
 
 /** "The SQL has not been run yet": undefined column / undefined table (Postgres or PostgREST cache). */
@@ -51,6 +54,8 @@ export class MediaFeaturesService {
     giveLessons: signal(false),
     postAlerts: signal(false),
     emailPrefs: signal(false),
+    demoUrl: signal(false),
+    postGigDate: signal(false),
   };
 
   /** Latest known availability (false until a probe confirms it). */

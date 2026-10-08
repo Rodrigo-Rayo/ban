@@ -49,6 +49,9 @@
             <span aria-hidden="true" class="absolute -right-4 -top-6 font-display text-[9rem] sm:text-[16rem] leading-none text-poster-paper/10 select-none">{{ (post()!.author_name || 'U').slice(0,1).toUpperCase() }}</span>
             <div class="relative flex items-start justify-between gap-3">
               <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-poster-paper/80 pt-1">{{ timeAgo(post()!.created_at) }}</span>
+              @if (gigStamp(); as gig) {
+                <span class="bg-poster-yellow text-ink border-2 border-ink font-mono text-xs font-bold uppercase tracking-wide px-2.5 py-1 text-right">{{ gig }}</span>
+              }
             </div>
             <div class="relative mt-4 sm:mt-10 min-w-0">
               <h1 class="font-display text-[clamp(2.25rem,11vw,4rem)] sm:text-7xl leading-[1] text-poster-paper [overflow-wrap:anywhere]">{{ askLabel() }}</h1>

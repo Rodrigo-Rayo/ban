@@ -422,6 +422,21 @@
 
           <ng-container [ngTemplateOutlet]="contactFields"/>
 
+          @if (canAddDemo() && (role() === 'musician' || role() === 'band')) {
+            <!-- Featured track: plays on the profile -->
+            <div class="border-t border-dark-700 pt-5">
+              <label for="onb-demo_url" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1">Tu mejor tema <span class="text-ink-muted">(opcional)</span></label>
+              <input id="onb-demo_url" formControlName="demo_url" type="url" inputmode="url" placeholder="Enlace a una canción o vídeo"
+                class="input-field text-sm py-2"
+                [attr.aria-invalid]="zInvalid('demo_url')"
+                aria-describedby="onb-demo_url-hint"/>
+              @if (zInvalid('demo_url')) {
+                <p class="text-xs font-bold text-signal-red mt-1" role="alert">Usa el enlace de una canción o vídeo concreto de YouTube, Spotify o SoundCloud (no el de un canal).</p>
+              }
+              <p id="onb-demo_url-hint" class="text-xs text-ink-muted mt-1">Pega el enlace de una canción o vídeo de YouTube, Spotify o SoundCloud: se podrá escuchar en tu perfil sin salir de BandYou.</p>
+            </div>
+          }
+
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">
             <h2 class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-3">Redes y enlaces <span class="text-ink-muted">(opcional)</span></h2>
@@ -642,6 +657,21 @@
           }
 
           <ng-container [ngTemplateOutlet]="contactFields"/>
+
+          @if (canAddDemo() && (role() === 'musician' || role() === 'band')) {
+            <!-- Featured track: plays on the profile -->
+            <div class="border-t border-dark-700 pt-5">
+              <label for="onb-demo_url" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1">Tu mejor tema <span class="text-ink-muted">(opcional)</span></label>
+              <input id="onb-demo_url" formControlName="demo_url" type="url" inputmode="url" placeholder="Enlace a una canción o vídeo"
+                class="input-field text-sm py-2"
+                [attr.aria-invalid]="zInvalid('demo_url')"
+                aria-describedby="onb-demo_url-hint"/>
+              @if (zInvalid('demo_url')) {
+                <p class="text-xs font-bold text-signal-red mt-1" role="alert">Usa el enlace de una canción o vídeo concreto de YouTube, Spotify o SoundCloud (no el de un canal).</p>
+              }
+              <p id="onb-demo_url-hint" class="text-xs text-ink-muted mt-1">Pega el enlace de una canción o vídeo de YouTube, Spotify o SoundCloud: se podrá escuchar en tu perfil sin salir de BandYou.</p>
+            </div>
+          }
 
           <!-- Social links -->
           <div class="border-t border-dark-700 pt-5">

@@ -101,7 +101,7 @@ describe('MusicianProfileComponent', () => {
         { provide: ToastService,     useValue: toastSpy },
         { provide: Router,           useValue: routerSpy },
         { provide: ActivatedRoute,   useValue: routeMock },
-        { provide: MediaFeaturesService, useValue: { has: () => Promise.resolve(false) } },
+        { provide: MediaFeaturesService, useValue: { has: () => Promise.resolve(false), state: () => () => false } },
       ],
     })
     .overrideComponent(MusicianProfileComponent, { set: { imports: [], template: '<div></div>' } })

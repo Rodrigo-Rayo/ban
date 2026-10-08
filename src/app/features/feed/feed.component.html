@@ -105,6 +105,29 @@
           </div>
         </div>
 
+        <!-- One gig, one date: a stand-in ("sustituto"). Only for "Buscamos músico". -->
+        @if (gigDateAvailable() && newPost.type === 'band_seeking_musician') {
+          <div class="mb-5 border-2 border-ink/20 px-4 py-3">
+            <label class="flex items-start gap-3 cursor-pointer min-h-[44px]">
+              <input type="checkbox" [(ngModel)]="newPost.forGig" class="mt-1 w-5 h-5 accent-ink flex-shrink-0"/>
+              <span>
+                <span class="block text-sm font-bold text-ink">Es para un bolo con fecha</span>
+                <span class="block text-xs text-ink-muted mt-0.5">Por ejemplo, un sustituto para un concierto. El anuncio enseña la fecha y se quita solo cuando pasa.</span>
+              </span>
+            </label>
+            @if (newPost.forGig) {
+              <div class="mt-3 sm:max-w-[16rem]">
+                <label for="post-gig-date" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Fecha del bolo</label>
+                <input id="post-gig-date" type="date" [(ngModel)]="newPost.gigDate" [min]="gigMinDate" [max]="gigMaxDate" required
+                  aria-describedby="post-gig-date-hint" class="input-field min-h-[44px]"/>
+              </div>
+              <p id="post-gig-date-hint" class="text-xs mt-1.5" [class.text-ink-muted]="!newPost.gigDate || gigDateOk()" [class.font-bold]="!!newPost.gigDate && !gigDateOk()" [class.text-signal-red]="!!newPost.gigDate && !gigDateOk()">
+                {{ newPost.gigDate && !gigDateOk() ? 'Esa fecha no vale: elige hoy o un día de los próximos 60.' : 'Elige la fecha: hoy o en los próximos 60 días.' }}
+              </p>
+            }
+          </div>
+        }
+
         @if (error()) {
           <p role="alert" aria-live="assertive" class="text-xs font-bold text-signal-red mb-3">{{ error() }}</p>
         }
@@ -226,6 +249,7 @@
                 <!-- 2 · what + where -->
                 <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1.5">
                   <span [class]="askStamp(item)">{{ askLabel(item) }}</span>
+                  @if (gigFor(item); as gig) { <span class="tag font-bold">{{ gig }}</span> }
                   @if (metaLine(item)) {
                     <span class="text-sm text-ink-muted">{{ metaLine(item) }}</span>
                   }

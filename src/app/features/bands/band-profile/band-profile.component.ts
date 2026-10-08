@@ -24,6 +24,8 @@ import {
 import { Band, BandVacancy, BandMember } from '../../../core/models';
 import { environment } from '../../../../environments/environment';
 import { posterNameSize } from '../../../core/utils/poster-name';
+import { ListenPlayerComponent } from '../../../shared/components/listen-player/listen-player.component';
+import { firstEmbed } from '../../../core/utils/media-embed';
 
 interface VacancyApplication {
   id: string;
@@ -44,7 +46,7 @@ const MAX_MEMBERS = 50;
 
 @Component({
     selector: 'app-band-profile',
-    imports: [ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, ProfileContactComponent],
+    imports: [ListenPlayerComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, ProfileContactComponent],
     templateUrl: './band-profile.component.html'
 })
 export class BandProfileComponent implements OnInit {
@@ -119,7 +121,8 @@ export class BandProfileComponent implements OnInit {
     if (!id) { this.loading.set(false); return; }
 
     try {
-      const columns = BAND_COLUMNS + (await this.features.has('bandAvailability') ? BAND_AVAILABILITY_COLUMNS : '');
+      const [availability, demo] = await Promise.all([this.features.has('bandAvailability'), this.features.has('demoUrl')]);
+      const columns = BAND_COLUMNS + (availability ? BAND_AVAILABILITY_COLUMNS : '') + (demo ? ', demo_url' : '');
       // Round 1: all 4 independent queries in parallel
       const [
         { data: bandRow },
@@ -192,11 +195,30 @@ export class BandProfileComponent implements OnInit {
   readonly hasAvailability = computed(() => this.openToGigs() || !!this.rehearsalDaysText() || this.rehearsalSlots().length > 0);
 
   readonly posterLine = computed(() => [this.band()?.genre, this.band()?.city].filter(Boolean).join(' · '));
+  /** "Tu mejor tema" can be added (its column exists). */
+  readonly canAddDemo = this.features.state('demoUrl');
+  /** Some link plays inside the page. */
+  readonly canListen = computed(() => firstEmbed(this.listenLinks()) !== null);
+  /** Links that may play inside the page, best first ("Escuchar"). */
+  readonly listenLinks = computed(() => {
+    const p = this.band();
+    return p ? [p.demo_url, p.spotify_url, p.soundcloud_url, p.youtube_url] : [];
+  });
+
   readonly hasLinks = computed(() => {
     const b = this.band();
-    return !!(b && (b.spotify_url || b.youtube_url || b.soundcloud_url || b.instagram_url || b.website_url));
+    return !!(b && (b.demo_url || b.spotify_url || b.youtube_url || b.soundcloud_url || b.instagram_url || b.website_url));
   });
   readonly openVacancies = computed(() => this.vacancies().filter(v => v.open));
+
+  /** From a gap in "Formación" to its vacancy in "Buscamos" (where the apply button is). */
+  goToVacancy(id: string) {
+    const el = document.getElementById(`vacante-${id}`);
+    if (!el) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    el.focus({ preventScroll: true });
+  }
   readonly closedVacancies = computed(() => this.vacancies().filter(v => !v.open));
 
   async createVacancy() {

@@ -14,7 +14,8 @@ import { Post, PostType } from '../../../core/models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { avatarSrc, timeAgo } from '../../../core/utils/display.utils';
-import { askLabel, askStampClass } from '../../../core/utils/se-busca';
+import { askLabel, askStampClass, gigLabel, shareText } from '../../../core/utils/se-busca';
+import { localToday } from '../../../core/utils/date';
 import { ShareCard, StoryImage, shareImage, slugFile } from '../../../core/utils/share-card';
 import { storyFeedback } from '../../../core/utils/story-feedback';
 import { fetchProfileAvatar, initialOf } from '../../inbox/profile-avatar';
@@ -132,6 +133,13 @@ export class PostDetailComponent implements OnInit {
    * Data-sheet rows not already on the poster: instrument and city live in the red
    * strip and the date at the top, so only the style is left (one datum, one place).
    */
+  /** "Bolo el sáb 14 oct" for one-gig asks; says so once the date has passed. */
+  readonly gigStamp = computed(() => {
+    const date = this.post()?.gig_date;
+    if (!date) return '';
+    return date < localToday() ? 'Este bolo ya pasó' : gigLabel(date);
+  });
+
   readonly sheet = computed((): { label: string; value: string }[] => {
     const p = this.post();
     if (!p) return [];
@@ -143,8 +151,12 @@ export class PostDetailComponent implements OnInit {
   async loadRelated(current: Post) {
     try {
       const columns = await this.postColumns();
-      const base = () => this.supabase.client.from('posts').select(columns)
-        .neq('id', current.id).order('created_at', { ascending: false });
+      const hasGigDate = await this.features.has('postGigDate');
+      const base = () => {
+        const q = this.supabase.client.from('posts').select(columns)
+          .neq('id', current.id).order('created_at', { ascending: false });
+        return hasGigDate ? q.or(`gig_date.is.null,gig_date.gte.${localToday()}`) : q;
+      };
       const { data: sameType, error } = await base().eq('type', current.type).limit(RELATED_LIMIT);
       if (error) { this.related.set([]); return; }
       let list = ((sameType ?? []) as unknown as Post[]).filter(p => p.id !== current.id);
@@ -213,7 +225,7 @@ export class PostDetailComponent implements OnInit {
     const title = `${askLabel(p.type, p.instrument)} · ${p.author_name ?? 'Se busca'}`;
     if (typeof navigator.share === 'function') {
       try {
-        await navigator.share({ title, text: p.text.slice(0, 120), url });
+        await navigator.share({ title, text: shareText(p), url });
         return;
       } catch (e) {
         if ((e as DOMException)?.name === 'AbortError') return; // user closed the sheet
@@ -257,6 +269,7 @@ export class PostDetailComponent implements OnInit {
 
   /** Post columns, plus `title` once the column exists (supabase/2026_10_post_title.sql). */
   private async postColumns(): Promise<string> {
-    return POST_COLUMNS + (await this.features.has('postTitle') ? ', title' : '');
+    const [title, gig] = await Promise.all([this.features.has('postTitle'), this.features.has('postGigDate')]);
+    return POST_COLUMNS + (title ? ', title' : '') + (gig ? ', gig_date' : '');
   }
 }

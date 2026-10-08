@@ -346,6 +346,7 @@ export class HomeComponent implements OnInit {
       const rehearsalCols  = 'id, user_id, name, city, avatar_url, capacity, hourly_rate, created_at';
       const postCols       = 'id, type, text, city, instrument, author_name, author_profile_type, author_profile_id, created_at'
         + (await this.features.has('postTitle') ? ', title' : '');
+      await this.features.has('postGigDate');
       const listingCols    = 'id, title, price, condition, category, city, images, created_at';
 
       const db = this.supabase.client;
@@ -414,7 +415,9 @@ export class HomeComponent implements OnInit {
 
   /** Latest board posts (last three months), from one city or (empty city) all of Spain. */
   private seBuscaPostsQuery(cols: string, city: string, since: string) {
-    const q = this.supabase.client.from('posts').select(cols).gte('created_at', since).order('created_at', { ascending: false }).limit(8);
+    let q = this.supabase.client.from('posts').select(cols).gte('created_at', since).order('created_at', { ascending: false }).limit(8);
+    // One-gig asks leave the board once their date has passed.
+    if (this.features.state('postGigDate')()) q = q.or(`gig_date.is.null,gig_date.gte.${localToday()}`);
     return city ? q.eq('city', city) : q;
   }
 

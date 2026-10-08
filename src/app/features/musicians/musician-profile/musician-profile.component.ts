@@ -18,6 +18,8 @@ export { joinWeekdays };
 import { Musician } from '../../../core/models';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { posterNameSize } from '../../../core/utils/poster-name';
+import { ListenPlayerComponent } from '../../../shared/components/listen-player/listen-player.component';
+import { firstEmbed } from '../../../core/utils/media-embed';
 
 /** Columns rendered by the profile page (avoid select('*')). */
 const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
@@ -25,7 +27,7 @@ const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, descriptio
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-musician-profile',
-    imports: [ReportLinkComponent, RouterLink, IconComponent, AvatarUploadComponent, ProfileContactComponent],
+    imports: [ListenPlayerComponent, ReportLinkComponent, RouterLink, IconComponent, AvatarUploadComponent, ProfileContactComponent],
     templateUrl: './musician-profile.component.html'
 })
 export class MusicianProfileComponent implements OnInit {
@@ -43,6 +45,7 @@ export class MusicianProfileComponent implements OnInit {
   private features = inject(MediaFeaturesService);
   /** Started at construction so it runs alongside the route setup, not before the profile query. */
   private readonly lessonsProbe = this.features.has('giveLessons');
+  private readonly demoProbe = this.features.has('demoUrl');
 
   musician = signal<Musician | null>(null);
   availabilityDays = computed(() => parseList(this.musician()?.availability_days));
@@ -50,9 +53,19 @@ export class MusicianProfileComponent implements OnInit {
   /** "Lunes y jueves": only the listed weekdays, in week order, as plain text. */
   availableDaysText = computed(() => joinWeekdays(this.availabilityDays()));
   posterLine = computed(() => [this.musician()?.instrument, this.musician()?.city].filter(Boolean).join(' · '));
+  /** "Tu mejor tema" can be added (its column exists). */
+  readonly canAddDemo = this.features.state('demoUrl');
+  /** Some link plays inside the page. */
+  readonly canListen = computed(() => firstEmbed(this.listenLinks()) !== null);
+  /** Links that may play inside the page, best first ("Escuchar"). */
+  readonly listenLinks = computed(() => {
+    const p = this.musician();
+    return p ? [p.demo_url, p.spotify_url, p.soundcloud_url, p.youtube_url] : [];
+  });
+
   hasLinks = computed(() => {
     const m = this.musician();
-    return !!(m && (m.spotify_url || m.youtube_url || m.soundcloud_url || m.instagram_url || m.website_url));
+    return !!(m && (m.demo_url || m.spotify_url || m.youtube_url || m.soundcloud_url || m.instagram_url || m.website_url));
   });
   loading = signal(true);
   isFav = signal(false);
@@ -88,7 +101,8 @@ export class MusicianProfileComponent implements OnInit {
     if (!id) { this.loading.set(false); return; }
     try {
       // gives_lessons is only named once the column exists (cached per session).
-      const columns = MUSICIAN_COLUMNS + (await this.lessonsProbe ? ', gives_lessons' : '');
+      const [lessons, demo] = await Promise.all([this.lessonsProbe, this.demoProbe]);
+      const columns = MUSICIAN_COLUMNS + (lessons ? ', gives_lessons' : '') + (demo ? ', demo_url' : '');
       const [{ data }, { data: { session } }] = await Promise.all([
         this.supabase.client.from('musicians').select(columns).eq('id', id).maybeSingle<Musician>(),
         this.supabase.auth.getSession(),
