@@ -1,7 +1,9 @@
-import { Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet } from '@angular/common';
-import { QuedadaEntry, QuedadaService, QuedadaWinner } from './quedada.service';
+import { QuedadaEntry, QuedadaEvent, QuedadaService, QuedadaWinner } from './quedada.service';
+import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 import { CountdownComponent } from '../../shared/components/countdown/countdown.component';
 import {
   QuedadaCycle, drawAt, drawLabel, drawnCycles, gigInstant, madridMonth, monthName, openCycle,
@@ -34,9 +36,10 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
   template: `
     @if (snapshot(); as s) {
       @if (variant() === 'home') {
-        <!-- Home: one compact strip that links to /quedada; the full poster lives on that page -->
+        <!-- Home: one compact strip that links to /quedada (the full poster lives there), plus the user's own action -->
+        <div class="bg-poster-yellow text-ink border-2 border-ink shadow-[4px_4px_0_0_#141210]">
         <a routerLink="/quedada" [queryParams]="demoParams"
-           class="press group relative flex items-center gap-3 bg-poster-yellow text-ink border-2 border-ink shadow-[4px_4px_0_0_#141210] p-3 pr-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+           class="group relative flex items-center gap-3 p-3 pr-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
           @if (s.phase === 'winner' && s.winner) {
             <span class="absolute -top-2.5 right-3 rotate-[4deg] bg-primary-500 text-white border-2 border-ink font-display uppercase text-sm leading-none px-2 py-1" aria-hidden="true">¡Ganador!</span>
             @if (s.winner.event.image_url) {
@@ -62,6 +65,25 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
           </span>
           <span class="font-display text-2xl leading-none flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">→</span>
         </a>
+        @if (mine(); as m) {
+          <div class="border-t-2 border-ink px-3 py-2.5">
+            @if (m.entered) {
+              <p class="font-mono text-[11px] font-bold uppercase tracking-wide">✓ Tu bolo está en el sorteo de {{ monthLabel(s.open) }}</p>
+            } @else if (m.events.length === 1) {
+              <button type="button" (click)="quickSignUp(m.events[0])" [disabled]="signing()"
+                class="btn-night w-full min-h-[44px] text-xs disabled:opacity-60 [overflow-wrap:anywhere]">
+                {{ signing() ? 'Inscribiendo…' : 'Inscribir «' + m.events[0].title + '» · gratis' }}
+              </button>
+            } @else if (m.events.length > 1) {
+              <a routerLink="/quedada" fragment="inscribir" class="btn-night w-full min-h-[44px] text-xs">Inscribe uno de tus bolos · gratis</a>
+            } @else {
+              <a routerLink="/events/create" class="flex items-center justify-between gap-2 min-h-[44px] font-mono text-[11px] font-bold uppercase tracking-wide hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                <span>¿Tocas en {{ monthLabel(s.open) }}? Publica tu bolo y entra en el sorteo</span><span aria-hidden="true">→</span>
+              </a>
+            }
+          </div>
+        }
+        </div>
       } @else if (s.phase === 'signup') {
         <section class="bg-poster-yellow text-ink border-2 border-ink shadow-[5px_5px_0_0_#141210] p-4 sm:p-6" [attr.aria-labelledby]="uid + '-t'">
           <ng-container [ngTemplateOutlet]="brand" [ngTemplateOutletContext]="{ sub: monthLabel(s.open) + (noProvince() ? '' : ' en ' + province()) }"/>
@@ -137,6 +159,12 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
 })
 export class QuedadaStatusComponent {
   private svc = inject(QuedadaService);
+  private auth = inject(AuthService);
+  private toast = inject(ToastService);
+
+  /** Home only, signed in: the user's gigs that can enter the open draw, or that they already did. */
+  readonly mine = signal<{ entered: boolean; events: QuedadaEvent[] } | null>(null);
+  readonly signing = signal(false);
 
   readonly province = input.required<string>();
   readonly variant = input<'home' | 'page'>('home');
@@ -159,6 +187,8 @@ export class QuedadaStatusComponent {
 
   constructor() {
     effect(() => { this.refresh(); void this.load(this.province()); });
+    // The session can arrive after the first load (hard reload): then the user's own action appears.
+    effect(() => { this.auth.user(); const snap = untracked(this.snapshot); if (snap) void this.loadMine(untracked(() => this.seq), snap.open); });
     inject(DestroyRef).onDestroy(() => { if (this.retryTimer) clearTimeout(this.retryTimer); });
   }
 
@@ -185,6 +215,28 @@ export class QuedadaStatusComponent {
     this.snapshot.set(snap);
     this.loading.set(false);
     this.loaded.emit(snap);
+    void this.loadMine(seq, open);
+  }
+
+  /** What the signed-in user can do from the home strip (no extra queries elsewhere). */
+  private async loadMine(seq: number, open: QuedadaCycle) {
+    const uid = this.auth.user()?.id;
+    if (this.variant() !== 'home' || !uid) { this.mine.set(null); return; }
+    const [entry, events] = await Promise.all([this.svc.myEntry(uid, open), this.svc.myEligibleEvents(uid)]);
+    if (seq !== this.seq) return;
+    this.mine.set({ entered: !!entry, events });
+  }
+
+  /** One tap from the home: signs the user's only qualifying gig up for the draw. */
+  async quickSignUp(e: QuedadaEvent) {
+    if (this.signing()) return;
+    this.signing.set(true);
+    const error = await this.svc.signUp(e.id);
+    this.signing.set(false);
+    if (error) { this.toast.error(error); return; }
+    const open = this.snapshot()?.open;
+    this.toast.success(open ? `¡Bolo inscrito! El sorteo es el ${drawLabel(open)} a las 20:00.` : '¡Bolo inscrito!');
+    this.reload();
   }
 
   /** A countdown hit zero: reload now and again shortly after (the device clock may run ahead of the server). */

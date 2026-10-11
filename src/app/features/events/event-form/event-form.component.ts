@@ -10,6 +10,9 @@ import { GENRES } from '../../../core/constants/music.constants';
 import { localToday } from '../../../core/utils/date';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { MediaUploadService, MEDIA_ACCEPT, mediaPickError } from '../../../core/services/media-upload.service';
+import { QuedadaService } from '../../quedada/quedada.service';
+import { NO_PROVINCE } from '../../quedada/quedada-status.component';
+import { drawLabel, eligibleDates, monthName, openCycle } from '../../../core/utils/quedada-cycle';
 
 export function futureDate(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
@@ -39,9 +42,34 @@ export class EventFormComponent implements OnDestroy {
   posterPreview = signal<string | null>(null);
   posterError = signal('');
 
+  private quedada = inject(QuedadaService);
+  /** La quedada exists and the user has no gig in the open draw yet. */
+  readonly quedadaOpen = signal(false);
+  private readonly quedadaCycle = openCycle(this.quedada.now());
+  readonly quedadaMonth = monthName(this.quedadaCycle);
+  readonly quedadaDraw = drawLabel(this.quedadaCycle);
+
   constructor() {
     void this.features.has('eventImage');
     void this.features.has('eventAddress');
+    void this.checkQuedada();
+  }
+
+  private async checkQuedada() {
+    try {
+      if (!(await this.quedada.available())) return;
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) return;
+      this.quedadaOpen.set(!(await this.quedada.myEntry(user.id, this.quedadaCycle)));
+    } catch { /* the form works without it */ }
+  }
+
+  /** The gig being written can enter this month's draw: right dates and a real province. */
+  quedadaEligible(): boolean {
+    if (!this.quedadaOpen()) return false;
+    const { date, city } = this.form.value;
+    const [from, to] = eligibleDates(this.quedadaCycle);
+    return !!date && date >= from && date <= to && !!city && !NO_PROVINCE.includes(city);
   }
 
   onPosterChange(event: Event) {
@@ -99,6 +127,8 @@ export class EventFormComponent implements OnDestroy {
     description: ['', [Validators.maxLength(500)]],
     contactEmail: ['', [Validators.email]],
     ticketUrl: ['', optionalUrl],
+    /** "Inscribirlo en La quedada" (only offered when the gig qualifies). */
+    quedada: [true],
   });
 
   @HostListener('window:beforeunload', ['$event'])
@@ -161,8 +191,15 @@ export class EventFormComponent implements OnDestroy {
         this.error.set(publishErrorMessage(error, 'Error al crear el evento. Inténtalo de nuevo.'));
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        this.toast.success('Evento publicado correctamente.');
         this._submitted = true;
+        let entered = false;
+        if (this.quedadaEligible() && v.quedada) {
+          const quedadaError = await this.quedada.signUp(data.id);
+          entered = !quedadaError;
+          if (quedadaError) this.toast.error(`Evento publicado, pero no se pudo inscribir en La quedada: ${quedadaError}`);
+        }
+        if (entered) this.toast.success(`¡Evento publicado e inscrito en La quedada! El sorteo es el ${this.quedadaDraw} a las 20:00.`);
+        else this.toast.success('Evento publicado correctamente.');
         this.router.navigate(['/events', data.id]);
       }
     } catch {

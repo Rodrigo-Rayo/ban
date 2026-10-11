@@ -8,6 +8,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { MediaUploadService } from '../../../core/services/media-upload.service';
+import { QuedadaService } from '../../quedada/quedada.service';
 
 describe('EventFormComponent', () => {
   let component: EventFormComponent;
@@ -156,5 +157,50 @@ describe('EventFormComponent poster (feature-detected)', () => {
     pick(component, new File(['x'], 'cartel.pdf', { type: 'application/pdf' }));
     expect(component.posterFile()).toBeNull();
     expect(component.posterError()).toBe('Usa una imagen JPG, PNG o WebP.');
+  });
+});
+
+describe('EventFormComponent La quedada offer', () => {
+  let component: EventFormComponent;
+  let signUp: jasmine.Spy;
+
+  beforeEach(async () => {
+    signUp = jasmine.createSpy('signUp').and.resolveTo(null);
+    const quedada = {
+      now: () => new Date('2026-10-11T10:00:00Z'), // open draw: November 2026
+      available: () => Promise.resolve(true),
+      myEntry: () => Promise.resolve(null),
+      signUp,
+    };
+    await TestBed.configureTestingModule({
+      imports: [EventFormComponent],
+      providers: [
+        provideRouter([]),
+        { provide: SupabaseService, useValue: { auth: { getUser: () => Promise.resolve({ data: { user: { id: 'u1' } } }) } } },
+        { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success', 'error']) },
+        { provide: QuedadaService, useValue: quedada },
+      ],
+    })
+      .overrideComponent(EventFormComponent, { set: { imports: [ReactiveFormsModule], template: '<div></div>' } })
+      .compileComponents();
+    component = TestBed.createComponent(EventFormComponent).componentInstance;
+    await new Promise(r => setTimeout(r));
+  });
+
+  it('is offered for a gig in the draw month and a real province', () => {
+    expect(component.quedadaMonth).toBe('noviembre');
+    component.form.patchValue({ date: '2026-11-21', city: 'Madrid' });
+    expect(component.quedadaEligible()).toBeTrue();
+  });
+
+  it('is not offered outside the month or without a province', () => {
+    component.form.patchValue({ date: '2026-10-30', city: 'Madrid' });
+    expect(component.quedadaEligible()).toBeFalse();
+    component.form.patchValue({ date: '2026-11-21', city: 'Otra' });
+    expect(component.quedadaEligible()).toBeFalse();
+  });
+
+  it('is ticked by default', () => {
+    expect(component.form.value.quedada).toBeTrue();
   });
 });

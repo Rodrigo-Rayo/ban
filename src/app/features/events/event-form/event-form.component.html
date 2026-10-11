@@ -183,6 +183,16 @@
           </div>
         </section>
 
+        @if (quedadaEligible()) {
+          <label class="flex items-start gap-3 cursor-pointer bg-poster-yellow border-2 border-ink px-4 py-3 shadow-[4px_4px_0_0_#141210]">
+            <input type="checkbox" formControlName="quedada" class="mt-1 w-5 h-5 accent-ink flex-shrink-0"/>
+            <span>
+              <span class="block font-display uppercase text-xl leading-tight text-ink">Inscribirlo en La quedada de {{ quedadaMonth }} · gratis</span>
+              <span class="block text-sm text-ink mt-0.5">Cada mes sorteamos un bolo por provincia, lo promocionamos en toda la web y quedamos para ir. Sorteo el {{ quedadaDraw }} a las 20:00.</span>
+            </span>
+          </label>
+        }
+
         @if (error()) {
           <div role="alert" class="bg-signal-rBg border-2 border-signal-red text-signal-red px-4 py-3 text-sm font-medium flex items-center gap-2">
             <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
