@@ -74,6 +74,21 @@
         </section>
       }
 
+      <!-- Nothing in Se busca yet: the guided ad takes 20 seconds -->
+      @if (showPostNudge()) {
+        <section class="border-2 border-ink bg-poster-yellow p-4 sm:p-5 mb-6" aria-labelledby="post-nudge-title">
+          <h2 id="post-nudge-title" class="font-display text-2xl sm:text-3xl uppercase leading-tight text-ink">Publica tu anuncio en Se busca</h2>
+          <p class="text-sm text-ink mt-1 mb-4">
+            {{ profileType() === 'band' ? 'Que los músicos sepan qué buscáis.' : 'Que las bandas sepan que buscas grupo.' }}
+            Contestas unas preguntas tocando opciones y se escribe solo. Tardas 20 segundos.
+          </p>
+          <div class="flex flex-wrap items-center gap-2">
+            <a routerLink="/feed" [queryParams]="{ new: '1' }" class="btn-night min-h-[48px] px-5">Escribir mi anuncio</a>
+            <button type="button" (click)="hidePostNudge()" class="btn-ghost min-h-[48px] text-xs">Ahora no</button>
+          </div>
+        </section>
+      }
+
       <!-- MY STUFF: one tab bar, counts inside -->
       <section class="card-flat overflow-hidden" aria-label="Mis publicaciones">
 

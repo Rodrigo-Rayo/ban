@@ -33,6 +33,7 @@ import { ConfirmService } from '../../core/services/confirm.service';
 import { timeAgo } from '../../core/utils/display.utils';
 import { addDaysISO, askLabel, askStampClass, gigLabel, GIG_MAX_DAYS_AHEAD, isValidGigDate, POST_TYPE_OPTIONS, SE_BUSCA_MAX_DAYS, SE_BUSCA_PERIODS, sinceISO } from '../../core/utils/se-busca';
 import { localToday } from '../../core/utils/date';
+import { composeGuidedText, firstKnown, GuidedAnswers, GuidedGroup, GuidedOption, guidedGroups, suggestTitle, toggleAnswer } from '../../core/utils/guided-post';
 
 export type SeBuscaSection = 'todo' | 'bandas' | 'musicos' | 'otros';
 
@@ -152,6 +153,94 @@ export class FeedComponent implements OnInit {
 
   readonly postTypes = POST_TYPE_OPTIONS;
 
+  /**
+   * "Anuncio guiado" (busco banda / buscamos músico): chips write the text, the title is
+   * suggested from the fields until the user types their own, and "Prefiero escribirlo yo"
+   * switches back to the free text box with what was written so far.
+   */
+  guided = { answers: {} as GuidedAnswers, extra: '', manual: false, titleTouched: false, generated: false };
+  /** Fields the user picked themselves: the profile prefill never overrides them. */
+  private touchedFields = new Set<'city' | 'instrument' | 'genre'>();
+  readonly MAX_EXTRA_LENGTH = 200;
+
+  /** Questions shown for the current type (none once the user writes the text themselves). */
+  guidedQuestions(): readonly GuidedGroup[] {
+    return this.guided.manual ? [] : guidedGroups(this.newPost.type);
+  }
+
+  isPicked(g: GuidedGroup, o: GuidedOption): boolean {
+    return !!this.guided.answers[g.id]?.includes(o.id);
+  }
+
+  toggleChip(g: GuidedGroup, o: GuidedOption) {
+    this.guided = { ...this.guided, answers: toggleAnswer(this.guided.answers, g.id, o.id) };
+    this.syncGuided();
+  }
+
+  setExtra(value: string) {
+    this.guided = { ...this.guided, extra: value };
+    this.syncGuided();
+  }
+
+  /**
+   * A new type asks other questions: earlier answers do not carry over. Text the chips
+   * wrote goes with them; text the user typed is kept (shown in the free box).
+   */
+  selectType(type: PostType) {
+    if (type === this.newPost.type) return;
+    this.newPost.type = type;
+    const typed = !!this.newPost.text.trim() && !this.guided.generated;
+    if (!typed) this.newPost.text = '';
+    this.guided = { ...this.guided, answers: {}, extra: '', generated: false, manual: this.guided.manual || typed };
+    this.syncGuided();
+  }
+
+  /** Instrument, genre or province changed: the suggested title follows. */
+  setField(field: 'city' | 'instrument' | 'genre', value: string) {
+    this.touchedFields.add(field);
+    this.newPost[field] = value;
+    this.syncGuided();
+  }
+
+  /** Once the user types in the title, it is theirs (even if they empty it). */
+  onTitleInput(value: string) {
+    this.newPost.title = value;
+    this.guided = { ...this.guided, titleTouched: true };
+  }
+
+  /** The written text stays and becomes the user's own. */
+  writeMyself() {
+    this.guided = { ...this.guided, manual: true, generated: false };
+  }
+
+  /** Keeps the text (guided mode) and the untouched title in step with the answers and fields. */
+  private syncGuided() {
+    if (this.guidedQuestions().length) {
+      this.newPost.text = composeGuidedText(this.newPost.type, this.guided.answers, this.guided.extra).slice(0, this.MAX_POST_LENGTH);
+      this.guided = { ...this.guided, generated: true };
+    }
+    if (!this.guided.titleTouched) {
+      this.newPost.title = suggestTitle(this.newPost.type, this.newPost, this.MAX_TITLE_LENGTH);
+    }
+  }
+
+  /** Starts the form from the profile: a musician's own instrument and style, a band's style. */
+  private async prefillFromProfile(userId: string, type: string) {
+    if (type !== 'musician' && type !== 'band') { this.syncGuided(); return; }
+    try {
+      const table = type === 'musician' ? 'musicians' : 'bands';
+      const cols = type === 'musician' ? 'instrument, genre' : 'genre';
+      const { data } = await this.supabase.client.from(table).select(cols).eq('user_id', userId).maybeSingle();
+      const row = (data ?? {}) as { instrument?: string | null; genre?: string | null };
+      // Only fills what the user has not chosen yet; a musician's own instrument fits "Busco banda" only.
+      if (type === 'musician' && this.newPost.type === 'musician_seeking_band' && !this.touchedFields.has('instrument')) {
+        this.newPost.instrument = firstKnown(row.instrument, INSTRUMENTS);
+      }
+      if (!this.touchedFields.has('genre')) this.newPost.genre = firstKnown(row.genre, GENRES);
+    } catch { /* the form works without it */ }
+    this.syncGuided();
+  }
+
   onInstrumentChange(val: string) {
     this.filterInstrument.set(val);
     this.loadPosts();
@@ -242,6 +331,7 @@ export class FeedComponent implements OnInit {
           this.filterCity.set(city);
           this.newPost.city = city;
         }
+        void this.prefillFromProfile(user.id, this.auth.userProfileType());
       }
     } catch {
       // Auth errors are non-fatal — continue to load posts for anonymous view
@@ -383,7 +473,10 @@ export class FeedComponent implements OnInit {
         this.toast.error(publishErrorMessage(error, 'No se pudo publicar. Intenta de nuevo.'));
         return;
       }
-      this.newPost = { type: this.defaultPostType(), title: '', text: '', city: 'Madrid', instrument: '', genre: '', forGig: false, gigDate: '' };
+      const keep = { city: this.newPost.city, instrument: this.newPost.instrument, genre: this.newPost.genre };
+      this.newPost = { type: this.defaultPostType(), title: '', text: '', ...keep, forGig: false, gigDate: '' };
+      this.guided = { answers: {}, extra: '', manual: false, titleTouched: false, generated: false };
+      this.syncGuided();
       this.showForm.set(false);
       this.formOnly.set(false);
       this.toast.success('Anuncio publicado.');

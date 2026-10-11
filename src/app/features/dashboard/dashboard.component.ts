@@ -47,6 +47,14 @@ interface DashboardListing {
 
 export type DashboardTab = 'events' | 'posts' | 'gear';
 
+const POST_NUDGE_KEY = 'bandyou_post_nudge_until';
+const POST_NUDGE_SNOOZE_MS = 7 * 86400000;
+
+/** The Se busca card was put off and the week has not passed yet. */
+export function postNudgeHiddenNow(now = Date.now()): boolean {
+  try { return Number(localStorage.getItem(POST_NUDGE_KEY) ?? 0) > now; } catch { return false; }
+}
+
 @Component({
     selector: 'app-dashboard',
     imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent, SpaceGalleryComponent, EmailPrefsComponent],
@@ -119,7 +127,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const [
         { data: musician, error: e1 }, { data: band, error: e2 }, { data: venue, error: e3 },
         { data: teacher, error: e4 }, { data: rehearsal, error: e5 }, { data: evs },
-        { data: posts },   { data: listings },
+        { data: posts, error: postsError },   { data: listings },
         { data: profileRow },
       ] = await Promise.all([
         this.supabase.client.from('musicians').select('id,name,city,avatar_url,user_id').eq('user_id', uid).maybeSingle(),
@@ -149,6 +157,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
       this.events.set(evs || []);
       this.myPosts.set((posts || []) as DashboardPost[]);
+      this.postsLoaded.set(!postsError);
       this.myListings.set(listings || []);
     } catch {
       this.toast.error('Error al cargar el panel. Recarga la página.');
@@ -481,6 +490,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
   });
 
   readonly tabNewQuery = computed(() => (this.activeTab() === 'posts' ? { new: '1' } : null));
+
+  /** "Ahora no" on the Se busca card hides it for a week (this browser only). */
+  private readonly postNudgeHidden = signal(postNudgeHiddenNow());
+  /** The posts query answered (a failed one must not look like "no posts"). */
+  private readonly postsLoaded = signal(false);
+  /** Musicians and bands with nothing in Se busca get a card inviting them to publish. */
+  readonly showPostNudge = computed(() => !this.loading() && this.postsLoaded() && !this.postNudgeHidden()
+    && (this.profileType() === 'musician' || this.profileType() === 'band') && this.myPosts().length === 0);
+
+  hidePostNudge() {
+    try { localStorage.setItem(POST_NUDGE_KEY, String(Date.now() + POST_NUDGE_SNOOZE_MS)); } catch { /* storage blocked */ }
+    this.postNudgeHidden.set(true);
+  }
 
   readonly tabNewLabel = computed(() => {
     const map: Record<DashboardTab, string> = { events: 'Publicar evento', posts: 'Publicar anuncio', gear: 'Publicar anuncio' };

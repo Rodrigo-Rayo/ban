@@ -435,6 +435,66 @@ describe('FeedComponent', () => {
     expect(component.postTypes.every(t => !/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(t.label))).toBeTrue();
   });
 
+  describe('guided ad', () => {
+    beforeEach(() => {
+      component.newPost = { ...component.newPost, type: 'musician_seeking_band', title: '', text: '', city: 'Madrid', instrument: 'Batería', genre: 'Rock' };
+      component.guided = { answers: {}, extra: '', manual: false, titleTouched: false, generated: false };
+    });
+    const want = () => component.guidedQuestions().find(g => g.id === 'want')!;
+
+    it('chips write the text and the title is suggested', () => {
+      component.toggleChip(want(), want().options[0]);
+      expect(component.newPost.text).toBe('Busco una banda estable.');
+      expect(component.newPost.title).toBe('Batería busca banda · Rock · Madrid');
+    });
+
+    it('a title typed by the user is kept when fields change', () => {
+      component.onTitleInput('Mi título');
+      component.setField('city', 'Sevilla');
+      expect(component.newPost.title).toBe('Mi título');
+    });
+
+    it('changing the type clears the answers', () => {
+      component.toggleChip(want(), want().options[0]);
+      component.selectType('band_seeking_musician');
+      expect(component.guided.answers).toEqual({});
+      expect(component.newPost.text).toBe('');
+      expect(component.newPost.title).toBe('Buscamos batería · Rock · Madrid');
+    });
+
+    it('"Prefiero escribirlo yo" keeps the text and shows the free box', () => {
+      component.toggleChip(want(), want().options[1]);
+      component.writeMyself();
+      expect(component.guidedQuestions()).toEqual([]);
+      expect(component.newPost.text).toBe('Busco un proyecto puntual.');
+    });
+
+    it('an emptied title stays empty', () => {
+      component.onTitleInput('');
+      component.setField('genre', 'Pop');
+      expect(component.newPost.title).toBe('');
+    });
+
+    it('text the user typed survives a type change', () => {
+      component.selectType('collab');
+      component.newPost.text = 'Lo escribí yo';
+      component.selectType('musician_seeking_band');
+      expect(component.newPost.text).toBe('Lo escribí yo');
+      expect(component.guidedQuestions()).toEqual([]);
+    });
+
+    it('chip text does not leak into a free-text type', () => {
+      component.toggleChip(want(), want().options[0]);
+      component.selectType('collab');
+      expect(component.newPost.text).toBe('');
+    });
+
+    it('other types keep the free text box', () => {
+      component.selectType('collab');
+      expect(component.guidedQuestions()).toEqual([]);
+    });
+  });
+
   describe('post titles', () => {
     const asItem = (post: Post) => ({ kind: 'post' as const, id: post.id, created_at: post.created_at, post });
 
