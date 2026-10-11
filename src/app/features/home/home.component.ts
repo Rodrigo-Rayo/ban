@@ -17,7 +17,7 @@ import { environment } from '../../../environments/environment';
 import { PostType } from '../../core/models';
 
 interface HomeMusician { id: string; user_id?: string | null; name: string; city: string; instrument: string; avatar_url: string | null; created_at: string; }
-interface HomeEvent { id: string; title: string; city: string; date: string; genre: string; description: string | null; venue?: string | null; created_at: string; }
+interface HomeEvent { id: string; title: string; city: string; date: string; genre: string; description: string | null; venue?: string | null; image_url?: string | null; created_at: string; }
 interface HomeVenue { id: string; user_id?: string | null; name: string; city: string; avatar_url: string | null; capacity: number | null; created_at: string; }
 interface HomeRehearsal { id: string; user_id?: string | null; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate?: number | null; created_at: string; }
 interface HomePost { id: string; type: string; title?: string | null; text: string; city: string | null; instrument: string | null; author_name: string; author_profile_type: string | null; author_profile_id: string | null; created_at: string; }
@@ -339,14 +339,17 @@ export class HomeComponent implements OnInit {
       const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
 
       const musicianCols   = 'id, user_id, name, city, instrument, avatar_url, created_at';
-      const eventCols      = 'id, title, city, date, genre, description, venue, created_at';
+      // Optional columns, probed in parallel (each probe is one cached request per session).
+      const [hasPostTitle, hasEventImage] = await Promise.all([
+        this.features.has('postTitle'), this.features.has('eventImage'), this.features.has('postGigDate'),
+      ]);
+      const eventCols      = 'id, title, city, date, genre, description, venue, created_at' + (hasEventImage ? ', image_url' : '');
       const venueCols      = 'id, user_id, name, city, avatar_url, capacity, created_at';
       const bandCols       = 'id, user_id, name, city, genre, avatar_url, created_at';
       const teacherCols    = 'id, user_id, name, city, instrument, avatar_url, created_at';
       const rehearsalCols  = 'id, user_id, name, city, avatar_url, capacity, hourly_rate, created_at';
       const postCols       = 'id, type, text, city, instrument, author_name, author_profile_type, author_profile_id, created_at'
-        + (await this.features.has('postTitle') ? ', title' : '');
-      await this.features.has('postGigDate');
+        + (hasPostTitle ? ', title' : '');
       const listingCols    = 'id, title, price, condition, category, city, images, created_at';
 
       const db = this.supabase.client;

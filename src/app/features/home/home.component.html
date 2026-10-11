@@ -168,16 +168,22 @@
           <div class="flex gap-3 overflow-x-auto overscroll-x-contain snap-x no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 scroll-px-4 pb-2">
             @for (e of upcomingEvents(); track e.id) {
               <a [routerLink]="['/events', e.id]"
-                 class="press snap-start shrink-0 w-[78%] max-w-[16rem] flex border-2 border-ink bg-dark-900 shadow-[3px_3px_0_0_#141210] hover:bg-poster-yellow transition-colors">
+                 [style.max-width.rem]="e.image_url ? 19.5 : 16"
+                 class="press snap-start shrink-0 w-[78%] flex border-2 border-ink bg-dark-900 shadow-[3px_3px_0_0_#141210] hover:bg-poster-yellow transition-colors">
                 <span class="bg-poster-yellow border-r-2 border-ink w-16 shrink-0 flex flex-col items-center justify-center leading-none py-2">
                   <span class="font-mono text-[11px] font-bold uppercase">{{ dateParts(e.date).weekday }}</span>
                   <span class="font-display text-3xl">{{ dateParts(e.date).day }}</span>
                   <span class="font-mono text-[11px] font-bold uppercase">{{ dateParts(e.date).month }}</span>
                 </span>
                 <span class="flex-1 min-w-0 p-3">
-                  <span class="block font-display text-lg uppercase leading-tight line-clamp-2">{{ e.title }}</span>
+                  <span class="font-display text-lg uppercase leading-tight line-clamp-2 break-words">{{ e.title }}</span>
                   <span class="block text-xs text-ink-muted truncate mt-1">{{ e.venue || e.city }}</span>
                 </span>
+                @if (e.image_url) {
+                  <!-- The gig's poster, as a vertical thumbnail; cards without one stay as they were -->
+                  <img [src]="e.image_url" alt="" loading="lazy" decoding="async"
+                       class="w-16 shrink-0 self-stretch object-cover border-l-2 border-ink bg-dark-800"/>
+                }
               </a>
             }
           </div>
