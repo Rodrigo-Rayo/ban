@@ -435,17 +435,40 @@ describe('FeedComponent', () => {
     expect(component.postTypes.every(t => !/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(t.label))).toBeTrue();
   });
 
-  describe('guided ad', () => {
+  describe('text help ("¿No sabes qué poner?")', () => {
     beforeEach(() => {
       component.newPost = { ...component.newPost, type: 'musician_seeking_band', title: '', text: '', city: 'Madrid', instrument: 'Batería', genre: 'Rock' };
-      component.guided = { answers: {}, extra: '', manual: false, titleTouched: false, generated: false };
+      component.guided = { answers: {}, extra: '', open: false, titleTouched: false, generated: false };
     });
     const want = () => component.guidedQuestions().find(g => g.id === 'want')!;
 
-    it('chips write the text and the title is suggested', () => {
+    it('the free box comes first; the questions only when asked for', () => {
+      expect(component.canGuide()).toBeTrue();
+      expect(component.guidedQuestions()).toEqual([]);
+      component.openGuide();
+      expect(component.guidedQuestions().length).toBeGreaterThan(0);
+    });
+
+    it('chips write the text in the box and the title is suggested', () => {
+      component.openGuide();
       component.toggleChip(want(), want().options[0]);
       expect(component.newPost.text).toBe('Busco una banda estable.');
       expect(component.newPost.title).toBe('Batería busca banda · Rock · Madrid');
+    });
+
+    it('text written before opening is kept as the last line', () => {
+      component.onTextInput('Tengo 20 años tocando');
+      component.openGuide();
+      component.toggleChip(want(), want().options[0]);
+      expect(component.newPost.text).toBe('Busco una banda estable. Tengo 20 años tocando.');
+    });
+
+    it('typing in the box closes the questions and keeps the text', () => {
+      component.openGuide();
+      component.toggleChip(want(), want().options[0]);
+      component.onTextInput('Busco una banda estable. Y más cosas');
+      expect(component.guidedQuestions()).toEqual([]);
+      expect(component.newPost.text).toBe('Busco una banda estable. Y más cosas');
     });
 
     it('a title typed by the user is kept when fields change', () => {
@@ -454,44 +477,19 @@ describe('FeedComponent', () => {
       expect(component.newPost.title).toBe('Mi título');
     });
 
-    it('changing the type clears the answers', () => {
+    it('chip text does not carry over to another type; typed text does', () => {
+      component.openGuide();
       component.toggleChip(want(), want().options[0]);
-      component.selectType('band_seeking_musician');
-      expect(component.guided.answers).toEqual({});
-      expect(component.newPost.text).toBe('');
-      expect(component.newPost.title).toBe('Buscamos batería · Rock · Madrid');
-    });
-
-    it('"Prefiero escribirlo yo" keeps the text and shows the free box', () => {
-      component.toggleChip(want(), want().options[1]);
-      component.writeMyself();
-      expect(component.guidedQuestions()).toEqual([]);
-      expect(component.newPost.text).toBe('Busco un proyecto puntual.');
-    });
-
-    it('an emptied title stays empty', () => {
-      component.onTitleInput('');
-      component.setField('genre', 'Pop');
-      expect(component.newPost.title).toBe('');
-    });
-
-    it('text the user typed survives a type change', () => {
       component.selectType('collab');
-      component.newPost.text = 'Lo escribí yo';
+      expect(component.newPost.text).toBe('');
+      component.onTextInput('Lo escribí yo');
       component.selectType('musician_seeking_band');
       expect(component.newPost.text).toBe('Lo escribí yo');
-      expect(component.guidedQuestions()).toEqual([]);
     });
 
-    it('chip text does not leak into a free-text type', () => {
-      component.toggleChip(want(), want().options[0]);
+    it('other types have no questions', () => {
       component.selectType('collab');
-      expect(component.newPost.text).toBe('');
-    });
-
-    it('other types keep the free text box', () => {
-      component.selectType('collab');
-      expect(component.guidedQuestions()).toEqual([]);
+      expect(component.canGuide()).toBeFalse();
     });
   });
 

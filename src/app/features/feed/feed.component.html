@@ -65,44 +65,11 @@
           </div>
         }
 
-        <!-- Guided ad: chips write the text (busco banda / buscamos músico) -->
-        @if (guidedQuestions().length) {
-          <div class="mb-4 flex flex-col gap-4">
-            @for (g of guidedQuestions(); track g.id) {
-              <fieldset>
-                <legend class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">{{ g.question }}</legend>
-                <div class="flex flex-wrap gap-2">
-                  @for (o of g.options; track o.id) {
-                    <button type="button" (click)="toggleChip(g, o)" [attr.aria-pressed]="isPicked(g, o)"
-                      class="min-h-[44px] px-3 border-2 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                      [class]="isPicked(g, o) ? 'bg-ink text-poster-paper border-ink' : 'bg-dark-800 text-ink border-ink/30 hover:border-ink'">
-                      {{ o.label }}
-                    </button>
-                  }
-                </div>
-              </fieldset>
-            }
-            <div>
-              <label for="post-extra" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Algo más sobre ti <span class="text-ink-muted">(opcional)</span></label>
-              <input id="post-extra" type="text" [ngModel]="guided.extra" (ngModelChange)="setExtra($event)" [maxlength]="MAX_EXTRA_LENGTH"
-                placeholder="Ej: influencias, nivel, lo que quieras contar" class="input-field min-h-[44px]" autocomplete="off"/>
-            </div>
-            <div class="border-2 border-ink/20 bg-dark-800 px-4 py-3" aria-live="polite">
-              <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted mb-1">Así quedará tu anuncio</p>
-              @if (newPost.text) {
-                <p class="text-[15px] text-ink leading-relaxed">{{ newPost.text }}</p>
-              } @else {
-                <p class="text-sm text-ink-muted">Toca las opciones que vayan contigo y se escribe solo.</p>
-              }
-              <button type="button" (click)="writeMyself()" class="mt-2 min-h-[44px] font-mono text-[11px] font-bold uppercase tracking-wide text-primary-600 underline underline-offset-4 hover:text-primary-700">Prefiero escribirlo yo</button>
-            </div>
-          </div>
-        } @else {
         <!-- Textarea + counter -->
         <div class="mb-4">
           <label for="post-text" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Tu anuncio</label>
           <div class="relative">
-            <textarea id="post-text" [(ngModel)]="newPost.text" rows="4" [maxlength]="MAX_POST_LENGTH"
+            <textarea id="post-text" [ngModel]="newPost.text" (ngModelChange)="onTextInput($event)" rows="4" [maxlength]="MAX_POST_LENGTH"
               placeholder="Ej: Batería con 5 años de experiencia busca banda de rock en Madrid. Disponible fines de semana."
               class="input-field resize-none pb-7"></textarea>
             <span class="absolute bottom-2.5 right-3 font-mono text-[11px] font-bold pointer-events-none"
@@ -112,7 +79,41 @@
               {{ newPost.text.length }}/{{ MAX_POST_LENGTH }}
             </span>
           </div>
+          @if (canGuide() && !guided.open) {
+            <button type="button" (click)="openGuide()"
+              class="mt-1 min-h-[44px] font-mono text-[11px] font-bold uppercase tracking-wide text-primary-600 underline underline-offset-4 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+              ¿No sabes qué poner? Te ayudamos
+            </button>
+          }
         </div>
+
+        <!-- Optional help: chips write the text in the box above -->
+        @if (guidedQuestions().length) {
+          <div class="mb-4 border-2 border-ink/20 bg-dark-800 px-4 py-4 flex flex-col gap-4">
+            <div class="flex items-start justify-between gap-3">
+              <p class="text-sm text-ink">Toca lo que vaya contigo y se escribe solo en tu anuncio. Luego puedes retocarlo.</p>
+              <button type="button" (click)="closeGuide()" class="btn-ghost min-h-[44px] text-xs flex-shrink-0">Cerrar</button>
+            </div>
+            @for (g of guidedQuestions(); track g.id) {
+              <fieldset>
+                <legend class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">{{ g.question }}</legend>
+                <div class="flex flex-wrap gap-2">
+                  @for (o of g.options; track o.id) {
+                    <button type="button" (click)="toggleChip(g, o)" [attr.aria-pressed]="isPicked(g, o)"
+                      class="min-h-[44px] px-3 border-2 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                      [class]="isPicked(g, o) ? 'bg-ink text-poster-paper border-ink' : 'bg-dark-900 text-ink border-ink/30 hover:border-ink'">
+                      {{ o.label }}
+                    </button>
+                  }
+                </div>
+              </fieldset>
+            }
+            <div>
+              <label for="post-extra" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Algo más <span class="text-ink-muted">(opcional)</span></label>
+              <input id="post-extra" type="text" [ngModel]="guided.extra" (ngModelChange)="setExtra($event)" [maxlength]="MAX_EXTRA_LENGTH"
+                placeholder="Ej: influencias, nivel, lo que quieras contar" class="input-field min-h-[44px]" autocomplete="off"/>
+            </div>
+          </div>
         }
 
         <!-- Meta fields -->

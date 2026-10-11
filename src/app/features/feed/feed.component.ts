@@ -154,18 +154,34 @@ export class FeedComponent implements OnInit {
   readonly postTypes = POST_TYPE_OPTIONS;
 
   /**
-   * "Anuncio guiado" (busco banda / buscamos músico): chips write the text, the title is
-   * suggested from the fields until the user types their own, and "Prefiero escribirlo yo"
-   * switches back to the free text box with what was written so far.
+   * Help for the text (busco banda / buscamos músico): the free box comes first, as always.
+   * "¿No sabes qué poner?" opens a few questions answered with chips that write the text in
+   * the box; typing in the box closes them and the text stays as the user's own. The title
+   * is suggested from instrument, style and province until the user types their own.
    */
-  guided = { answers: {} as GuidedAnswers, extra: '', manual: false, titleTouched: false, generated: false };
+  guided = { answers: {} as GuidedAnswers, extra: '', open: false, titleTouched: false, generated: false };
   /** Fields the user picked themselves: the profile prefill never overrides them. */
   private touchedFields = new Set<'city' | 'instrument' | 'genre'>();
   readonly MAX_EXTRA_LENGTH = 200;
 
-  /** Questions shown for the current type (none once the user writes the text themselves). */
+  /** This type has the optional questions ("¿No sabes qué poner?"). */
+  canGuide(): boolean {
+    return guidedGroups(this.newPost.type).length > 0;
+  }
+
+  /** Questions shown right now (only while the help is open). */
   guidedQuestions(): readonly GuidedGroup[] {
-    return this.guided.manual ? [] : guidedGroups(this.newPost.type);
+    return this.guided.open ? guidedGroups(this.newPost.type) : [];
+  }
+
+  /** Opens the questions; whatever the user already wrote is kept as their own last line. */
+  openGuide() {
+    const typed = this.guided.generated ? '' : this.newPost.text.trim();
+    this.guided = { ...this.guided, open: true, answers: {}, extra: typed.slice(0, this.MAX_EXTRA_LENGTH) };
+  }
+
+  closeGuide() {
+    this.guided = { ...this.guided, open: false, generated: false };
   }
 
   isPicked(g: GuidedGroup, o: GuidedOption): boolean {
@@ -182,16 +198,18 @@ export class FeedComponent implements OnInit {
     this.syncGuided();
   }
 
-  /**
-   * A new type asks other questions: earlier answers do not carry over. Text the chips
-   * wrote goes with them; text the user typed is kept (shown in the free box).
-   */
+  /** Typing in the box makes the text the user's own: the questions close so nothing overwrites it. */
+  onTextInput(value: string) {
+    this.newPost.text = value;
+    if (this.guided.open || this.guided.generated) this.closeGuide();
+  }
+
+  /** A new type asks other questions: answers do not carry over, and neither does text the chips wrote. */
   selectType(type: PostType) {
     if (type === this.newPost.type) return;
     this.newPost.type = type;
-    const typed = !!this.newPost.text.trim() && !this.guided.generated;
-    if (!typed) this.newPost.text = '';
-    this.guided = { ...this.guided, answers: {}, extra: '', generated: false, manual: this.guided.manual || typed };
+    if (this.guided.generated) this.newPost.text = '';
+    this.guided = { ...this.guided, answers: {}, extra: '', open: false, generated: false };
     this.syncGuided();
   }
 
@@ -208,12 +226,7 @@ export class FeedComponent implements OnInit {
     this.guided = { ...this.guided, titleTouched: true };
   }
 
-  /** The written text stays and becomes the user's own. */
-  writeMyself() {
-    this.guided = { ...this.guided, manual: true, generated: false };
-  }
-
-  /** Keeps the text (guided mode) and the untouched title in step with the answers and fields. */
+  /** Keeps the text (while the questions are open) and the untouched title in step. */
   private syncGuided() {
     if (this.guidedQuestions().length) {
       this.newPost.text = composeGuidedText(this.newPost.type, this.guided.answers, this.guided.extra).slice(0, this.MAX_POST_LENGTH);
@@ -475,7 +488,7 @@ export class FeedComponent implements OnInit {
       }
       const keep = { city: this.newPost.city, instrument: this.newPost.instrument, genre: this.newPost.genre };
       this.newPost = { type: this.defaultPostType(), title: '', text: '', ...keep, forGig: false, gigDate: '' };
-      this.guided = { answers: {}, extra: '', manual: false, titleTouched: false, generated: false };
+      this.guided = { answers: {}, extra: '', open: false, titleTouched: false, generated: false };
       this.syncGuided();
       this.showForm.set(false);
       this.formOnly.set(false);
