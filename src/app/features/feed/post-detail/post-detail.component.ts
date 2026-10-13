@@ -1,6 +1,7 @@
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { linkify, linkLabel } from '../../../core/utils/linkify';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
+import { CommentsComponent } from '../../../shared/components/comments/comments.component';
 import { ChangeDetectionStrategy, Component, DestroyRef, signal, computed, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -31,7 +32,7 @@ export function heroStampFor(type: PostType): string {
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-post-detail',
-    imports: [ReportLinkComponent, RouterLink, IconComponent],
+    imports: [ReportLinkComponent, RouterLink, IconComponent, CommentsComponent],
     templateUrl: './post-detail.component.html'
 })
 export class PostDetailComponent implements OnInit {

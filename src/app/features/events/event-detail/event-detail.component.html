@@ -202,6 +202,8 @@
           </div>
         }
 
+        <app-comments targetType="event" [targetId]="event()!.id" [ownerId]="event()!.user_id"/>
+
         @if (related().length) {
           <section aria-labelledby="ev-related-title">
             <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3">

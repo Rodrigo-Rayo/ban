@@ -223,7 +223,7 @@ export interface Message {
   created_at: string;
 }
 
-export type NotificationType = 'message' | 'application' | 'rsvp' | 'review' | 'system' | 'favorite' | 'event_reminder' | 'booking' | 'quedada';
+export type NotificationType = 'message' | 'application' | 'rsvp' | 'review' | 'system' | 'favorite' | 'event_reminder' | 'booking' | 'quedada' | 'post_alert' | 'comment';
 
 export interface Notification {
   id: string;

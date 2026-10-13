@@ -128,6 +128,8 @@
             {{ linkCopied() ? 'Enlace copiado' : 'Compartir' }}
           </button>
         </section>
+
+        <app-comments targetType="post" [targetId]="post()!.id" [ownerId]="post()!.user_id"/>
       </article>
     </div>
 

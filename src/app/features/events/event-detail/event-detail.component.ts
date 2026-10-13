@@ -1,5 +1,6 @@
 import { MediaUploadService } from '../../../core/services/media-upload.service';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
+import { CommentsComponent } from '../../../shared/components/comments/comments.component';
 import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -26,7 +27,7 @@ const EVENT_COLUMNS = 'id, user_id, title, venue, city, date, time, genre, price
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-event-detail',
-    imports: [ReportLinkComponent, RouterLink, CommonModule, DatePipe, IconComponent],
+    imports: [ReportLinkComponent, RouterLink, CommonModule, DatePipe, IconComponent, CommentsComponent],
     templateUrl: './event-detail.component.html'
 })
 export class EventDetailComponent implements OnInit {
