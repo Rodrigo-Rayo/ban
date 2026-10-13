@@ -189,23 +189,40 @@ export function favoriteId(c: ShowcaseCard): string {
   return c.route[c.route.length - 1];
 }
 
-/** Cards already seen (home circles turn grey), kept in this browser only. */
+/**
+ * Cards already seen (home circles turn grey), kept in this browser only as
+ * [key, seen at] pairs. A card counts as seen for SEEN_DAYS, then its circle is
+ * coloured again, so the home strip does not stay grey for good.
+ */
 const SEEN_KEY = 'bandyou_showcase_seen';
 const SEEN_MAX = 400;
+export const SEEN_DAYS = 3;
+const SEEN_MS = SEEN_DAYS * 24 * 3600e3;
 
-export function readSeen(): Set<string> {
+/** Seen pairs still within SEEN_DAYS, oldest first. Plain keys (the first format) count as seen now. */
+function seenEntries(now: number): [string, number][] {
   try {
-    const raw = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
-    return new Set(Array.isArray(raw) ? raw.filter((k): k is string => typeof k === 'string') : []);
+    const raw: unknown = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((e): [string, number] | null =>
+        typeof e === 'string' ? [e, now]
+        : Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'number' ? [e[0], e[1]]
+        : null)
+      .filter((e): e is [string, number] => !!e && now - e[1] < SEEN_MS);
   } catch {
-    return new Set();
+    return [];
   }
 }
 
-export function markSeen(key: string): void {
+export function readSeen(now: number = Date.now()): Set<string> {
+  return new Set(seenEntries(now).map(e => e[0]));
+}
+
+export function markSeen(key: string, now: number = Date.now()): void {
   try {
-    const seen = [...readSeen()].filter(k => k !== key);
-    seen.push(key);
+    const seen = seenEntries(now).filter(e => e[0] !== key);
+    seen.push([key, now]);
     localStorage.setItem(SEEN_KEY, JSON.stringify(seen.slice(-SEEN_MAX)));
   } catch { /* private mode: circles just stay coloured */ }
 }

@@ -488,7 +488,8 @@ export class ShowcaseComponent implements OnInit, OnDestroy {
   /**
    * One card back (-1) or on (+1), counted from the card a move is already heading
    * to, so quick taps or the timer never stack scrolls and skip cards. After the
-   * last card it closes, like stories.
+   * last card it closes, like stories. Taps, keys and the timer jump straight to
+   * the card (no slide), like Instagram; swiping keeps its native slide.
    */
   step(delta: number) {
     const el = this.scroller()?.nativeElement;
@@ -501,7 +502,7 @@ export class ShowcaseComponent implements OnInit, OnDestroy {
     if (this.targetTimer) clearTimeout(this.targetTimer);
     // Safety net: if the observer never reports the card (tiny screens, reduced motion), let go.
     this.targetTimer = setTimeout(() => this.clearTarget(), 900);
-    el.scrollTo({ left: to * el.clientWidth, behavior: 'smooth' });
+    el.scrollTo({ left: to * el.clientWidth, behavior: 'instant' });
   }
 
   private clearTarget() {

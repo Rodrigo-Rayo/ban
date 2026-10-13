@@ -1,6 +1,6 @@
 import {
   ShowcaseCard, bandCard, canPlay, cardSeconds, eventCard, favoriteId, favoriteType, gearCard, markSeen, musicianCard, postCard,
-  progressWindow, readSeen, shortAgo, showcaseOrder, startAt,
+  progressWindow, readSeen, SEEN_DAYS, shortAgo, showcaseOrder, startAt,
 } from './showcase';
 
 const SONG = 'https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC';
@@ -111,6 +111,26 @@ describe('Escaparate', () => {
     expect([...readSeen()]).toEqual(['b-2', 'm-1']);
     localStorage.setItem('bandyou_showcase_seen', '{broken');
     expect(readSeen().size).toBe(0);
+    localStorage.removeItem('bandyou_showcase_seen');
+  });
+
+  it('forgets a seen card after SEEN_DAYS, so its circle is coloured again', () => {
+    localStorage.removeItem('bandyou_showcase_seen');
+    const day = 24 * 3600e3;
+    const t0 = Date.parse('2026-10-13T12:00:00Z');
+    markSeen('m-1', t0);
+    markSeen('b-2', t0 + 2 * day);
+    expect([...readSeen(t0 + SEEN_DAYS * day - 1)]).toEqual(['m-1', 'b-2']);
+    expect([...readSeen(t0 + SEEN_DAYS * day)]).toEqual(['b-2']);
+    // Seeing it again starts the count over.
+    markSeen('m-1', t0 + 5 * day);
+    expect([...readSeen(t0 + 6 * day)]).toEqual(['m-1']);
+    localStorage.removeItem('bandyou_showcase_seen');
+  });
+
+  it('keeps the circles grey for keys saved in the first (plain list) format', () => {
+    localStorage.setItem('bandyou_showcase_seen', JSON.stringify(['m-1', 7, ['b-2', 'x']]));
+    expect([...readSeen()]).toEqual(['m-1']);
     localStorage.removeItem('bandyou_showcase_seen');
   });
 });
