@@ -58,12 +58,13 @@
     <!-- ── ESCAPARATE: story-like circles; each opens the full-screen showcase at that person ── -->
     @if (showcasePeople().length >= 3) {
       <nav aria-label="Escaparate" class="mt-4 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-3 overflow-x-auto overscroll-x-contain no-scrollbar pb-1">
-        <a routerLink="/escaparate" class="shrink-0 w-[4.5rem] flex flex-col items-center text-center group">
+        <button type="button" (click)="publishOpen.set(true)" class="shrink-0 w-[4.5rem] flex flex-col items-center text-center group"
+                aria-haspopup="dialog" [attr.aria-expanded]="publishOpen()">
           <span class="w-16 h-16 story-ring bg-primary-500 border-2 border-ink flex items-center justify-center text-white group-hover:scale-105 transition-transform">
-            <svg class="w-6 h-6 ml-0.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           </span>
-          <span class="mt-1.5 font-mono text-[10px] font-bold uppercase tracking-wide">Escaparate</span>
-        </a>
+          <span class="mt-1.5 font-mono text-[10px] font-bold uppercase tracking-wide">Publicar</span>
+        </button>
         @for (p of showcasePeople(); track p.key) {
           <a routerLink="/escaparate" [queryParams]="{ p: p.key }" class="shrink-0 w-[4.5rem] flex flex-col items-center text-center group"
              [attr.aria-label]="'Ver a ' + p.name + ' en el escaparate'">
@@ -74,6 +75,7 @@
           </a>
         }
       </nav>
+      <app-publish-sheet [(open)]="publishOpen"/>
     }
   </div>
 

@@ -1,5 +1,6 @@
 import { QuedadaStatusComponent } from '../quedada/quedada-status.component';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
+import { PublishSheetComponent } from '../../shared/components/publish-sheet/publish-sheet.component';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
@@ -96,7 +97,7 @@ const NEW_PEOPLE_LIMIT = 8;
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-home',
-    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent],
+    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent, PublishSheetComponent],
     templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit {
@@ -160,6 +161,8 @@ export class HomeComponent implements OnInit {
     const today = localToday();
     return this.recentEvents().filter(e => (e.date ?? '').slice(0, 10) >= today);
   });
+  /** The "+" circle before the Escaparate ones opens the publish sheet. */
+  readonly publishOpen = signal(false);
   /** Escaparate circles: the newest profiles with a photo; each opens the showcase at that person. */
   readonly showcasePeople = computed(() => this.newPeople().filter(p => !!p.avatar_url).slice(0, 10));
   /** Newest profiles of every type (musicians, bands, teachers, venues, rehearsal spaces), never the signed-in user. */
