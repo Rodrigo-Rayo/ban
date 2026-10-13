@@ -160,6 +160,9 @@ export class HomeComponent implements OnInit {
     const today = localToday();
     return this.recentEvents().filter(e => (e.date ?? '').slice(0, 10) >= today);
   });
+  /** Escaparate circles: musicians and bands with a photo (the showcase only has those two). */
+  readonly showcasePeople = computed(() =>
+    this.newPeople().filter(p => !!p.avatar_url && (p.key.startsWith('m-') || p.key.startsWith('b-'))).slice(0, 10));
   /** Newest profiles of every type (musicians, bands, teachers, venues, rehearsal spaces), never the signed-in user. */
   readonly newPeople = computed<NewPerson[]>(() => {
     const me = this.auth.user()?.id;

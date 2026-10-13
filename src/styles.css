@@ -384,6 +384,8 @@ body.has-bottom-nav .bottom-above-nav { bottom: calc(4rem + env(safe-area-inset-
 
 /* Square poster theme sets rounded-full to 0; loading spinners stay circular. */
 .animate-spin.rounded-full { border-radius: 9999px; }
+/* Escaparate circles on the home: read as stories, so they stay round on purpose. */
+.story-ring { border-radius: 9999px; }
 
 /* Anton capitals carry accents (Í, Ñ, Ú) above the cap height: a clipped
    (truncate / overflow-hidden) poster line needs room or the accent is cut. */

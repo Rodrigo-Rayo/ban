@@ -145,6 +145,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/shop/gear-detail/gear-detail.component').then(m => m.GearDetailComponent),
   },
   {
+    path: 'escaparate', title: 'Escaparate · BandYou', data: NOINDEX,
+    loadComponent: () => import('./features/showcase/showcase.component').then(m => m.ShowcaseComponent),
+  },
+  {
     path: 'colaboradores', title: 'Colaboradores · BandYou',
     loadComponent: () => import('./features/partners/partners.component').then(m => m.PartnersComponent),
   },
