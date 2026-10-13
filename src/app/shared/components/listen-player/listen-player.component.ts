@@ -42,15 +42,18 @@ export class ListenPlayerComponent {
   readonly links = input<readonly (string | null | undefined)[]>([]);
   /** Who is playing, as it reads after "Escuchar": "a Stormy"… Empty = just "Escuchar". */
   readonly who = input('');
+  /** Load the player straight away and let it start by itself (Escaparate). Browsers may still ask for a tap. */
+  readonly autoplay = input(false);
 
   readonly playing = signal(false);
   readonly embed = computed(() => firstEmbed(this.links()));
 
   constructor() {
-    // Other links (another profile in the same component): back to "press play".
+    // Other links (another profile in the same component): back to "press play", unless it autoplays.
     effect(() => {
       this.embed();
-      untracked(() => this.playing.set(false));
+      const auto = this.autoplay();
+      untracked(() => this.playing.set(auto));
     });
   }
   /** The src is rebuilt by mediaEmbed from validated parts on fixed provider hosts. */
