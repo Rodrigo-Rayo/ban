@@ -29,9 +29,7 @@ import { LEGAL_INFO } from '../legal/legal-info';
           @for (p of partners; track p.name; let i = $index) {
             <li class="card-flat flex flex-col p-5 border-2 border-ink shadow-[4px_4px_0_0_#141210]"
                 [class.-rotate-1]="i % 2 === 0" [class.rotate-1]="i % 2 === 1">
-              <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-primary-600">{{ p.kind }}</p>
-              <h2 class="font-display text-3xl uppercase leading-none mt-2 [overflow-wrap:anywhere]">{{ p.name }}</h2>
-              <p class="text-sm leading-relaxed mt-3 flex-1">{{ p.together }}</p>
+              <h2 class="font-display text-3xl uppercase leading-none [overflow-wrap:anywhere]">{{ p.name }}</h2>
               <div class="mt-4 flex flex-wrap gap-2">
                 <a [href]="p.url" target="_blank" [attr.rel]="rel(p)" class="btn-secondary min-h-[44px] px-4 text-xs">
                   {{ host(p.url) }} <app-icon name="external-link" [size]="14"/><span class="sr-only"> (se abre en una pestaña nueva)</span>

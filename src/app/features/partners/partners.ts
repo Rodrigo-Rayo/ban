@@ -5,10 +5,6 @@
  */
 export interface Partner {
   name: string;
-  /** What they are, in a few words: "Sala de conciertos en Lavapiés". */
-  kind: string;
-  /** What we did together. */
-  together: string;
   url: string;
   instagram?: string;
   /** BandYou profile, when they have one: ['/venues', id]. */
@@ -19,14 +15,10 @@ export interface Partner {
 export const PARTNERS: readonly Partner[] = [
   {
     name: 'Promosapiens',
-    kind: 'Agencia de promoción musical',
-    together: 'Nos ayudaron a dar a conocer BandYou en prensa.',
     url: 'https://www.promosapiens.net',
   },
   {
     name: 'Inout Viajes',
-    kind: 'Revista digital',
-    together: 'Publicaron el nacimiento de BandYou (octubre de 2026).',
     url: 'https://www.inoutviajes.com',
   },
 ];
