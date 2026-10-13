@@ -388,6 +388,7 @@ body.has-bottom-nav .bottom-above-nav { bottom: calc(4rem + env(safe-area-inset-
 .story-ring { border-radius: 9999px; }
 /* Escaparate stickers (link, music) are rounded like Instagram's, unlike the rest of the poster theme. */
 .ig-round { border-radius: 14px; }
+@media (min-width: 640px) { .sm\:ig-round { border-radius: 14px; } }
 
 /* Anton capitals carry accents (Í, Ñ, Ú) above the cap height: a clipped
    (truncate / overflow-hidden) poster line needs room or the accent is cut. */

@@ -5,7 +5,8 @@ import { firstEmbed } from '../../../core/utils/media-embed';
 /**
  * "Escuchar" on a profile: plays the first link that can play inside the page
  * (Spotify, SoundCloud, a YouTube video). Nothing loads from the provider until
- * the visitor presses play — no third-party requests or cookies before that.
+ * the visitor presses play — no third-party requests or cookies before that —
+ * except with `autoplay` (the Escaparate), where the player loads straight away.
  * Renders nothing when no link can play here (e.g. only a YouTube channel).
  */
 @Component({

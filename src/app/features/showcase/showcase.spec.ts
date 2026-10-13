@@ -1,5 +1,6 @@
 import {
-  ShowcaseCard, bandCard, canPlay, eventCard, gearCard, musicianCard, postCard, showcaseOrder, startAt,
+  ShowcaseCard, bandCard, canPlay, cardSeconds, eventCard, favoriteId, favoriteType, gearCard, markSeen, musicianCard, postCard,
+  progressWindow, readSeen, shortAgo, showcaseOrder, startAt,
 } from './showcase';
 
 const SONG = 'https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC';
@@ -71,5 +72,45 @@ describe('Escaparate', () => {
 
     const g = gearCard({ id: '5', user_id: 'u', title: 'Fender Jazz Bass', price: 650, city: 'Madrid', images: ['a.jpg'], created_at: '' });
     expect([g.image, g.stamp, g.route.join('/')]).toEqual(['a.jpg', '650 €', '/shop/5']);
+  });
+
+  it('gives each card its time on screen: longer with music, a bit longer with text', () => {
+    expect(cardSeconds(card('a'))).toBe(6);
+    expect(cardSeconds(card('b', { body: 'Buscamos batería' }))).toBe(8);
+    expect(cardSeconds(card('c', { links: [SONG] }))).toBe(15);
+  });
+
+  it('shows the story bars in blocks of ten around the current card', () => {
+    expect(progressWindow(0, 0)).toEqual({ start: 0, count: 0 });
+    expect(progressWindow(7, 3)).toEqual({ start: 0, count: 7 });
+    expect(progressWindow(25, 12)).toEqual({ start: 10, count: 10 });
+    expect(progressWindow(25, 21)).toEqual({ start: 20, count: 5 });
+  });
+
+  it('writes the time next to the name like stories', () => {
+    const now = new Date('2026-10-13T12:00:00Z');
+    expect(shortAgo('2026-10-13T11:59:50Z', now)).toBe('ahora');
+    expect(shortAgo('2026-10-13T11:40:00Z', now)).toBe('20 min');
+    expect(shortAgo('2026-10-13T07:00:00Z', now)).toBe('5 h');
+    expect(shortAgo('2026-10-11T12:00:00Z', now)).toBe('2 d');
+    expect(shortAgo('2026-09-22T12:00:00Z', now)).toBe('3 sem');
+    expect(shortAgo('nope', now)).toBe('');
+  });
+
+  it('only lets profiles and gigs be saved as favourites', () => {
+    expect(favoriteType(card('m'))).toBe('musician');
+    expect(favoriteType(card('e', { kind: 'event', route: ['/events', 'e9'] }))).toBe('event');
+    expect(favoriteId(card('e', { kind: 'event', route: ['/events', 'e9'] }))).toBe('e9');
+    expect(favoriteType(card('p', { kind: 'post' }))).toBeNull();
+    expect(favoriteType(card('g', { kind: 'gear' }))).toBeNull();
+  });
+
+  it('remembers which cards were seen, newest last', () => {
+    localStorage.removeItem('bandyou_showcase_seen');
+    markSeen('m-1'); markSeen('b-2'); markSeen('m-1');
+    expect([...readSeen()]).toEqual(['b-2', 'm-1']);
+    localStorage.setItem('bandyou_showcase_seen', '{broken');
+    expect(readSeen().size).toBe(0);
+    localStorage.removeItem('bandyou_showcase_seen');
   });
 });

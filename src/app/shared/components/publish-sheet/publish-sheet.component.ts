@@ -15,7 +15,7 @@ import { PUBLISH_CONTENT, PublishOption, bandVacancyOption } from '../navbar/nav
     @if (open()) {
       <div class="fixed inset-0 z-[80] bg-ink/60" (click)="open.set(false)" aria-hidden="true"></div>
       <div class="fixed z-[81] inset-x-0 bottom-0 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[30rem] sm:bottom-6 bg-dark-900 text-ink border-t-2 sm:border-2 border-ink shadow-[0_-4px_0_0_#141210] sm:shadow-[6px_6px_0_0_#141210] px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
-           role="dialog" aria-modal="true" aria-label="Publicar" (keydown.escape)="open.set(false)">
+           role="dialog" aria-modal="true" aria-label="Publicar" (keydown.escape)="open.set(false); $event.stopPropagation()">
         <div class="flex items-center justify-between mb-3">
           <p class="font-display text-3xl uppercase leading-none">Publicar</p>
           <button type="button" (click)="open.set(false)" class="w-11 h-11 flex items-center justify-center border-2 border-ink" aria-label="Cerrar">

@@ -61,7 +61,7 @@
         <!-- Like "Tu historia": your own picture with a + badge -->
         <button type="button" (click)="publishOpen.set(true)" class="shrink-0 w-[4.5rem] flex flex-col items-center text-center group"
                 aria-haspopup="dialog" [attr.aria-expanded]="publishOpen()" aria-label="Publicar">
-          <span class="relative w-16 h-16 group-hover:scale-105 transition-transform">
+          <span class="relative w-16 h-16 group-hover:scale-105 group-active:scale-95 transition-transform">
             @if (myAvatar(); as photo) {
               <img [src]="photo" alt="" class="w-16 h-16 story-ring object-cover border-2 border-ink/15"/>
             } @else {
@@ -76,9 +76,9 @@
         @for (p of showcasePeople(); track p.key) {
           <a routerLink="/escaparate" [queryParams]="{ p: p.key }" class="shrink-0 w-[4.5rem] flex flex-col items-center text-center group"
              [attr.aria-label]="'Ver a ' + p.name + ' en el escaparate'">
-            <span class="w-16 h-16 story-ring p-[3px] group-hover:scale-105 transition-transform"
-                  [class]="seenStories().has(p.key) ? 'bg-ink/20' : 'bg-[conic-gradient(from_200deg,#e8b931,#c23a1f,#8f2a16,#e8b931)]'">
-              <img [src]="p.avatar_url" alt="" class="w-full h-full story-ring object-cover border-2 border-dark-900" loading="lazy"/>
+            <span class="w-16 h-16 story-ring p-[2.5px] group-hover:scale-105 group-active:scale-95 transition-transform"
+                  [class]="seenStories().has(p.key) ? 'bg-ink/25' : 'bg-[conic-gradient(from_200deg,#e8b931,#c23a1f,#8f2a16,#e8b931)]'">
+              <img [src]="p.avatar_url" alt="" class="w-full h-full story-ring object-cover border-[2.5px] border-dark-900" loading="lazy"/>
             </span>
             <span class="mt-1.5 w-full text-[11px] truncate" [class.font-bold]="!seenStories().has(p.key)" [class.text-ink-muted]="seenStories().has(p.key)">{{ p.name }}</span>
           </a>
