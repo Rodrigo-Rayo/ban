@@ -1,6 +1,7 @@
 import { QuedadaStatusComponent } from '../quedada/quedada-status.component';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { PublishSheetComponent } from '../../shared/components/publish-sheet/publish-sheet.component';
+import { readSeen } from '../showcase/showcase';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
@@ -163,8 +164,16 @@ export class HomeComponent implements OnInit {
   });
   /** The "+" circle before the Escaparate ones opens the publish sheet. */
   readonly publishOpen = signal(false);
+  /** Escaparate cards already seen in this browser: their circles turn grey, unseen ones go first. */
+  readonly seenStories = signal<ReadonlySet<string>>(readSeen());
+  readonly myAvatar = computed(() => this.avatarUpload.avatarUrl() || this.auth.userProfileData()?.avatar_url || null);
+  readonly myInitial = computed(() => (this.auth.userProfileData()?.name || '+').slice(0, 1).toUpperCase());
   /** Escaparate circles: the newest profiles with a photo; each opens the showcase at that person. */
-  readonly showcasePeople = computed(() => this.newPeople().filter(p => !!p.avatar_url).slice(0, 10));
+  readonly showcasePeople = computed(() => {
+    const seen = this.seenStories();
+    const withPhoto = this.newPeople().filter(p => !!p.avatar_url);
+    return [...withPhoto.filter(p => !seen.has(p.key)), ...withPhoto.filter(p => seen.has(p.key))].slice(0, 10);
+  });
   /** Newest profiles of every type (musicians, bands, teachers, venues, rehearsal spaces), never the signed-in user. */
   readonly newPeople = computed<NewPerson[]>(() => {
     const me = this.auth.user()?.id;

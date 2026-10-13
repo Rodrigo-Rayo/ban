@@ -58,20 +58,29 @@
     <!-- ── ESCAPARATE: story-like circles; each opens the full-screen showcase at that person ── -->
     @if (showcasePeople().length >= 3) {
       <nav aria-label="Escaparate" class="mt-4 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-3 overflow-x-auto overscroll-x-contain no-scrollbar pb-1">
+        <!-- Like "Tu historia": your own picture with a + badge -->
         <button type="button" (click)="publishOpen.set(true)" class="shrink-0 w-[4.5rem] flex flex-col items-center text-center group"
-                aria-haspopup="dialog" [attr.aria-expanded]="publishOpen()">
-          <span class="w-16 h-16 story-ring bg-primary-500 border-2 border-ink flex items-center justify-center text-white group-hover:scale-105 transition-transform">
-            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                aria-haspopup="dialog" [attr.aria-expanded]="publishOpen()" aria-label="Publicar">
+          <span class="relative w-16 h-16 group-hover:scale-105 transition-transform">
+            @if (myAvatar(); as photo) {
+              <img [src]="photo" alt="" class="w-16 h-16 story-ring object-cover border-2 border-ink/15"/>
+            } @else {
+              <span class="w-16 h-16 story-ring bg-dark-800 border-2 border-ink/15 flex items-center justify-center font-display text-2xl text-ink-muted">{{ myInitial() }}</span>
+            }
+            <span class="absolute -bottom-0.5 -right-0.5 w-6 h-6 story-ring bg-primary-500 border-2 border-dark-900 flex items-center justify-center text-white" aria-hidden="true">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
           </span>
-          <span class="mt-1.5 font-mono text-[10px] font-bold uppercase tracking-wide">Publicar</span>
+          <span class="mt-1.5 w-full text-[11px] text-ink-muted truncate">Publicar</span>
         </button>
         @for (p of showcasePeople(); track p.key) {
           <a routerLink="/escaparate" [queryParams]="{ p: p.key }" class="shrink-0 w-[4.5rem] flex flex-col items-center text-center group"
              [attr.aria-label]="'Ver a ' + p.name + ' en el escaparate'">
-            <span class="w-16 h-16 story-ring p-[3px] bg-[conic-gradient(#c23a1f,#e8b931,#c23a1f)] group-hover:scale-105 transition-transform">
+            <span class="w-16 h-16 story-ring p-[3px] group-hover:scale-105 transition-transform"
+                  [class]="seenStories().has(p.key) ? 'bg-ink/20' : 'bg-[conic-gradient(from_200deg,#e8b931,#c23a1f,#8f2a16,#e8b931)]'">
               <img [src]="p.avatar_url" alt="" class="w-full h-full story-ring object-cover border-2 border-dark-900" loading="lazy"/>
             </span>
-            <span class="mt-1.5 w-full text-[11px] font-bold truncate">{{ p.name }}</span>
+            <span class="mt-1.5 w-full text-[11px] truncate" [class.font-bold]="!seenStories().has(p.key)" [class.text-ink-muted]="seenStories().has(p.key)">{{ p.name }}</span>
           </a>
         }
       </nav>

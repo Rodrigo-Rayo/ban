@@ -165,3 +165,61 @@ export function startAt(cards: readonly ShowcaseCard[], key: string | null): Sho
   const i = key ? cards.findIndex(c => c.key === key) : -1;
   return i > 0 ? [cards[i], ...cards.slice(0, i), ...cards.slice(i + 1)] : [...cards];
 }
+
+/** Seconds a card stays before moving on by itself (Instagram: ~5 s, 15 s with music). */
+export function cardSeconds(c: ShowcaseCard): number {
+  if (canPlay(c)) return 15;
+  if (c.body) return 8;
+  return 6;
+}
+
+/** Story bars at the top: the block of (up to) `size` cards around the current one. */
+export function progressWindow(total: number, active: number, size = 10): { start: number; count: number } {
+  if (total <= 0) return { start: 0, count: 0 };
+  const start = Math.floor(active / size) * size;
+  return { start, count: Math.min(size, total - start) };
+}
+
+/** Favourites only exist for profiles and gigs. */
+export function favoriteType(c: ShowcaseCard): string | null {
+  return c.kind === 'post' || c.kind === 'gear' ? null : c.kind;
+}
+
+export function favoriteId(c: ShowcaseCard): string {
+  return c.route[c.route.length - 1];
+}
+
+/** Cards already seen (home circles turn grey), kept in this browser only. */
+const SEEN_KEY = 'bandyou_showcase_seen';
+const SEEN_MAX = 400;
+
+export function readSeen(): Set<string> {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+    return new Set(Array.isArray(raw) ? raw.filter((k): k is string => typeof k === 'string') : []);
+  } catch {
+    return new Set();
+  }
+}
+
+export function markSeen(key: string): void {
+  try {
+    const seen = [...readSeen()].filter(k => k !== key);
+    seen.push(key);
+    localStorage.setItem(SEEN_KEY, JSON.stringify(seen.slice(-SEEN_MAX)));
+  } catch { /* private mode: circles just stay coloured */ }
+}
+
+/** "2 d", "5 h", "ahora": the small time next to the name, like stories. */
+export function shortAgo(iso: string, now: Date = new Date()): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return '';
+  const min = Math.max(0, Math.round((now.getTime() - t) / 60000));
+  if (min < 1) return 'ahora';
+  if (min < 60) return `${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `${h} h`;
+  const d = Math.round(h / 24);
+  if (d < 7) return `${d} d`;
+  return `${Math.round(d / 7)} sem`;
+}
