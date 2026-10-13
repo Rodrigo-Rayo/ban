@@ -52,7 +52,7 @@ export class SeoService {
     const appName = 'BandYou';
     const fullTitle = options.title ? `${options.title} · ${appName}` : 'BandYou — Encuentra banda y músicos en España';
     const desc = options.description ?? 'La red musical de España: encuentra banda o músicos para tu banda, locales de ensayo, clases y salas en tu provincia. Gratis.';
-    const image = options.image || `${SITE_URL}/og-default.jpg`;
+    const image = options.image || `${SITE_URL}/og-default.jpg?v=2`;
     const url = options.url ?? this.currentCanonicalUrl();
     const type = options.type ?? 'website';
 

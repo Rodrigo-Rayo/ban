@@ -106,7 +106,7 @@ async function page({ path, title, description, body, jsonLd = [], noindex = fal
 <link rel="canonical" href="${escapeHtml(url)}">
 <meta property="og:type" content="website"><meta property="og:site_name" content="BandYou"><meta property="og:locale" content="es_ES">
 <meta property="og:title" content="${t}"><meta property="og:description" content="${d}"><meta property="og:url" content="${escapeHtml(url)}">
-<meta property="og:image" content="${SITE}/og-default.jpg"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="${SITE}/og-default.jpg?v=2"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#f2ebdd">
 ${css ? `<link rel="stylesheet" href="${css}">` : ''}
