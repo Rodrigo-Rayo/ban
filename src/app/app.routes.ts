@@ -145,6 +145,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/shop/gear-detail/gear-detail.component').then(m => m.GearDetailComponent),
   },
   {
+    path: 'colaboradores', title: 'Colaboradores · BandYou',
+    loadComponent: () => import('./features/partners/partners.component').then(m => m.PartnersComponent),
+  },
+  {
     path: 'legal',
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'aviso-legal' },

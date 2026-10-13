@@ -28,7 +28,8 @@ import { INSTAGRAM_URL } from './core/constants/social';
             <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
             <a [href]="instagramUrl" target="_blank" rel="noopener noreferrer" aria-label="Instagram de BandYou (se abre en una pestaña nueva)" title="Instagram" class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-ink-muted hover:text-primary-500 transition-colors"><app-icon name="instagram" [size]="24"/></a>
           </div>
-          <nav aria-label="Legal" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
+          <nav aria-label="Información" class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
+            <a routerLink="/colaboradores" class="hover:text-ink min-h-[44px] inline-flex items-center">Colaboradores</a>
             <a routerLink="/legal/aviso-legal" class="hover:text-ink min-h-[44px] inline-flex items-center">Aviso legal</a>
             <a routerLink="/legal/privacidad" class="hover:text-ink min-h-[44px] inline-flex items-center">Privacidad</a>
             <a routerLink="/legal/terminos" class="hover:text-ink min-h-[44px] inline-flex items-center">Términos</a>

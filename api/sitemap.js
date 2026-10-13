@@ -11,7 +11,7 @@ const { PROVINCES, slugify, countByProvince } = require('./_seo-data');
 let GUIDES = [];
 try { ({ GUIDES } = require('./_guides')); } catch { /* guides are optional */ }
 
-const STATIC_PATHS = ['/', '/feed', '/quedada', '/shop', '/legal/privacidad', '/legal/terminos', '/legal/cookies', '/legal/aviso-legal'];
+const STATIC_PATHS = ['/', '/feed', '/quedada', '/shop', '/colaboradores', '/legal/privacidad', '/legal/terminos', '/legal/cookies', '/legal/aviso-legal'];
 
 /** Server-rendered SEO pages (api/hub.js): every /<kind>, /<kind>/<province> with content, and the guides. */
 async function hubPaths() {
