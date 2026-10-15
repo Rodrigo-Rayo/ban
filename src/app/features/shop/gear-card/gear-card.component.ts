@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { gearConditionLabel } from '../../../core/constants/gear';
 
+import { imageSrc } from '../../../core/utils/display.utils';
 export interface GearCardItem {
   id: string;
   title: string;
@@ -26,7 +27,7 @@ export interface GearCardItem {
        class="card flex flex-col h-full group focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500">
       <div class="aspect-[4/3] bg-dark-750 relative overflow-hidden border-b border-ink/15">
         @if (item().images?.length) {
-          <img [src]="item().images![0]" [alt]="item().title" loading="lazy"
+          <img [src]="imageSrc(item().images![0], 640)" [alt]="item().title" loading="lazy"
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
         } @else {
           <div class="w-full h-full flex items-center justify-center p-3 text-center [container-type:inline-size]"
@@ -52,6 +53,7 @@ export interface GearCardItem {
   `,
 })
 export class GearCardComponent {
+  readonly imageSrc = imageSrc;
   item = input.required<GearCardItem>();
 
   /** "Bueno · Madrid" — condition and city on a single quiet line. */

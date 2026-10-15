@@ -2,6 +2,27 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/bandyou/browser",
   "framework": null,
+  "images": {
+    "sizes": [
+      96,
+      192,
+      384,
+      640,
+      828,
+      1200
+    ],
+    "formats": [
+      "image/webp"
+    ],
+    "minimumCacheTTL": 2678400,
+    "remotePatterns": [
+      {
+        "protocol": "https",
+        "hostname": "yxaurffzwtqsckfmnzdj.supabase.co",
+        "pathname": "/storage/v1/object/public/**"
+      }
+    ]
+  },
   "rewrites": [
     {
       "source": "/sitemap.xml",

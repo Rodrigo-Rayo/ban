@@ -10,7 +10,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { ListenPlayerComponent } from '../../shared/components/listen-player/listen-player.component';
 import { PublishSheetComponent } from '../../shared/components/publish-sheet/publish-sheet.component';
-import { avatarColor } from '../../core/utils/display.utils';
+import { avatarColor, imageSrc } from '../../core/utils/display.utils';
 import { localToday } from '../../core/utils/date';
 import { SE_BUSCA_MAX_DAYS, sinceISO } from '../../core/utils/se-busca';
 import { initialOf } from '../inbox/profile-avatar';
@@ -64,7 +64,7 @@ const CLOSE_SWIPE_PX = 90;
                     <div class="absolute inset-0 bg-[repeating-linear-gradient(-58deg,transparent_0_46px,rgba(20,18,16,.06)_46px_50px)]" aria-hidden="true"></div>
                     <p class="absolute top-28 left-5 font-display text-[6rem] leading-[0.85] uppercase -rotate-3" aria-hidden="true">Se<br>busca</p>
                   } @else if (c.image) {
-                    <img [src]="c.image" alt="" class="absolute inset-0 w-full h-full object-cover" [class.object-top]="c.look === 'gig'"
+                    <img [src]="imageSrc(c.image, 828)" alt="" class="absolute inset-0 w-full h-full object-cover" [class.object-top]="c.look === 'gig'"
                          [attr.loading]="i < 2 ? 'eager' : 'lazy'" decoding="async" draggable="false"/>
                     <div class="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/55 via-black/20 to-transparent" aria-hidden="true"></div>
                     <div class="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/90 via-black/50 to-transparent" aria-hidden="true"></div>
@@ -167,7 +167,7 @@ const CLOSE_SWIPE_PX = 90;
                 <div class="mt-3 flex items-center gap-2 pl-1" [class.text-ink]="c.look === 'ask'" [style.text-shadow]="c.look === 'ask' ? null : '0 1px 3px rgba(0,0,0,0.45)'">
                   <span class="w-8 h-8 story-ring overflow-hidden flex-shrink-0 flex items-center justify-center text-xs font-bold text-white ring-1 ring-white/30"
                         [style.background]="c.image && c.look === 'photo' ? null : color(c.title)">
-                    @if (c.image && c.look === 'photo') { <img [src]="c.image" alt="" class="w-full h-full object-cover"/> } @else { {{ initial(c.title) }} }
+                    @if (c.image && c.look === 'photo') { <img [src]="imageSrc(c.image, 828)" alt="" class="w-full h-full object-cover"/> } @else { {{ initial(c.title) }} }
                   </span>
                   <span class="font-bold text-[14px] truncate max-w-[55%]">{{ c.title }}</span>
                   <span class="text-[14px] opacity-60 flex-shrink-0">{{ when(c) }}</span>
@@ -203,6 +203,7 @@ const CLOSE_SWIPE_PX = 90;
   `,
 })
 export class ShowcaseComponent implements OnInit, OnDestroy {
+  readonly imageSrc = imageSrc;
   private supabase = inject(SupabaseService);
   readonly auth = inject(AuthService);
   private messages = inject(MessagesService);

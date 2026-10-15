@@ -12,7 +12,7 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
-import { avatarColor } from '../../../core/utils/display.utils';
+import { avatarColor, imageSrc } from '../../../core/utils/display.utils';
 import { Teacher, Review } from '../../../core/models';
 import { formatLongDate, localToday } from '../../../core/utils/date';
 import { LESSON_REQUEST_TITLE, lessonRequestBody } from '../../../core/utils/notification-copy';
@@ -29,6 +29,7 @@ const TEACHER_COLUMNS = 'id, user_id, name, instrument, city, description, avata
     templateUrl: './teacher-profile.component.html'
 })
 export class TeacherProfileComponent implements OnInit {
+  readonly imageSrc = imageSrc;
   /** Long names get smaller type so they do not cover the photo. */
   readonly posterNameSize = posterNameSize;
   readonly avatarColor = avatarColor;

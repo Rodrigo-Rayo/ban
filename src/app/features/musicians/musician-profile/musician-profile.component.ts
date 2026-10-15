@@ -10,7 +10,7 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
-import { avatarColor } from '../../../core/utils/display.utils';
+import { avatarColor, imageSrc } from '../../../core/utils/display.utils';
 import { parseList } from '../../../core/utils/list';
 import { joinWeekdays } from '../../../core/utils/weekdays';
 
@@ -33,6 +33,7 @@ const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, descriptio
     templateUrl: './musician-profile.component.html'
 })
 export class MusicianProfileComponent implements OnInit {
+  readonly imageSrc = imageSrc;
   /** Long names get smaller type so they do not cover the photo. */
   readonly posterNameSize = posterNameSize;
   readonly avatarColor = avatarColor;

@@ -5,7 +5,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { AppComment, CommentsService, CommentTarget, CommentTargetType, MAX_COMMENT_LENGTH } from '../../../core/services/comments.service';
-import { avatarColor, timeAgo } from '../../../core/utils/display.utils';
+import { avatarColor, timeAgo, imageSrc } from '../../../core/utils/display.utils';
 import { initialOf } from '../../../features/inbox/profile-avatar';
 
 const PROFILE_ROUTES: Readonly<Record<string, string>> = {
@@ -31,7 +31,7 @@ const PROFILE_ROUTES: Readonly<Record<string, string>> = {
               <li class="flex gap-3 py-3 border-b border-ink/15">
                 <span class="avatar w-10 h-10 text-sm border-2 border-ink overflow-hidden flex-shrink-0"
                       [style.background]="c.author_avatar ? null : color(c.author_name)" aria-hidden="true">
-                  @if (c.author_avatar) { <img [src]="c.author_avatar" alt="" class="w-full h-full object-cover" loading="lazy"/> } @else { {{ initial(c.author_name) }} }
+                  @if (c.author_avatar) { <img [src]="imageSrc(c.author_avatar, 96)" alt="" class="w-full h-full object-cover" loading="lazy"/> } @else { {{ initial(c.author_name) }} }
                 </span>
                 <div class="min-w-0 flex-1">
                   <p class="flex items-baseline gap-2 flex-wrap">
@@ -87,6 +87,7 @@ const PROFILE_ROUTES: Readonly<Record<string, string>> = {
   `,
 })
 export class CommentsComponent {
+  readonly imageSrc = imageSrc;
   private svc = inject(CommentsService);
   private auth = inject(AuthService);
   private toast = inject(ToastService);

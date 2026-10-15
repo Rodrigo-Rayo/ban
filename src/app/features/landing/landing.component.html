@@ -65,7 +65,7 @@
             <a [routerLink]="['/musicians', m.id]" class="flex items-center gap-3 py-2.5 border-b border-ink/15 min-h-[56px] group">
               <span class="avatar w-11 h-11 text-lg overflow-hidden" [style.background]="m.avatar_url ? null : avatarColor(m.name)">
                 @if (m.avatar_url) {
-                  <img [src]="m.avatar_url" alt="" class="w-full h-full object-cover" loading="lazy"/>
+                  <img [src]="imageSrc(m.avatar_url, 96)" alt="" class="w-full h-full object-cover" loading="lazy"/>
                 } @else {
                   {{ m.name.slice(0,2) }}
                 }

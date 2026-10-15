@@ -10,6 +10,7 @@ import {
 } from '../../core/utils/quedada-cycle';
 import { dateParts } from '../../core/utils/date';
 
+import { imageSrc } from '../../core/utils/display.utils';
 export type QuedadaPhase = 'signup' | 'winner';
 
 export interface QuedadaSnapshot {
@@ -43,7 +44,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
           @if (s.phase === 'winner' && s.winner) {
             <span class="absolute -top-2.5 right-3 rotate-[4deg] bg-primary-500 text-white border-2 border-ink font-display uppercase text-sm leading-none px-2 py-1" aria-hidden="true">¡Ganador!</span>
             @if (s.winner.event.image_url) {
-              <img [src]="s.winner.event.image_url" alt="" class="w-12 h-16 object-cover border-2 border-ink -rotate-2 flex-shrink-0 bg-ink" loading="lazy"/>
+              <img [src]="imageSrc(s.winner.event.image_url, 96)" alt="" class="w-12 h-16 object-cover border-2 border-ink -rotate-2 flex-shrink-0 bg-ink" loading="lazy"/>
             }
           }
           <span class="flex-1 min-w-0">
@@ -119,7 +120,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
           <div class="grid" [class.sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]]="!!w.event.image_url">
             @if (w.event.image_url) {
               <div class="p-3 sm:p-4 sm:pr-0">
-                <img [src]="w.event.image_url" [alt]="'Cartel: ' + w.event.title"
+                <img [src]="imageSrc(w.event.image_url, 640)" [alt]="'Cartel: ' + w.event.title"
                      class="w-full aspect-[3/4] max-h-60 sm:max-h-none object-cover border-2 border-ink -rotate-1 shadow-[3px_3px_0_0_#141210] bg-ink" loading="lazy"/>
               </div>
             }
@@ -158,6 +159,7 @@ export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
   `,
 })
 export class QuedadaStatusComponent {
+  readonly imageSrc = imageSrc;
   private svc = inject(QuedadaService);
   private auth = inject(AuthService);
   private toast = inject(ToastService);

@@ -5,7 +5,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { QuedadaComment, QuedadaPerson, QuedadaService, QuedadaWinner } from './quedada.service';
-import { avatarColor, timeAgo } from '../../core/utils/display.utils';
+import { avatarColor, timeAgo, imageSrc } from '../../core/utils/display.utils';
 import { initialOf } from '../inbox/profile-avatar';
 
 const MAX_COMMENT = 500;
@@ -34,7 +34,7 @@ const PROFILE_ROUTES: Record<string, string> = {
               <li>
                 <a [routerLink]="routeOf(p.profile_type, p.profile_id)" class="flex flex-col items-center w-16 text-center group" [attr.aria-label]="p.name">
                   <span class="avatar w-12 h-12 text-base border-2 border-ink overflow-hidden" [style.background]="p.avatar_url ? null : color(p.name)">
-                    @if (p.avatar_url) { <img [src]="p.avatar_url" alt="" class="w-full h-full object-cover" loading="lazy"/> } @else { {{ initial(p.name) }} }
+                    @if (p.avatar_url) { <img [src]="imageSrc(p.avatar_url, 96)" alt="" class="w-full h-full object-cover" loading="lazy"/> } @else { {{ initial(p.name) }} }
                   </span>
                   <span class="text-[11px] font-bold truncate w-full mt-1 group-hover:text-primary-600">{{ p.name }}</span>
                 </a>
@@ -64,7 +64,7 @@ const PROFILE_ROUTES: Record<string, string> = {
           @for (c of comments(); track c.id) {
             <li class="flex gap-3 py-3 border-b border-ink/15">
               <span class="avatar w-10 h-10 text-sm border-2 border-ink overflow-hidden flex-shrink-0" [style.background]="c.author_avatar ? null : color(c.author_name)">
-                @if (c.author_avatar) { <img [src]="c.author_avatar" alt="" class="w-full h-full object-cover" loading="lazy"/> } @else { {{ initial(c.author_name) }} }
+                @if (c.author_avatar) { <img [src]="imageSrc(c.author_avatar, 96)" alt="" class="w-full h-full object-cover" loading="lazy"/> } @else { {{ initial(c.author_name) }} }
               </span>
               <div class="min-w-0 flex-1">
                 <p class="flex items-baseline gap-2 flex-wrap">
@@ -98,6 +98,7 @@ const PROFILE_ROUTES: Record<string, string> = {
   `,
 })
 export class QuedadaSocialComponent {
+  readonly imageSrc = imageSrc;
   private svc = inject(QuedadaService);
   private auth = inject(AuthService);
   private toast = inject(ToastService);

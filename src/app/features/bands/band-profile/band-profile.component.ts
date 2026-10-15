@@ -13,7 +13,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { ConfirmService } from '../../../core/services/confirm.service';
-import { avatarColor } from '../../../core/utils/display.utils';
+import { avatarColor, imageSrc } from '../../../core/utils/display.utils';
 import { parseList } from '../../../core/utils/list';
 import { joinWeekdays } from '../../../core/utils/weekdays';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
@@ -52,6 +52,7 @@ const MAX_MEMBERS = 50;
     templateUrl: './band-profile.component.html'
 })
 export class BandProfileComponent implements OnInit {
+  readonly imageSrc = imageSrc;
   /** Long names get smaller type so they do not cover the photo. */
   readonly posterNameSize = posterNameSize;
   readonly avatarColor = avatarColor;

@@ -42,7 +42,7 @@
       <section aria-label="Cartel">
         <div class="relative overflow-hidden profile-cover border-2 border-ink h-[260px] sm:h-[340px] lg:h-auto lg:aspect-[4/5]">
           @if (teacher()!.avatar_url && !avatarError()) {
-            <img [src]="teacher()!.avatar_url" alt="" class="absolute inset-0 w-full h-full object-cover contrast-105" fetchpriority="high" (error)="avatarError.set(true)"/>
+            <img [src]="imageSrc(teacher()!.avatar_url, 828)" alt="" class="absolute inset-0 w-full h-full object-cover contrast-105" fetchpriority="high" (error)="avatarError.set(true)"/>
           } @else {
             <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center font-display text-[11rem] sm:text-[14rem] leading-none text-poster-paper/10 select-none">{{ teacher()!.name.slice(0,1).toUpperCase() }}</span>
           }

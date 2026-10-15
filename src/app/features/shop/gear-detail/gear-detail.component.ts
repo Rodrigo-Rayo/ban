@@ -17,6 +17,7 @@ import { GearCardComponent } from '../gear-card/gear-card.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { GearListing } from '../../../core/models';
 
+import { imageSrc } from '../../../core/utils/display.utils';
 const GEAR_COLUMNS = 'id, user_id, title, description, price, category, condition, city, images, status, seller_name, seller_profile_type, seller_profile_id, created_at';
 const RELATED_COLUMNS = 'id, title, price, category, condition, city, images, status';
 const RELATED_LIMIT = 3;
@@ -28,6 +29,7 @@ const RELATED_LIMIT = 3;
     templateUrl: './gear-detail.component.html'
 })
 export class GearDetailComponent implements OnInit {
+  readonly imageSrc = imageSrc;
   private supabase = inject(SupabaseService);
   private media = inject(MediaUploadService);
   private route = inject(ActivatedRoute);

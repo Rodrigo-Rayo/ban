@@ -15,7 +15,7 @@
             <button #thumb type="button" (click)="open(i, thumb)"
               class="group block w-full aspect-[4/3] border-2 border-ink overflow-hidden bg-night shadow-card transition-transform hover:-translate-x-px hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               [attr.aria-label]="'Ampliar foto ' + (i + 1) + ' de ' + photos().length">
-              <img [src]="url" [alt]="'Foto de ' + name()" loading="lazy" class="w-full h-full object-cover"/>
+              <img [src]="imageSrc(url, 640)" [alt]="'Foto de ' + name()" loading="lazy" class="w-full h-full object-cover"/>
             </button>
             @if (isOwner()) {
               <button type="button" (click)="removePhoto(i)" [disabled]="busy()"
@@ -59,7 +59,7 @@
       </button>
     </div>
     <div class="relative flex-1 min-h-0 flex items-center justify-center px-3 pb-4" (click)="close()">
-      <img [src]="photos()[openIndex()!]" [alt]="'Foto de ' + name()" (click)="$event.stopPropagation()"
+      <img [src]="imageSrc(photos()[openIndex()!], 1200)" [alt]="'Foto de ' + name()" (click)="$event.stopPropagation()"
            class="max-w-full max-h-full object-contain border-2 border-poster-paper"/>
       @if (photos().length > 1) {
         <button type="button" (click)="step(-1); $event.stopPropagation()" aria-label="Foto anterior"

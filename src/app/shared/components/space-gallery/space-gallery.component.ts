@@ -5,6 +5,7 @@ import { ConfirmService } from '../../../core/services/confirm.service';
 import { MediaFeature, MediaFeaturesService } from '../../../core/services/media-features.service';
 import { MediaUploadService, MEDIA_ACCEPT } from '../../../core/services/media-upload.service';
 
+import { imageSrc } from '../../../core/utils/display.utils';
 export const MAX_SPACE_PHOTOS = 6;
 export type SpaceKind = 'venue' | 'rehearsal';
 
@@ -25,6 +26,7 @@ const SOURCES: Record<SpaceKind, { table: 'venues' | 'rehearsal_spaces'; feature
   host: { '(document:keydown)': 'onKeydown($event)' },
 })
 export class SpaceGalleryComponent implements OnInit, OnDestroy {
+  readonly imageSrc = imageSrc;
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);

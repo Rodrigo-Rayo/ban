@@ -32,7 +32,7 @@
         <section aria-label="Fotos del anuncio">
           <div class="relative aspect-[4/3] bg-dark-750 overflow-hidden border-2 border-ink">
             @if ((listing()!.images?.length ?? 0) > 0) {
-              <img [src]="listing()!.images![currentImageIdx()]" [alt]="listing()!.title"
+              <img [src]="imageSrc(listing()!.images![currentImageIdx()], 1200)" [alt]="listing()!.title"
                    class="w-full h-full object-cover" fetchpriority="high">
               @if (listing()!.images!.length > 1) {
                 <button type="button" (click)="prevImage()"
@@ -129,7 +129,7 @@
           <div class="flex items-center gap-3">
             <div class="avatar w-12 h-12 text-xl flex-shrink-0 overflow-hidden" aria-hidden="true">
               @if (sellerAvatar()) {
-                <img [src]="sellerAvatar()" alt="" class="w-full h-full object-cover" (error)="sellerAvatar.set(null)"/>
+                <img [src]="imageSrc(sellerAvatar(), 96)" alt="" class="w-full h-full object-cover" (error)="sellerAvatar.set(null)"/>
               } @else {
                 {{ (listing()!.seller_name || 'V').slice(0,1).toUpperCase() }}
               }

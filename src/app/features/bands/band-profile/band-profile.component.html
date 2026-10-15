@@ -42,7 +42,7 @@
       <section aria-label="Cartel">
         <div class="relative overflow-hidden profile-cover border-2 border-ink h-[260px] sm:h-[340px] lg:h-auto lg:aspect-[4/5]">
           @if (band()!.avatar_url && !avatarError()) {
-            <img [src]="band()!.avatar_url" alt="" class="absolute inset-0 w-full h-full object-cover contrast-105" fetchpriority="high" (error)="avatarError.set(true)"/>
+            <img [src]="imageSrc(band()!.avatar_url, 828)" alt="" class="absolute inset-0 w-full h-full object-cover contrast-105" fetchpriority="high" (error)="avatarError.set(true)"/>
           } @else {
             <span aria-hidden="true" class="absolute inset-0 flex items-center justify-center font-display text-[11rem] sm:text-[14rem] leading-none text-poster-paper/10 select-none">{{ band()!.name.slice(0,1).toUpperCase() }}</span>
           }
@@ -259,7 +259,7 @@
                 <li class="py-4 border-b border-ink/15 first:pt-1 flex items-start gap-3">
                   <div class="avatar w-11 h-11 text-xl overflow-hidden border-2 border-ink">
                     @if (app.musician?.avatar_url) {
-                      <img [src]="app.musician!.avatar_url" alt="" class="w-full h-full object-cover" loading="lazy"/>
+                      <img [src]="imageSrc(app.musician!.avatar_url, 96)" alt="" class="w-full h-full object-cover" loading="lazy"/>
                     } @else {
                       {{ (app.musician?.name || 'U').slice(0,1).toUpperCase() }}
                     }

@@ -1,6 +1,5 @@
 import { QuedadaStatusComponent } from '../quedada/quedada-status.component';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
-import { PublishSheetComponent } from '../../shared/components/publish-sheet/publish-sheet.component';
 import { readSeen } from '../showcase/showcase';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -9,7 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { VacanciesService } from '../../core/services/vacancies.service';
 import { SeoService } from '../../core/services/seo.service';
-import { timeAgo, avatarColor } from '../../core/utils/display.utils';
+import { timeAgo, avatarColor, imageSrc } from '../../core/utils/display.utils';
 import { localToday, dateParts as sharedDateParts } from '../../core/utils/date';
 import { askLabel, askStampClass, SE_BUSCA_MAX_DAYS, sinceISO } from '../../core/utils/se-busca';
 import { AvatarUploadService } from '../../core/services/avatar-upload.service';
@@ -98,10 +97,11 @@ const NEW_PEOPLE_LIMIT = 8;
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-home',
-    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent, PublishSheetComponent],
+    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent],
     templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit {
+  readonly imageSrc = imageSrc;
   readonly timeAgo = timeAgo;
   readonly avatarColor = avatarColor;
   readonly sections = HOME_SECTIONS;
@@ -162,18 +162,16 @@ export class HomeComponent implements OnInit {
     const today = localToday();
     return this.recentEvents().filter(e => (e.date ?? '').slice(0, 10) >= today);
   });
-  /** The "+" circle before the Escaparate ones opens the publish sheet. */
-  readonly publishOpen = signal(false);
-  /** Escaparate cards seen in this browser in the last SEEN_DAYS: their circles turn grey, unseen ones go first. */
+  /** Escaparate cards seen in this browser in the last SEEN_DAYS: unseen people lead the Escaparate block. */
   readonly seenStories = signal<ReadonlySet<string>>(readSeen());
-  readonly myAvatar = computed(() => this.avatarUpload.avatarUrl() || this.auth.userProfileData()?.avatar_url || null);
-  readonly myInitial = computed(() => (this.auth.userProfileData()?.name || '+').slice(0, 1).toUpperCase());
-  /** Escaparate circles: the newest profiles with a photo; each opens the showcase at that person. */
+  /** Faces on the Escaparate block: the newest profiles with a photo, unseen first. */
   readonly showcasePeople = computed(() => {
     const seen = this.seenStories();
     const withPhoto = this.newPeople().filter(p => !!p.avatar_url);
     return [...withPhoto.filter(p => !seen.has(p.key)), ...withPhoto.filter(p => seen.has(p.key))].slice(0, 10);
   });
+  /** "N sin ver" on the Escaparate block. */
+  readonly unseenStories = computed(() => this.showcasePeople().filter(p => !this.seenStories().has(p.key)).length);
   /** Newest profiles of every type (musicians, bands, teachers, venues, rehearsal spaces), never the signed-in user. */
   readonly newPeople = computed<NewPerson[]>(() => {
     const me = this.auth.user()?.id;

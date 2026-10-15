@@ -8,7 +8,7 @@ import { SeoService } from '../../core/services/seo.service';
 import { CITIES_WITH_ALL } from '../../core/constants/cities';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { genrePattern } from '../../core/utils/genre-match';
-import { avatarColor } from '../../core/utils/display.utils';
+import { avatarColor, imageSrc } from '../../core/utils/display.utils';
 import { environment } from '../../../environments/environment';
 import { localToday } from '../../core/utils/date';
 import { parseList } from '../../core/utils/list';
@@ -31,6 +31,7 @@ interface RehearsalResult { id: string; name: string; city: string; avatar_url: 
     templateUrl: './search.component.html'
 })
 export class SearchComponent implements OnInit, OnDestroy {
+  readonly imageSrc = imageSrc;
   readonly avatarColor = avatarColor;
 
   private route = inject(ActivatedRoute);

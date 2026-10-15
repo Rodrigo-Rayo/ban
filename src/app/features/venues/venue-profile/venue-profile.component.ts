@@ -12,7 +12,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { SpaceGalleryComponent } from '../../../shared/components/space-gallery/space-gallery.component';
-import { avatarColor } from '../../../core/utils/display.utils';
+import { avatarColor, imageSrc } from '../../../core/utils/display.utils';
 import { Venue, Review } from '../../../core/models';
 import { ListPipe } from '../../../shared/pipes/list.pipe';
 import { ProfileGateService } from '../../../core/services/profile-gate.service';
@@ -28,6 +28,7 @@ const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url
     templateUrl: './venue-profile.component.html'
 })
 export class VenueProfileComponent implements OnInit {
+  readonly imageSrc = imageSrc;
   /** Long names get smaller type so they do not cover the photo. */
   readonly posterNameSize = posterNameSize;
   readonly avatarColor = avatarColor;

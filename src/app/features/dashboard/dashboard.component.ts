@@ -8,7 +8,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { SeoService } from '../../core/services/seo.service';
 import { CITIES } from '../../core/constants/cities';
-import { timeAgo } from '../../core/utils/display.utils';
+import { timeAgo, imageSrc } from '../../core/utils/display.utils';
 import { dateParts, formatTime } from '../../core/utils/date';
 import { askLabel as askLabelFor, askStampClass as askStampClassFor } from '../../core/utils/se-busca';
 import { AvatarUploadComponent } from '../../shared/components/avatar-upload/avatar-upload.component';
@@ -61,6 +61,7 @@ export function postNudgeHiddenNow(now = Date.now()): boolean {
     templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  readonly imageSrc = imageSrc;
   readonly timeAgo = timeAgo;
   readonly askLabel = (type: string) => askLabelFor(type as PostType);
   readonly askStampClass = (type: string) => askStampClassFor(type as PostType);

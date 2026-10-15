@@ -49,7 +49,7 @@
                   aria-label="Mi cuenta" aria-haspopup="menu" [attr.aria-expanded]="accountOpen" aria-controls="account-menu"
                   class="w-10 h-10 border-2 border-ink bg-ink text-poster-paper flex items-center justify-center font-display text-base overflow-hidden hover:shadow-[3px_3px_0_0_#c23a1f] focus-visible:shadow-[3px_3px_0_0_#c23a1f] transition-shadow">
             @if (avatarUrl()) {
-              <img [src]="avatarUrl()" class="w-full h-full object-cover" loading="lazy" alt="">
+              <img [src]="imageSrc(avatarUrl(), 96)" class="w-full h-full object-cover" loading="lazy" alt="">
             } @else {
               {{ initial() }}
             }
@@ -225,7 +225,7 @@
          class="relative flex-1 flex flex-col items-center justify-center gap-1 text-ink-muted text-[11px] font-semibold leading-none whitespace-nowrap transition-colors hover:text-ink aria-[current=page]:text-primary-600 before:content-[''] before:absolute before:top-0 before:inset-x-4 before:h-[3px] before:bg-primary-500 before:scale-x-0 before:transition-transform aria-[current=page]:before:scale-x-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
         <span class="h-8 flex items-center">
           @if (avatarUrl()) {
-            <img [src]="avatarUrl()" class="w-[22px] h-[22px] object-cover border border-ink/30" loading="lazy" alt=""/>
+            <img [src]="imageSrc(avatarUrl(), 96)" class="w-[22px] h-[22px] object-cover border border-ink/30" loading="lazy" alt=""/>
           } @else {
             <app-icon name="user" [size]="22"/>
           }

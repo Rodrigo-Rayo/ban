@@ -8,10 +8,32 @@ export function avatarColor(name: string | null): string {
   return AVATAR_COLORS[code % AVATAR_COLORS.length];
 }
 
-export function avatarSrc(url: string | null | undefined, size = 200): string | null {
+/** Widths Vercel resizes to; must match `images.sizes` in vercel.json. */
+export const IMAGE_WIDTHS = [96, 192, 384, 640, 828, 1200] as const;
+
+const STORAGE_PREFIX = 'https://yxaurffzwtqsckfmnzdj.supabase.co/storage/v1/object/public/';
+
+/** Only the deployed site has Vercel's resizer; locally the original is used. */
+function onVercel(host: string): boolean {
+  return /(^|\.)bandyou\.es$|\.vercel\.app$/.test(host);
+}
+
+/**
+ * A stored photo resized to about `width` CSS-pixels-times-two by Vercel, so a
+ * 64 px circle downloads a few KB instead of the full upload (often 1600 px,
+ * 500 KB). Other URLs, and any URL off the deployed site, come back unchanged.
+ */
+export function imageSrc(url: string | null | undefined, width: number,
+                         host: string = typeof location === 'undefined' ? '' : location.hostname): string | null {
   if (!url) return null;
-  if (!url.includes('supabase.co/storage')) return url;
-  return `${url}?width=${size}&height=${size}&resize=cover&quality=80&format=webp`;
+  if (!url.startsWith(STORAGE_PREFIX) || !onVercel(host)) return url;
+  const w = IMAGE_WIDTHS.find(s => s >= width) ?? IMAGE_WIDTHS[IMAGE_WIDTHS.length - 1];
+  return `/_vercel/image?url=${encodeURIComponent(url)}&w=${w}&q=75`;
+}
+
+/** Square avatar of `size` device pixels. */
+export function avatarSrc(url: string | null | undefined, size = 192): string | null {
+  return imageSrc(url, size);
 }
 
 export function timeAgo(dateStr: string): string {

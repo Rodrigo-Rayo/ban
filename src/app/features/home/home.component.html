@@ -55,36 +55,29 @@
       }
     </nav>
 
-    <!-- ── ESCAPARATE: story-like circles; each opens the full-screen showcase at that person ── -->
+    <!-- ── ESCAPARATE: one poster block (three faces, unseen first) into the full-screen showcase ── -->
     @if (showcasePeople().length >= 3) {
-      <nav aria-label="Escaparate" class="mt-4 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-3 overflow-x-auto overscroll-x-contain no-scrollbar pb-1">
-        <!-- Like "Tu historia": your own picture with a + badge -->
-        <button type="button" (click)="publishOpen.set(true)" class="shrink-0 w-[4.5rem] flex flex-col items-center text-center group"
-                aria-haspopup="dialog" [attr.aria-expanded]="publishOpen()" aria-label="Publicar">
-          <span class="relative w-16 h-16 group-hover:scale-105 group-active:scale-95 transition-transform">
-            @if (myAvatar(); as photo) {
-              <img [src]="photo" alt="" class="w-16 h-16 story-ring object-cover border-2 border-ink/15"/>
-            } @else {
-              <span class="w-16 h-16 story-ring bg-dark-800 border-2 border-ink/15 flex items-center justify-center font-display text-2xl text-ink-muted">{{ myInitial() }}</span>
-            }
-            <span class="absolute -bottom-0.5 -right-0.5 w-6 h-6 story-ring bg-primary-500 border-2 border-dark-900 flex items-center justify-center text-white" aria-hidden="true">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M12 5v14M5 12h14"/></svg>
-            </span>
+      @let faces = showcasePeople().slice(0, 3);
+      <a routerLink="/escaparate" [queryParams]="{ p: faces[0].key }"
+         class="press group mt-4 flex items-center gap-3 min-h-[64px] pl-3 pr-4 py-2.5 bg-ink text-poster-paper border-2 border-ink shadow-[3px_3px_0_0_#c23a1f] hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+        <span class="flex shrink-0" aria-hidden="true">
+          @for (f of faces; track f.key; let i = $index) {
+            <img [src]="imageSrc(f.avatar_url, 96)" alt="" width="40" height="40"
+                 class="w-10 h-10 object-cover border-2 border-poster-paper bg-dark-800"
+                 [style.margin-left.rem]="i > 0 ? -0.75 : 0" [style.transform]="'rotate(' + (i - 1) * 4 + 'deg)'"/>
+          }
+        </span>
+        <span class="flex-1 min-w-0">
+          <span class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide text-poster-yellow">
+            Escaparate
+            @if (unseenStories() > 0) { <span class="bg-primary-500 text-white px-1">{{ unseenStories() }} sin ver</span> }
           </span>
-          <span class="mt-1.5 w-full text-[11px] text-ink-muted truncate">Publicar</span>
-        </button>
-        @for (p of showcasePeople(); track p.key) {
-          <a routerLink="/escaparate" [queryParams]="{ p: p.key }" class="shrink-0 w-[4.5rem] flex flex-col items-center text-center group"
-             [attr.aria-label]="'Ver a ' + p.name + ' en el escaparate'">
-            <span class="w-16 h-16 story-ring p-[2.5px] group-hover:scale-105 group-active:scale-95 transition-transform"
-                  [class]="seenStories().has(p.key) ? 'bg-ink/25' : 'bg-[conic-gradient(from_200deg,#e8b931,#c23a1f,#8f2a16,#e8b931)]'">
-              <img [src]="p.avatar_url" alt="" class="w-full h-full story-ring object-cover border-[2.5px] border-dark-900" loading="lazy"/>
-            </span>
-            <span class="mt-1.5 w-full text-[11px] truncate" [class.font-bold]="!seenStories().has(p.key)" [class.text-ink-muted]="seenStories().has(p.key)">{{ p.name }}</span>
-          </a>
-        }
-      </nav>
-      <app-publish-sheet [(open)]="publishOpen"/>
+          <span class="block font-display text-xl uppercase leading-tight truncate">Escucha a la escena</span>
+        </span>
+        <span class="w-10 h-10 shrink-0 flex items-center justify-center bg-primary-500 text-white border-2 border-poster-paper group-hover:scale-110 transition-transform" aria-hidden="true">
+          <svg class="w-4 h-4 translate-x-px" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>
+        </span>
+      </a>
     }
   </div>
 
@@ -213,7 +206,7 @@
                 </span>
                 @if (e.image_url) {
                   <!-- The gig's poster, as a vertical thumbnail; cards without one stay as they were -->
-                  <img [src]="e.image_url" alt="" loading="lazy" decoding="async"
+                  <img [src]="imageSrc(e.image_url, 192)" alt="" loading="lazy" decoding="async"
                        class="w-16 shrink-0 self-stretch object-cover border-l-2 border-ink bg-dark-800"/>
                 }
               </a>
@@ -256,7 +249,7 @@
                 <span class="avatar w-[4.25rem] h-[4.25rem] text-xl overflow-hidden border-2 border-ink group-hover:-translate-y-0.5 group-hover:shadow-[3px_3px_0_0_#c23a1f] transition-[transform,box-shadow]"
                       [style.background]="m.avatar_url ? null : avatarColor(m.name)">
                   @if (m.avatar_url) {
-                    <img [src]="m.avatar_url" alt="" class="w-full h-full object-cover" loading="lazy"/>
+                    <img [src]="imageSrc(m.avatar_url, 192)" alt="" class="w-full h-full object-cover" loading="lazy"/>
                   } @else {
                     {{ m.name.slice(0,2) }}
                   }
@@ -324,7 +317,7 @@
               <a [routerLink]="['/shop', item.id]" class="snap-start shrink-0 w-36 lg:w-auto flex flex-col gap-1.5 group min-w-0">
                 <span class="block aspect-square bg-ink border-2 border-ink overflow-hidden">
                   @if ((item.images?.length ?? 0) > 0) {
-                    <img [src]="item.images![0]" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+                    <img [src]="imageSrc(item.images![0], 640)" [alt]="item.title" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
                   } @else {
                     <span class="flex h-full items-center justify-center p-2 text-center font-mono text-xs font-bold uppercase tracking-wide text-poster-paper break-words">{{ item.category || 'Equipo' }}</span>
                   }

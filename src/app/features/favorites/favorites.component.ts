@@ -8,6 +8,7 @@ import { parseList } from '../../core/utils/list';
 import { formatShortDate } from '../../core/utils/date';
 import { Favorite } from '../../core/models';
 
+import { imageSrc } from '../../core/utils/display.utils';
 interface ResolvedEntity {
   id: string;
   name?: string | null;
@@ -29,6 +30,7 @@ interface ResolvedEntity {
     templateUrl: './favorites.component.html'
 })
 export class FavoritesComponent implements OnInit {
+  readonly imageSrc = imageSrc;
   private favSvc = inject(FavoritesService);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);

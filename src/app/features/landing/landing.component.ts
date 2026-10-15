@@ -6,7 +6,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { VacanciesService } from '../../core/services/vacancies.service';
 import { SeoService } from '../../core/services/seo.service';
 import { AuthService } from '../../core/services/auth.service';
-import { avatarColor } from '../../core/utils/display.utils';
+import { avatarColor, imageSrc } from '../../core/utils/display.utils';
 import { LEGAL_INFO } from '../legal/legal-info';
 import { INSTAGRAM_URL } from '../../core/constants/social';
 
@@ -19,6 +19,7 @@ interface LandingPerson { id: string; name: string; city: string | null; instrum
     templateUrl: './landing.component.html'
 })
 export class LandingComponent implements OnInit {
+  readonly imageSrc = imageSrc;
   readonly contactEmail = LEGAL_INFO.legalEmail;
   readonly instagramUrl = INSTAGRAM_URL;
   readonly avatarColor = avatarColor;
