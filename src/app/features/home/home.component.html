@@ -55,30 +55,6 @@
       }
     </nav>
 
-    <!-- ── ESCAPARATE: one poster block (three faces, unseen first) into the full-screen showcase ── -->
-    @if (showcasePeople().length >= 3) {
-      @let faces = showcasePeople().slice(0, 3);
-      <a routerLink="/escaparate" [queryParams]="{ p: faces[0].key }"
-         class="press group mt-4 flex items-center gap-3 min-h-[64px] pl-3 pr-4 py-2.5 bg-ink text-poster-paper border-2 border-ink shadow-[3px_3px_0_0_#c23a1f] hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-        <span class="flex shrink-0" aria-hidden="true">
-          @for (f of faces; track f.key; let i = $index) {
-            <img [src]="imageSrc(f.avatar_url, 96)" alt="" width="40" height="40"
-                 class="w-10 h-10 object-cover border-2 border-poster-paper bg-dark-800"
-                 [style.margin-left.rem]="i > 0 ? -0.75 : 0" [style.transform]="'rotate(' + (i - 1) * 4 + 'deg)'"/>
-          }
-        </span>
-        <span class="flex-1 min-w-0">
-          <span class="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wide text-poster-yellow">
-            Escaparate
-            @if (unseenStories() > 0) { <span class="bg-primary-500 text-white px-1">{{ unseenStories() }} sin ver</span> }
-          </span>
-          <span class="block font-display text-xl uppercase leading-tight truncate">Escucha a la escena</span>
-        </span>
-        <span class="w-10 h-10 shrink-0 flex items-center justify-center bg-primary-500 text-white border-2 border-poster-paper group-hover:scale-110 transition-transform" aria-hidden="true">
-          <svg class="w-4 h-4 translate-x-px" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>
-        </span>
-      </a>
-    }
   </div>
 
 

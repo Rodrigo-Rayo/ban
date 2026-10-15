@@ -33,6 +33,10 @@ export function demoUrlValue(raw: string | null | undefined): string | null {
 }
 
 
+const ROLE_NAMES: Readonly<Record<string, string>> = {
+  musician: 'músico', band: 'banda', venue: 'sala', teacher: 'profesor', rehearsal: 'local de ensayo', listener: 'oyente',
+};
+
 @Component({
     selector: 'app-onboarding',
     imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink, ProfilePhotosComponent],
@@ -281,6 +285,9 @@ export class OnboardingComponent implements OnInit {
     this.step.update(s => Math.max(0, s - 1));
     this.focusStepHeading();
   }
+
+  /** "músico", "banda"…: the type being edited, shown next to "Cambiar tipo". */
+  readonly roleName = computed(() => ROLE_NAMES[this.role() ?? ''] ?? 'perfil');
 
   /** Explicit, opt-in way back to the role step while editing. */
   changeRole() {

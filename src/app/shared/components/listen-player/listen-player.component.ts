@@ -5,8 +5,7 @@ import { firstEmbed } from '../../../core/utils/media-embed';
 /**
  * "Escuchar" on a profile: plays the first link that can play inside the page
  * (Spotify, SoundCloud, a YouTube video). Nothing loads from the provider until
- * the visitor presses play — no third-party requests or cookies before that —
- * except with `autoplay` (the Escaparate), where the player loads straight away.
+ * the visitor presses play — no third-party requests or cookies before that.
  * Renders nothing when no link can play here (e.g. only a YouTube channel).
  */
 @Component({
@@ -43,18 +42,15 @@ export class ListenPlayerComponent {
   readonly links = input<readonly (string | null | undefined)[]>([]);
   /** Who is playing, as it reads after "Escuchar": "a Stormy"… Empty = just "Escuchar". */
   readonly who = input('');
-  /** Load the player straight away and let it start by itself (Escaparate). Browsers may still ask for a tap. */
-  readonly autoplay = input(false);
 
   readonly playing = signal(false);
   readonly embed = computed(() => firstEmbed(this.links()));
 
   constructor() {
-    // Other links (another profile in the same component): back to "press play", unless it autoplays.
+    // Other links (another profile in the same component): back to "press play".
     effect(() => {
       this.embed();
-      const auto = this.autoplay();
-      untracked(() => this.playing.set(auto));
+      untracked(() => this.playing.set(false));
     });
   }
   /** The src is rebuilt by mediaEmbed from validated parts on fixed provider hosts. */

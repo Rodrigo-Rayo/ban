@@ -145,10 +145,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/shop/gear-detail/gear-detail.component').then(m => m.GearDetailComponent),
   },
   {
-    path: 'escaparate', title: 'Escaparate · BandYou', data: NOINDEX,
-    loadComponent: () => import('./features/showcase/showcase.component').then(m => m.ShowcaseComponent),
-  },
-  {
     path: 'unirse/:token', title: 'Invitación a la banda · BandYou', data: NOINDEX,
     loadComponent: () => import('./features/bands/join-band/join-band.component').then(m => m.JoinBandComponent),
   },

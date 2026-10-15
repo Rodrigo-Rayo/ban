@@ -1,6 +1,5 @@
 import { QuedadaStatusComponent } from '../quedada/quedada-status.component';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
-import { readSeen } from '../showcase/showcase';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
@@ -162,16 +161,6 @@ export class HomeComponent implements OnInit {
     const today = localToday();
     return this.recentEvents().filter(e => (e.date ?? '').slice(0, 10) >= today);
   });
-  /** Escaparate cards seen in this browser in the last SEEN_DAYS: unseen people lead the Escaparate block. */
-  readonly seenStories = signal<ReadonlySet<string>>(readSeen());
-  /** Faces on the Escaparate block: the newest profiles with a photo, unseen first. */
-  readonly showcasePeople = computed(() => {
-    const seen = this.seenStories();
-    const withPhoto = this.newPeople().filter(p => !!p.avatar_url);
-    return [...withPhoto.filter(p => !seen.has(p.key)), ...withPhoto.filter(p => seen.has(p.key))].slice(0, 10);
-  });
-  /** "N sin ver" on the Escaparate block. */
-  readonly unseenStories = computed(() => this.showcasePeople().filter(p => !this.seenStories().has(p.key)).length);
   /** Newest profiles of every type (musicians, bands, teachers, venues, rehearsal spaces), never the signed-in user. */
   readonly newPeople = computed<NewPerson[]>(() => {
     const me = this.auth.user()?.id;
