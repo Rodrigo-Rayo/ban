@@ -78,6 +78,8 @@ export class BandProfileComponent implements OnInit {
   /** Member whose invite is being made, and the open invite sheet. */
   readonly inviting = signal<string | null>(null);
   readonly inviteSheet = signal<{ member: BandMember; url: string } | null>(null);
+  /** Arrived from creating the band (?invitar=1): a nudge over "Formación" to invite the line-up. */
+  readonly inviteNudge = signal(false);
   band = signal<Band | null>(null);
   vacancies = signal<BandVacancy[]>([]);
   members = signal<BandMember[]>([]);
@@ -194,6 +196,7 @@ export class BandProfileComponent implements OnInit {
       }
 
       if (band && session.user.id === band.user_id) {
+        this.nudgeInvites(members);
         this.loadApplications().catch(err => {
           if (!environment.production) console.error('[BandProfile] loadApplications failed:', err);
           this.toast.error('No se pudieron cargar los interesados.');
@@ -203,6 +206,18 @@ export class BandProfileComponent implements OnInit {
       this.toast.error('No se pudo cargar el perfil de la banda. Inténtalo de nuevo.');
       this.loading.set(false);
     }
+  }
+
+  /** Just created the band with a line-up: show the nudge and bring "Formación" into view. */
+  private nudgeInvites(members: readonly BandMember[]) {
+    if (this.route.snapshot.queryParamMap.get('invitar') !== '1' || !this.invitesOn()) return;
+    if (!members.some(m => !m.user_id)) return;
+    this.inviteNudge.set(true);
+    setTimeout(() => {
+      const el = document.getElementById('formacion');
+      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      el?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }, 300);
   }
 
   private async loadLinked(members: readonly BandMember[]) {

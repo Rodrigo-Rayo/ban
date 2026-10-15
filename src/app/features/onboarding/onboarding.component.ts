@@ -16,6 +16,7 @@ import { MediaFeaturesService } from '../../core/services/media-features.service
 import { ProfilePhotosComponent } from '../../shared/components/profile-photos/profile-photos.component';
 import { BandInvitesService } from '../../core/services/band-invites.service';
 import { MemberDraft, planMemberSave } from './band-members';
+import { BandInviteSheetComponent } from '../bands/band-invite-sheet/band-invite-sheet.component';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
 
@@ -39,7 +40,7 @@ const ROLE_NAMES: Readonly<Record<string, string>> = {
 
 @Component({
     selector: 'app-onboarding',
-    imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink, ProfilePhotosComponent],
+    imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink, ProfilePhotosComponent, BandInviteSheetComponent],
     templateUrl: './onboarding.component.html'
 })
 export class OnboardingComponent implements OnInit {
@@ -75,6 +76,11 @@ export class OnboardingComponent implements OnInit {
   bandMembers: MemberDraft[] = [];
   /** Line-up as loaded, to save only what changed (members linked through an invite stay linked). */
   private savedMembers: { id: string; name: string; instrument: string | null }[] = [];
+  /** The band being edited or just saved (to land on its profile and invite the line-up). */
+  private bandId: string | null = null;
+  /** Invite sheet for a saved line-up member, opened from the form while editing. */
+  readonly inviteSheet = signal<{ member: MemberDraft; url: string } | null>(null);
+  readonly inviting = signal<string | null>(null);
   private invites = inject(BandInvitesService);
   selectedDays = signal<string[]>([]);
   selectedSlots = signal<string[]>([]);
@@ -244,6 +250,21 @@ export class OnboardingComponent implements OnInit {
       confirmLabel: 'Quitar', danger: true,
     }))) return;
     this.bandMembers = this.bandMembers.filter((_, idx) => idx !== i);
+  }
+
+  /** "Invitar" next to a saved member while editing: same link and sheet as on the band profile. */
+  async inviteMember(m: MemberDraft) {
+    if (!m.id || this.inviting()) return;
+    this.inviting.set(m.id);
+    try {
+      const r = await this.invites.create(m.id);
+      if ('url' in r) this.inviteSheet.set({ member: m, url: r.url });
+      else this.toast.error(r.error);
+    } catch {
+      this.toast.error('No se pudo crear la invitación. Inténtalo de nuevo.');
+    } finally {
+      this.inviting.set(null);
+    }
   }
 
   /** Writes only what changed in the line-up; returns the first error, if any. */
@@ -501,6 +522,7 @@ export class OnboardingComponent implements OnInit {
         const { data: members } = await this.supabase.client
           .from('band_members').select('id,name,instrument' + linkCol).eq('band_id', data.id).order('created_at');
         const rows = (members as unknown as { id: string; name: string; instrument: string | null; user_id?: string | null }[] | null) ?? [];
+        this.bandId = data.id;
         this.savedMembers = rows.map(m => ({ id: m.id, name: m.name, instrument: m.instrument }));
         this.bandMembers = rows.map(m => ({ id: m.id, name: m.name, instrument: m.instrument ?? '', linked: !!m.user_id }));
       }
@@ -603,6 +625,7 @@ export class OnboardingComponent implements OnInit {
       }, { onConflict: 'user_id' }).select('id').single();
       saveError = error;
       if (!error && bandRow) {
+        this.bandId = bandRow.id;
         const membersError = await this.saveMembers(bandRow.id);
         if (membersError) saveError = membersError;
       }
@@ -662,6 +685,14 @@ export class OnboardingComponent implements OnInit {
         localStorage.removeItem('bandyou_role');
         // Came from a band's invite (new profile, or a listener who became a musician): back to it to accept.
         const invite = role === 'musician' ? this.invites.pending() : null;
+        // A band that just got a line-up (new, or a profile changed to band): straight to its
+        // profile, where each member has an "Invitar" button, with a nudge to use it.
+        if (role === 'band' && this.bandId && this.invitesOn() && (!this.isEditing() || isRoleChange)
+            && this.bandMembers.some(m => m.name.trim() && m.instrument)) {
+          this.toast.success(this.isEditing() ? 'Perfil actualizado.' : 'Perfil creado.');
+          this.router.navigate(['/bands', this.bandId], { queryParams: { invitar: 1 } });
+          return;
+        }
         if (this.isEditing()) {
           this.toast.success('Perfil actualizado.');
           this.router.navigate(invite ? ['/unirse', invite] : ['/dashboard']);

@@ -416,13 +416,18 @@
                     <option value="">Instrumento</option>
                     @for (i of instruments; track i) { <option [value]="i">{{ i }}</option> }
                   </select>
+                  @if (invitesOn() && m.id && !m.linked) {
+                    <button type="button" (click)="inviteMember(m)" [disabled]="inviting() === m.id"
+                      [attr.aria-label]="'Invitar a ' + (m.name || 'este integrante') + ' por WhatsApp'"
+                      class="btn-secondary text-xs min-h-[44px] disabled:opacity-60">{{ inviting() === m.id ? 'Creando enlace…' : 'Invitar por WhatsApp' }}</button>
+                  }
                 </div>
               }
               @if (bandMembers.length === 0) {
                 <p class="text-xs text-ink-muted">Añade los integrantes de la banda para que aparezcan en el perfil.</p>
               }
               @if (invitesOn()) {
-                <p class="text-xs text-ink-muted mt-1">Basta con el nombre. Si quieres, después invita a cada uno desde el perfil de la banda: con su enlace crea su perfil de músico y sale en la formación con su foto.</p>
+                <p class="text-xs text-ink-muted mt-1">Basta con el nombre. Cuando guardes, podrás invitar a cada uno por WhatsApp: con su enlace crea su perfil de músico y sale en la formación con su foto.</p>
               }
             </div>
           }
@@ -836,3 +841,8 @@
     </div>
   </div>
 </ng-template>
+
+@if (inviteSheet(); as sheet) {
+  <app-band-invite-sheet [bandName]="nameForm.value.name || 'tu banda'" [memberName]="sheet.member.name" [instrument]="sheet.member.instrument || null"
+                         [url]="sheet.url" (closed)="inviteSheet.set(null)"/>
+}

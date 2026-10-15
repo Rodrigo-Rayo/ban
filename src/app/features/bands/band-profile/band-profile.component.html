@@ -320,14 +320,20 @@
         }
 
         @if (members().length > 0) {
-        <section>
+        <section id="formacion" class="scroll-mt-24">
+          @if (inviteNudge()) {
+            <div class="mb-4 border-2 border-ink bg-poster-yellow p-4 shadow-[4px_4px_0_0_#141210]" role="status">
+              <p class="font-display text-2xl uppercase leading-none">Invita a tus integrantes</p>
+              <p class="mt-2 text-sm">Pulsa <strong>«Invitar»</strong> junto a cada uno y mándale el enlace por WhatsApp. Con él crea su perfil de músico y sale aquí con su foto y su perfil.</p>
+            </div>
+          }
           <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Formación</h2>
             @if (isOwner()) {
               <a routerLink="/onboarding" class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Editar</a>
             }
           </div>
-          @if (isOwner() && invitesOn()) {
+          @if (isOwner() && invitesOn() && !inviteNudge()) {
             <p class="text-sm text-ink-muted mb-2">Invita a cada integrante: con su enlace crea su perfil de músico y sale aquí con su foto y su perfil.</p>
           }
           <ul>
