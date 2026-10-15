@@ -284,7 +284,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown', ['$event'])
   onShortcut(event: KeyboardEvent) {
-    if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey) return;
+    // Picking an autofill suggestion (a saved email, earlier "influencias") fires a
+    // keydown that is not a KeyboardEvent and has no key: never assume there is one.
+    if (typeof event.key !== 'string' || event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey) return;
     event.preventDefault();
     this.router.navigate(['/search']).then(() =>
       setTimeout(() => document.querySelector<HTMLInputElement>('main input[type="search"]')?.focus()));
