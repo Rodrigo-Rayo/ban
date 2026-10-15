@@ -28,6 +28,8 @@ import { ListenPlayerComponent } from '../../../shared/components/listen-player/
 import { firstEmbed } from '../../../core/utils/media-embed';
 import { StoryButtonComponent } from '../../../shared/components/story-button/story-button.component';
 import { ShareCard, slugFile } from '../../../core/utils/share-card';
+import { BandInvitesService, LinkedMusician } from '../../../core/services/band-invites.service';
+import { BandInviteSheetComponent } from '../band-invite-sheet/band-invite-sheet.component';
 
 interface VacancyApplication {
   id: string;
@@ -48,7 +50,7 @@ const MAX_MEMBERS = 50;
 
 @Component({
     selector: 'app-band-profile',
-    imports: [StoryButtonComponent, ListenPlayerComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, ProfileContactComponent],
+    imports: [StoryButtonComponent, ListenPlayerComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, ProfileContactComponent, BandInviteSheetComponent],
     templateUrl: './band-profile.component.html'
 })
 export class BandProfileComponent implements OnInit {
@@ -68,6 +70,14 @@ export class BandProfileComponent implements OnInit {
   private confirm = inject(ConfirmService);
 
   private features = inject(MediaFeaturesService);
+  private invites = inject(BandInvitesService);
+  /** Line-up invites exist (supabase/2026_10_band_invites.sql run). */
+  readonly invitesOn = this.features.state('bandInvites');
+  /** Musician profiles of the members who joined through an invite, by account. */
+  readonly linked = signal<ReadonlyMap<string, LinkedMusician>>(new Map());
+  /** Member whose invite is being made, and the open invite sheet. */
+  readonly inviting = signal<string | null>(null);
+  readonly inviteSheet = signal<{ member: BandMember; url: string } | null>(null);
   band = signal<Band | null>(null);
   vacancies = signal<BandVacancy[]>([]);
   members = signal<BandMember[]>([]);
@@ -124,7 +134,9 @@ export class BandProfileComponent implements OnInit {
     if (!id) { this.loading.set(false); return; }
 
     try {
-      const [availability, demo] = await Promise.all([this.features.has('bandAvailability'), this.features.has('demoUrl')]);
+      const [availability, demo, invitesOn] = await Promise.all([
+        this.features.has('bandAvailability'), this.features.has('demoUrl'), this.features.has('bandInvites'),
+      ]);
       const columns = BAND_COLUMNS + (availability ? BAND_AVAILABILITY_COLUMNS : '') + (demo ? ', demo_url' : '');
       // Round 1: all 4 independent queries in parallel
       const [
@@ -136,7 +148,7 @@ export class BandProfileComponent implements OnInit {
         this.supabase.client.from('bands').select(columns).eq('id', id).maybeSingle(),
         this.supabase.auth.getSession(),
         this.supabase.client.from('band_vacancies').select('id, band_id, instrument, description, genre, open, created_at').eq('band_id', id).order('created_at').limit(MAX_VACANCIES),
-        this.supabase.client.from('band_members').select('id, band_id, name, instrument, created_at').eq('band_id', id).order('created_at').limit(MAX_MEMBERS),
+        this.supabase.client.from('band_members').select('id, band_id, name, instrument, created_at' + (invitesOn ? ', user_id' : '')).eq('band_id', id).order('created_at').limit(MAX_MEMBERS),
       ]);
 
       // The column list is dynamic, so the row type is given here.
@@ -158,8 +170,10 @@ export class BandProfileComponent implements OnInit {
         this.seo.setNotFound();
       }
       this.vacancies.set(vac || []);
-      this.members.set(membersData || []);
+      const members = (membersData as unknown as BandMember[] | null) ?? [];
+      this.members.set(members);
       this.loading.set(false);
+      void this.loadLinked(members);
 
       if (!session) return;
       this.currentUserId.set(session.user.id);
@@ -188,6 +202,32 @@ export class BandProfileComponent implements OnInit {
     } catch {
       this.toast.error('No se pudo cargar el perfil de la banda. Inténtalo de nuevo.');
       this.loading.set(false);
+    }
+  }
+
+  private async loadLinked(members: readonly BandMember[]) {
+    const ids = members.map(m => m.user_id).filter((u): u is string => !!u);
+    if (!ids.length) return;
+    const found = await this.invites.musiciansFor(ids).catch(() => []);
+    this.linked.set(new Map(found.map(m => [m.user_id, m])));
+  }
+
+  linkedOf(m: BandMember): LinkedMusician | undefined {
+    return m.user_id ? this.linked().get(m.user_id) : undefined;
+  }
+
+  /** The band sends this member their personal link (same link while it is valid). */
+  async invite(m: BandMember) {
+    if (this.inviting()) return;
+    this.inviting.set(m.id);
+    try {
+      const r = await this.invites.create(m.id);
+      if ('url' in r) this.inviteSheet.set({ member: m, url: r.url });
+      else this.toast.error(r.error);
+    } catch {
+      this.toast.error('No se pudo crear la invitación. Inténtalo de nuevo.');
+    } finally {
+      this.inviting.set(null);
     }
   }
 

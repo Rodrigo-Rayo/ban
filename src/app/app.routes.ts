@@ -149,6 +149,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/showcase/showcase.component').then(m => m.ShowcaseComponent),
   },
   {
+    path: 'unirse/:token', title: 'Invitación a la banda · BandYou', data: NOINDEX,
+    loadComponent: () => import('./features/bands/join-band/join-band.component').then(m => m.JoinBandComponent),
+  },
+  {
     path: 'colaboradores', title: 'Colaboradores · BandYou',
     loadComponent: () => import('./features/partners/partners.component').then(m => m.PartnersComponent),
   },

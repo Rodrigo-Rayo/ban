@@ -22,6 +22,8 @@ import { ListenPlayerComponent } from '../../../shared/components/listen-player/
 import { firstEmbed } from '../../../core/utils/media-embed';
 import { StoryButtonComponent } from '../../../shared/components/story-button/story-button.component';
 import { ShareCard, slugFile } from '../../../core/utils/share-card';
+import { BandInvitesService, MemberBand } from '../../../core/services/band-invites.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
 
 /** Columns rendered by the profile page (avoid select('*')). */
 const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, description, avatar_url, experience, influences, availability_days, availability_slots, instagram_url, soundcloud_url, spotify_url, website_url, youtube_url';
@@ -49,6 +51,12 @@ export class MusicianProfileComponent implements OnInit {
   /** Started at construction so it runs alongside the route setup, not before the profile query. */
   private readonly lessonsProbe = this.features.has('giveLessons');
   private readonly demoProbe = this.features.has('demoUrl');
+  private readonly invitesProbe = this.features.has('bandInvites');
+  private invites = inject(BandInvitesService);
+  private confirm = inject(ConfirmService);
+  /** Bands this musician joined through an invite ("Toca en"). */
+  readonly memberBands = signal<MemberBand[]>([]);
+  readonly leaving = signal<string | null>(null);
 
   musician = signal<Musician | null>(null);
   availabilityDays = computed(() => parseList(this.musician()?.availability_days));
@@ -127,6 +135,7 @@ export class MusicianProfileComponent implements OnInit {
         this.supabase.auth.getSession(),
       ]);
       this.musician.set(data as Musician | null);
+      if (data?.user_id) void this.loadBands(data.user_id);
       if (data) {
         this.seo.setProfile(data.name, 'musician', data.city, data.description, data.avatar_url ?? undefined, undefined, data.instrument);
         this.seo.injectJsonLd({
@@ -152,6 +161,34 @@ export class MusicianProfileComponent implements OnInit {
       this.toast.error('No se pudo cargar el perfil. Recarga la página.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async loadBands(userId: string) {
+    if (!(await this.invitesProbe)) return;
+    const bands = await this.invites.bandsOf(userId).catch(() => []);
+    this.memberBands.set(bands.filter(b => !!b.bands));
+  }
+
+  bandLine(b: MemberBand): string {
+    return [b.instrument, b.bands?.city].filter(Boolean).join(' · ');
+  }
+
+  /** The musician leaves a band's line-up (their name stays there, unlinked). */
+  async leaveBand(b: MemberBand) {
+    const ok = await this.confirm.ask({
+      title: `¿Salir de ${b.bands?.name ?? 'la banda'}?`,
+      message: 'Dejarás de salir con tu perfil en su formación. La banda podrá volver a invitarte.',
+      confirmLabel: 'Salir',
+      danger: true,
+    });
+    if (!ok) return;
+    this.leaving.set(b.band_id);
+    try {
+      if (await this.invites.leave(b.band_id)) this.memberBands.update(list => list.filter(x => x.band_id !== b.band_id));
+      else this.toast.error('No se pudo salir de la banda. Inténtalo de nuevo.');
+    } finally {
+      this.leaving.set(null);
     }
   }
 

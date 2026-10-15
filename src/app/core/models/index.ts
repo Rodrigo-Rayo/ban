@@ -131,6 +131,8 @@ export interface BandMember {
   name: string;
   instrument: string | null;
   created_at: string;
+  /** Account that joined through an invite (supabase/2026_10_band_invites.sql). */
+  user_id?: string | null;
 }
 
 export type EventGenre = 'Rock' | 'Jazz' | 'Flamenco' | 'Electrónica' | 'Pop' | 'Metal' | 'Indie' | 'Blues' | 'Folk' | 'Otro';
@@ -223,7 +225,7 @@ export interface Message {
   created_at: string;
 }
 
-export type NotificationType = 'message' | 'application' | 'rsvp' | 'review' | 'system' | 'favorite' | 'event_reminder' | 'booking' | 'quedada' | 'post_alert' | 'comment';
+export type NotificationType = 'message' | 'application' | 'rsvp' | 'review' | 'system' | 'favorite' | 'event_reminder' | 'booking' | 'quedada' | 'post_alert' | 'comment' | 'band_join';
 
 export interface Notification {
   id: string;

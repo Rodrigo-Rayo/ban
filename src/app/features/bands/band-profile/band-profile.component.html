@@ -323,12 +323,39 @@
         <section>
           <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
             <h2 class="font-display text-2xl leading-none">Formación</h2>
+            @if (isOwner()) {
+              <a routerLink="/onboarding" class="font-mono text-xs font-bold uppercase underline min-h-[44px] inline-flex items-center">Editar</a>
+            }
           </div>
+          @if (isOwner() && invitesOn()) {
+            <p class="text-sm text-ink-muted mb-2">Invita a cada integrante: con su enlace crea su perfil de músico y sale aquí con su foto y su perfil.</p>
+          }
           <ul>
             @for (m of members(); track m.id) {
-              <li class="flex items-center justify-between gap-3 py-2.5 border-b border-ink/15 first:pt-0">
-                <span class="text-base font-bold text-ink min-w-0 [overflow-wrap:anywhere]">{{ m.name }}</span>
-                <span class="tag flex-shrink-0">{{ m.instrument }}</span>
+              @let who = linkedOf(m);
+              <li class="flex items-center justify-between gap-3 py-2.5 border-b border-ink/15 first:pt-0 min-h-[52px]">
+                @if (who) {
+                  <a [routerLink]="['/musicians', who.id]" class="flex items-center gap-3 min-w-0 group">
+                    <span class="avatar w-10 h-10 shrink-0 overflow-hidden border-2 border-ink text-sm" [style.background]="who.avatar_url ? null : avatarColor(who.name)">
+                      @if (who.avatar_url) { <img [src]="imageSrc(who.avatar_url, 96)" alt="" class="w-full h-full object-cover" loading="lazy"/> }
+                      @else { {{ who.name.slice(0, 2) }} }
+                    </span>
+                    <span class="min-w-0">
+                      <span class="block text-base font-bold text-ink group-hover:text-primary-500 [overflow-wrap:anywhere]">{{ who.name }}</span>
+                      <span class="block font-mono text-[10px] font-bold uppercase tracking-wide text-ink-muted">Ver perfil</span>
+                    </span>
+                  </a>
+                } @else {
+                  <span class="text-base font-bold text-ink min-w-0 [overflow-wrap:anywhere]">{{ m.name }}</span>
+                }
+                <span class="flex items-center gap-2 flex-shrink-0">
+                  @if (m.instrument) { <span class="tag">{{ m.instrument }}</span> }
+                  @if (isOwner() && invitesOn() && !m.user_id) {
+                    <button type="button" (click)="invite(m)" [disabled]="inviting() === m.id"
+                            [attr.aria-label]="'Invitar a ' + m.name"
+                            class="btn-secondary text-xs min-h-[40px] px-3 disabled:opacity-60">{{ inviting() === m.id ? '…' : 'Invitar' }}</button>
+                  }
+                </span>
               </li>
             }
             <!-- Open spots: the gap in the line-up, pointing at the vacancy above -->
@@ -343,6 +370,13 @@
             }
           </ul>
         </section>
+        }
+
+        @if (isOwner() && invitesOn() && members().length === 0) {
+          <a routerLink="/onboarding" class="press flex items-center justify-between gap-3 border-2 border-dashed border-ink/40 px-4 py-3 min-h-[44px] hover:border-ink">
+            <span class="text-sm text-ink"><span class="font-bold">Añade la formación.</span> Luego podrás invitar a cada integrante por WhatsApp para que salga con su perfil.</span>
+            <span class="font-mono text-[11px] font-bold uppercase tracking-wide underline whitespace-nowrap">Añadir</span>
+          </a>
         }
 
         @if (!band()!.description && members().length === 0 && openVacancies().length === 0) {
@@ -462,3 +496,8 @@
 
 <!-- Discreet, at the very end (DSA notice-and-action) -->
 @if (!loading() && band() && !isOwner()) { <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 flex justify-end"><app-report-link what="este perfil"/></div> }
+
+@if (inviteSheet(); as sheet) {
+  <app-band-invite-sheet [bandName]="band()?.name ?? ''" [memberName]="sheet.member.name" [instrument]="sheet.member.instrument"
+                         [url]="sheet.url" (closed)="inviteSheet.set(null)"/>
+}

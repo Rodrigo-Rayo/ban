@@ -393,6 +393,9 @@
               </div>
               @for (m of bandMembers; track $index) {
                 <div class="mb-2 card-flat p-3 flex flex-col gap-2">
+                  @if (m.linked) {
+                    <p class="font-mono text-[10px] font-bold uppercase tracking-wide text-ink"><span aria-hidden="true">✓</span> Unido con su perfil de músico</p>
+                  }
                   <div class="flex items-center gap-2">
                     <input [value]="m.name" (input)="m.name = $any($event.target).value"
                       type="text" placeholder="Nombre del miembro" data-member-name
@@ -416,6 +419,9 @@
               }
               @if (bandMembers.length === 0) {
                 <p class="text-xs text-ink-muted">Añade los integrantes de la banda para que aparezcan en el perfil.</p>
+              }
+              @if (invitesOn()) {
+                <p class="text-xs text-ink-muted mt-1">Basta con el nombre. Si quieres, después invita a cada uno desde el perfil de la banda: con su enlace crea su perfil de músico y sale en la formación con su foto.</p>
               }
             </div>
           }

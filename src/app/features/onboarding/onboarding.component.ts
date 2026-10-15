@@ -14,6 +14,8 @@ import { optionalUrl, optionalPositiveNumber, optionalPlayableUrl } from '../../
 import { LEGAL_INFO } from '../legal/legal-info';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { ProfilePhotosComponent } from '../../shared/components/profile-photos/profile-photos.component';
+import { BandInvitesService } from '../../core/services/band-invites.service';
+import { MemberDraft, planMemberSave } from './band-members';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
 
@@ -29,6 +31,7 @@ export function demoUrlValue(raw: string | null | undefined): string | null {
   const value = String(raw ?? '').trim();
   return value ? value.replace(/^http:\/\//i, 'https://') : null;
 }
+
 
 @Component({
     selector: 'app-onboarding',
@@ -65,7 +68,10 @@ export class OnboardingComponent implements OnInit {
   selectedGenres = signal<string[]>([]);
   selectedLevel = signal<string>('');
 
-  bandMembers: { name: string; instrument: string }[] = [];
+  bandMembers: MemberDraft[] = [];
+  /** Line-up as loaded, to save only what changed (members linked through an invite stay linked). */
+  private savedMembers: { id: string; name: string; instrument: string | null }[] = [];
+  private invites = inject(BandInvitesService);
   selectedDays = signal<string[]>([]);
   selectedSlots = signal<string[]>([]);
   /** Bands: "Disponibles para bolos". Days/slots above double as rehearsal days. */
@@ -73,6 +79,7 @@ export class OnboardingComponent implements OnInit {
   /** Musician: "También doy clases" (musicians.gives_lessons, once it exists). */
   givesLessons = signal(false);
   private features = inject(MediaFeaturesService);
+  readonly invitesOn = this.features.state('bandInvites');
   /** Band availability fields exist in the live DB (see MediaFeaturesService). */
   readonly bandAvailability = this.features.state('bandAvailability');
   readonly canGiveLessons = this.features.state('giveLessons');
@@ -225,7 +232,34 @@ export class OnboardingComponent implements OnInit {
       inputs[inputs.length - 1]?.focus();
     });
   }
-  removeMember(i: number) { this.bandMembers = this.bandMembers.filter((_, idx) => idx !== i); }
+  async removeMember(i: number) {
+    const m = this.bandMembers[i];
+    if (m?.linked && !(await this.confirm.ask({
+      title: `¿Quitar a ${m.name || 'este integrante'} de la formación?`,
+      message: 'Se unió con su perfil de músico: dejará de salir en la banda. Podrás volver a invitarle.',
+      confirmLabel: 'Quitar', danger: true,
+    }))) return;
+    this.bandMembers = this.bandMembers.filter((_, idx) => idx !== i);
+  }
+
+  /** Writes only what changed in the line-up; returns the first error, if any. */
+  private async saveMembers(bandId: string) {
+    const db = this.supabase.client;
+    const plan = planMemberSave(this.savedMembers, this.bandMembers);
+    if (plan.remove.length) {
+      const { error } = await db.from('band_members').delete().eq('band_id', bandId).in('id', plan.remove);
+      if (error) return error;
+    }
+    for (const u of plan.update) {
+      const { error } = await db.from('band_members').update({ name: u.name, instrument: u.instrument }).eq('band_id', bandId).eq('id', u.id);
+      if (error) return error;
+    }
+    if (plan.insert.length) {
+      const { error } = await db.from('band_members').insert(plan.insert.map(m => ({ band_id: bandId, ...m })));
+      if (error) return error;
+    }
+    return null;
+  }
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent) {
@@ -332,6 +366,7 @@ export class OnboardingComponent implements OnInit {
     void this.features.has('giveLessons');
     void this.features.has('demoUrl');
     void this.features.has('profileContact');
+    void this.features.has('bandInvites');
     // Read stored role synchronously before any async operations so later
     // Supabase responses never race-overwrite a role the user already picked.
     const VALID_ROLES: Role[] = ['musician', 'band', 'venue', 'teacher', 'rehearsal', 'listener'];
@@ -455,9 +490,12 @@ export class OnboardingComponent implements OnInit {
         if (data.rehearsal_days)  this.selectedDays.set(data.rehearsal_days.split(',').filter(Boolean));
         if (data.rehearsal_slots) this.selectedSlots.set(data.rehearsal_slots.split(',').filter(Boolean));
         this.openToGigs.set(!!data.open_to_gigs);
+        const linkCol = (await this.features.has('bandInvites')) ? ',user_id' : '';
         const { data: members } = await this.supabase.client
-          .from('band_members').select('name,instrument').eq('band_id', data.id);
-        if (members) this.bandMembers = members.map((m: { name: string; instrument: string | null }) => ({ name: m.name, instrument: m.instrument ?? '' }));
+          .from('band_members').select('id,name,instrument' + linkCol).eq('band_id', data.id).order('created_at');
+        const rows = (members as unknown as { id: string; name: string; instrument: string | null; user_id?: string | null }[] | null) ?? [];
+        this.savedMembers = rows.map(m => ({ id: m.id, name: m.name, instrument: m.instrument }));
+        this.bandMembers = rows.map(m => ({ id: m.id, name: m.name, instrument: m.instrument ?? '', linked: !!m.user_id }));
       }
       if (role === 'musician') {
         if (data.availability_days)  this.selectedDays.set(data.availability_days.split(',').filter(Boolean));
@@ -558,14 +596,8 @@ export class OnboardingComponent implements OnInit {
       }, { onConflict: 'user_id' }).select('id').single();
       saveError = error;
       if (!error && bandRow) {
-        await this.supabase.client.from('band_members').delete().eq('band_id', bandRow.id);
-        const validMembers = this.bandMembers.filter(m => m.name.trim() && m.instrument);
-        if (validMembers.length > 0) {
-          const { error: membersError } = await this.supabase.client.from('band_members').insert(
-            validMembers.map(m => ({ band_id: bandRow.id, name: m.name.trim(), instrument: m.instrument }))
-          );
-          if (membersError) saveError = membersError;
-        }
+        const membersError = await this.saveMembers(bandRow.id);
+        if (membersError) saveError = membersError;
       }
     } else if (role === 'venue') {
       const { error } = await this.supabase.client.from('venues').upsert({
@@ -621,11 +653,14 @@ export class OnboardingComponent implements OnInit {
         }
         if (!this.isEditing()) await this.photos()?.save(userId);
         localStorage.removeItem('bandyou_role');
+        // Came from a band's invite (new profile, or a listener who became a musician): back to it to accept.
+        const invite = role === 'musician' ? this.invites.pending() : null;
         if (this.isEditing()) {
           this.toast.success('Perfil actualizado.');
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(invite ? ['/unirse', invite] : ['/dashboard']);
         } else {
           this.toast.success('Perfil creado.');
+          if (invite) { this.router.navigate(['/unirse', invite]); return; }
           // The panel shows the new profile (photo included) and is where it is managed from.
           // Listeners have no photo to add and go straight to the front page.
           this.router.navigate([role === 'listener' ? '/home' : '/dashboard']);

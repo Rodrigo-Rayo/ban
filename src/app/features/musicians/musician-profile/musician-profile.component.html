@@ -139,6 +139,35 @@
             <span class="font-mono text-[11px] font-bold uppercase tracking-wide underline whitespace-nowrap">Completar</span>
           </a>
         }
+        @if (memberBands().length > 0) {
+        <section aria-labelledby="bands-title">
+          <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
+            <h2 id="bands-title" class="font-display text-2xl leading-none">Toca en</h2>
+          </div>
+          <ul>
+            @for (b of memberBands(); track b.band_id) {
+              <li class="flex items-center justify-between gap-3 py-2.5 border-b border-ink/15 first:pt-0">
+                <a [routerLink]="['/bands', b.band_id]" class="flex items-center gap-3 min-w-0 group">
+                  <span class="avatar w-11 h-11 shrink-0 overflow-hidden border-2 border-ink text-sm" [style.background]="b.bands!.avatar_url ? null : avatarColor(b.bands!.name)">
+                    @if (b.bands!.avatar_url) { <img [src]="imageSrc(b.bands!.avatar_url, 96)" alt="" class="w-full h-full object-cover" loading="lazy"/> }
+                    @else { {{ b.bands!.name.slice(0, 2) }} }
+                  </span>
+                  <span class="min-w-0">
+                    <span class="block font-display text-xl uppercase leading-tight group-hover:text-primary-500 [overflow-wrap:anywhere]">{{ b.bands!.name }}</span>
+                    <span class="block text-xs text-ink-muted">{{ bandLine(b) }}</span>
+                  </span>
+                </a>
+                @if (isOwner()) {
+                  <button type="button" (click)="leaveBand(b)" [disabled]="leaving() === b.band_id"
+                          [attr.aria-label]="'Salir de ' + b.bands!.name"
+                          class="font-mono text-[11px] font-bold uppercase underline text-ink-muted hover:text-signal-red min-h-[44px] px-1 shrink-0 disabled:opacity-50">Salir</button>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+        }
+
         @if (musician()!.description || musician()!.influences) {
         <section>
           <div class="flex items-center justify-between gap-3 border-t border-dark-600 pt-3 mb-3">
