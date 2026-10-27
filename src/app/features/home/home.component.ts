@@ -22,7 +22,7 @@ interface HomeVenue { id: string; user_id?: string | null; name: string; city: s
 interface HomeRehearsal { id: string; user_id?: string | null; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate?: number | null; created_at: string; }
 interface HomePost { id: string; type: string; title?: string | null; text: string; city: string | null; instrument: string | null; author_name: string; author_profile_type: string | null; author_profile_id: string | null; created_at: string; }
 interface HomeListing { id: string; title: string; price: number | null; condition: string | null; category: string | null; city: string | null; images: string[] | null; created_at: string; }
-interface HomeVacancy { id: string; instrument: string; genre: string | null; bands: { id: string; name: string; city: string | null; genre: string | null } | null; }
+interface HomeVacancy { id: string; instrument: string; genre: string | null; created_at?: string; bands: { id: string; name: string; city: string | null; genre: string | null } | null; }
 interface HomeBand { id: string; user_id?: string | null; name: string; city: string; genre: string | null; avatar_url: string | null; created_at: string; }
 interface HomeTeacher { id: string; user_id?: string | null; name: string; city: string; instrument: string | null; avatar_url: string | null; created_at: string; }
 /** One tile of "Gente nueva": any profile type. */
@@ -192,16 +192,21 @@ export class HomeComponent implements OnInit {
   readonly firstName = computed(() => (this.userProfile()?.name ?? '').trim().split(/\s+/)[0] ?? '');
 
   /**
-   * One "Se busca" list: open vacancies (user's city first), then board posts.
-   * A band's "buscamos músico" post is skipped when that band already shows a vacancy.
+   * One "Se busca" list, like the Se busca page: vacancies and board posts mixed,
+   * the user's city first, then newest first (a vacancy no longer jumps ahead of
+   * newer posts). A band's "buscamos músico" post is skipped when that band
+   * already shows a vacancy.
    */
   /** Destacado carousel: off while La quedada takes its place; back on with paid promotions. */
   readonly showFeatured = false;
 
   readonly seBuscaItems = computed<SeBuscaItem[]>(() => {
-    const vacancies: SeBuscaItem[] = this.vacanciesSorted()
+    const city = this.userCity();
+    const vacancies: (SeBuscaItem & { at: string; local: boolean })[] = this.recentVacancies()
       .filter(v => !!v.bands)
       .map(v => ({
+        at: v.created_at ?? '',
+        local: !!city && v.bands!.city === city,
         id: 'v-' + v.id,
         title: v.bands!.name,
         stampClass: askStampClass('vacancy'),
@@ -210,9 +215,11 @@ export class HomeComponent implements OnInit {
         link: ['/bands', v.bands!.id],
       }));
     const bandsWithVacancy = new Set(vacancies.map(v => v.title.toLowerCase()));
-    const posts: SeBuscaItem[] = this.recentPosts()
+    const posts: (SeBuscaItem & { at: string; local: boolean })[] = this.recentPosts()
       .filter(p => !(p.type === 'band_seeking_musician' && bandsWithVacancy.has(p.author_name.toLowerCase())))
       .map(p => ({
+        at: p.created_at,
+        local: !!city && p.city === city,
         id: 'p-' + p.id,
         // Titled posts lead with the title and move the author to the small line.
         title: p.title?.trim() || p.author_name,
@@ -221,7 +228,10 @@ export class HomeComponent implements OnInit {
         meta: [p.title?.trim() ? p.author_name : null, p.city, timeAgo(p.created_at)].filter(Boolean).join(' · '),
         link: ['/posts', p.id],
       }));
-    return [...vacancies.slice(0, 3), ...posts].slice(0, SE_BUSCA_LIMIT);
+    return [...vacancies, ...posts]
+      .sort((a, b) => Number(b.local) - Number(a.local) || b.at.localeCompare(a.at))
+      .slice(0, SE_BUSCA_LIMIT)
+      .map(({ at: _at, local: _local, ...item }) => item);
   });
 
 
@@ -306,11 +316,6 @@ export class HomeComponent implements OnInit {
   readonly canPublishGigs = computed(() => ['musician', 'band'].includes(this.auth.userProfileType()));
   readonly displayCity = computed(() => this.userCity() || 'España');
   /** Vacancies from the user's city first. */
-  readonly vacanciesSorted = computed(() => {
-    const city = this.userCity();
-    const list = [...this.recentVacancies()];
-    return city ? list.sort((a, b) => Number(b.bands?.city === city) - Number(a.bands?.city === city)) : list;
-  });
   /** Single most useful nudge, built only from data that exists. */
   readonly nextStep = computed<{ text: string; cta: string; link?: string; upload?: boolean } | null>(() => {
     const profile = this.userProfile();

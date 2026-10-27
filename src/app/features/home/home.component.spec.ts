@@ -118,21 +118,32 @@ describe('HomeComponent', () => {
   });
 
   describe('Se busca and carousel', () => {
-    const vacancy = (id: string, band: string, city = 'Bilbao') =>
-      ({ id, instrument: 'Batería', genre: 'Rock', bands: { id: 'b-' + id, name: band, city, genre: 'Rock' } });
-    const post = (id: string, type: string, author: string) =>
-      ({ id, type, text: 'x', city: 'Madrid', instrument: null, author_name: author, author_profile_type: null, author_profile_id: null, created_at: new Date().toISOString() });
+    const vacancy = (id: string, band: string, city = 'Bilbao', created_at = '2026-10-01T10:00:00Z') =>
+      ({ id, instrument: 'Batería', genre: 'Rock', created_at, bands: { id: 'b-' + id, name: band, city, genre: 'Rock' } });
+    const post = (id: string, type: string, author: string, created_at = new Date().toISOString()) =>
+      ({ id, type, text: 'x', city: 'Madrid', instrument: null, author_name: author, author_profile_type: null, author_profile_id: null, created_at });
 
-    it('merges vacancies first and skips a band post already shown as a vacancy', () => {
+    it('newer posts come before an older vacancy, as on the Se busca page', () => {
+      component.userCity.set('');
+      component.recentVacancies.set([vacancy('old', 'Gusanos', 'Madrid', '2026-09-01T10:00:00Z')]);
+      component.recentPosts.set([
+        post('p1', 'collab', 'Ana', '2026-10-20T10:00:00Z'),
+        post('p2', 'collab', 'Luis', '2026-08-01T10:00:00Z'),
+      ]);
+      expect(component.seBuscaItems().map(i => i.id)).toEqual(['p-p1', 'v-old', 'p-p2']);
+    });
+
+    it('merges vacancies and skips a band post already shown as a vacancy', () => {
       component.recentVacancies.set([vacancy('1', 'Los Despistados')]);
       component.recentPosts.set([
         post('p1', 'band_seeking_musician', 'Los Despistados'),
         post('p2', 'musician_seeking_band', 'Sofía'),
       ]);
       const items = component.seBuscaItems();
-      expect(items.map(i => i.id)).toEqual(['v-1', 'p-p2']);
-      expect(items[0].stampLabel).toBe('Busca batería');
-      expect(items[0].link).toEqual(['/bands', 'b-1']);
+      expect(items.map(i => i.id)).toEqual(['p-p2', 'v-1']);
+      const v = items.find(i => i.id === 'v-1')!;
+      expect(v.stampLabel).toBe('Busca batería');
+      expect(v.link).toEqual(['/bands', 'b-1']);
     });
 
     it('lists vacancies from the user city first', () => {
