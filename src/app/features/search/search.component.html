@@ -360,35 +360,8 @@
           }
         </div>
       } @else {
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          @for (event of events(); track event.id) {
-            <a [routerLink]="['/events', event.id]" class="group card flex items-stretch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900">
-              <!-- Date block -->
-              <div class="self-stretch w-16 sm:w-20 min-h-[84px] flex flex-col items-center justify-center bg-primary-500 text-white border-r-2 border-ink">
-                <span class="font-mono text-[11px] font-bold uppercase tracking-wide leading-none">{{ event.date | date:'MMM' | uppercase }}</span>
-                <span class="font-display text-[32px] sm:text-4xl leading-none mt-1">{{ event.date | date:'d' }}</span>
-                @if (event.time) {
-                  <span class="font-mono text-[11px] font-bold leading-none mt-1">{{ event.time.slice(0,5) }}</span>
-                }
-              </div>
-              <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col gap-1.5 justify-center">
-                <h2 class="text-[22px] leading-none truncate text-ink group-hover:text-primary-500 transition-colors">{{ event.title }}</h2>
-                <p class="text-[13px] text-ink-muted truncate">{{ event.venue }}@if (event.city) { · {{ event.city }} }</p>
-                @if (event.genre || event.price) {
-                  <div class="flex flex-wrap gap-1.5">
-                    @if (event.price) { <span class="tag-accent">{{ event.price }}</span> }
-                    @if (event.genre) { <span class="tag">{{ event.genre }}</span> }
-                  </div>
-                }
-              </div>
-              @if (event.image_url) {
-                <div class="flex-shrink-0 w-16 sm:w-20 self-stretch border-l-2 border-ink overflow-hidden bg-night">
-                  <img [src]="imageSrc(event.image_url, 192)" alt="" loading="lazy" width="80" height="100" class="w-full h-full object-cover"/>
-                </div>
-              }
-            </a>
-          }
-        </div>
+        <!-- The agenda as a "cartelera": next gig big, then posters by Hoy / Este finde / month -->
+        <app-agenda-board [events]="events()"/>
       }
       </div><!-- /panel-events -->
     }

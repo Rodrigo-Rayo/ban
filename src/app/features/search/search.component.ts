@@ -1,7 +1,8 @@
+import { AgendaBoardComponent } from './agenda/agenda-board.component';
 import { Component, signal, computed, inject, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -20,14 +21,14 @@ type SearchType = 'musicians' | 'bands' | 'venues' | 'events' | 'teachers' | 're
 interface MusicianResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; genre: string; availability_days?: string | null; created_at: string; user_id: string; }
 interface BandResult { id: string; name: string; city: string; avatar_url: string | null; genre: string; looking_for?: string | null; open_to_gigs?: boolean | null; created_at: string; user_id: string; }
 interface VenueResult { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; genres: string | null; created_at: string; user_id: string; }
-interface EventResult { id: string; title: string; venue: string; city: string; date: string; time: string | null; genre: string; description: string | null; price?: string | null; image_url?: string | null; created_at: string; user_id: string; }
+interface EventResult { id: string; title: string; venue: string; city: string; date: string; time: string | null; genre: string; description: string | null; price?: string | null; image_url?: string | null; ticket_url?: string | null; created_at: string; user_id: string; }
 interface TeacherResult { id: string; name: string; city: string; avatar_url: string | null; instrument: string; hourly_rate: number | null; modality?: string | null; created_at: string; user_id: string; }
 interface RehearsalResult { id: string; name: string; city: string; avatar_url: string | null; capacity: number | null; hourly_rate: number | null; rooms_count?: number | null; created_at: string; user_id: string; }
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-search',
-    imports: [FormsModule, RouterLink, CommonModule, DatePipe, ListPipe],
+    imports: [FormsModule, RouterLink, CommonModule, ListPipe, AgendaBoardComponent],
     templateUrl: './search.component.html'
 })
 export class SearchComponent implements OnInit, OnDestroy {
@@ -360,7 +361,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     musicians:  'id,name,city,avatar_url,instrument,genre,availability_days,created_at,user_id',
     bands:      'id,name,city,avatar_url,genre,looking_for,created_at,user_id',
     venues:     'id,name,city,avatar_url,capacity,genres,created_at,user_id',
-    events:     'id,title,venue,city,date,time,genre,description,price,created_at,user_id',
+    events:     'id,title,venue,city,date,time,genre,description,price,ticket_url,created_at,user_id',
     teachers:   'id,name,city,avatar_url,instrument,hourly_rate,modality,created_at,user_id',
     rehearsal:  'id,name,city,avatar_url,capacity,hourly_rate,created_at,user_id',
   } as const;
