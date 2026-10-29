@@ -17,7 +17,8 @@ import { mapsUrl } from '../../../core/utils/maps';
 import { ShareCard, StoryImage, shareImage, slugFile } from '../../../core/utils/share-card';
 import { storyFeedback } from '../../../core/utils/story-feedback';
 import { findPublicProfile } from '../../../core/utils/profile-check';
-import { avatarSrc } from '../../../core/utils/display.utils';
+import { avatarSrc, imageSrc } from '../../../core/utils/display.utils';
+import { eventOffer } from './event-offer';
 import { fetchProfileAvatar, initialOf } from '../../inbox/profile-avatar';
 
 const RELATED_COLUMNS = 'id, title, venue, city, date, time, genre, price';
@@ -68,6 +69,7 @@ export class EventDetailComponent implements OnInit {
   organizerAvatar = signal<string | null>(null);
   readonly initialOf = initialOf;
   readonly avatarSrc = avatarSrc;
+  readonly imageSrc = imageSrc;
 
   makingImage = signal(false);
 
@@ -161,6 +163,7 @@ export class EventDetailComponent implements OnInit {
           eventStatus: 'https://schema.org/EventScheduled',
           eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
           ...(data.image_url ? { image: data.image_url } : {}),
+          ...eventOffer(data),
           url: `https://www.bandyou.es/events/${data.id}`,
           location: {
             '@type': 'Place',

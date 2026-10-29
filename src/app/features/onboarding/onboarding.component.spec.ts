@@ -5,6 +5,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
+import { AuthService } from '../../core/services/auth.service';
 
 const USER = { id: 'user-1', user_metadata: { terms_accepted_at: '2026-01-01' } };
 const MUSICIAN_ROW = { id: 'm1', name: 'Lola', city: 'Madrid', genre: 'Rock', instrument: 'Guitarra' };
@@ -50,6 +51,7 @@ describe('OnboardingComponent', () => {
         { provide: SupabaseService, useValue: makeSupabase(existing) },
         { provide: ToastService, useValue: toast },
         { provide: ConfirmService, useValue: confirm },
+        { provide: AuthService, useValue: { refreshUserProfile: () => Promise.resolve() } },
       ],
     }).compileComponents();
     router = TestBed.inject(Router);

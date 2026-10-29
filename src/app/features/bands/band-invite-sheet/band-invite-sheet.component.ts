@@ -60,6 +60,19 @@ export class BandInviteSheetComponent {
     this.closed.emit();
     this.opener?.focus?.();
   }
+  /** Tab / Shift+Tab cycle inside the sheet while it is open. */
+  @HostListener('document:keydown.tab', ['$event'])
+  @HostListener('document:keydown.shift.tab', ['$event'])
+  onTab(event: Event) {
+    const items = [...this.host.nativeElement.querySelectorAll<HTMLElement>('[role=dialog] a[href], [role=dialog] button')];
+    if (!items.length) return;
+    event.preventDefault();
+    const i = items.indexOf(document.activeElement as HTMLElement);
+    const back = (event as KeyboardEvent).shiftKey;
+    const next = i === -1 ? (back ? items.length - 1 : 0) : (i + (back ? -1 : 1) + items.length) % items.length;
+    items[next].focus();
+  }
+
   readonly bandName = input.required<string>();
   readonly memberName = input<string>('');
   readonly instrument = input<string | null>(null);

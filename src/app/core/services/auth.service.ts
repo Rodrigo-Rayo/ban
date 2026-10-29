@@ -121,17 +121,31 @@ export class AuthService {
     return this._profileLoad;
   }
 
-  private async fetchUserProfile(userId: string): Promise<void> {
+  /** After the profile is saved or changes type: read it again so the navbar and panel show the new name, photo and type. */
+  async refreshUserProfile(userId: string): Promise<void> {
+    if (this._profileLoad) await this._profileLoad.catch(() => undefined);
+    this._loadedUserId = userId;
+    const load: Promise<void> = this.fetchUserProfile(userId, true)
+      .finally(() => { if (this._profileLoad === load) this._profileLoad = null; });
+    this._profileLoad = load;
+    return load;
+  }
+
+  private async fetchUserProfile(userId: string, refresh = false): Promise<void> {
     let cached = '';
     try { cached = localStorage.getItem('bandyou_profile_type') || ''; } catch {}
     if (cached) this.userProfileType.set(cached);
 
+    let failed = false;
     const query = ({ table, type }: (typeof PROFILE_SOURCES)[number]) =>
       this.supabase.client.from(table)
         .select('id, name, city, avatar_url')
         .eq('user_id', userId)
         .maybeSingle()
-        .then(({ data }: { data: UserProfileData | null }) => data ? { data, type } : null);
+        .then(({ data, error }: { data: UserProfileData | null; error: unknown }) => {
+          if (error) failed = true;
+          return data ? { data, type } : null;
+        });
 
     // Returning users: one request to the table we already know; all five only if that misses.
     const known = PROFILE_SOURCES.find(s => s.type === cached);
@@ -142,6 +156,11 @@ export class AuthService {
       this.userProfileData.set(found.data);
       try { localStorage.setItem('bandyou_profile_type', found.type); } catch {}
       try { localStorage.setItem('bandyou_city', found.data.city || ''); } catch {}
+    } else if (refresh && !failed) {
+      // No profile row any more (e.g. became a listener). A failed read keeps what we had.
+      this.userProfileType.set('');
+      this.userProfileData.set(null);
+      try { localStorage.removeItem('bandyou_profile_type'); } catch {}
     }
   }
 

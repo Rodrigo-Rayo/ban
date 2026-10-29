@@ -23,6 +23,13 @@
       }
     ]
   },
+  "redirects": [
+    {
+      "source": "/escaparate",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/sitemap.xml",

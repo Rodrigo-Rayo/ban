@@ -3,6 +3,7 @@ import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angu
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { SeoService } from '../../core/services/seo.service';
@@ -47,6 +48,7 @@ export class OnboardingComponent implements OnInit {
   readonly minAge = LEGAL_INFO.minAge;
   private fb = inject(FormBuilder);
   private supabase = inject(SupabaseService);
+  private auth = inject(AuthService);
   private router = inject(Router);
   private registrationState = inject(RegistrationStateService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -683,8 +685,12 @@ export class OnboardingComponent implements OnInit {
         }
         if (!this.isEditing()) await this.photos()?.save(userId);
         localStorage.removeItem('bandyou_role');
+        // Navbar and panel read the cached profile: refresh it (not awaited, navigation goes on).
+        void this.auth.refreshUserProfile(userId).catch(() => undefined);
         // Came from a band's invite (new profile, or a listener who became a musician): back to it to accept.
-        const invite = role === 'musician' ? this.invites.pending() : null;
+        // A musician who only edits their profile goes to the panel as usual.
+        const becameMusician = role === 'musician' && (!this.isEditing() || prev !== 'musician');
+        const invite = becameMusician ? this.invites.pending() : null;
         // A band that just got a line-up (new, or a profile changed to band): straight to its
         // profile, where each member has an "Invitar" button, with a nudge to use it.
         if (role === 'band' && this.bandId && this.invitesOn() && (!this.isEditing() || isRoleChange)

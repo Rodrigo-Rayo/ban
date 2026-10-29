@@ -13,7 +13,7 @@ const DISMISSED_KEY = 'notif-permission-dismissed';
   imports: [IconComponent],
   template: `
     @if (show()) {
-      <div class="fixed bottom-above-nav left-0 right-0 z-40 px-4 pb-2 lg:pb-4 animate-slide-in">
+      <div class="fixed bottom-above-nav above-action-bar left-0 right-0 z-40 px-4 pb-2 lg:pb-4 animate-slide-in">
         <div class="bg-dark-800 border-2 border-ink p-4 flex items-center gap-3 shadow-[4px_4px_0_0_#141210] max-w-sm md:ml-auto md:mr-4">
           <div class="w-10 h-10 bg-poster-yellow border-2 border-ink flex items-center justify-center flex-shrink-0">
             <app-icon name="bell" [size]="20"/>

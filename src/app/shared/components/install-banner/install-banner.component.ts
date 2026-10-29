@@ -24,7 +24,7 @@ export function isIosInstallCandidate(ua: string, maxTouchPoints: number, standa
   imports: [IconComponent],
   template: `
     @if (show()) {
-      <div class="fixed bottom-above-nav left-0 right-0 z-40 px-4 pb-2 md:hidden animate-slide-in">
+      <div class="fixed bottom-above-nav above-action-bar left-0 right-0 z-40 px-4 pb-2 md:hidden animate-slide-in">
         <div class="bg-dark-800 border-2 border-ink p-4 flex items-center gap-3 shadow-[4px_4px_0_0_#141210]">
           <div class="w-11 h-11 bg-poster-yellow border-2 border-ink flex items-center justify-center flex-shrink-0 ">
             <app-icon name="music" [size]="22"/>

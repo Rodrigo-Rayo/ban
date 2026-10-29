@@ -31,6 +31,16 @@ const PROBES: Record<MediaFeature, { table: string; column: string }> = {
   bandInvites:      { table: 'band_members',    column: 'user_id' },
 };
 
+/**
+ * Features whose SQL is confirmed run in production (checked 2026-10-29): no probe
+ * request is made for them. post_alerts and notification_prefs stay probed since
+ * signed-out visitors cannot read those tables.
+ */
+const APPLIED: ReadonlySet<MediaFeature> = new Set<MediaFeature>([
+  'eventImage', 'venuePhotos', 'rehearsalPhotos', 'bandAvailability', 'profileContact', 'postTitle',
+  'quedada', 'eventAddress', 'giveLessons', 'demoUrl', 'postGigDate', 'bandInvites',
+]);
+
 /** "The SQL has not been run yet": undefined column / undefined table (Postgres or PostgREST cache). */
 const NOT_THERE = ['42703', '42P01', 'PGRST204', 'PGRST205'];
 
@@ -61,12 +71,20 @@ export class MediaFeaturesService {
     bandInvites: signal(false),
   };
 
+  constructor() {
+    for (const f of APPLIED) this.states[f].set(true);
+  }
+
   /** Latest known availability (false until a probe confirms it). */
   state(feature: MediaFeature): Signal<boolean> {
     return this.states[feature].asReadonly();
   }
 
   has(feature: MediaFeature): Promise<boolean> {
+    if (APPLIED.has(feature)) {
+      this.states[feature].set(true);
+      return Promise.resolve(true);
+    }
     const cached = this.pending.get(feature);
     if (cached) return cached;
     const probe = this.probe(feature);

@@ -371,6 +371,10 @@ body.has-bottom-nav .bottom-above-nav { bottom: calc(4rem + env(safe-area-inset-
 @media (min-width: 1024px) {
   body.has-bottom-nav .bottom-above-nav, .bottom-above-nav { bottom: 0; }
 }
+/* Bottom notices sit above the pinned action bar of profile/detail pages (shown below sm). */
+@media (max-width: 639.98px) {
+  body.has-action-bar .above-action-bar { margin-bottom: 4.75rem; }
+}
 .pb-cta-safe { padding-bottom: calc(9rem + env(safe-area-inset-bottom, 0px)); }
 @media (min-width: 640px) {
   .pb-cta-safe { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }

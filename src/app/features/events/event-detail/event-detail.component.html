@@ -44,7 +44,7 @@
       <div class="relative profile-cover border-2 border-ink overflow-hidden px-4 sm:px-8 pt-14 pb-6 sm:pt-16 sm:pb-8 min-h-[320px] sm:min-h-[380px] flex flex-col justify-end gap-5">
         @if (posterUrl()) {
           <!-- The poster fills the header behind the title; a dark wash keeps the text readable -->
-          <img [src]="posterUrl()" alt="" aria-hidden="true" (error)="posterError.set(true)"
+          <img [src]="imageSrc(posterUrl(), 1200)" alt="" aria-hidden="true" (error)="posterError.set(true)" fetchpriority="high"
                class="absolute inset-0 w-full h-full object-cover"/>
           <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/25" aria-hidden="true"></div>
           <a [href]="posterUrl()" target="_blank" rel="noopener noreferrer"

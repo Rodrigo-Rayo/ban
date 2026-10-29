@@ -20,40 +20,47 @@ describe('MediaFeaturesService', () => {
     svc = TestBed.inject(MediaFeaturesService);
   });
 
+  it('answers features whose SQL is confirmed run without any request', async () => {
+    expect(svc.state('eventImage')()).toBeTrue();
+    expect(await svc.has('eventImage')).toBeTrue();
+    expect(await svc.has('bandInvites')).toBeTrue();
+    expect(from).not.toHaveBeenCalled();
+  });
+
   it('reports a feature as available when the probe succeeds, and caches it for the session', async () => {
     results.push({ data: [], error: null });
-    expect(await svc.has('eventImage')).toBeTrue();
-    expect(await svc.has('eventImage')).toBeTrue();
-    expect(from).toHaveBeenCalledOnceWith('events');
-    expect(select).toHaveBeenCalledOnceWith('image_url');
-    expect(svc.state('eventImage')()).toBeTrue();
+    expect(await svc.has('postAlerts')).toBeTrue();
+    expect(await svc.has('postAlerts')).toBeTrue();
+    expect(from).toHaveBeenCalledOnceWith('post_alerts');
+    expect(select).toHaveBeenCalledOnceWith('id');
+    expect(svc.state('postAlerts')()).toBeTrue();
   });
 
-  it('reports "not available" before the SQL is run (42703 undefined column) and caches it', async () => {
-    results.push({ data: null, error: { code: '42703', message: 'column venues.photos does not exist' } });
-    expect(await svc.has('venuePhotos')).toBeFalse();
-    expect(await svc.has('venuePhotos')).toBeFalse();
-    expect(from).toHaveBeenCalledOnceWith('venues');
-    expect(select).toHaveBeenCalledOnceWith('photos');
-    expect(svc.state('venuePhotos')()).toBeFalse();
+  it('reports "not available" before the SQL is run (42P01 undefined table) and caches it', async () => {
+    results.push({ data: null, error: { code: '42P01', message: 'relation notification_prefs does not exist' } });
+    expect(await svc.has('emailPrefs')).toBeFalse();
+    expect(await svc.has('emailPrefs')).toBeFalse();
+    expect(from).toHaveBeenCalledOnceWith('notification_prefs');
+    expect(select).toHaveBeenCalledOnceWith('user_id');
+    expect(svc.state('emailPrefs')()).toBeFalse();
   });
 
-  it('treats other errors as "not available for now" and retries next time', async () => {
-    results.push({ data: null, error: { code: 'PGRST000', message: 'network' } });
-    expect(await svc.has('rehearsalPhotos')).toBeFalse();
+  it('treats other errors (e.g. signed out: permission denied) as "not available for now" and retries next time', async () => {
+    results.push({ data: null, error: { code: '42501', message: 'permission denied' } });
+    expect(await svc.has('postAlerts')).toBeFalse();
     results.push({ data: [], error: null });
-    expect(await svc.has('rehearsalPhotos')).toBeTrue();
-    expect(from.calls.allArgs()).toEqual([['rehearsal_spaces'], ['rehearsal_spaces']]);
+    expect(await svc.has('postAlerts')).toBeTrue();
+    expect(from.calls.allArgs()).toEqual([['post_alerts'], ['post_alerts']]);
   });
 
   it('never throws when the client itself fails', async () => {
     from.and.throwError('offline');
-    expect(await svc.has('eventImage')).toBeFalse();
+    expect(await svc.has('emailPrefs')).toBeFalse();
   });
 
   it('probes each feature independently', async () => {
-    results.push({ data: [], error: null }, { data: null, error: { code: '42703' } });
-    expect(await svc.has('eventImage')).toBeTrue();
-    expect(await svc.has('venuePhotos')).toBeFalse();
+    results.push({ data: [], error: null }, { data: null, error: { code: '42P01' } });
+    expect(await svc.has('postAlerts')).toBeTrue();
+    expect(await svc.has('emailPrefs')).toBeFalse();
   });
 });

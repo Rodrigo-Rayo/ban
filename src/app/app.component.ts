@@ -69,7 +69,10 @@ export class AppComponent {
         // filters) must not steal focus, and the first load keeps the skip link first.
         const path = e.urlAfterRedirects.split(/[?#]/)[0];
         this.showFooter.set(path !== '/' && !path.startsWith('/inbox/'));
-        this.hasActionBar.set(/^\/(posts|events|shop|musicians|bands|venues|teachers|rehearsal)\/(?!new$|create$)[^/]+$/.test(path));
+        const actionBar = /^\/(posts|events|shop|musicians|bands|venues|teachers|rehearsal)\/(?!new$|create$)[^/]+$/.test(path);
+        this.hasActionBar.set(actionBar);
+        // Bottom notices (cookies, install…) move up so they never cover that bar.
+        document.body.classList.toggle('has-action-bar', actionBar);
         const isFirst = this.lastPath === null;
         const pathChanged = path !== this.lastPath;
         this.lastPath = path;
@@ -78,6 +81,13 @@ export class AppComponent {
         const main = document.getElementById('main-content');
         if (main) main.focus({ preventScroll: true });
       });
+
+    // The skip link lives in index.html; with <base href="/"> its "#main-content"
+    // would navigate to the home page, so move focus by hand instead.
+    document.querySelector('.skip-link')?.addEventListener('click', event => {
+      event.preventDefault();
+      document.getElementById('main-content')?.focus();
+    });
 
     // The bottom nav exists for every visitor below lg; fixed bars offset from it via CSS.
     document.body.classList.add('has-bottom-nav');
