@@ -299,8 +299,16 @@ function genreRows() {
         filter: `${SEEKING_RECENT(['musician_seeking_band', 'band_seeking_musician'])}&genre=not.is.null`, limit: 1000,
       }),
     ]);
-    return { musicians, bands, ads };
-  }, rows => rows.musicians.length === 0 && rows.bands.length === 0);
+    // The same ad reposted is one result: it must not lift a thin page over the threshold.
+    const seen = new Set();
+    const uniqueAds = ads.filter(p => {
+      const key = `${postTitle(p)}|${p.text || ''}`.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return { musicians, bands, ads: uniqueAds };
+  }, rows => rows.musicians.length === 0 || rows.bands.length === 0);
 }
 
 async function genreResults(genre, province) {
