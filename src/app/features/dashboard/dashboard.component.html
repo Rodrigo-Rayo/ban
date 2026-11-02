@@ -59,6 +59,7 @@
           </div>
           <span class="sr-only" role="status">{{ linkCopied() ? 'Enlace del perfil copiado al portapapeles' : '' }}</span>
         </section>
+        @if (publicProfilePath(); as path) { <app-web-badge [path]="path"/> }
         @if (spaceKind(); as kind) {
           @if (profile()!.id; as profileId) {
             <!-- Venues and rehearsal spaces: their photo gallery, editable right here -->

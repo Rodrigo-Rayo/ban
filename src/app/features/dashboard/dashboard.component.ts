@@ -15,6 +15,7 @@ import { AvatarUploadComponent } from '../../shared/components/avatar-upload/ava
 import { SpaceGalleryComponent, SpaceKind } from '../../shared/components/space-gallery/space-gallery.component';
 import { Event as AppEvent, EventGenre, PostType } from '../../core/models';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
+import { WebBadgeComponent } from '../../shared/components/web-badge/web-badge.component';
 import { EmailPrefsComponent } from './email-prefs/email-prefs.component';
 import { MediaUploadService, MEDIA_ACCEPT, mediaPickError } from '../../core/services/media-upload.service';
 
@@ -57,7 +58,7 @@ export function postNudgeHiddenNow(now = Date.now()): boolean {
 
 @Component({
     selector: 'app-dashboard',
-    imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent, SpaceGalleryComponent, EmailPrefsComponent],
+    imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent, SpaceGalleryComponent, EmailPrefsComponent, WebBadgeComponent],
     templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
