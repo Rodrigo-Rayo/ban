@@ -104,6 +104,7 @@ async function kindPage(kind, provSlug) {
 <h1>${h(def.h1(prov))}</h1>
 ${factLine(def.noun, prov ? counts.get(prov) || 0 : sum(counts), prov)}
 <p class="lead">${h(def.intro(prov))}</p>
+${kind === 'locales-de-ensayo' && prov === 'Madrid' ? '<p><a href="/guias/locales-de-ensayo-madrid">Mira cuánto cuesta un local en Madrid, por horas y por meses</a></p>' : ''}
 <div class="btns"><a class="btn" href="${def.cta.href}">${h(def.cta.label)}</a><a class="btn alt" href="/auth/register">Crear perfil gratis</a></div>
 ${listHtml}
 ${byInstrument}
@@ -207,6 +208,7 @@ ${s.bullets && s.bullets.length ? `<ul>${s.bullets.map(x => `<li>${h(x)}</li>`).
 <p class="answer">${h(g.answer)}</p>
 ${sections}
 ${faq.length ? faqHtml(faq) : ''}
+${g.sources ? `<h2>Fuentes</h2><ul>${g.sources.map(l => `<li><a rel="nofollow noopener" href="${h(l.href)}">${h(l.label)}</a></li>`).join('')}</ul>` : ''}
 ${links.length ? `<h2>Sigue aquí</h2><div class="btns">${links.map((l, i) => `<a class="btn${i ? ' alt' : ''}" href="${h(l.href)}">${h(l.label)}</a>`).join('')}</div>` : ''}
 <h2>Otras guías</h2>
 <ul class="provinces">${GUIDES.filter(x => x.slug !== g.slug).map(x => `<li><a class="has" href="/guias/${x.slug}">${h(x.h1)}</a></li>`).join('')}</ul>

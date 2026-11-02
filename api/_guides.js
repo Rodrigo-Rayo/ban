@@ -172,10 +172,11 @@ const GUIDES = [
 
   {
     slug: 'local-de-ensayo-precio-y-consejos',
+    updated: '2026-11-02',
     title: 'Local de ensayo: precio y consejos para alquilar',
     description: 'Cuánto cuesta un local de ensayo, qué modalidades hay (por horas, compartido o fijo) y qué mirar antes de alquilar: insonorización, equipo, horarios y seguridad.',
     h1: 'Local de ensayo: cuánto cuesta y cómo elegirlo',
-    answer: 'El precio de un local de ensayo depende sobre todo de la modalidad y de la ciudad: alquilar por horas suele rondar entre 8 y 20 euros la hora, y un local fijo compartido con otras bandas puede salir aproximadamente por 150 a 400 euros al mes a repartir entre el grupo. Antes de alquilar, revisa la insonorización, el equipo incluido, el acceso horario y la seguridad.',
+    answer: 'El precio de un local de ensayo depende sobre todo de la modalidad y de la ciudad: alquilar por horas suele rondar entre 10 y 20 euros la hora para una banda, más en salas premium, y un local mensual compartido suele partir de unos 200 o 300 euros al mes, aunque muchos no publican el precio. Antes de alquilar, revisa la insonorización, el equipo incluido, el acceso horario y la seguridad.',
     sections: [
       {
         h2: 'Modalidades de alquiler',
@@ -192,7 +193,7 @@ const GUIDES = [
       {
         h2: 'Cuánto cuesta un local de ensayo',
         paragraphs: [
-          'No hay un precio oficial y varía mucho según la ciudad, el barrio y lo que incluye. Como orientación, el alquiler por horas suele rondar entre 8 y 20 euros la hora, más en salas grandes con buen equipo o en el centro de ciudades como Madrid o Barcelona. Un local fijo compartido suele moverse aproximadamente entre 150 y 400 euros al mes por banda, y uno en exclusiva puede superar eso con facilidad.',
+          'No hay un precio oficial y varía mucho según la ciudad, el barrio y lo que incluye. Como orientación, según los precios que publican salas de Madrid y Valencia, el alquiler por horas suele rondar entre 10 y 20 euros la hora para una banda, más en salas grandes o premium, y algo menos para un solista. En local mensual hay pocos datos públicos: los precios que hemos visto parten de unos 200 o 300 euros al mes en compartido, y más si es en exclusiva. Pide siempre presupuesto y pregunta si incluye el IVA y el equipo.',
           'Haz cuentas por persona y por mes. Si sois cuatro y ensayáis dos veces por semana tres horas, compara lo que os sale por horas con lo que costaría un fijo compartido: a partir de cierta frecuencia, el fijo casi siempre sale más a cuenta.',
         ],
       },
@@ -226,7 +227,7 @@ const GUIDES = [
       },
     ],
     faq: [
-      { q: '¿Cuánto cuesta alquilar un local de ensayo por horas?', a: 'Suele rondar entre 8 y 20 euros la hora, aunque varía según la ciudad y el equipo incluido. Las salas grandes con backline completo suelen estar en la parte alta.' },
+      { q: '¿Cuánto cuesta alquilar un local de ensayo por horas?', a: 'Para una banda, suele rondar entre 10 y 20 euros la hora, aunque varía según la ciudad y el equipo incluido. Las salas grandes con backline completo suelen estar en la parte alta.' },
       { q: '¿Qué es mejor, local por horas o fijo?', a: 'Por horas compensa si ensayáis poco o de forma irregular. Si ensayáis varias veces por semana o queréis dejar el equipo montado, un local fijo o compartido suele salir más barato por hora.' },
       { q: '¿Puedo ensayar con batería en casa en lugar de alquilar local?', a: 'Con batería acústica es difícil sin molestar a los vecinos, salvo que tengas una sala insonorizada. Una batería electrónica permite practicar en casa, pero para ensayar con toda la banda lo normal es usar un local.' },
       { q: '¿Qué debe incluir un local de ensayo?', a: 'Como mínimo, buena insonorización, tomas de corriente suficientes y un acceso cómodo. En los locales por horas lo habitual es que incluyan batería, amplis y equipo de voces.' },
@@ -234,6 +235,7 @@ const GUIDES = [
     ],
     links: [
       { href: '/locales-de-ensayo', label: 'Directorio de locales de ensayo' },
+      { href: '/guias/locales-de-ensayo-madrid', label: 'Precios en Madrid' },
       { href: '/bandas', label: 'Bandas por provincia' },
       { href: '/guias/como-montar-una-banda', label: 'Guía: cómo montar una banda' },
     ],
@@ -381,6 +383,124 @@ const GUIDES = [
       { href: '/locales-de-ensayo', label: 'Locales de ensayo por provincia' },
       { href: '/clases-de-musica', label: 'Profesores y clases de música' },
       { href: '/guias/como-conseguir-bolos', label: 'Guía: cómo conseguir bolos' },
+    ],
+  },
+  {
+    slug: 'buscar-compositor-de-canciones',
+    title: 'Buscar compositor de canciones: dónde y cómo acordarlo',
+    description: 'Cómo encontrar un compositor o letrista para tus canciones, qué pedirle antes de empezar y cómo dejar por escrito el reparto de derechos.',
+    h1: 'Cómo encontrar un compositor para tus canciones',
+    answer: 'Para encontrar un compositor de canciones, decide primero qué necesitas (música, letra, arreglos o producción), escucha trabajos anteriores y publica un anuncio concreto con el estilo y el uso que le vas a dar al tema. Antes de empezar, dejad por escrito qué parte de la canción corresponde a cada uno.',
+    sections: [
+      {
+        h2: 'Qué necesitas exactamente',
+        paragraphs: [
+          'Mucha gente busca «un compositor» cuando en realidad le falta otra cosa. Aclararlo evita malentendidos y ayuda a dar con la persona adecuada.',
+        ],
+        bullets: [
+          'Compositor: crea la música, es decir, la melodía y la armonía.',
+          'Letrista: escribe la letra. Puede ser otra persona o la misma que compone.',
+          'Arreglista: decide qué toca cada instrumento a partir de una canción ya escrita.',
+          'Productor: da forma a la grabación y al sonido final.',
+        ],
+      },
+      {
+        h2: 'Dónde buscar',
+        bullets: [
+          'En anuncios para músicos: publica uno en «Se busca» con el estilo, una referencia y lo que ya tienes hecho.',
+          'Entre los músicos de tu zona: muchos guitarristas, pianistas y cantantes escriben sus propios temas.',
+          'En escuelas y conservatorios: suele haber alumnos y profesores con formación en composición y arreglos.',
+          'En los créditos de canciones que te gusten: te dicen quién escribió lo que suena como lo que buscas.',
+        ],
+      },
+      {
+        h2: 'Qué pedir antes de empezar',
+        bullets: [
+          'Dos o tres trabajos anteriores en un estilo parecido al tuyo.',
+          'Una prueba corta, como un estribillo o una maqueta sencilla, antes de cerrar la canción entera.',
+          'Plazo de entrega y cuántos cambios entran en lo acordado.',
+          'Si cobra por encargo, si prefiere un porcentaje de la canción, o ambas cosas.',
+        ],
+      },
+      {
+        h2: 'Dejad los derechos por escrito',
+        paragraphs: [
+          'Quien escribe una canción tiene derechos de autor sobre ella desde que la crea, aunque no la haya registrado. Por eso conviene acordar el reparto antes de publicarla, cuando todavía nadie discute.',
+          'Basta con un documento firmado por todos que diga el título, quién ha hecho qué y qué porcentaje corresponde a cada uno. Si después queréis registrar la obra o cobrar a través de una entidad de gestión como SGAE, ese reparto es el que tendréis que declarar. Si hay dinero importante de por medio, consulta con alguien especializado en propiedad intelectual.',
+        ],
+      },
+    ],
+    faq: [
+      { q: '¿Cómo encuentro a alguien que me escriba una canción?', a: 'Publica un anuncio con el estilo, una canción de referencia y el uso que le vas a dar, y pide escuchar trabajos anteriores antes de decidir.' },
+      { q: '¿Quién es el dueño de una canción hecha por encargo?', a: 'Depende de lo que hayáis acordado. Quien la crea conserva por ley ciertos derechos, así que conviene dejar por escrito qué se cede y qué porcentaje corresponde a cada uno.' },
+      { q: '¿Es lo mismo compositor que letrista?', a: 'No. El compositor crea la música y el letrista escribe la letra, aunque muchas veces es la misma persona.' },
+    ],
+    links: [
+      { href: '/feed?new=1', label: 'Publicar un anuncio en Se busca' },
+      { href: '/musicos', label: 'Músicos por provincia' },
+      { href: '/guias/como-montar-una-banda', label: 'Guía: cómo montar una banda' },
+    ],
+  },
+  {
+    slug: 'locales-de-ensayo-madrid',
+    updated: '2026-11-02',
+    title: 'Locales de ensayo en Madrid: precios por horas y por meses',
+    description: 'Cuánto cuesta un local de ensayo en Madrid por horas o por meses, con precios publicados por salas reales, y qué mirar si buscas uno barato o con acceso 24 horas.',
+    h1: 'Locales de ensayo en Madrid: precios por horas y por meses',
+    answer: 'En noviembre de 2026, las salas de ensayo de Madrid que hemos consultado publican precios de unos 10 a 21 euros la hora para una banda, más en salas premium. Por meses, las tarifas que hemos encontrado empiezan en unos 210 euros en local compartido y 260 a 275 euros en local completo, aunque hay pocos datos publicados.',
+    sections: [
+      {
+        h2: 'Precios por horas',
+        paragraphs: [
+          'El precio cambia sobre todo según el tamaño de la sala y la franja: las mañanas entre semana suelen ser más baratas que las tardes y los fines de semana. Estos son ejemplos publicados por las propias salas, consultados el 2 de noviembre de 2026:',
+        ],
+        bullets: [
+          'El Observatorio: de 10 a 18 euros la hora por la mañana y de 13 a 21 euros por la tarde, según la sala. Solista, desde 7 euros.',
+          'Melotron: 15 euros la hora entre semana de 11 a 16 h y 18 euros por la tarde y en fin de semana, en las salas consultadas. Bono de 10 horas, 130 euros.',
+          'Kelly Music Box: desde 16 euros la hora en salas VIP y desde 35 euros en premium.',
+        ],
+      },
+      {
+        h2: 'Precios por meses',
+        paragraphs: [
+          'Muchos locales mensuales no publican el precio y hay que preguntar. Estas son las dos referencias que hemos podido comprobar, ambas con precio «desde»:',
+        ],
+        bullets: [
+          'Locales Rufino: desde 210 euros al mes en alquiler compartido y desde 275 euros completo, con uso 24 horas. Su web parece llevar tiempo sin actualizarse, así que confirma el precio.',
+          'Kelly Music Box: locales diáfanos sin equipar desde 260 euros al mes.',
+        ],
+      },
+      {
+        h2: 'Cómo ahorrar',
+        bullets: [
+          'Ensaya por la mañana o entre semana si puedes: en las salas consultadas, es la franja más barata.',
+          'Compra un bono si vais a ensayar a menudo: el de 10 horas de Melotron sale a 13 euros la hora.',
+          'Compartid un local mensual con otra banda y dejad por escrito horarios, equipo y gastos.',
+          'Comparad el precio con lo que incluye: una sala sin equipo puede salir más cara si tenéis que llevarlo todo.',
+        ],
+      },
+      {
+        h2: 'Si buscas acceso 24 horas',
+        paragraphs: [
+          'El acceso a cualquier hora es más propio de los locales mensuales que de las salas por horas, que suelen tener horario fijo. Pregunta también por las normas de ruido, la seguridad del edificio y si puedes dejar el equipo montado.',
+        ],
+      },
+    ],
+    faq: [
+      { q: '¿Cuánto cuesta un local de ensayo en Madrid por horas?', a: 'En las salas consultadas en noviembre de 2026, una banda paga unos 10 a 21 euros la hora según la sala y la franja. Las salas premium cuestan más.' },
+      { q: '¿Cuánto cuesta un local de ensayo en Madrid por meses?', a: 'Las tarifas publicadas que hemos encontrado empiezan en unos 210 euros en compartido y 260 a 275 euros en completo. Son precios mínimos y hay pocos datos, así que pide presupuesto.' },
+      { q: '¿Hay locales de ensayo en Madrid abiertos las 24 horas?', a: 'Sí, por ejemplo Locales Rufino anuncia uso 24 horas en sus locales mensuales. Confirma las condiciones con cada local antes de alquilar.' },
+    ],
+    links: [
+      { href: '/locales-de-ensayo/madrid', label: 'Locales de ensayo en Madrid en BandYou' },
+      { href: '/guias/local-de-ensayo-precio-y-consejos', label: 'Guía: cómo elegir local' },
+      { href: '/busco-musicos/madrid', label: 'Bandas que buscan músicos en Madrid' },
+    ],
+    sources: [
+      { href: 'https://www.elobservatorio.net/', label: 'El Observatorio' },
+      { href: 'https://locales.melotron.es/sala-1', label: 'Melotron' },
+      { href: 'https://kellymusicbox.com/', label: 'Kelly Music Box' },
+      { href: 'https://localesrufino.es/index.html', label: 'Locales Rufino' },
     ],
   },
 ];

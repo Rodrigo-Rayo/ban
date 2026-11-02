@@ -87,10 +87,10 @@ const KINDS = {
   },
   bandas: {
     label: 'Bandas',
-    h1: p => `Bandas ${en(p)}`,
+    h1: p => `Bandas y grupos de música ${en(p)}`,
     title: p => `Bandas y grupos de música ${en(p)}`,
-    description: p => `Bandas ${de(p)} en BandYou: estilos, formación y si buscan músico o bolos. Escríbeles gratis.`,
-    intro: p => `Grupos ${de(p)} con perfil en BandYou. Algunos buscan músico, otros están disponibles para bolos: entra en su perfil para ver qué necesitan y escribirles.`,
+    description: p => `Bandas y grupos musicales ${de(p)} en BandYou: estilos, formación y si buscan músico o bolos. Escríbeles gratis.`,
+    intro: p => `Grupos musicales ${de(p)} con perfil en BandYou. Algunos buscan músico, otros están disponibles para bolos: entra en su perfil para ver qué necesitan y escribirles.`,
     count: { table: 'bands', filter: REAL },
     noun: 'bandas',
     items: city => list('bands', 'id,name,city,genre,avatar_url', { city, filter: REAL, limit: 40 })
@@ -104,7 +104,7 @@ const KINDS = {
   'locales-de-ensayo': {
     label: 'Locales de ensayo',
     h1: p => `Locales de ensayo ${en(p)}`,
-    title: p => `Locales de ensayo ${en(p)}: precios y contacto`,
+    title: p => `Locales de ensayo ${en(p)} por horas: precios y contacto`,
     description: p => `Locales de ensayo por horas ${en(p)}: precio, capacidad y contacto directo. Encuentra sala para ensayar con tu banda en BandYou.`,
     intro: p => `Salas de ensayo ${de(p)} publicadas en BandYou, con precio por hora y capacidad. Escribe al local para reservar. Si alquilas un local, publícalo gratis.`,
     count: { table: 'rehearsal_spaces', filter: REAL },
@@ -114,7 +114,10 @@ const KINDS = {
         sub: [r.city, r.capacity ? `${r.capacity} personas` : ''].filter(Boolean).join(' · '),
         tags: r.hourly_rate ? [`${r.hourly_rate} €/h`] : [] }))),
     faq: p => [
-      [`¿Cuánto cuesta un local de ensayo ${en(p)}?`, 'Depende de la ciudad, el tamaño y si incluye backline. Cada local de BandYou indica su precio por hora en la ficha.'],
+      [`¿Cuánto cuesta un local de ensayo ${en(p)}?`, p === 'Madrid'
+        ? 'En las salas que consultamos en noviembre de 2026, una banda paga unos 10 a 21 euros la hora según la sala y la franja. Cada local de BandYou indica su precio por hora en la ficha.'
+        : 'Depende de la ciudad, el tamaño y si incluye backline. Cada local de BandYou indica su precio por hora en la ficha.'],
+      ['¿Es mejor alquilar por horas o por meses?', 'Por horas compensa si ensayáis poco o de forma irregular. Si ensayáis varias veces por semana o queréis dejar el equipo montado, suele salir mejor un local mensual, fijo o compartido con otra banda.'],
       ['¿Cómo reservo?', 'Escribe al local desde su ficha en BandYou para ver disponibilidad.'],
     ],
     cta: { href: '/rehearsal/new', label: 'Publicar mi local' },
