@@ -35,10 +35,11 @@ describe('instrumentIconKey', () => {
 });
 
 describe('INSTRUMENT_ICONS', () => {
-  it('has an icon for every instrument, each one distinct', () => {
+  it('has an icon for every instrument, distinct except Contrabajo, which shares the violin', () => {
     const markups = INSTRUMENTS.map(name => INSTRUMENT_ICONS[name]);
     markups.forEach(markup => expect(markup).toBeTruthy());
-    expect(new Set(markups).size).toBe(INSTRUMENTS.length);
+    expect(new Set(markups).size).toBe(INSTRUMENTS.length - 1);
+    expect(INSTRUMENT_ICONS['Contrabajo']).toBe(INSTRUMENT_ICONS['Violín']);
   });
 
   it('only uses currentColor, no ids or masks', () => {
