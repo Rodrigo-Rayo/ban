@@ -55,8 +55,8 @@
             </div>
             <div class="relative mt-4 sm:mt-10 min-w-0">
               @if (post()!.instrument) {
-                <span class="instrument-stamp mb-2 w-16 h-16 !text-poster-paper">
-                  <app-instrument-icon [instrument]="post()!.instrument" [size]="64"/>
+                <span class="instrument-stamp mb-3" [class.instrument-stamp-night]="stampFor(post()!.type) === 'tag-night'">
+                  <app-instrument-icon [instrument]="post()!.instrument"/>
                 </span>
               }
               <h1 class="font-display text-[clamp(2.25rem,11vw,4rem)] sm:text-7xl leading-[1] text-poster-paper [overflow-wrap:anywhere]">{{ askLabel() }}</h1>
@@ -149,7 +149,7 @@
           @for (r of related(); track r.id) {
             <li class="border-b border-ink/15 hover:bg-dark-800 transition-colors duration-150">
               <a [routerLink]="['/posts', r.id]" class="flex items-start gap-3 px-1 sm:px-3 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500">
-                <span class="instrument-stamp">
+                <span class="instrument-stamp" [class.instrument-stamp-night]="stampFor(r.type) === 'tag-night'">
                   <app-instrument-icon [instrument]="r.instrument"/>
                 </span>
                 <div class="flex-1 min-w-0">

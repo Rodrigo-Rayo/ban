@@ -76,7 +76,7 @@
           <!-- Shaped like the rows below, so nothing jumps when they arrive -->
           @for (i of [1,2,3]; track i) {
             <div class="flex items-center gap-3 py-3 border-b border-ink/15 min-h-[64px] animate-pulse" aria-hidden="true">
-              <span class="w-12 h-12 shrink-0 bg-dark-700/70"></span>
+              <span class="w-[52px] h-[52px] shrink-0 bg-dark-700/70"></span>
               <span class="flex-1 min-w-0">
                 <span class="block h-5 bg-dark-700/70 w-3/5"></span>
                 <span class="flex items-center gap-2 mt-2"><span class="h-5 w-24 bg-dark-700/70"></span><span class="h-3 w-32 bg-dark-700/70"></span></span>
@@ -86,7 +86,7 @@
         } @else {
           @for (item of seBuscaItems(); track item.id; let i = $index) {
             <a [routerLink]="item.link" [style.--i]="i" class="animate-slide-in flex items-center gap-3 py-3 border-b border-ink/15 min-h-[64px] group">
-              <span class="instrument-stamp">
+              <span class="instrument-stamp" [class.instrument-stamp-night]="item.stampClass === 'tag-night'">
                 <app-instrument-icon [instrument]="item.instrument"/>
               </span>
               <span class="flex-1 min-w-0">
