@@ -1,5 +1,5 @@
 import { INSTRUMENTS } from '../../../core/constants/music.constants';
-import { INSTRUMENT_ICONS, instrumentIconKey } from './instrument-icon';
+import { INSTRUMENT_ICONS, instrumentIconKey, instrumentIconSrc } from './instrument-icon';
 
 describe('instrumentIconKey', () => {
   it('resolves exact names', () => {
@@ -35,16 +35,15 @@ describe('instrumentIconKey', () => {
 });
 
 describe('INSTRUMENT_ICONS', () => {
-  it('has an icon for every instrument, distinct except Contrabajo, which shares the violin', () => {
-    const markups = INSTRUMENTS.map(name => INSTRUMENT_ICONS[name]);
-    markups.forEach(markup => expect(markup).toBeTruthy());
-    expect(new Set(markups).size).toBe(INSTRUMENTS.length - 1);
-    expect(INSTRUMENT_ICONS['Contrabajo']).toBe(INSTRUMENT_ICONS['Violín']);
+  it('has its own image for every instrument', () => {
+    const files = INSTRUMENTS.map(name => INSTRUMENT_ICONS[name]);
+    files.forEach(file => expect(file).toMatch(/^[a-z]+$/));
+    expect(new Set(files).size).toBe(INSTRUMENTS.length);
   });
 
-  it('only uses currentColor, no ids or masks', () => {
-    for (const markup of Object.values(INSTRUMENT_ICONS)) {
-      expect(markup).not.toMatch(/#[0-9a-f]{3,6}|\bid=|<mask|<clipPath|url\(/i);
-    }
+  it('builds the path of the image, with the note for anything unknown', () => {
+    expect(instrumentIconSrc('Batería, Voz')).toBe('/instruments/bateria.webp');
+    expect(instrumentIconSrc('Contrabajo')).toBe('/instruments/contrabajo.webp');
+    expect(instrumentIconSrc(null)).toBe('/instruments/otro.webp');
   });
 });

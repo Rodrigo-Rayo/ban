@@ -141,9 +141,9 @@
            bg-primary-500 border-[1.5px] border-ink
            inline-flex items-center;
   }
-  /* Discreet icon of the instrument beside a Se busca ad. */
+  /* Engraving of the instrument beside a Se busca ad, printed on the poster yellow. */
   .instrument-stamp {
-    @apply w-10 h-10 shrink-0 inline-flex items-center justify-center bg-poster-yellow/40 text-ink;
+    @apply w-[52px] h-[52px] shrink-0 inline-flex items-center justify-center bg-poster-yellow border-[1.5px] border-ink;
   }
   .tag-night {
     @apply font-mono text-[11px] font-bold text-poster-paper uppercase tracking-wide
