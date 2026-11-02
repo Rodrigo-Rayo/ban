@@ -220,7 +220,7 @@ module.exports = async function handler(req, res) {
   let data = null;
   try {
     if (kind === 'guias') data = sub ? guidePage(sub) : guideIndex();
-    else if (kind === 'busco') data = await instrumentPage(sub, String(req.query.instr_prov || '').toLowerCase() || null);
+    else if (kind === 'busco') data = await instrumentPage(String(req.query.slug || '').toLowerCase(), sub === String(req.query.slug || '').toLowerCase() ? null : sub);
     else if (KINDS[kind] && /^[a-z0-9-]{0,40}$/.test(sub)) data = await kindPage(kind, sub || null);
   } catch (err) {
     console.error('[hub]', err && err.message);

@@ -53,7 +53,7 @@
     },
     {
       "source": "/busco/:instr/:prov",
-      "destination": "/api/hub?kind=busco&slug=:instr&instr_prov=:prov"
+      "destination": "/api/hub?kind=busco&slug=:instr&prov=:prov"
     },
     {
       "source": "/guias",
