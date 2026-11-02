@@ -2,12 +2,13 @@
 //   /<kind>             e.g. /busco-banda          → all of Spain + province index
 //   /<kind>/<province>  e.g. /busco-banda/madrid   → that province
 //   /busco/<instrumento>[/<province>]               → who plays it, e.g. /busco/bateria/madrid
+//   /estilo/<estilo>[/<province>]                   → bands and musicians of a style, e.g. /estilo/rock/madrid
 //   /guias, /guias/<slug>                           → guides (api/_guides.js)
 // Search engines and AI assistants (GPTBot, ClaudeBot, PerplexityBot…) do not run the
 // Angular app, so these pages carry real HTML: H1, answer-first text, real profiles and
 // posts as links, FAQ and JSON-LD. vercel.json rewrites the paths here.
 const { SITE, PROVINCES, PROVINCE_BY_SLUG, slugify, escapeHtml: h, clip, safeImage, shortDate, today } = require('./_seo-data');
-const { KINDS, kindCounts, INSTRUMENTS, INSTRUMENT_BY_SLUG, MIN_INSTRUMENT_RESULTS, instrumentResults, instrumentCounts } = require('./_seo-kinds');
+const { KINDS, kindCounts, INSTRUMENTS, INSTRUMENT_BY_SLUG, MIN_INSTRUMENT_RESULTS, instrumentResults, instrumentCounts, GENRES, GENRE_BY_SLUG, genreResults, genreCounts } = require('./_seo-kinds');
 const { page } = require('./_seo-layout');
 
 let GUIDES = [];
@@ -75,14 +76,26 @@ async function instrumentLinks(prov, currentSlug) {
   return links.length ? `<h2>Por instrumento${prov ? ` en ${h(prov)}` : ''}</h2><ul class="provinces">${links.join('')}</ul>` : '';
 }
 
+/** "Rock", "Pop"…: only pages with enough to show. */
+async function genreLinks(prov, currentSlug) {
+  const counts = await genreCounts();
+  const links = GENRES.filter(g => g.slug !== currentSlug).map(g => {
+    const byProv = counts.get(g.slug);
+    return { g, n: prov ? byProv.get(prov) || 0 : sum(byProv) };
+  }).filter(x => x.n >= MIN_INSTRUMENT_RESULTS)
+    .map(({ g, n }) => `<li><a class="has" href="/estilo/${g.slug}${prov ? '/' + slugify(prov) : ''}">${h(g.label.charAt(0).toUpperCase() + g.label.slice(1))}</a> <span class="n">(${n})</span></li>`);
+  return links.length ? `<h2>Por estilo${prov ? ` en ${h(prov)}` : ''}</h2><ul class="provinces">${links.join('')}</ul>` : '';
+}
+
 async function kindPage(kind, provSlug) {
   const def = KINDS[kind];
   const prov = provSlug ? PROVINCE_BY_SLUG.get(provSlug) : null;
   if (provSlug && !prov) return null;
   const path = prov ? `/${kind}/${provSlug}` : `/${kind}`;
-  const [found, counts, others, byInstrument] = await Promise.all([
+  const [found, counts, others, byInstrument, byGenre] = await Promise.all([
     def.items(prov), kindCounts(kind), otherKinds(kind, prov),
     kind === 'busco-musicos' || kind === 'musicos' ? instrumentLinks(prov) : '',
+    ['busco-banda', 'busco-musicos', 'bandas', 'musicos'].includes(kind) ? genreLinks(prov) : '',
   ]);
   // The same ad posted twice is listed once; two people with the same name are not the same.
   const seen = new Set();
@@ -108,6 +121,7 @@ ${kind === 'locales-de-ensayo' && prov === 'Madrid' ? '<p><a href="/guias/locale
 <div class="btns"><a class="btn" href="${def.cta.href}">${h(def.cta.label)}</a><a class="btn alt" href="/auth/register">Crear perfil gratis</a></div>
 ${listHtml}
 ${byInstrument}
+${byGenre}
 ${faqHtml(faq)}
 ${others}
 <h2>${prov ? `${h(def.label)} en otras provincias` : `${h(def.label)} por provincia`}</h2>
@@ -169,6 +183,46 @@ ${provinces.length ? `<h2>Busco ${h(inst.one)} en otras provincias</h2><ul class
   };
 }
 
+async function genrePage(slug, provSlug) {
+  const genre = GENRE_BY_SLUG.get(slug);
+  const prov = provSlug ? PROVINCE_BY_SLUG.get(provSlug) : null;
+  if (!genre || (provSlug && !prov)) return null;
+  const path = `/estilo/${slug}${prov ? `/${provSlug}` : ''}`;
+  const where = prov ? `en ${prov}` : 'en España';
+  const { label } = genre;
+  const [{ people, bands }, counts, otherGenres] = await Promise.all([genreResults(genre, prov), genreCounts(), genreLinks(prov, slug)]);
+  const total = people.length + bands.length;
+  const crumbs = [['BandYou', '/'], ['Busco banda', '/busco-banda'], [`De ${label}`, `/estilo/${slug}`], ...(prov ? [[prov, path]] : [])];
+  const faq = [
+    [`¿Cómo encuentro una banda de ${label} ${where}?`, `En BandYou puedes ver las bandas de ${label} ${where} con perfil o anuncio y escribirles gratis por mensaje. Si no ves lo que buscas, publica un anuncio en «Se busca» con tu instrumento, los estilos que tocas y los días que puedes ensayar.`],
+    [`¿Cómo encuentro músicos de ${label} para mi banda?`, `Mira los perfiles de esta página, con su instrumento y provincia, y escríbeles directamente. También puedes publicar un anuncio diciendo qué instrumento os falta.`],
+    ['¿Cuesta algo?', 'No. Crear el perfil, publicar anuncios y enviar mensajes en BandYou es gratis.'],
+  ];
+  const provinces = [...counts.get(slug)].filter(([p, n]) => n >= MIN_INSTRUMENT_RESULTS && p !== prov && PROVINCE_BY_SLUG.has(slugify(p)));
+  const body = `${crumbsHtml(crumbs)}
+<p class="kicker">BandYou · ${prov ? h(prov) : 'Toda España'}</p>
+<h1>Bandas y músicos de ${h(label)} ${h(where)}</h1>
+${factLine(`bandas y músicos de ${label}`, total, prov)}
+<p class="lead">¿Buscas banda de ${h(label)} ${h(where)}, o músicos para la tuya? Estas son las bandas, los músicos y los anuncios de BandYou. Escríbeles directamente o publica tu anuncio para que te escriban a ti.</p>
+<div class="btns"><a class="btn" href="/feed?new=1">Publicar un anuncio</a><a class="btn alt" href="/auth/register">Crear perfil gratis</a></div>
+${bands.length ? `<h2>Bandas de ${h(label)} ${h(where)}</h2><ul class="grid">${bands.map(card).join('')}</ul>` : ''}
+${people.length ? `<h2>Músicos de ${h(label)} ${h(where)}</h2><ul class="grid">${people.map(card).join('')}</ul>` : ''}
+${total ? '' : `<div class="empty"><p><strong>Todavía no hay bandas ni músicos de ${h(label)} ${h(where)}.</strong> Publica un anuncio y te encontrarán quienes busquen en tu zona.</p></div>`}
+${faqHtml(faq)}
+${otherGenres}
+${provinces.length ? `<h2>${h(label.charAt(0).toUpperCase() + label.slice(1))} en otras provincias</h2><ul class="provinces">${provinces.map(([p, n]) => `<li><a class="has" href="/estilo/${slug}/${slugify(p)}">${h(p)}</a> <span class="n">(${n})</span></li>`).join('')}</ul>` : ''}
+<h2>Sigue por aquí</h2>
+<ul class="provinces"><li><a class="has" href="/busco-banda${prov ? `/${provSlug}` : ''}">Busco banda ${h(where)}</a></li><li><a class="has" href="/busco-musicos${prov ? `/${provSlug}` : ''}">Busco músicos ${h(where)}</a></li><li><a class="has" href="/guias/como-encontrar-banda">Guía para encontrar banda</a></li></ul>`;
+  return {
+    path, body,
+    title: `Busco banda de ${label} ${where}: grupos y músicos | BandYou`,
+    description: `Bandas y músicos de ${label} ${where} en BandYou: mira sus perfiles y anuncios y escríbeles gratis para formar banda o completar la tuya.`,
+    jsonLd: [breadcrumb(crumbs), faqLd(faq), ...(total ? [{ '@type': 'ItemList', name: `Bandas y músicos de ${label} ${where}`,
+      itemListElement: [...bands, ...people].slice(0, 30).map((it, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + it.href, name: clip(it.title, 70) })) }] : [])],
+    noindex: total < MIN_INSTRUMENT_RESULTS,
+  };
+}
+
 function guideIndex() {
   const crumbs = [['BandYou', '/'], ['Guías', '/guias']];
   return {
@@ -223,6 +277,7 @@ module.exports = async function handler(req, res) {
   try {
     if (kind === 'guias') data = sub ? guidePage(sub) : guideIndex();
     else if (kind === 'busco') data = await instrumentPage(String(req.query.slug || '').toLowerCase(), sub === String(req.query.slug || '').toLowerCase() ? null : sub);
+    else if (kind === 'estilo') data = await genrePage(String(req.query.slug || '').toLowerCase(), sub === String(req.query.slug || '').toLowerCase() ? null : sub);
     else if (KINDS[kind] && /^[a-z0-9-]{0,40}$/.test(sub)) data = await kindPage(kind, sub || null);
   } catch (err) {
     console.error('[hub]', err && err.message);

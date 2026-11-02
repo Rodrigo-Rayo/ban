@@ -6,7 +6,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://yxaurffzwtqsckfmnzdj.s
 // The anon key is public by design (it ships in the frontend bundle); env var overrides it.
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YXVyZmZ6d3Rxc2NrZm1uemRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MTE2ODIsImV4cCI6MjA5MjI4NzY4Mn0.GUbfyBpaP8W_LFIT9IfMjuszgw-J87ANhOAJY8Tpj1E';
 
-const { KINDS, kindCounts, INSTRUMENTS, MIN_INSTRUMENT_RESULTS, instrumentCounts } = require('./_seo-kinds');
+const { KINDS, kindCounts, INSTRUMENTS, MIN_INSTRUMENT_RESULTS, instrumentCounts, GENRES, genreCounts } = require('./_seo-kinds');
 const { PROVINCES, slugify } = require('./_seo-data');
 let GUIDES = [];
 try { ({ GUIDES } = require('./_guides')); } catch { /* guides are optional */ }
@@ -28,6 +28,12 @@ async function hubPaths() {
     const here = byInstrument.get(i.slug);
     if ([...here.values()].reduce((a, n) => a + n, 0) >= MIN_INSTRUMENT_RESULTS) paths.push(`/busco/${i.slug}`);
     for (const p of PROVINCES) if ((here.get(p) || 0) >= MIN_INSTRUMENT_RESULTS) paths.push(`/busco/${i.slug}/${slugify(p)}`);
+  }
+  const byGenre = await genreCounts();
+  for (const g of GENRES) {
+    const here = byGenre.get(g.slug);
+    if ([...here.values()].reduce((a, n) => a + n, 0) >= MIN_INSTRUMENT_RESULTS) paths.push(`/estilo/${g.slug}`);
+    for (const p of PROVINCES) if ((here.get(p) || 0) >= MIN_INSTRUMENT_RESULTS) paths.push(`/estilo/${g.slug}/${slugify(p)}`);
   }
   return paths;
 }

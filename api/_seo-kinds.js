@@ -276,6 +276,66 @@ async function instrumentCounts() {
   return out;
 }
 
+/** "Busco banda de rock en Madrid": musicians, bands and ads of a style. `names` are the app's genre values. */
+const GENRES = [
+  ['rock', 'rock', ['rock']], ['pop', 'pop', ['pop']], ['indie', 'indie', ['indie']], ['metal', 'metal', ['metal']],
+  ['punk', 'punk', ['punk']], ['blues', 'blues', ['blues']], ['jazz', 'jazz', ['jazz']], ['funk-soul', 'funk y soul', ['funk', 'soul']],
+  ['versiones', 'versiones', ['versiones']], ['electronica', 'música electrónica', ['electrónica']],
+  ['hip-hop', 'hip-hop y rap', ['hip-hop', 'rap']], ['reggae', 'reggae', ['reggae']], ['latino', 'música latina', ['latino']],
+  ['flamenco', 'flamenco', ['flamenco']], ['folk', 'folk', ['folk']], ['experimental', 'música experimental', ['experimental']],
+].map(([slug, label, names]) => ({ slug, label, names }));
+const GENRE_BY_SLUG = new Map(GENRES.map(g => [g.slug, g]));
+
+/** Genre columns hold lists like "Rock, Funk / Soul". */
+const hasGenre = (value, genre) => String(value || '').split(/[,/]/).some(part => genre.names.includes(part.trim().toLowerCase()));
+
+/** One read of who plays which style, shared by every style page and the sitemap. */
+function genreRows() {
+  return cached('genres', async () => {
+    const [{ musicians }, bands, ads] = await Promise.all([
+      instrumentRows(),
+      list('bands', 'id,name,city,genre,avatar_url', { filter: REAL, limit: 2000 }),
+      list('posts', 'id,type,title,text,city,instrument,genre,author_name,created_at', {
+        filter: `${SEEKING_RECENT(['musician_seeking_band', 'band_seeking_musician'])}&genre=not.is.null`, limit: 1000,
+      }),
+    ]);
+    return { musicians, bands, ads };
+  }, rows => rows.musicians.length === 0 && rows.bands.length === 0);
+}
+
+async function genreResults(genre, province) {
+  const { musicians, bands, ads } = await genreRows();
+  const here = r => !province || r.city === province;
+  const ad = p => ({ href: `/posts/${p.id}`, title: postTitle(p), sub: [p.author_name, p.city].filter(Boolean).join(' · '), tags: [askLabel(p)], text: p.text, stamp: true });
+  const matching = ads.filter(p => hasGenre(p.genre, genre) && here(p));
+  return {
+    bands: [
+      ...matching.filter(p => p.type === 'band_seeking_musician').map(ad),
+      ...bands.filter(b => hasGenre(b.genre, genre) && here(b)).map(person('bands', b => ['Banda', b.genre, b.city].filter(Boolean).join(' · '))),
+    ].slice(0, 40),
+    people: [
+      ...matching.filter(p => p.type === 'musician_seeking_band').map(ad),
+      ...musicians.filter(m => hasGenre(m.genre, genre) && here(m)).map(person('musicians', m => [m.instrument, m.city].filter(Boolean).join(' · '))),
+    ].slice(0, 40),
+  };
+}
+
+/** Style → province → results, for the links between pages and the sitemap. */
+async function genreCounts() {
+  const { musicians, bands, ads } = await genreRows();
+  const out = new Map(GENRES.map(g => [g.slug, new Map()]));
+  for (const row of [...musicians, ...bands, ...ads]) {
+    if (!row.city) continue;
+    for (const g of GENRES) {
+      if (!hasGenre(row.genre, g)) continue;
+      const counts = out.get(g.slug);
+      counts.set(row.city, (counts.get(row.city) || 0) + 1);
+    }
+  }
+  return out;
+}
+
 module.exports = {
   KINDS, rest, kindCounts, INSTRUMENTS, INSTRUMENT_BY_SLUG, MIN_INSTRUMENT_RESULTS, instrumentResults, instrumentCounts,
+  GENRES, GENRE_BY_SLUG, genreResults, genreCounts,
 };

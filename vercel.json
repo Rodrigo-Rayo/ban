@@ -56,6 +56,14 @@
       "destination": "/api/hub?kind=busco&slug=:instr&prov=:prov"
     },
     {
+      "source": "/estilo/:estilo",
+      "destination": "/api/hub?kind=estilo&slug=:estilo"
+    },
+    {
+      "source": "/estilo/:estilo/:prov",
+      "destination": "/api/hub?kind=estilo&slug=:estilo&prov=:prov"
+    },
+    {
       "source": "/guias",
       "destination": "/api/hub?kind=guias"
     },
