@@ -28,6 +28,7 @@ export function preferredFeedCity(profileCity: string | null | undefined, cached
 }
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { InstrumentIconComponent } from '../../shared/components/instrument-icon/instrument-icon.component';
 import { PostAlertsComponent } from './post-alerts/post-alerts.component';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { timeAgo } from '../../core/utils/display.utils';
@@ -78,7 +79,7 @@ export function mergeSeBusca(posts: Post[], vacancies: OpenVacancy[], morePosts:
 
 @Component({
     selector: 'app-feed',
-    imports: [FormsModule, RouterLink, IconComponent, PostAlertsComponent],
+    imports: [FormsModule, RouterLink, IconComponent, PostAlertsComponent, InstrumentIconComponent],
     templateUrl: './feed.component.html'
 })
 export class FeedComponent implements OnInit {
@@ -534,6 +535,10 @@ export class FeedComponent implements OnInit {
 
   askStamp(item: SeBuscaItem): string {
     return askStampClass(item.kind === 'vacancy' ? 'vacancy' : item.post.type);
+  }
+
+  instrumentOf(item: SeBuscaItem): string | null {
+    return item.kind === 'vacancy' ? item.vacancy.instrument : item.post.instrument;
   }
 
   /** Text, and a title when titles exist, within their limits. */

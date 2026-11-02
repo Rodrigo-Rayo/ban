@@ -141,6 +141,14 @@
            bg-primary-500 border-[1.5px] border-ink
            inline-flex items-center;
   }
+  /* Square linocut stamp with the instrument of a Se busca ad: yellow = busca, ink = ofrece. */
+  .instrument-stamp {
+    @apply w-[52px] h-[52px] shrink-0 inline-flex items-center justify-center
+           bg-poster-yellow text-ink border-2 border-ink;
+  }
+  .instrument-stamp-night {
+    @apply bg-ink text-poster-paper;
+  }
   .tag-night {
     @apply font-mono text-[11px] font-bold text-poster-paper uppercase tracking-wide
            px-2 py-0.5

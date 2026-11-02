@@ -15,6 +15,7 @@ import { Post, PostType } from '../../../core/models';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { avatarSrc, timeAgo } from '../../../core/utils/display.utils';
+import { InstrumentIconComponent } from '../../../shared/components/instrument-icon/instrument-icon.component';
 import { askLabel, askStampClass, gigLabel, shareText } from '../../../core/utils/se-busca';
 import { localToday } from '../../../core/utils/date';
 import { ShareCard, StoryImage, shareImage, slugFile } from '../../../core/utils/share-card';
@@ -32,7 +33,7 @@ export function heroStampFor(type: PostType): string {
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-post-detail',
-    imports: [ReportLinkComponent, RouterLink, IconComponent, CommentsComponent],
+    imports: [ReportLinkComponent, RouterLink, IconComponent, CommentsComponent, InstrumentIconComponent],
     templateUrl: './post-detail.component.html'
 })
 export class PostDetailComponent implements OnInit {

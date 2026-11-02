@@ -1,3 +1,4 @@
+import { InstrumentIconComponent } from '../../shared/components/instrument-icon/instrument-icon.component';
 import { QuedadaStatusComponent } from '../quedada/quedada-status.component';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, effect } from '@angular/core';
@@ -30,7 +31,7 @@ export interface NewPerson { key: string; id: string; name: string; city: string
 interface HomeProfile { id?: string; name: string; city?: string | null; avatar_url?: string | null; }
 
 /** One row of the merged "Se busca" list (band vacancies + board posts). */
-export interface SeBuscaItem { id: string; title: string; stampClass: string; stampLabel: string; meta: string; link: unknown[]; }
+export interface SeBuscaItem { id: string; title: string; stampClass: string; stampLabel: string; instrument: string | null; meta: string; link: unknown[]; }
 
 /**
  * A slide of the "Destacado" carousel. Today it is filled from real content
@@ -96,7 +97,7 @@ const NEW_PEOPLE_LIMIT = 8;
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-home',
-    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent],
+    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent, InstrumentIconComponent],
     templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit {
@@ -211,6 +212,7 @@ export class HomeComponent implements OnInit {
         title: v.bands!.name,
         stampClass: askStampClass('vacancy'),
         stampLabel: askLabel('vacancy', v.instrument),
+        instrument: v.instrument,
         meta: [v.genre || v.bands!.genre, v.bands!.city].filter(Boolean).join(' · '),
         link: ['/bands', v.bands!.id],
       }));
@@ -225,6 +227,7 @@ export class HomeComponent implements OnInit {
         title: p.title?.trim() || p.author_name,
         stampClass: askStampClass(p.type as PostType),
         stampLabel: askLabel(p.type as PostType, p.instrument),
+        instrument: p.instrument,
         meta: [p.title?.trim() ? p.author_name : null, p.city, timeAgo(p.created_at)].filter(Boolean).join(' · '),
         link: ['/posts', p.id],
       }));
