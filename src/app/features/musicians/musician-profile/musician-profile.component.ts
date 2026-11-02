@@ -1,3 +1,4 @@
+import { HubLinkComponent } from '../../../shared/components/hub-link/hub-link.component';
 import { ProfileContactComponent } from '../../../shared/components/profile-contact/profile-contact.component';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
@@ -31,7 +32,7 @@ const MUSICIAN_COLUMNS = 'id, user_id, name, instrument, genre, city, descriptio
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-musician-profile',
-    imports: [StoryButtonComponent, ListenPlayerComponent, ReportLinkComponent, RouterLink, IconComponent, AvatarUploadComponent, ProfileContactComponent],
+    imports: [HubLinkComponent, StoryButtonComponent, ListenPlayerComponent, ReportLinkComponent, RouterLink, IconComponent, AvatarUploadComponent, ProfileContactComponent],
     templateUrl: './musician-profile.component.html'
 })
 export class MusicianProfileComponent implements OnInit {

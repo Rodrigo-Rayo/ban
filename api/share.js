@@ -5,6 +5,8 @@
 // It returns the built index.html with title, description, image and canonical
 // filled in for that page (and a real 404 status for unknown ids).
 
+const { PROVINCE_BY_SLUG, slugify } = require('./_seo-data');
+
 const SITE = 'https://www.bandyou.es';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://yxaurffzwtqsckfmnzdj.supabase.co';
 // The anon key is public by design (it ships in the frontend bundle); env var overrides it.
@@ -22,11 +24,11 @@ const POST_LABELS = {
 const TYPES = {
   musicians: {
     table: 'musicians', cols: 'name,instrument,genre,city,description,avatar_url',
-    meta: r => ({ title: r.name, kicker: [r.instrument, r.city].filter(Boolean).join(' · '), text: r.description, image: r.avatar_url }),
+    meta: r => ({ title: r.name, seoTitle: `${r.name}, ${[firstOf(r.instrument), r.city].filter(Boolean).join(' en ') || 'músico'}`, kicker: [r.instrument, r.city].filter(Boolean).join(' · '), text: r.description, image: r.avatar_url }),
   },
   bands: {
     table: 'bands', cols: 'name,genre,city,description,avatar_url',
-    meta: r => ({ title: r.name, kicker: ['Banda', r.genre, r.city].filter(Boolean).join(' · '), text: r.description, image: r.avatar_url }),
+    meta: r => ({ title: r.name, seoTitle: `${r.name}, banda${r.genre ? ' de ' + firstOf(r.genre) : ''}${r.city ? ' en ' + r.city : ''}`, kicker: ['Banda', r.genre, r.city].filter(Boolean).join(' · '), text: r.description, image: r.avatar_url }),
   },
   venues: {
     table: 'venues', cols: 'name,city,capacity,description,avatar_url,photos',
@@ -41,8 +43,8 @@ const TYPES = {
     meta: r => ({ title: r.name, kicker: ['Local de ensayo', r.city, r.hourly_rate ? `${r.hourly_rate} €/h` : ''].filter(Boolean).join(' · '), text: r.description, image: (r.photos || [])[0] || r.avatar_url }),
   },
   events: {
-    table: 'events', cols: 'title,venue,city,date,description,image_url',
-    meta: r => ({ title: r.title, kicker: [formatDate(r.date), r.venue, r.city].filter(Boolean).join(' · '), text: r.description, image: r.image_url, type: 'article' }),
+    table: 'events', cols: 'title,venue,city,date,time,price,ticket_url,description,image_url',
+    meta: r => ({ title: r.title, seoTitle: [r.title, [formatDate(r.date), r.city].filter(Boolean).join(', ')].filter(Boolean).join(': '), kicker: [formatDate(r.date), r.venue, r.city].filter(Boolean).join(' · '), text: r.description, image: r.image_url, type: 'article' }),
   },
   shop: {
     table: 'gear_listings', cols: 'title,price,city,description,images',
@@ -54,6 +56,8 @@ const TYPES = {
     meta: r => ({ title: r.title || `${r.author_name}: ${(POST_LABELS[r.type] || 'Anuncio').toLowerCase()}`, kicker: ['Se busca', r.author_name, r.city].filter(Boolean).join(' · '), text: r.text }),
   },
 };
+
+const firstOf = value => String(value || '').split(',')[0].trim();
 
 const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 function formatDate(iso) {
@@ -88,36 +92,54 @@ async function fetchRow(type, id) {
   return rows[0] || null;
 }
 
-// Province slug for the "more in <province>" link of each page type (api/hub.js pages).
-const HUB_FOR = { musicians: 'busco-musicos', bands: 'busco-banda', venues: 'salas-de-conciertos', teachers: 'clases-de-musica',
-  rehearsal: 'locales-de-ensayo', events: 'conciertos', posts: 'busco-banda' };
+// Province pages for the "more in <province>" links of each page type (api/hub.js pages).
+const HUB_FOR = {
+  musicians: () => [['musicos', 'Músicos'], ['busco-musicos', 'Busco músicos']],
+  bands: () => [['bandas', 'Bandas'], ['busco-banda', 'Busco banda']],
+  venues: () => [['salas-de-conciertos', 'Salas de conciertos']],
+  teachers: () => [['clases-de-musica', 'Clases de música']],
+  rehearsal: () => [['locales-de-ensayo', 'Locales de ensayo']],
+  events: () => [['conciertos', 'Conciertos']],
+  posts: row => (row.type === 'musician_seeking_band' || row.type === 'collab'
+    ? [['busco-musicos', 'Busco músicos']]
+    : row.type === 'looking_for_rehearsal' ? [['locales-de-ensayo', 'Locales de ensayo']] : [['busco-banda', 'Busco banda']]),
+};
 const SCHEMA_FOR = { musicians: 'Person', bands: 'MusicGroup', venues: 'MusicVenue', teachers: 'Person', rehearsal: 'LocalBusiness' };
-
-function slugify(s) {
-  return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-}
 
 /**
  * The same facts the app shows, as plain HTML inside <app-root> for crawlers that do not
  * run JavaScript (AI assistants). Angular replaces it on boot, so people never see it.
  */
 function botBody(type, row, m, url) {
-  const city = row.city || '';
-  const hub = HUB_FOR[type];
-  const more = hub ? `<p><a href="/${hub}${city && city !== 'Otra' ? '/' + slugify(city) : ''}">Más en BandYou${city ? ' ' + escapeHtml(city) : ''}</a> · <a href="/">BandYou, la red musical de España</a></p>` : '';
+  const province = PROVINCE_BY_SLUG.get(slugify(row.city || '')) || '';
+  const links = (HUB_FOR[type] ? HUB_FOR[type](row) : []).map(([hub, label]) =>
+    `<a href="/${hub}${province ? '/' + slugify(province) : ''}">${escapeHtml(label)}${province ? ' en ' + escapeHtml(province) : ''}</a>`);
+  const more = `<p>${[...links, '<a href="/feed">Se busca</a>', '<a href="/">BandYou, la red musical de España</a>'].join(' · ')}</p>`;
   return `<main><p>${escapeHtml(m.kicker || '')}</p><h1>${escapeHtml(m.title)}</h1>`
     + (m.text ? `<p>${escapeHtml(clip(m.text, 1200))}</p>` : '')
     + `<p><a href="${escapeHtml(url)}">Ver en BandYou</a> (escribir mensaje, guardar, compartir).</p>${more}</main>`;
 }
 
+/** Google needs a readable price on an offer; "10-15 € anticipada" gets no offer at all. */
+function eventOffers(row, url) {
+  const p = String(row.price ?? '').trim().toLowerCase();
+  const free = /^(0+([.,]0+)?\s*€?|gratis|gratuito|gratuita|libre|entrada libre|free)$/.test(p);
+  const amount = free ? '0' : (/^(\d+(?:[.,]\d{1,2})?)\s*€?$/.exec(p) || [])[1];
+  if (amount === undefined) return {};
+  return { offers: { '@type': 'Offer', url: /^https?:\/\//i.test(row.ticket_url || '') ? row.ticket_url : url, price: amount.replace(',', '.'), priceCurrency: 'EUR' } };
+}
+
 function botJsonLd(type, row, m, url) {
+  const image = safeImage(m.image);
+  const pic = image === DEFAULT_IMAGE ? {} : { image };
   let ld = null;
   if (type === 'events') {
-    ld = { '@type': 'Event', name: row.title, startDate: row.date, eventStatus: 'https://schema.org/EventScheduled',
-      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    ld = { '@type': 'Event', name: row.title, startDate: row.time ? `${row.date}T${row.time}` : row.date, eventStatus: 'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode', ...pic, ...eventOffers(row, url),
       location: { '@type': 'Place', name: row.venue || row.city || 'España', address: { '@type': 'PostalAddress', addressLocality: row.city || '', addressCountry: 'ES' } } };
   } else if (SCHEMA_FOR[type]) {
-    ld = { '@type': SCHEMA_FOR[type], name: m.title,
+    ld = { '@type': SCHEMA_FOR[type], name: m.title, ...pic,
+      ...(type === 'bands' && row.genre ? { genre: row.genre } : {}),
       ...(row.city ? { address: { '@type': 'PostalAddress', addressLocality: row.city, addressCountry: 'ES' } } : {}) };
   }
   if (!ld) return '';
@@ -125,23 +147,55 @@ function botJsonLd(type, row, m, url) {
   return `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
 }
 
+/** App sections with no server page of their own: the same title and text the app sets. */
+const PAGES = {
+  feed: {
+    path: '/feed', title: 'Se busca: busco banda o músicos · BandYou',
+    description: 'Anuncios de bandas que buscan músico y de músicos que buscan banda o colaboración en toda España. Publica el tuyo gratis en BandYou.',
+    async body() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/posts?select=id,type,title,text,city,author_name&user_id=not.is.null&created_at=gte.${new Date(Date.now() - 90 * 864e5).toISOString()}&order=created_at.desc&limit=30`, {
+        headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
+      });
+      const rows = res.ok ? await res.json() : [];
+      const items = rows.map(p => `<li><a href="/posts/${escapeHtml(p.id)}">${escapeHtml(clip(p.title || `${p.author_name}: ${(POST_LABELS[p.type] || 'Anuncio').toLowerCase()}`, 80))}</a>: ${escapeHtml([POST_LABELS[p.type], p.author_name, p.city].filter(Boolean).join(' · '))}</li>`);
+      return `<main><h1>Se busca</h1><p>Anuncios de bandas que buscan músico y de músicos que buscan banda o colaboración en España, de los últimos tres meses.</p><ul>${items.join('')}</ul><p><a href="/busco-banda">Busco banda</a> · <a href="/busco-musicos">Busco músicos</a> · <a href="/">BandYou</a></p></main>`;
+    },
+  },
+  quedada: {
+    path: '/quedada', title: 'La quedada de BandYou',
+    description: 'Ayudemos a las bandas a darse a conocer: cada mes sorteamos un bolo por provincia, lo promocionamos y quedamos para ir. Inscribe el tuyo gratis.',
+    body: () => '<main><h1>La quedada de BandYou</h1><p>Ayudemos a las bandas a darse a conocer: cada mes sorteamos un bolo por provincia, lo promocionamos y quedamos para ir. Inscribe el tuyo gratis.</p><p><a href="/conciertos">Conciertos</a> · <a href="/guias/como-conseguir-bolos">Cómo conseguir bolos</a> · <a href="/">BandYou</a></p></main>',
+  },
+  colaboradores: {
+    path: '/colaboradores', title: 'Colaboradores · BandYou',
+    description: 'Salas, medios, promotoras y gente de la escena musical que colabora con BandYou.',
+    body: () => '<main><h1>Colaboradores</h1><p>Gente de la escena que nos ha echado una mano: salas, medios, promotoras y gente de la escena musical que colabora con BandYou.</p><p><a href="/">BandYou</a></p></main>',
+  },
+  'legal-privacidad': { path: '/legal/privacidad', title: 'Política de privacidad · BandYou', description: 'Política de privacidad de BandYou.', body: () => '' },
+  'legal-terminos': { path: '/legal/terminos', title: 'Términos de uso · BandYou', description: 'Términos de uso de BandYou.', body: () => '' },
+  'legal-cookies': { path: '/legal/cookies', title: 'Política de cookies · BandYou', description: 'Política de cookies de BandYou.', body: () => '' },
+  'legal-aviso-legal': { path: '/legal/aviso-legal', title: 'Aviso legal · BandYou', description: 'Aviso legal de BandYou.', body: () => '' },
+};
+
 /** Replaces the content of an existing tag in index.html (or the whole tag), leaving everything else as built. */
 function setMeta(html, { title, description, url, image, type, noindex }) {
   const t = escapeHtml(title), d = escapeHtml(description), u = escapeHtml(url), i = escapeHtml(image);
+  // Replacer functions: a "$&" or "$'" in someone's title must stay literal text.
+  const keepFirst = value => (_, first) => first + value;
   return html
-    .replace(/<title>[^<]*<\/title>/, `<title>${t}</title>`)
-    .replace(/(<meta name="description" content=")[^"]*/, `$1${d}`)
-    .replace(/(<meta property="og:title" content=")[^"]*/, `$1${t}`)
-    .replace(/(<meta property="og:description" content=")[^"]*/, `$1${d}`)
-    .replace(/(<meta property="og:type" content=")[^"]*/, `$1${type || 'profile'}`)
-    .replace(/(<meta property="og:url" content=")[^"]*/, `$1${u}`)
-    .replace(/(<meta property="og:image" content=")[^"]*/, `$1${i}`)
+    .replace(/<title>[^<]*<\/title>/, () => `<title>${t}</title>`)
+    .replace(/(<meta name="description" content=")[^"]*/, keepFirst(d))
+    .replace(/(<meta property="og:title" content=")[^"]*/, keepFirst(t))
+    .replace(/(<meta property="og:description" content=")[^"]*/, keepFirst(d))
+    .replace(/(<meta property="og:type" content=")[^"]*/, keepFirst(type || 'profile'))
+    .replace(/(<meta property="og:url" content=")[^"]*/, keepFirst(u))
+    .replace(/(<meta property="og:image" content=")[^"]*/, keepFirst(i))
     .replace(/\s*<meta property="og:image:(width|height)" content="\d+">/g, image === DEFAULT_IMAGE ? '$&' : '')
-    .replace(/(<meta name="twitter:title" content=")[^"]*/, `$1${t}`)
-    .replace(/(<meta name="twitter:description" content=")[^"]*/, `$1${d}`)
-    .replace(/(<meta name="twitter:image" content=")[^"]*/, `$1${i}`)
-    .replace(/(<link rel="canonical" href=")[^"]*/, `$1${u}`)
-    .replace(/(<meta name="robots" content=")[^"]*/, noindex ? '$1noindex' : '$1index,follow,max-image-preview:large');
+    .replace(/(<meta name="twitter:title" content=")[^"]*/, keepFirst(t))
+    .replace(/(<meta name="twitter:description" content=")[^"]*/, keepFirst(d))
+    .replace(/(<meta name="twitter:image" content=")[^"]*/, keepFirst(i))
+    .replace(/(<link rel="canonical" href=")[^"]*/, keepFirst(u))
+    .replace(/(<meta name="robots" content=")[^"]*/, keepFirst(noindex ? 'noindex' : 'index,follow,max-image-preview:large'));
 }
 
 module.exports = async function handler(req, res) {
@@ -158,6 +212,19 @@ module.exports = async function handler(req, res) {
     res.statusCode = 302;
     res.setHeader('Location', `${SITE}/`);
     return res.end();
+  }
+
+  const pageKey = String(req.query.page || '');
+  const section = Object.hasOwn(PAGES, pageKey) ? PAGES[pageKey] : null;
+  if (section) {
+    const pageUrl = SITE + section.path;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.statusCode = 200;
+    res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400');
+    let content = '';
+    try { content = await section.body(); } catch (err) { console.error('[share] page', err?.message); }
+    return res.end(setMeta(html, { title: section.title, description: section.description, url: pageUrl, image: DEFAULT_IMAGE, type: 'website' })
+      .replace('<app-root></app-root>', () => `<app-root>${content}</app-root>`));
   }
 
   const url = `${SITE}/${type}/${id}`;
@@ -177,8 +244,8 @@ module.exports = async function handler(req, res) {
   const description = clip([m.kicker, m.text].filter(Boolean).join(' — ') || 'En BandYou, la red musical de España.', 200);
   res.statusCode = 200;
   res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
-  const page = setMeta(html, { title: `${clip(m.title, 70)} · BandYou`, description, url, image: safeImage(m.image), type: m.type })
-    .replace('<app-root></app-root>', `<app-root>${botBody(type, row, m, url)}</app-root>`)
-    .replace('</head>', `${botJsonLd(type, row, m, url)}</head>`);
+  const page = setMeta(html, { title: `${clip(m.seoTitle || m.title, 70)} · BandYou`, description, url, image: safeImage(m.image), type: m.type })
+    .replace('<app-root></app-root>', () => `<app-root>${botBody(type, row, m, url)}</app-root>`)
+    .replace('</head>', () => `${botJsonLd(type, row, m, url)}</head>`);
   res.end(page);
 };

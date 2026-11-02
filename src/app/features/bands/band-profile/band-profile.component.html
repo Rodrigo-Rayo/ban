@@ -501,6 +501,7 @@
 </div>
 
 <!-- Discreet, at the very end (DSA notice-and-action) -->
+@if (!loading() && band(); as item) { <app-hub-link kind="bandas" [city]="item.city" label="Más bandas"/> }
 @if (!loading() && band() && !isOwner()) { <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 flex justify-end"><app-report-link what="este perfil"/></div> }
 
 @if (inviteSheet(); as sheet) {

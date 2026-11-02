@@ -1,3 +1,4 @@
+import { HubLinkComponent } from '../../../shared/components/hub-link/hub-link.component';
 import { ProfileContactComponent } from '../../../shared/components/profile-contact/profile-contact.component';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
@@ -23,7 +24,7 @@ const REHEARSAL_COLUMNS = 'id, user_id, name, city, address, description, avatar
 
 @Component({
     selector: 'app-rehearsal-profile',
-    imports: [StoryButtonComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
+    imports: [HubLinkComponent, StoryButtonComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
     templateUrl: './rehearsal-profile.component.html'
 })
 export class RehearsalProfileComponent implements OnInit {

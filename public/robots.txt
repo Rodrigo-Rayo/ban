@@ -3,7 +3,6 @@
 
 User-agent: *
 Allow: /
-Allow: /search?tab=
 Disallow: /auth/
 Disallow: /onboarding
 Disallow: /dashboard
@@ -37,7 +36,6 @@ User-agent: DuckAssistBot
 User-agent: meta-externalagent
 User-agent: CCBot
 Allow: /
-Allow: /search?tab=
 Disallow: /auth/
 Disallow: /onboarding
 Disallow: /dashboard

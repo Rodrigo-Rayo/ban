@@ -1,3 +1,5 @@
+import { hubKindForPost } from '../../../core/utils/hub-link';
+import { HubLinkComponent } from '../../../shared/components/hub-link/hub-link.component';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
 import { linkify, linkLabel } from '../../../core/utils/linkify';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
@@ -33,7 +35,7 @@ export function heroStampFor(type: PostType): string {
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-post-detail',
-    imports: [ReportLinkComponent, RouterLink, IconComponent, CommentsComponent, InstrumentIconComponent],
+    imports: [HubLinkComponent, ReportLinkComponent, RouterLink, IconComponent, CommentsComponent, InstrumentIconComponent],
     templateUrl: './post-detail.component.html'
 })
 export class PostDetailComponent implements OnInit {
@@ -43,6 +45,7 @@ export class PostDetailComponent implements OnInit {
   readonly timeAgo = timeAgo;
   readonly askLabelFor = (p: Pick<Post, 'type' | 'instrument'>) => askLabel(p.type, p.instrument);
   readonly stampFor = askStampClass;
+  readonly hubKindForPost = hubKindForPost;
   readonly heroStampFor = heroStampFor;
   readonly avatarSrc = avatarSrc;
   readonly initialOf = initialOf;

@@ -1,6 +1,6 @@
 // What each server-rendered SEO page shows: /<kind> (all of Spain) and /<kind>/<province>.
 // Texts answer the search ("busco banda en Madrid") first; lists are real BandYou data.
-const { list, rest, shortDate, today, daysAgo } = require('./_seo-data');
+const { list, rest, countByProvince, shortDate, today, daysAgo } = require('./_seo-data');
 
 const SEEKS = {
   musician_seeking_band: 'Busca banda', band_seeking_musician: 'Busca músico', collab: 'Busca colaboración',
@@ -31,7 +31,8 @@ const KINDS = {
     title: p => `Busco banda ${en(p)}: grupos que buscan músicos`,
     description: p => `Bandas ${de(p)} que buscan guitarra, batería, bajo, voz o teclados. Mira los anuncios de «Se busca» y escribe gratis a la banda en BandYou.`,
     intro: p => `Si tocas y buscas grupo ${en(p)}, aquí tienes las bandas que han publicado que necesitan músico y las que ya están en BandYou. Escríbeles directamente, es gratis. Si no ves lo tuyo, publica tu propio anuncio «Busco banda» y crea tu perfil para que las bandas te encuentren.`,
-    count: { table: 'bands', filter: REAL },
+    count: { table: 'bands', filter: REAL, postTypes: ['band_seeking_musician'] },
+    noun: 'bandas y anuncios de bandas que buscan músico',
     async items(city) {
       const [ads, bands] = await Promise.all([
         posts(city, ['band_seeking_musician']),
@@ -52,7 +53,8 @@ const KINDS = {
     title: p => `Busco músicos para mi banda ${en(p)}`,
     description: p => `Músicos ${de(p)} que buscan banda: baterías, bajistas, guitarristas, cantantes y teclistas. Encuentra a quien te falta y escríbele gratis en BandYou.`,
     intro: p => `¿A tu banda le falta batería, bajista o voz ${en(p)}? Aquí están los músicos que han publicado que buscan grupo y los perfiles de músicos de la zona, con su instrumento y estilos. Escríbeles directamente o publica un anuncio para que te escriban ellos.`,
-    count: { table: 'musicians', filter: REAL },
+    count: { table: 'musicians', filter: REAL, postTypes: ['musician_seeking_band', 'collab'] },
+    noun: 'músicos y anuncios de músicos que buscan banda',
     async items(city) {
       const [ads, people] = await Promise.all([
         posts(city, ['musician_seeking_band', 'collab']),
@@ -74,6 +76,7 @@ const KINDS = {
     description: p => `Directorio de músicos ${de(p)} por instrumento y estilo. Mira sus perfiles, su disponibilidad y escríbeles gratis en BandYou.`,
     intro: p => `Músicos ${de(p)} con perfil en BandYou: instrumento, estilos, días disponibles y si dan clases. Escríbeles para formar banda, cubrir un bolo o grabar.`,
     count: { table: 'musicians', filter: REAL },
+    noun: 'músicos',
     items: city => list('musicians', 'id,name,city,instrument,genre,avatar_url', { city, filter: REAL, limit: 40 })
       .then(rows => rows.map(person('musicians', m => [m.instrument, m.city].filter(Boolean).join(' · ')))),
     faq: p => [
@@ -89,6 +92,7 @@ const KINDS = {
     description: p => `Bandas ${de(p)} en BandYou: estilos, formación y si buscan músico o bolos. Escríbeles gratis.`,
     intro: p => `Grupos ${de(p)} con perfil en BandYou. Algunos buscan músico, otros están disponibles para bolos: entra en su perfil para ver qué necesitan y escribirles.`,
     count: { table: 'bands', filter: REAL },
+    noun: 'bandas',
     items: city => list('bands', 'id,name,city,genre,avatar_url', { city, filter: REAL, limit: 40 })
       .then(rows => rows.map(person('bands', b => [b.genre, b.city].filter(Boolean).join(' · ')))),
     faq: p => [
@@ -104,6 +108,7 @@ const KINDS = {
     description: p => `Locales de ensayo por horas ${en(p)}: precio, capacidad y contacto directo. Encuentra sala para ensayar con tu banda en BandYou.`,
     intro: p => `Salas de ensayo ${de(p)} publicadas en BandYou, con precio por hora y capacidad. Escribe al local para reservar. Si alquilas un local, publícalo gratis.`,
     count: { table: 'rehearsal_spaces', filter: REAL },
+    noun: 'locales de ensayo',
     items: city => list('rehearsal_spaces', 'id,name,city,hourly_rate,capacity,avatar_url', { city, filter: REAL, limit: 40 })
       .then(rows => rows.map(r => ({ href: `/rehearsal/${r.id}`, title: r.name, image: r.avatar_url,
         sub: [r.city, r.capacity ? `${r.capacity} personas` : ''].filter(Boolean).join(' · '),
@@ -121,6 +126,7 @@ const KINDS = {
     description: p => `Profesores de música ${en(p)}: guitarra, batería, bajo, piano y canto, presenciales u online. Mira precios y escribe gratis en BandYou.`,
     intro: p => `Profesores ${de(p)} y músicos que también dan clases, con su instrumento, modalidad y precio por hora. Escríbeles para pedir una clase de prueba.`,
     count: { table: 'teachers', filter: REAL },
+    noun: 'profesores',
     async items(city) {
       const [teachers, lessons] = await Promise.all([
         list('teachers', 'id,name,city,instrument,hourly_rate,modality,avatar_url', { city, filter: REAL, limit: 30 }),
@@ -148,6 +154,7 @@ const KINDS = {
     description: p => `Salas y bares con música en directo ${en(p)}: aforo, estilos que programan y contacto para tocar. En BandYou.`,
     intro: p => `Salas ${de(p)} que programan música en directo, con su aforo y estilos. Si tienes banda, escríbeles para proponer un bolo.`,
     count: { table: 'venues', filter: REAL },
+    noun: 'salas',
     items: city => list('venues', 'id,name,city,capacity,avatar_url', { city, filter: REAL, limit: 40 })
       .then(rows => rows.map(v => ({ href: `/venues/${v.id}`, title: v.name, image: v.avatar_url,
         sub: [v.city, v.capacity ? `${v.capacity} personas` : ''].filter(Boolean).join(' · ') }))),
@@ -163,6 +170,7 @@ const KINDS = {
     description: p => `Próximos conciertos ${en(p)} de bandas emergentes: fecha, sala y entradas. La agenda de BandYou.`,
     intro: p => `Próximos bolos ${de(p)} publicados por bandas y salas en BandYou. Apoya la escena: ve a ver a una banda que no conoces.`,
     count: { table: 'events', filter: `date=gte.${today()}` },
+    noun: 'conciertos próximos',
     items: city => list('events', 'id,title,venue,city,date,time,genre', { city, filter: `date=gte.${today()}`, order: 'date.asc', limit: 40 })
       .then(rows => rows.map(e => ({ href: `/events/${e.id}`, title: e.title,
         sub: [e.venue, e.city].filter(Boolean).join(' · '), tags: [shortDate(e.date), e.genre].filter(Boolean), date: e.date }))),
@@ -174,4 +182,97 @@ const KINDS = {
   },
 };
 
-module.exports = { KINDS, rest };
+/**
+ * Counts change slowly and every page wants them: keep them for a while per instance.
+ * A read that fails comes back empty (rest() never throws), so an empty result is not kept:
+ * one Supabase hiccup must not blank the counts for ten minutes.
+ */
+const memo = new Map();
+function cached(key, load, isEmpty, ms = 600000) {
+  const hit = memo.get(key);
+  if (hit && Date.now() - hit.at < ms) return hit.value;
+  const value = load();
+  memo.set(key, { at: Date.now(), value });
+  value.then(v => { if (isEmpty(v)) memo.delete(key); }, () => memo.delete(key));
+  return value;
+}
+
+const SEEKING_RECENT = types => `type=in.(${types.join(',')})&created_at=gte.${daysAgo(90)}&user_id=not.is.null`;
+
+/** Province → how many results a kind's page lists: profiles plus, where they show, recent ads. */
+function kindCounts(kind) {
+  return cached(`kind:${kind}`, async () => {
+    const { table, filter, postTypes } = KINDS[kind].count;
+    const [base, ads] = await Promise.all([
+      countByProvince(table, filter),
+      postTypes ? countByProvince('posts', SEEKING_RECENT(postTypes)) : new Map(),
+    ]);
+    for (const [city, n] of ads) base.set(city, (base.get(city) || 0) + n);
+    return base;
+  }, counts => counts.size === 0);
+}
+
+/** "Busco batería en Madrid": who plays it, and the bands looking for it. */
+const INSTRUMENTS = [
+  ['guitarrista', 'Guitarra', 'guitarrista', 'guitarristas'], ['bajista', 'Bajo', 'bajista', 'bajistas'],
+  ['bateria', 'Batería', 'batería', 'baterías'], ['cantante', 'Voz', 'cantante', 'cantantes'],
+  ['teclista', 'Teclados', 'teclista', 'teclistas'], ['pianista', 'Piano', 'pianista', 'pianistas'],
+  ['saxofonista', 'Saxofón', 'saxofonista', 'saxofonistas'], ['trompetista', 'Trompeta', 'trompetista', 'trompetistas'],
+  ['violinista', 'Violín', 'violinista', 'violinistas'], ['flautista', 'Flauta', 'flautista', 'flautistas'],
+  ['clarinetista', 'Clarinete', 'clarinetista', 'clarinetistas'], ['contrabajista', 'Contrabajo', 'contrabajista', 'contrabajistas'],
+  ['arpista', 'Arpa', 'arpista', 'arpistas'], ['percusionista', 'Percusión', 'percusionista', 'percusionistas'],
+].map(([slug, name, one, many]) => ({ slug, name, one, many }));
+const INSTRUMENT_BY_SLUG = new Map(INSTRUMENTS.map(i => [i.slug, i]));
+
+/** An instrument page below this many results is kept out of search engines (thin). */
+const MIN_INSTRUMENT_RESULTS = 3;
+
+/** Instrument columns hold comma lists ("Guitarra, Bajo"); "Bajo" must not match "Contrabajo". */
+const plays = (value, name) => String(value || '').split(',').some(part => part.trim().toLowerCase() === name.toLowerCase());
+
+/** One read of who plays what, shared by every instrument page and the sitemap. */
+function instrumentRows() {
+  return cached('instruments', async () => {
+    const [musicians, ads] = await Promise.all([
+      list('musicians', 'id,name,city,instrument,genre,avatar_url', { filter: REAL, limit: 2000 }),
+      list('posts', 'id,type,title,text,city,instrument,author_name,created_at', {
+        filter: `${SEEKING_RECENT(['musician_seeking_band', 'band_seeking_musician'])}&instrument=not.is.null`, limit: 1000,
+      }),
+    ]);
+    return { musicians, ads };
+  }, rows => rows.musicians.length === 0);
+}
+
+async function instrumentResults(instrument, province) {
+  const { musicians, ads } = await instrumentRows();
+  const here = r => !province || r.city === province;
+  const ad = p => ({ href: `/posts/${p.id}`, title: postTitle(p), sub: [p.author_name, p.city].filter(Boolean).join(' · '), tags: [askLabel(p)], text: p.text, stamp: true });
+  const matching = ads.filter(p => plays(p.instrument, instrument.name) && here(p));
+  return {
+    people: [
+      ...matching.filter(p => p.type === 'musician_seeking_band').map(ad),
+      ...musicians.filter(m => plays(m.instrument, instrument.name) && here(m))
+        .map(person('musicians', m => [m.instrument, m.city].filter(Boolean).join(' · '))),
+    ].slice(0, 40),
+    bands: matching.filter(p => p.type === 'band_seeking_musician').map(ad),
+  };
+}
+
+/** Instrument → province → results, for the links between pages and the sitemap. */
+async function instrumentCounts() {
+  const { musicians, ads } = await instrumentRows();
+  const out = new Map(INSTRUMENTS.map(i => [i.slug, new Map()]));
+  for (const row of [...musicians, ...ads]) {
+    if (!row.city) continue;
+    for (const i of INSTRUMENTS) {
+      if (!plays(row.instrument, i.name)) continue;
+      const counts = out.get(i.slug);
+      counts.set(row.city, (counts.get(row.city) || 0) + 1);
+    }
+  }
+  return out;
+}
+
+module.exports = {
+  KINDS, rest, kindCounts, INSTRUMENTS, INSTRUMENT_BY_SLUG, MIN_INSTRUMENT_RESULTS, instrumentResults, instrumentCounts,
+};

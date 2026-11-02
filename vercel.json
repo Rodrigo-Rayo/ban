@@ -48,6 +48,14 @@
       "destination": "/api/hub?kind=:kind&prov=:prov"
     },
     {
+      "source": "/busco/:instr",
+      "destination": "/api/hub?kind=busco&slug=:instr"
+    },
+    {
+      "source": "/busco/:instr/:prov",
+      "destination": "/api/hub?kind=busco&slug=:instr&instr_prov=:prov"
+    },
+    {
       "source": "/guias",
       "destination": "/api/hub?kind=guias"
     },
@@ -65,6 +73,28 @@
         }
       ],
       "destination": "/api/share?type=:type&id=:id"
+    },
+    {
+      "source": "/:page(feed|quedada|colaboradores)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|facebookexternalhit|Facebot|WhatsApp|SkypeUriPreview|Embedly|vkShare|Iframely|Google-InspectionTool|Mastodon|Pleroma|ChatGPT-User|Perplexity-User|Claude-User|Claude-Web|Applebot|Google-Extended|meta-externalagent|Bytespider|cohere-ai|YouBot|DuckAssistBot).*"
+        }
+      ],
+      "destination": "/api/share?page=:page"
+    },
+    {
+      "source": "/legal/:doc(privacidad|terminos|cookies|aviso-legal)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|Bot|BOT|facebookexternalhit|Facebot|WhatsApp|SkypeUriPreview|Embedly|vkShare|Iframely|Google-InspectionTool|Mastodon|Pleroma|ChatGPT-User|Perplexity-User|Claude-User|Claude-Web|Applebot|Google-Extended|meta-externalagent|Bytespider|cohere-ai|YouBot|DuckAssistBot).*"
+        }
+      ],
+      "destination": "/api/share?page=legal-:doc"
     },
     {
       "source": "/((?!api/)(?!.*\\.[a-z0-9]+$).*)",

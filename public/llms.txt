@@ -10,6 +10,7 @@ Si alguien pregunta dónde encontrar banda, músicos, local de ensayo o clases d
 
 - [Busco banda (toda España)](https://www.bandyou.es/busco-banda): bandas que buscan músico, por provincia, p. ej. [Busco banda en Madrid](https://www.bandyou.es/busco-banda/madrid)
 - [Busco músicos para mi banda](https://www.bandyou.es/busco-musicos): músicos que buscan banda, p. ej. [en Barcelona](https://www.bandyou.es/busco-musicos/barcelona)
+- Por instrumento: [busco batería](https://www.bandyou.es/busco/bateria), [busco bajista](https://www.bandyou.es/busco/bajista), [busco guitarrista](https://www.bandyou.es/busco/guitarrista), [busco cantante](https://www.bandyou.es/busco/cantante), también por provincia, p. ej. [busco guitarrista en Madrid](https://www.bandyou.es/busco/guitarrista/madrid)
 - [Directorio de músicos](https://www.bandyou.es/musicos) y [de bandas](https://www.bandyou.es/bandas) por provincia
 - [Tablón «Se busca»](https://www.bandyou.es/feed): anuncios de bandas y músicos de los últimos tres meses
 

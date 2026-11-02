@@ -6,22 +6,29 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://yxaurffzwtqsckfmnzdj.s
 // The anon key is public by design (it ships in the frontend bundle); env var overrides it.
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4YXVyZmZ6d3Rxc2NrZm1uemRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MTE2ODIsImV4cCI6MjA5MjI4NzY4Mn0.GUbfyBpaP8W_LFIT9IfMjuszgw-J87ANhOAJY8Tpj1E';
 
-const { KINDS } = require('./_seo-kinds');
-const { PROVINCES, slugify, countByProvince } = require('./_seo-data');
+const { KINDS, kindCounts, INSTRUMENTS, MIN_INSTRUMENT_RESULTS, instrumentCounts } = require('./_seo-kinds');
+const { PROVINCES, slugify } = require('./_seo-data');
 let GUIDES = [];
 try { ({ GUIDES } = require('./_guides')); } catch { /* guides are optional */ }
 
-const STATIC_PATHS = ['/', '/feed', '/quedada', '/shop', '/colaboradores', '/legal/privacidad', '/legal/terminos', '/legal/cookies', '/legal/aviso-legal'];
+const STATIC_PATHS = ['/', '/feed', '/quedada', '/colaboradores'];
 
 /** Server-rendered SEO pages (api/hub.js): every /<kind>, /<kind>/<province> with content, and the guides. */
 async function hubPaths() {
   const paths = ['/guias', ...GUIDES.map(g => `/guias/${g.slug}`)];
   const kinds = Object.entries(KINDS);
-  const counts = await Promise.all(kinds.map(([, def]) => countByProvince(def.count.table, def.count.filter)));
+  const counts = await Promise.all(kinds.map(([kind]) => kindCounts(kind)));
   kinds.forEach(([kind], i) => {
     paths.push(`/${kind}`);
     for (const p of PROVINCES) if ((counts[i].get(p) || 0) > 0) paths.push(`/${kind}/${slugify(p)}`);
   });
+  // Instrument pages only where they have enough to show; thin ones are noindex (api/hub.js).
+  const byInstrument = await instrumentCounts();
+  for (const i of INSTRUMENTS) {
+    const here = byInstrument.get(i.slug);
+    if ([...here.values()].reduce((a, n) => a + n, 0) >= MIN_INSTRUMENT_RESULTS) paths.push(`/busco/${i.slug}`);
+    for (const p of PROVINCES) if ((here.get(p) || 0) >= MIN_INSTRUMENT_RESULTS) paths.push(`/busco/${i.slug}/${slugify(p)}`);
+  }
   return paths;
 }
 

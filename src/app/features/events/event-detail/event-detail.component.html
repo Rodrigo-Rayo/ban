@@ -274,4 +274,5 @@
 </div>
 
 <!-- Discreet, at the very end (DSA notice-and-action) -->
+@if (!loading() && event(); as item) { <app-hub-link kind="conciertos" [city]="item.city" label="Más conciertos"/> }
 @if (!loading() && event() && !isOwner()) { <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 flex justify-end"><app-report-link what="este evento"/></div> }

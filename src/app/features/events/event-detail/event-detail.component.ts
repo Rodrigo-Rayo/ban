@@ -1,3 +1,4 @@
+import { HubLinkComponent } from '../../../shared/components/hub-link/hub-link.component';
 import { MediaUploadService } from '../../../core/services/media-upload.service';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { CommentsComponent } from '../../../shared/components/comments/comments.component';
@@ -28,7 +29,7 @@ const EVENT_COLUMNS = 'id, user_id, title, venue, city, date, time, genre, price
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-event-detail',
-    imports: [ReportLinkComponent, RouterLink, CommonModule, DatePipe, IconComponent, CommentsComponent],
+    imports: [HubLinkComponent, ReportLinkComponent, RouterLink, CommonModule, DatePipe, IconComponent, CommentsComponent],
     templateUrl: './event-detail.component.html'
 })
 export class EventDetailComponent implements OnInit {

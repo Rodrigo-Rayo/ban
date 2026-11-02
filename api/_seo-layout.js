@@ -4,11 +4,11 @@
 const { SITE, escapeHtml } = require('./_seo-data');
 
 const NAV = [
-  ['/busco-banda', 'Busco banda'], ['/busco-musicos', 'Busco músicos'], ['/locales-de-ensayo', 'Locales'],
+  ['/feed', 'Se busca'], ['/busco-banda', 'Busco banda'], ['/busco-musicos', 'Busco músicos'], ['/locales-de-ensayo', 'Locales'],
   ['/clases-de-musica', 'Clases'], ['/conciertos', 'Conciertos'], ['/guias', 'Guías'],
 ];
 const FOOTER = [
-  ['/musicos', 'Músicos'], ['/bandas', 'Bandas'], ['/busco-banda', 'Busco banda'], ['/busco-musicos', 'Busco músicos'],
+  ['/feed', 'Se busca'], ['/musicos', 'Músicos'], ['/bandas', 'Bandas'], ['/busco-banda', 'Busco banda'], ['/busco-musicos', 'Busco músicos'],
   ['/locales-de-ensayo', 'Locales de ensayo'], ['/clases-de-musica', 'Clases de música'],
   ['/salas-de-conciertos', 'Salas de conciertos'], ['/conciertos', 'Conciertos'], ['/guias', 'Guías'],
   ['/quedada', 'La quedada'], ['/legal/aviso-legal', 'Aviso legal'], ['/legal/privacidad', 'Privacidad'],
@@ -35,6 +35,7 @@ h1{font-size:clamp(2.4rem,7vw,4.5rem);margin-bottom:16px}
 h2{font-size:clamp(1.6rem,4vw,2.2rem);margin:40px 0 14px}
 h3{font-size:1.35rem}
 .lead{font-size:1.15rem;max-width:46rem;margin:0 0 20px}
+.meta{font:700 12px/1.4 'JetBrains Mono',ui-monospace,monospace;color:var(--muted);margin:0 0 14px}
 .answer{background:var(--card);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:16px 18px;max-width:46rem;font-size:1.1rem;margin:0 0 24px}
 .btn{display:inline-flex;align-items:center;min-height:48px;padding:0 20px;background:var(--red);color:#fff;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);font:700 13px/1 'JetBrains Mono',ui-monospace,monospace;text-transform:uppercase;text-decoration:none}
 .btn.alt{background:var(--card);color:var(--ink)}
@@ -70,6 +71,14 @@ footer.bottom nav a{text-decoration:none}
 footer.bottom p{font-size:.85rem;color:var(--muted);max-width:46rem}
 `;
 
+/** Who publishes every page: what search engines and AI assistants attach the content to. */
+const ENTITY = {
+  '@type': 'Organization', '@id': `${SITE}/#organization`, name: 'BandYou', url: `${SITE}/`, logo: `${SITE}/icon-512.png`,
+  email: 'contacto@bandyou.es', sameAs: ['https://www.instagram.com/bandyou.es/'],
+  description: 'Red social gratuita de la comunidad musical de España: músicos, bandas, salas, profesores y locales de ensayo.',
+  areaServed: { '@type': 'Country', name: 'España' },
+};
+
 let stylesheetHref = null;
 /** The app's hashed stylesheet (fonts) — read once per instance from the built index.html. */
 async function appStylesheet() {
@@ -91,9 +100,7 @@ async function appStylesheet() {
 async function page({ path, title, description, body, jsonLd = [], noindex = false }) {
   const url = SITE + path;
   const css = await appStylesheet();
-  const ld = jsonLd.length
-    ? `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': jsonLd }).replace(/</g, '\\u003c')}</script>`
-    : '';
+  const ld = `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': [ENTITY, ...jsonLd] }).replace(/</g, '\\u003c')}</script>`;
   const t = escapeHtml(title), d = escapeHtml(description);
   return `<!doctype html>
 <html lang="es">

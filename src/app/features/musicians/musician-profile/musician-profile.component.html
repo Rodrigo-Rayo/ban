@@ -231,4 +231,5 @@
 </div>
 
 <!-- Discreet, at the very end (DSA notice-and-action) -->
+@if (!loading() && musician(); as item) { <app-hub-link kind="musicos" [city]="item.city" label="Más músicos"/> }
 @if (!loading() && musician() && !isOwner()) { <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 flex justify-end"><app-report-link what="este perfil"/></div> }

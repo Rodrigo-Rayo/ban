@@ -13,10 +13,11 @@ import { AuthService } from './core/services/auth.service';
 import { PushNotificationService } from './core/services/push-notification.service';
 import { SeoService } from './core/services/seo.service';
 import { INSTAGRAM_URL } from './core/constants/social';
+import { ExploreLinksComponent } from './shared/components/explore-links/explore-links.component';
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, RouterLink, IconComponent, NavbarComponent, ConfirmDialogComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent, NotificationPermissionBannerComponent],
+    imports: [RouterOutlet, RouterLink, IconComponent, ExploreLinksComponent, NavbarComponent, ConfirmDialogComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent, NotificationPermissionBannerComponent],
     template: `
     <app-navbar />
     <main id="main-content" tabindex="-1" class="pb-16 lg:pb-0">
@@ -24,6 +25,7 @@ import { INSTAGRAM_URL } from './core/constants/social';
       @if (showFooter()) {
         <footer class="border-t-2 border-ink mt-8 px-4 sm:px-6 py-6 flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-center sm:justify-between"
                 [class.pb-24]="hasActionBar()" [class.sm:pb-6]="hasActionBar()">
+          <app-explore-links />
           <div class="flex items-center justify-between sm:justify-start gap-3">
             <span class="font-display text-2xl uppercase leading-none">Band<span class="text-primary-500">You</span></span>
             <a [href]="instagramUrl" target="_blank" rel="noopener noreferrer" aria-label="Instagram de BandYou (se abre en una pestaña nueva)" title="Instagram" class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-ink-muted hover:text-primary-500 transition-colors"><app-icon name="instagram" [size]="24"/></a>

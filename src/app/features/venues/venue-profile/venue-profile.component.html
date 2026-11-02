@@ -253,4 +253,5 @@
 </div>
 
 <!-- Discreet, at the very end (DSA notice-and-action) -->
+@if (!loading() && venue(); as item) { <app-hub-link kind="salas-de-conciertos" [city]="item.city" label="Más salas"/> }
 @if (!loading() && venue() && !isOwner()) { <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 flex justify-end"><app-report-link what="este perfil"/></div> }

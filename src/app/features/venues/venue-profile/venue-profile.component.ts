@@ -1,3 +1,4 @@
+import { HubLinkComponent } from '../../../shared/components/hub-link/hub-link.component';
 import { ProfileContactComponent } from '../../../shared/components/profile-contact/profile-contact.component';
 import { ReportLinkComponent } from '../../../shared/components/report-link/report-link.component';
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
@@ -24,7 +25,7 @@ const VENUE_COLUMNS = 'id, user_id, name, city, address, description, avatar_url
 
 @Component({
     selector: 'app-venue-profile',
-    imports: [StoryButtonComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
+    imports: [HubLinkComponent, StoryButtonComponent, ReportLinkComponent, RouterLink, FormsModule, IconComponent, ListPipe, AvatarUploadComponent, SpaceGalleryComponent, ProfileContactComponent],
     templateUrl: './venue-profile.component.html'
 })
 export class VenueProfileComponent implements OnInit {
