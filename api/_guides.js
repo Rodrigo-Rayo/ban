@@ -447,7 +447,7 @@ const GUIDES = [
     title: 'Locales de ensayo en Madrid: precios por horas y por meses',
     description: 'Cuánto cuesta un local de ensayo en Madrid por horas o por meses, con precios publicados por salas reales, y qué mirar si buscas uno barato o con acceso 24 horas.',
     h1: 'Locales de ensayo en Madrid: precios por horas y por meses',
-    answer: 'En noviembre de 2026, las salas de ensayo de Madrid que hemos consultado publican precios de unos 10 a 21 euros la hora para una banda, más en salas premium. Por meses, las tarifas que hemos encontrado empiezan en unos 210 euros en local compartido y 260 a 275 euros en local completo, aunque hay pocos datos publicados.',
+    answer: 'En noviembre de 2026, las salas de ensayo de Madrid que hemos consultado publican precios de unos 10 a 21 euros la hora para una banda, más en salas premium. Por meses, las tarifas que hemos encontrado empiezan en unos 210 euros en local compartido y 275 euros en local completo, y hay locales sin equipar desde 260 euros, aunque hay pocos datos publicados.',
     sections: [
       {
         h2: 'Precios por horas',
@@ -488,7 +488,7 @@ const GUIDES = [
     ],
     faq: [
       { q: '¿Cuánto cuesta un local de ensayo en Madrid por horas?', a: 'En las salas consultadas en noviembre de 2026, una banda paga unos 10 a 21 euros la hora según la sala y la franja. Las salas premium cuestan más.' },
-      { q: '¿Cuánto cuesta un local de ensayo en Madrid por meses?', a: 'Las tarifas publicadas que hemos encontrado empiezan en unos 210 euros en compartido y 260 a 275 euros en completo. Son precios mínimos y hay pocos datos, así que pide presupuesto.' },
+      { q: '¿Cuánto cuesta un local de ensayo en Madrid por meses?', a: 'Las tarifas publicadas que hemos encontrado empiezan en unos 210 euros en compartido y 275 euros en completo, y hay locales sin equipar desde 260 euros. Son precios mínimos y hay pocos datos, así que pide presupuesto.' },
       { q: '¿Hay locales de ensayo en Madrid abiertos las 24 horas?', a: 'Sí, por ejemplo Locales Rufino anuncia uso 24 horas en sus locales mensuales. Confirma las condiciones con cada local antes de alquilar.' },
     ],
     links: [
