@@ -1,6 +1,10 @@
-<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:96px">
-  <div class="max-w-[460px] mx-auto px-4 pt-5">
-    <main class="game flex flex-col overflow-hidden bg-dark-800 border-[3px] border-ink" aria-live="polite">
+<div class="min-h-[100dvh] flex flex-col bg-dark-900">
+  <div class="w-full max-w-[460px] mx-auto flex flex-1 flex-col px-3 sm:px-4">
+    <header class="flex items-center justify-between gap-3 py-3">
+      <a routerLink="/" class="font-display text-2xl uppercase leading-none" aria-label="BandYou, ir a la portada">Band<span class="text-primary-500">You</span></a>
+      <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Test de banda</span>
+    </header>
+    <section class="game flex flex-1 flex-col overflow-hidden bg-dark-800 border-[3px] border-ink" aria-live="polite">
       @switch (phase()) {
         @case ('intro') {
           <section class="screen flex flex-1 flex-col justify-center gap-4 px-5 py-6">
@@ -130,6 +134,11 @@
           }
         }
       }
-    </main>
+    </section>
+    <footer class="flex flex-wrap gap-x-4 gap-y-1 py-4 mt-2 font-mono text-[10px] font-bold uppercase text-ink-muted">
+      <a routerLink="/" class="min-h-[32px] inline-flex items-center hover:text-ink">Ir a BandYou</a>
+      <a routerLink="/legal/privacidad" class="min-h-[32px] inline-flex items-center hover:text-ink">Privacidad</a>
+      <a routerLink="/legal/aviso-legal" class="min-h-[32px] inline-flex items-center hover:text-ink">Aviso legal</a>
+    </footer>
   </div>
 </div>

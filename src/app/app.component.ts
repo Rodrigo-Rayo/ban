@@ -19,8 +19,8 @@ import { ExploreLinksComponent } from './shared/components/explore-links/explore
     selector: 'app-root',
     imports: [RouterOutlet, RouterLink, IconComponent, ExploreLinksComponent, NavbarComponent, ConfirmDialogComponent, ToastComponent, InstallBannerComponent, CookieBannerComponent, NotificationPermissionBannerComponent],
     template: `
-    <app-navbar />
-    <main id="main-content" tabindex="-1" class="pb-16 lg:pb-0">
+    <app-navbar [class.hidden]="fullScreen()" />
+    <main id="main-content" tabindex="-1" [class.pb-16]="!fullScreen()" class="lg:pb-0">
       <router-outlet />
       @if (showFooter()) {
         <footer class="border-t-2 border-ink mt-8 px-4 sm:px-6 py-6 flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-center sm:justify-between"
@@ -62,6 +62,8 @@ export class AppComponent {
   showFooter = signal(false);
   /** Profile/detail pages pin an action bar above the bottom nav on mobile; the footer must clear it. */
   hasActionBar = signal(false);
+  /** The /test game fills the phone screen: no site header, bottom bar or footer around it. */
+  fullScreen = signal(false);
 
   constructor() {
     this.router.events
@@ -70,7 +72,8 @@ export class AppComponent {
         // Only react to real page changes: query-param updates (search typing,
         // filters) must not steal focus, and the first load keeps the skip link first.
         const path = e.urlAfterRedirects.split(/[?#]/)[0];
-        this.showFooter.set(path !== '/' && !path.startsWith('/inbox/'));
+        this.fullScreen.set(path === '/test');
+        this.showFooter.set(path !== '/' && !path.startsWith('/inbox/') && !this.fullScreen());
         const actionBar = /^\/(posts|events|shop|musicians|bands|venues|teachers|rehearsal)\/(?!new$|create$)[^/]+$/.test(path);
         this.hasActionBar.set(actionBar);
         // Bottom notices (cookies, install…) move up so they never cover that bar.

@@ -1,5 +1,5 @@
 /* Only what Tailwind can't say: the game's moving parts. Colours: paper #f2ebdd, card #faf6ee, ink #141210, red #c23a1f, yellow #e8b931. */
-.game { box-shadow: 8px 8px 0 #141210; min-height: 600px }
+.game { box-shadow: 6px 6px 0 #141210; min-height: 540px }
 .screen { animation: in .35s ease-out }
 @keyframes in { from { transform: translateX(28px); opacity: 0 } }
 .setlist i { flex: 1; height: 6px; background: rgba(20, 18, 16, .15) }
