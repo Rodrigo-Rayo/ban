@@ -239,7 +239,7 @@ module.exports = async function handler(req, res) {
     // A section's title or image can depend on the link (the /test challenge link carries ?vs=).
     const query = { vs: Object.hasOwn(TEST_TYPES, String(req.query.vs || '')) ? String(req.query.vs) : '' };
     const pick = v => (typeof v === 'function' ? v(query) : v);
-    return res.end(setMeta(html, { title: pick(section.title), description: section.description, url: pageUrl, image: pick(section.image) || DEFAULT_IMAGE, type: 'website' })
+    return res.end(setMeta(html, { title: pick(section.title), description: section.description, url: query.vs ? `${pageUrl}?vs=${query.vs}` : pageUrl, image: pick(section.image) || DEFAULT_IMAGE, type: 'website' })
       .replace('<app-root></app-root>', () => `<app-root>${content}</app-root>`));
   }
 

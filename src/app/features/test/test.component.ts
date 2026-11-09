@@ -185,7 +185,7 @@ export class TestComponent implements OnInit {
       window.scrollTo({ top: 0 });
       this.later(() => this.barsOn.set(true), 250);
       // Ready before the tap: Safari only opens the share sheet right after one.
-      this.later(() => { this.renderStory().catch(() => undefined); }, 600);
+      this.later(() => { this.renderStory().catch(() => undefined); }, 0);
     }, LOADING_MS);
   }
 
@@ -193,12 +193,15 @@ export class TestComponent implements OnInit {
     const id = this.result(), inst = this.instrument();
     if (!id || !inst) return Promise.reject(new Error('No result yet'));
     const t = TYPES[id];
-    this.story ??= renderTestCard({
+    if (this.story) return this.story;
+    const pending = renderTestCard({
       type: t, instrument: inst[1], typeImage: this.typeImage(id),
       fitsName: TYPES[t.fits].name, clashName: t.clash ? TYPES[t.clash].name : 'Nadie (y a veces es un problema)',
-    }).then(b => (this.storyReady = b));
-    this.story.catch(() => { this.story = null; });
-    return this.story;
+    });
+    this.story = pending;
+    // A render from before "Volver a jugar" must not become the next result's poster.
+    pending.then(b => { if (this.story === pending) this.storyReady = b; }, () => { if (this.story === pending) this.story = null; });
+    return pending;
   }
 
   private later(fn: () => void, ms: number) { this.timers.push(setTimeout(fn, ms)); }
