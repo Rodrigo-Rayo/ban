@@ -1,0 +1,135 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:96px">
+  <div class="max-w-[460px] mx-auto px-4 pt-5">
+    <main class="game flex flex-col overflow-hidden bg-dark-800 border-[3px] border-ink" aria-live="polite">
+      @switch (phase()) {
+        @case ('intro') {
+          <section class="screen flex flex-1 flex-col justify-center gap-4 px-5 py-6">
+            <p class="page-kicker">Test de BandYou · 1 minuto</p>
+            <h1 class="text-[clamp(2.6rem,11vw,3.6rem)] leading-[1.02]">¿Qué músico de banda eres?</h1>
+            <p class="text-[17px] leading-relaxed">Un día de bolo, de la prueba de sonido al grupo de WhatsApp. Nueve decisiones. Una de ellas, a contrarreloj.</p>
+            @if (vs(); as rival) {
+              <p class="vs border-2 border-dashed border-ink px-3 py-2.5 font-bold">Alguien de tu banda es «{{ types[rival].name }}». Juega y mira si encajáis.</p>
+            }
+            <div><button type="button" class="btn-primary min-h-[54px] px-6" (click)="start()">Empezar el bolo</button></div>
+            <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Gratis y sin cuenta</p>
+          </section>
+        }
+
+        @case ('instrument') {
+          <section class="screen flex flex-1 flex-col gap-4 px-5 py-6">
+            <p class="page-kicker">Antes de nada</p>
+            <h2 class="q font-sans normal-case text-[1.45rem] font-bold leading-tight">¿Qué tocas?</h2>
+            <div class="inst grid grid-cols-4 gap-2">
+              @for (inst of instruments; track inst[0]) {
+                <button type="button" (click)="chooseInstrument(inst)"
+                  class="grid justify-items-center gap-1 min-h-[88px] px-1 pt-2 pb-1.5 bg-dark-900 border-2 border-ink font-mono text-[10px] font-bold uppercase hover:shadow-[3px_3px_0_0_#141210]">
+                  <span class="stamp grid place-items-center w-[52px] h-[52px] bg-poster-yellow border-[1.5px] border-ink"><img [src]="instrumentImage(inst[0])" alt="" width="40" height="40"/></span>
+                  {{ inst[1] }}
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        @case ('question') {
+          @let Q = question();
+          <section class="screen flex flex-1 flex-col gap-4 px-5 py-6" [class.urgent]="Q.urgent" [attr.aria-label]="'Pregunta ' + (step() + 1) + ' de ' + questions.length">
+            <div class="setlist flex gap-1" aria-hidden="true">
+              @for (_ of questions; track $index) { <i [class.done]="isDone($index)" [class.now]="$index === step()"></i> }
+            </div>
+            <div class="flex items-baseline justify-between gap-2"><span class="font-display text-[34px] leading-none">{{ Q.time }}</span><span class="page-kicker">{{ Q.scene }}</span></div>
+            @if (Q.urgent) {
+              <div class="h-2.5 border-2 border-ink bg-dark-900" role="timer" aria-label="Seis segundos para contestar"><i class="block h-full bg-primary-500" [style.width.%]="timeLeft() * 100"></i></div>
+            }
+            <h2 class="q font-sans normal-case text-[1.45rem] font-bold leading-tight [text-wrap:balance]">{{ Q.q }}</h2>
+            <div class="grid gap-2.5" [class.locked]="picked() !== null">
+              @for (a of Q.a; track $index) {
+                <button type="button" class="opt flex items-center gap-3 text-left min-h-[58px] px-3.5 py-3 bg-dark-900 border-2 border-ink leading-snug"
+                  [class.picked]="picked() === $index" (click)="pick($index)" [disabled]="picked() !== null && picked() !== $index">
+                  <b class="grid place-items-center flex-none w-7 h-7 border-2 border-ink bg-dark-800 font-mono text-xs">{{ letters[$index] }}</b><span>{{ a[0] }}</span>
+                </button>
+              }
+            </div>
+            @if (reaction(); as r) { <p class="react self-start bg-poster-yellow border-2 border-ink px-3 py-2 text-sm font-bold leading-snug" role="status">{{ r }}</p> }
+          </section>
+        }
+
+        @case ('loading') {
+          <section class="screen flex flex-1 flex-col items-center justify-center gap-4 px-5 py-6 text-center">
+            <div class="vinyl w-[120px] h-[120px]" aria-hidden="true"></div>
+            <p class="page-kicker" role="status">{{ loadingLine() }}</p>
+          </section>
+        }
+
+        @case ('result') {
+          @if (type(); as T) {
+            <section class="screen flex flex-1 flex-col gap-[18px] px-5 py-6">
+              <article class="poster grid gap-2.5 bg-dark-900 border-[3px] border-ink px-4 pt-[18px] pb-3.5" aria-label="Tu resultado">
+                <div class="flex items-center justify-between border-b-2 border-ink pb-2">
+                  <span class="font-display text-[30px] leading-none tracking-wide">SE BUSCA</span>
+                  <span class="font-mono text-[10px] font-bold uppercase text-right leading-tight">bandyou.es<br>test de banda</span>
+                </div>
+                <div class="grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3.5">
+                  <span class="stamp grid place-items-center w-[104px] h-[104px] bg-poster-yellow border-2 border-ink -rotate-3"><img [src]="typeImage(result()!)" alt="" width="80" height="80"/></span>
+                  <div class="min-w-0">
+                    <p class="inst-name flex items-center gap-1.5 mb-1 font-mono text-[11px] font-bold uppercase text-primary-500">
+                      <span class="stamp inline-grid place-items-center w-[22px] h-[22px] bg-poster-yellow border border-ink"><img [src]="instrumentImage(instrument()![0])" alt="" width="18" height="18"/></span>
+                      {{ instrument()![1] }}
+                    </p>
+                    <h1 class="type-name text-[clamp(1.9rem,8vw,2.5rem)] leading-[1.02] [overflow-wrap:break-word]">{{ T.name }}</h1>
+                  </div>
+                </div>
+                <p class="text-[1.05rem] font-bold leading-snug">{{ T.tag }}</p>
+                <div class="grid gap-[7px]">
+                  @for (s of T.stats; track s[0]) {
+                    <div class="grid grid-cols-[minmax(0,1fr)_40px] items-center gap-x-2 gap-y-0.5 text-[13px]">
+                      <span>{{ s[0] }}</span><strong class="font-mono text-xs text-right">{{ s[1] }}%</strong>
+                      <span class="bar col-span-2 h-[9px] border-[1.5px] border-ink bg-dark-800"><i [style.width.%]="barsOn() ? s[1] : 0"></i></span>
+                    </div>
+                  }
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs leading-snug">
+                  <div class="border-2 border-ink bg-poster-yellow px-2 py-1.5"><b class="block font-mono text-[10px] uppercase text-ink-muted">Encaja con</b>{{ types[T.fits].name }}</div>
+                  <div class="border-2 border-ink px-2 py-1.5"><b class="block font-mono text-[10px] uppercase text-ink-muted">Choca con</b>{{ T.clash ? types[T.clash].name : 'Nadie (y a veces es un problema)' }}</div>
+                </div>
+                <p class="flex flex-wrap justify-between gap-2 border-t-2 border-dashed border-ink pt-2 font-mono text-[11px] font-bold uppercase leading-snug">
+                  <span>Recompensa</span><span class="text-primary-500">{{ T.reward }}</span>
+                </p>
+              </article>
+
+              @if (duel(); as d) {
+                <div class="duel grid gap-1 bg-ink text-dark-800 p-3.5">
+                  <span class="font-mono text-xs font-bold uppercase tracking-wide text-poster-yellow">Tú y «{{ types[vs()!].name }}»</span>
+                  <strong class="font-display text-[2.4rem] leading-none font-normal text-poster-yellow">{{ d.percent }}% compatibles</strong>
+                  <span>{{ d.verdict }}</span>
+                </div>
+              }
+
+              <div class="flex flex-col gap-3">
+                <button type="button" class="btn-primary min-h-[54px]" (click)="share()" [attr.aria-busy]="making()">{{ making() ? 'Creando imagen…' : 'Compartir en historias' }}</button>
+                <button type="button" class="btn-night min-h-[54px]" (click)="dare()">Reta a tu banda</button>
+              </div>
+
+              <div class="grid gap-2">
+                <p class="text-[1.1rem] font-bold leading-snug">{{ T.quote }}</p>
+                <p>{{ T.desc }}</p>
+                <p><strong>Superpoder:</strong> {{ T.power }}<br><strong>Punto débil:</strong> {{ T.weak }}</p>
+              </div>
+
+              <div class="grid gap-2.5 border-t-2 border-ink pt-3.5">
+                <p class="font-bold">¿Te falta {{ types[T.fits].name | lowercase }} en tu banda? ¿O te falta banda?</p>
+                <div class="flex flex-wrap gap-2">
+                  <a href="/busco-musicos" class="btn-secondary min-h-[44px] text-xs">Busco músicos</a>
+                  <a href="/busco-banda" class="btn-secondary min-h-[44px] text-xs">Busco banda</a>
+                  <a routerLink="/auth/register" class="btn-ghost min-h-[44px] text-xs">Crear perfil gratis</a>
+                </div>
+              </div>
+
+              <button type="button" class="btn-ghost min-h-[44px] self-start text-xs" (click)="restart()">Volver a jugar</button>
+            </section>
+          }
+        }
+      }
+    </main>
+  </div>
+</div>

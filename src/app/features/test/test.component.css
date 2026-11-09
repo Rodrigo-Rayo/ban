@@ -1,0 +1,27 @@
+/* Only what Tailwind can't say: the game's moving parts. Colours: paper #f2ebdd, card #faf6ee, ink #141210, red #c23a1f, yellow #e8b931. */
+.game { box-shadow: 8px 8px 0 #141210; min-height: 600px }
+.screen { animation: in .35s ease-out }
+@keyframes in { from { transform: translateX(28px); opacity: 0 } }
+.setlist i { flex: 1; height: 6px; background: rgba(20, 18, 16, .15) }
+.setlist .done { background: #141210 }
+.setlist .now { background: #c23a1f }
+.opt { transition: transform .12s, box-shadow .12s }
+.opt:hover:not(:disabled) { box-shadow: 4px 4px 0 #141210; transform: translate(-2px, -2px) }
+.opt.picked { background: #141210; color: #faf6ee }
+.opt.picked b { background: #e8b931; color: #141210 }
+.locked .opt:not(.picked) { opacity: .35 }
+.react { transform: rotate(-1.5deg); animation: stamp .3s cubic-bezier(.2, 1.6, .4, 1) }
+@keyframes stamp { from { transform: scale(1.6) rotate(-6deg); opacity: 0 } }
+.urgent h2 { animation: shake .45s 2 }
+@keyframes shake { 25% { transform: translateX(-4px) } 75% { transform: translateX(4px) } }
+.stamp img { width: 78%; height: 78%; object-fit: contain; mix-blend-mode: multiply }
+.vinyl { border-radius: 50%; background: repeating-radial-gradient(circle, #141210 0 3px, #2a2622 3px 5px); position: relative; animation: spin 1s linear infinite }
+.vinyl::after { content: ""; position: absolute; inset: 40px; border-radius: 50%; background: #c23a1f; border: 8px solid #e8b931 }
+@keyframes spin { to { transform: rotate(360deg) } }
+.poster { animation: drop .55s cubic-bezier(.2, 1.4, .4, 1) }
+@keyframes drop { from { transform: translateY(-40px) rotate(-4deg); opacity: 0 } }
+.bar i { display: block; height: 100%; background: #141210; transition: width .9s cubic-bezier(.2, .8, .3, 1) }
+@media (prefers-reduced-motion: reduce) {
+  .screen, .react, .poster, .vinyl, .urgent h2 { animation: none }
+  .bar i, .opt { transition: none }
+}

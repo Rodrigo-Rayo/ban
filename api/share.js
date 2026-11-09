@@ -147,6 +147,12 @@ function botJsonLd(type, row, m, url) {
   return `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
 }
 
+/** Results of the /test quiz (src/app/features/test/test-data.ts): id → name, for its link previews. */
+const TEST_TYPES = {
+  met: 'El metrónomo', chi: 'La chispa', lab: 'El laboratorio', age: 'La agenda',
+  fab: 'La fábrica de temas', peg: 'El pegamento', com: 'El comodín', pue: 'Otra vez desde el puente',
+};
+
 /** App sections with no server page of their own: the same title and text the app sets. */
 const PAGES = {
   feed: {
@@ -170,6 +176,13 @@ const PAGES = {
     path: '/colaboradores', title: 'Colaboradores · BandYou',
     description: 'Salas, medios, promotoras y gente de la escena musical que colabora con BandYou.',
     body: () => '<main><h1>Colaboradores</h1><p>Gente de la escena que nos ha echado una mano: salas, medios, promotoras y gente de la escena musical que colabora con BandYou.</p><p><a href="/">BandYou</a></p></main>',
+  },
+  test: {
+    path: '/test',
+    title: q => TEST_TYPES[q.vs] ? `¿Encajas con «${TEST_TYPES[q.vs]}»? Test de banda · BandYou` : '¿Qué músico de banda eres? Test · BandYou',
+    description: 'Un día de bolo en nueve decisiones, de la prueba de sonido al grupo de WhatsApp. Descubre qué músico eres en tu banda y con quién encajas. Gratis y sin cuenta.',
+    image: q => `${SITE}/test/og${TEST_TYPES[q.vs] ? '-' + q.vs : ''}.png`,
+    body: () => `<main><h1>¿Qué músico de banda eres?</h1><p>Un test de BandYou: un día de bolo en nueve decisiones. Al final sale qué músico eres en tu banda, con quién encajas y con quién chocas. Los resultados posibles son ${Object.values(TEST_TYPES).join(', ')}.</p><p><a href="/busco-banda">Busco banda</a> · <a href="/busco-musicos">Busco músicos</a> · <a href="/">BandYou</a></p></main>`,
   },
   'legal-privacidad': { path: '/legal/privacidad', title: 'Política de privacidad · BandYou', description: 'Política de privacidad de BandYou.', body: () => '' },
   'legal-terminos': { path: '/legal/terminos', title: 'Términos de uso · BandYou', description: 'Términos de uso de BandYou.', body: () => '' },
@@ -223,7 +236,10 @@ module.exports = async function handler(req, res) {
     res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400');
     let content = '';
     try { content = await section.body(); } catch (err) { console.error('[share] page', err?.message); }
-    return res.end(setMeta(html, { title: section.title, description: section.description, url: pageUrl, image: DEFAULT_IMAGE, type: 'website' })
+    // A section's title or image can depend on the link (the /test challenge link carries ?vs=).
+    const query = { vs: Object.hasOwn(TEST_TYPES, String(req.query.vs || '')) ? String(req.query.vs) : '' };
+    const pick = v => (typeof v === 'function' ? v(query) : v);
+    return res.end(setMeta(html, { title: pick(section.title), description: section.description, url: pageUrl, image: pick(section.image) || DEFAULT_IMAGE, type: 'website' })
       .replace('<app-root></app-root>', () => `<app-root>${content}</app-root>`));
   }
 

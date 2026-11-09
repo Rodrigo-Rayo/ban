@@ -83,7 +83,7 @@
       "destination": "/api/share?type=:type&id=:id"
     },
     {
-      "source": "/:page(feed|quedada|colaboradores)",
+      "source": "/:page(feed|quedada|colaboradores|test)",
       "has": [
         {
           "type": "header",

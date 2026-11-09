@@ -47,7 +47,7 @@ export function wrapText(measure: (s: string) => number, text: string, maxWidth:
   return lines;
 }
 
-async function loadFonts(): Promise<void> {
+export async function loadFonts(): Promise<void> {
   if (typeof document === 'undefined' || !document.fonts) return;
   // Sample text so accented faces (unicode-range subsets) load too.
   const sample = 'AZaz09 ÁÉÍÓÚÑáéíóúñ¿¡·';
