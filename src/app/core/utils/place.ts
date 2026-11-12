@@ -75,11 +75,18 @@ export interface PlaceMatch extends PlaceOption { group: string }
 
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const PLACE_INDEX = PLACE_FILTER_GROUPS.flatMap(g =>
-  g.options.map(o => ({ value: o.value, label: o.label, group: g.label, key: fold(o.label), groupKey: fold(g.label) })));
+  g.options.map(o => ({ value: o.value, label: o.label, group: g.label, key: fold(o.label), groupKey: fold(g.label), full: fold(`${o.label}, ${g.label}`) })));
 
 /** The option for a filter value, if it is one. */
 export function placeOption(value: string): PlaceMatch | undefined {
   const o = PLACE_INDEX.find(p => p.value === value);
+  return o && { value: o.value, label: o.label, group: o.group };
+}
+
+/** The option whose name is exactly what someone typed ("malaga", "córdoba, argentina"); Spain wins ties. */
+export function exactPlace(text: string): PlaceMatch | undefined {
+  const q = fold(text.trim());
+  const o = q ? PLACE_INDEX.find(p => p.key === q || p.full === q) : undefined;
   return o && { value: o.value, label: o.label, group: o.group };
 }
 
@@ -91,7 +98,7 @@ export function searchPlaces(query: string, limit = 40): PlaceMatch[] {
   const q = fold(query.trim());
   if (!q) return [];
   const starts = PLACE_INDEX.filter(p => p.key.startsWith(q) || p.key.split(/[\s-]+/).some(w => w.startsWith(q)));
-  const contains = PLACE_INDEX.filter(p => !starts.includes(p) && p.key.includes(q));
+  const contains = PLACE_INDEX.filter(p => !starts.includes(p) && (p.key.includes(q) || p.full.includes(q)));
   const inCountry = PLACE_INDEX.filter(p => !starts.includes(p) && !contains.includes(p) && p.groupKey.startsWith(q));
   return [...starts, ...contains, ...inCountry].slice(0, limit).map(({ value, label, group }) => ({ value, label, group }));
 }

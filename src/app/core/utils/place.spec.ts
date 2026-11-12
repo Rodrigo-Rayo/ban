@@ -1,5 +1,5 @@
 import { COUNTRIES } from '../constants/regions';
-import { ALL_PLACES, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, placeLabel, placeOption, placeValue, searchPlaces, whereCity } from './place';
+import { ALL_PLACES, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, exactPlace, placeLabel, placeOption, placeValue, searchPlaces, whereCity } from './place';
 
 describe('place', () => {
   it('stores Spanish provinces exactly as before', () => {
@@ -74,6 +74,15 @@ describe('place', () => {
     expect(ec[0]).toEqual({ value: 'pais:EC', label: 'Todo Ecuador', group: 'Ecuador' });
     expect(ec.some(o => o.value === 'Pichincha, Ecuador')).toBeTrue();
     expect(searchPlaces('otro')[0].value).toBe(OTHER_VALUE);
+  });
+
+  it('finds a place typed with its country, and exact names', () => {
+    expect(searchPlaces('córdoba, arg').map(o => o.value)).toEqual(['Córdoba, Argentina']);
+    expect(exactPlace('malaga')?.value).toBe('Málaga');
+    expect(exactPlace('Córdoba')?.value).toBe('Córdoba');
+    expect(exactPlace('cordoba, argentina')?.value).toBe('Córdoba, Argentina');
+    expect(exactPlace('cor')).toBeUndefined();
+    expect(exactPlace('')).toBeUndefined();
   });
 
   it('caps the number of matches', () => {

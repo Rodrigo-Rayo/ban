@@ -84,6 +84,15 @@ describe('PlaceFilterComponent', () => {
     expect(host.changes).toBe(0);
   });
 
+  it('takes a place typed in full when leaving the box', async () => {
+    const { host, box, type, update } = await render('Madrid');
+    type('malaga');
+    box.dispatchEvent(new Event('blur'));
+    update();
+    expect(host.city()).toBe('Málaga');
+    expect(box.value).toBe('Málaga');
+  });
+
   it('clearing the box means all of Spain', async () => {
     const { host, box, type, update } = await render('Madrid');
     type('');
