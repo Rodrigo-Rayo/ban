@@ -64,9 +64,36 @@ export const PLACE_FILTER_GROUPS: readonly PlaceGroup[] = [
   { label: 'Resto del mundo', options: [{ value: OTHER_VALUE, label: 'Otro país' }] },
 ];
 
-/** A filter value as people read it: "pais:AR" is "Argentina"; anything else is already a name. */
+/** A filter value as people read it: "pais:AR" is "Argentina", "Otra" is "otro país"; anything else is already a name. */
 export function placeLabel(value: string): string {
+  if (value === OTHER_VALUE) return 'otro país';
   return value.startsWith('pais:') ? BY_CODE.get(value.slice(5))?.name ?? value : value;
+}
+
+/** A filter option with the group it belongs to ("España", "Argentina"…). */
+export interface PlaceMatch extends PlaceOption { group: string }
+
+const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const PLACE_INDEX = PLACE_FILTER_GROUPS.flatMap(g =>
+  g.options.map(o => ({ value: o.value, label: o.label, group: g.label, key: fold(o.label), groupKey: fold(g.label) })));
+
+/** The option for a filter value, if it is one. */
+export function placeOption(value: string): PlaceMatch | undefined {
+  const o = PLACE_INDEX.find(p => p.value === value);
+  return o && { value: o.value, label: o.label, group: o.group };
+}
+
+/**
+ * Filter options matching what someone typed, ignoring accents and case: names that start with it
+ * first, then names that contain it, then every place of a country whose name matches.
+ */
+export function searchPlaces(query: string, limit = 40): PlaceMatch[] {
+  const q = fold(query.trim());
+  if (!q) return [];
+  const starts = PLACE_INDEX.filter(p => p.key.startsWith(q) || p.key.split(/[\s-]+/).some(w => w.startsWith(q)));
+  const contains = PLACE_INDEX.filter(p => !starts.includes(p) && p.key.includes(q));
+  const inCountry = PLACE_INDEX.filter(p => !starts.includes(p) && !contains.includes(p) && p.groupKey.startsWith(q));
+  return [...starts, ...contains, ...inCountry].slice(0, limit).map(({ value, label, group }) => ({ value, label, group }));
 }
 
 interface CityQuery<Q> { eq(column: string, value: string): Q; like(column: string, pattern: string): Q }

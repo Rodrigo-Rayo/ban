@@ -179,11 +179,8 @@
     <!-- ── FILTERS ── -->
     <div class="mb-5 space-y-2.5">
       <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 pb-1">
-        <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadPosts()"
-          class="input-field col-span-2 sm:col-auto sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
-          aria-label="Filtrar por provincia">
-          @for (g of placeGroups; track g.label) { <optgroup [label]="g.label">@for (o of g.options; track o.value) { <option [value]="o.value">{{ o.label }}</option> }</optgroup> }
-        </select>
+        <app-place-filter class="col-span-2 sm:col-auto sm:w-56" [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadPosts()"
+          inputClass="input-field !py-2 !pl-3 !pr-9 text-base sm:text-xs min-h-[44px] min-w-0"/>
         <select [ngModel]="filterInstrument()" (ngModelChange)="onInstrumentChange($event)"
           class="input-field sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
           aria-label="Filtrar por instrumento">

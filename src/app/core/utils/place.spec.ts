@@ -1,5 +1,5 @@
 import { COUNTRIES } from '../constants/regions';
-import { ALL_PLACES, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, placeLabel, placeValue, whereCity } from './place';
+import { ALL_PLACES, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, placeLabel, placeOption, placeValue, searchPlaces, whereCity } from './place';
 
 describe('place', () => {
   it('stores Spanish provinces exactly as before', () => {
@@ -55,6 +55,35 @@ describe('place', () => {
   it('names a whole-country filter by the country', () => {
     expect(placeLabel('pais:AR')).toBe('Argentina');
     expect(placeLabel('Madrid')).toBe('Madrid');
+    expect(placeLabel(OTHER_VALUE)).toBe('otro país');
+  });
+
+  it('finds places by what people type, ignoring accents and case', () => {
+    const cor = searchPlaces('cor').map(o => o.value);
+    expect(cor[0]).toBe('A Coruña');
+    expect(cor).toContain('Córdoba');
+    expect(cor).toContain('Córdoba, Argentina');
+    expect(cor.indexOf('Córdoba')).toBeLessThan(cor.indexOf('Córdoba, Argentina'));
+    expect(searchPlaces('MALAGA')[0].value).toBe('Málaga');
+    expect(searchPlaces('   ')).toEqual([]);
+    expect(searchPlaces('zzzz')).toEqual([]);
+  });
+
+  it('offers a whole country and its regions when its name is typed', () => {
+    const ec = searchPlaces('ecuador', 100);
+    expect(ec[0]).toEqual({ value: 'pais:EC', label: 'Todo Ecuador', group: 'Ecuador' });
+    expect(ec.some(o => o.value === 'Pichincha, Ecuador')).toBeTrue();
+    expect(searchPlaces('otro')[0].value).toBe(OTHER_VALUE);
+  });
+
+  it('caps the number of matches', () => {
+    expect(searchPlaces('a').length).toBe(40);
+    expect(searchPlaces('a', 5).length).toBe(5);
+  });
+
+  it('looks up an option with its group', () => {
+    expect(placeOption('Jalisco, México')).toEqual({ value: 'Jalisco, México', label: 'Jalisco', group: 'México' });
+    expect(placeOption('Narnia')).toBeUndefined();
   });
 
   it('offers all of Spain first and each country as a group', () => {

@@ -12,7 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Post, PostType } from '../../core/models';
-import { PLACE_FILTER_GROUPS, isKnownPlace, placeLabel, whereCity } from '../../core/utils/place';
+import { isKnownPlace, placeLabel, whereCity } from '../../core/utils/place';
 
 const ALL_SPAIN = 'Toda España';
 
@@ -36,6 +36,7 @@ import { addDaysISO, askLabel, askStampClass, gigLabel, GIG_MAX_DAYS_AHEAD, isVa
 import { localToday } from '../../core/utils/date';
 import { composeGuidedText, firstKnown, GuidedAnswers, GuidedGroup, GuidedOption, guidedGroups, suggestTitle, toggleAnswer } from '../../core/utils/guided-post';
 import { PlacePickerComponent } from '../../shared/components/place-picker/place-picker.component';
+import { PlaceFilterComponent } from '../../shared/components/place-filter/place-filter.component';
 
 export type SeBuscaSection = 'todo' | 'bandas' | 'musicos' | 'otros';
 
@@ -80,7 +81,7 @@ export function mergeSeBusca(posts: Post[], vacancies: OpenVacancy[], morePosts:
 
 @Component({
     selector: 'app-feed',
-    imports: [PlacePickerComponent, FormsModule, RouterLink, IconComponent, PostAlertsComponent, InstrumentIconComponent],
+    imports: [PlacePickerComponent, PlaceFilterComponent, FormsModule, RouterLink, IconComponent, PostAlertsComponent, InstrumentIconComponent],
     templateUrl: './feed.component.html'
 })
 export class FeedComponent implements OnInit {
@@ -149,7 +150,6 @@ export class FeedComponent implements OnInit {
     gigDate: '',
   };
 
-  readonly placeGroups = PLACE_FILTER_GROUPS;
   readonly placeLabel = placeLabel;
   readonly instruments = INSTRUMENTS;
   readonly genres = GENRES;

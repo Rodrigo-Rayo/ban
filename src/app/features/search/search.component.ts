@@ -6,7 +6,8 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
-import { PLACE_FILTER_GROUPS, placeLabel, whereCity } from '../../core/utils/place';
+import { placeLabel, whereCity } from '../../core/utils/place';
+import { PlaceFilterComponent } from '../../shared/components/place-filter/place-filter.component';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { genrePattern } from '../../core/utils/genre-match';
 import { avatarColor, imageSrc } from '../../core/utils/display.utils';
@@ -28,7 +29,7 @@ interface RehearsalResult { id: string; name: string; city: string; avatar_url: 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-search',
-    imports: [FormsModule, RouterLink, CommonModule, ListPipe, AgendaBoardComponent],
+    imports: [FormsModule, RouterLink, CommonModule, ListPipe, AgendaBoardComponent, PlaceFilterComponent],
     templateUrl: './search.component.html'
 })
 export class SearchComponent implements OnInit, OnDestroy {
@@ -76,7 +77,6 @@ export class SearchComponent implements OnInit, OnDestroy {
 
 
   genres = GENRES;
-  readonly placeGroups = PLACE_FILTER_GROUPS;
   readonly placeLabel = placeLabel;
   instruments = INSTRUMENTS;
 
