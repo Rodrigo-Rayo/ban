@@ -1,5 +1,5 @@
 import { COUNTRIES } from '../constants/regions';
-import { ALL_PLACES, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, placeValue, whereCity } from './place';
+import { ALL_PLACES, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, placeLabel, placeValue, whereCity } from './place';
 
 describe('place', () => {
   it('stores Spanish provinces exactly as before', () => {
@@ -50,6 +50,11 @@ describe('place', () => {
     whereCity(q, 'Madrid');
     whereCity(q, 'pais:ZZ');
     expect(calls).toEqual(['like city %, Argentina', 'eq city Madrid']);
+  });
+
+  it('names a whole-country filter by the country', () => {
+    expect(placeLabel('pais:AR')).toBe('Argentina');
+    expect(placeLabel('Madrid')).toBe('Madrid');
   });
 
   it('offers all of Spain first and each country as a group', () => {

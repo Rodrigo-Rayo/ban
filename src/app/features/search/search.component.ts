@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
-import { PLACE_FILTER_GROUPS, whereCity } from '../../core/utils/place';
+import { PLACE_FILTER_GROUPS, placeLabel, whereCity } from '../../core/utils/place';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { genrePattern } from '../../core/utils/genre-match';
 import { avatarColor, imageSrc } from '../../core/utils/display.utils';
@@ -77,6 +77,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   genres = GENRES;
   readonly placeGroups = PLACE_FILTER_GROUPS;
+  readonly placeLabel = placeLabel;
   instruments = INSTRUMENTS;
 
   tabs: { id: SearchType; label: string; icon: string }[] = [
@@ -224,7 +225,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     venues: 'Salas de conciertos',
   } as Record<SearchType, string>)[this.activeTab()]);
 
-  readonly cityScope = computed(() => this.selectedCity() !== 'Toda España' ? ' en ' + this.selectedCity() : '');
+  readonly cityScope = computed(() => this.selectedCity() !== 'Toda España' ? ' en ' + placeLabel(this.selectedCity()) : '');
   readonly hasGenreFilter = computed(() => !['rehearsal', 'events', 'teachers'].includes(this.activeTab()));
 
   /** Number of secondary filters applied (city, instrument, genre). */

@@ -12,7 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Post, PostType } from '../../core/models';
-import { PLACE_FILTER_GROUPS, isKnownPlace, whereCity } from '../../core/utils/place';
+import { PLACE_FILTER_GROUPS, isKnownPlace, placeLabel, whereCity } from '../../core/utils/place';
 
 const ALL_SPAIN = 'Toda España';
 
@@ -150,6 +150,7 @@ export class FeedComponent implements OnInit {
   };
 
   readonly placeGroups = PLACE_FILTER_GROUPS;
+  readonly placeLabel = placeLabel;
   readonly instruments = INSTRUMENTS;
   readonly genres = GENRES;
 
@@ -371,7 +372,7 @@ export class FeedComponent implements OnInit {
     if (!this.showVacancies()) { this.vacancies.set([]); return; }
     try {
       const rows = await this.vacanciesSvc.listOpen({
-        city: this.filterCity() !== 'Toda España' ? this.filterCity() : null,
+        city: this.filterCity(),
         instrument: this.filterInstrument() || null,
         since: this.listSince,
         limit: VACANCY_LIMIT,

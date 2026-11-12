@@ -246,7 +246,7 @@
       @if (items().length === 0) {
         @if (onlyCityFilter()) {
           <div class="empty-state">
-            <p class="font-display text-2xl uppercase text-ink">Nada en {{ filterCity() }} todavía</p>
+            <p class="font-display text-2xl uppercase text-ink">Nada en {{ placeLabel(filterCity()) }} todavía</p>
             <p class="text-sm text-ink-muted mb-3 max-w-[280px]">Mira lo que se busca en el resto de España o publica el primer anuncio de tu provincia.</p>
             <button (click)="showAllSpain()" class="btn-secondary text-sm min-h-[44px]">Ver toda España</button>
           </div>

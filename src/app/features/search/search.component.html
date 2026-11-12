@@ -88,8 +88,8 @@
           @if (selectedCity() !== 'Toda España') {
             <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()"
               class="tag min-h-[44px] px-3 gap-1.5 hover:bg-ink hover:text-poster-paper transition-colors"
-              aria-label="Quitar filtro de provincia: {{ selectedCity() }}">
-              {{ selectedCity() }} <span aria-hidden="true">×</span>
+              aria-label="Quitar filtro de provincia: {{ placeLabel(selectedCity()) }}">
+              {{ placeLabel(selectedCity()) }} <span aria-hidden="true">×</span>
             </button>
           }
           @if (selectedInstrument()) {

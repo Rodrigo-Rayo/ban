@@ -64,6 +64,11 @@ export const PLACE_FILTER_GROUPS: readonly PlaceGroup[] = [
   { label: 'Resto del mundo', options: [{ value: OTHER_VALUE, label: 'Otro país' }] },
 ];
 
+/** A filter value as people read it: "pais:AR" is "Argentina"; anything else is already a name. */
+export function placeLabel(value: string): string {
+  return value.startsWith('pais:') ? BY_CODE.get(value.slice(5))?.name ?? value : value;
+}
+
 interface CityQuery<Q> { eq(column: string, value: string): Q; like(column: string, pattern: string): Q }
 
 /** Narrows a Supabase query to a filter value: nothing, a whole country or one place. */

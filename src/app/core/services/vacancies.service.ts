@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { genrePattern } from '../utils/genre-match';
+import { whereCity } from '../utils/place';
 
 /** Band data shown next to a vacancy. */
 export interface VacancyBand {
@@ -54,7 +55,7 @@ export class VacanciesService {
     // Bands first: only vacancies of existing bands are listed, so orphans (no FK
     // cascade yet) never fill a page, and pagination stays exact.
     let bandsQ = db.from('bands').select(BAND_COLS);
-    if (city) bandsQ = bandsQ.eq('city', city);
+    if (city) bandsQ = whereCity(bandsQ, city);
     const { data: bands, error: bandsErr } = await bandsQ.limit(MAX_BANDS);
     if (bandsErr) throw bandsErr;
     const byId = new Map((bands || []).map((b: VacancyBand) => [b.id, b]));
