@@ -17,12 +17,14 @@ test.describe('Search page', () => {
     ).toBeGreaterThan(0);
   });
 
-  test('filter by city works', async ({ page }) => {
-    const citySelect = page.locator('select').first();
-    await citySelect.selectOption({ label: 'Barcelona' });
-    await page.waitForTimeout(500);
-    // Page should still be functional (no crash)
-    await expect(page.locator('body')).toBeVisible();
+  test('filter by city works by typing it', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 900 });
+    const city = page.getByRole('combobox', { name: 'Filtrar por provincia o país' });
+    await city.click();
+    await city.pressSequentially('barce');
+    await page.getByRole('option', { name: 'Barcelona', exact: true }).click();
+    await expect(page).toHaveURL(/city=Barcelona/);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/barcelona/i);
   });
 });
 

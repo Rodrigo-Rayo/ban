@@ -55,13 +55,13 @@ test.describe('Search', () => {
     await expect(input).toHaveValue('guitarra rock');
   });
 
-  test('city filter shows its selected option (ngModel inside form)', async ({ page }) => {
+  test('city filter shows its selected place (ngModel inside form)', async ({ page }) => {
     const errors: string[] = [];
     page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-    await page.goto('/search');
-    const city = page.locator('select[name="city"]');
-    await expect(city).toBeVisible();
-    expect(await city.evaluate((s: HTMLSelectElement) => s.selectedOptions[0]?.textContent?.trim())).toBeTruthy();
+    await page.setViewportSize({ width: 1366, height: 900 });
+    await page.goto('/search?tab=musicians&city=pais:AR');
+    const city = page.getByRole('combobox', { name: 'Filtrar por provincia o país' });
+    await expect(city).toHaveValue('Todo Argentina');
     expect(errors.filter(e => e.includes('NG01352'))).toEqual([]);
   });
 });
