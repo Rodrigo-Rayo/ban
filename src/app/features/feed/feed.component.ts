@@ -546,6 +546,7 @@ export class FeedComponent implements OnInit {
   canPublish(): boolean {
     const text = this.newPost.text.trim();
     if (!text || text.length > this.MAX_POST_LENGTH) return false;
+    if (!this.newPost.city) return false;
     if (this.isGigPost() && !isValidGigDate(this.newPost.gigDate)) return false;
     if (!this.postTitleAvailable()) return true;
     const title = this.newPost.title.trim();

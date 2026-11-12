@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { QuedadaCycle, cycleKey, eligibleDates, openCycle } from '../../core/utils/quedada-cycle';
 import { demoData, DemoState, DEMO_STATES } from './quedada-demo';
 import { ProfileGateService, PROFILE_REQUIRED_MESSAGE } from '../../core/services/profile-gate.service';
+import { isSpanishProvince } from '../../core/utils/place';
 
 export interface QuedadaEvent {
   id: string; user_id: string; title: string; venue: string | null; city: string;
@@ -114,7 +115,7 @@ export class QuedadaService {
       const [from, to] = eligibleDates(openCycle(this.now()));
       const { data } = await this.supabase.client.from('events').select(await this.eventCols())
         .eq('user_id', userId).gte('date', from).lte('date', to).order('date');
-      const rows = ((data ?? []) as unknown as Row[]).filter(e => e['city'] && e['city'] !== 'Otra');
+      const rows = ((data ?? []) as unknown as Row[]).filter(e => isSpanishProvince(e['city'] as string));
       return this.withOwnerNames(rows);
     } catch { return []; }
   }

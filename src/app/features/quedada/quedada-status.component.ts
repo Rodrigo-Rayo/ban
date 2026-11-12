@@ -8,6 +8,7 @@ import {
 } from '../../core/utils/quedada-cycle';
 import { dateParts } from '../../core/utils/date';
 import { imageSrc } from '../../core/utils/display.utils';
+import { isSpanishProvince } from '../../core/utils/place';
 
 export type QuedadaPhase = 'signup' | 'winner';
 
@@ -23,6 +24,9 @@ const GIG_LENGTH_MS = 4 * 3_600_000;
 
 /** Provinces where nobody can take part (no real province chosen). */
 export const NO_PROVINCE = ['', 'Otra', 'Toda España'];
+
+/** La quedada draws a gig per Spanish province: anything else (another country) has none. */
+export const hasQuedadaProvince = (city: string | null | undefined): boolean => isSpanishProvince(city);
 
 /**
  * "La quedada de BandYou" status block: sign-up with a countdown to the draw, or

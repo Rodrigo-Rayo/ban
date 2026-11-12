@@ -80,7 +80,8 @@ export class PostAlertsComponent {
 
   /** The alert the current filters would create. */
   readonly current = computed(() => ({
-    city: this.city() && this.city() !== ALL_SPAIN ? this.city() : null,
+    // Alerts match one exact place; a whole-country filter ("pais:EC") is not one.
+    city: this.city() && this.city() !== ALL_SPAIN && !this.city().startsWith('pais:') ? this.city() : null,
     instrument: this.instrument() || null,
   }));
   readonly currentAlert = computed(() => {

@@ -6,7 +6,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { CITIES } from '../../core/constants/cities';
 import { QuedadaEvent, QuedadaService } from './quedada.service';
-import { NO_PROVINCE, QuedadaSnapshot, QuedadaStatusComponent } from './quedada-status.component';
+import { NO_PROVINCE, QuedadaSnapshot, QuedadaStatusComponent, hasQuedadaProvince } from './quedada-status.component';
 import { QuedadaSocialComponent } from './quedada-social.component';
 import { drawLabel, eligibleDates, monthName, openCycle } from '../../core/utils/quedada-cycle';
 import { dateParts } from '../../core/utils/date';
@@ -176,7 +176,7 @@ export class QuedadaPageComponent {
     // The profile's province once it is known, unless the visitor already picked one.
     effect(() => {
       const city = this.auth.userProfileData()?.city;
-      if (city && !NO_PROVINCE.includes(city) && !this.pickedByHand) this.province.set(city);
+      if (hasQuedadaProvince(city) && !this.pickedByHand) this.province.set(city!);
     });
     effect(() => {
       const uid = this.auth.user()?.id ?? (this.svc.demoState ? 'demo-me' : null);
@@ -237,5 +237,8 @@ export class QuedadaPageComponent {
 }
 
 function initialProvince(): string {
-  try { return localStorage.getItem('bandyou_city') || 'Madrid'; } catch { return 'Madrid'; }
+  try {
+    const saved = localStorage.getItem('bandyou_city');
+    return hasQuedadaProvince(saved) ? saved! : 'Madrid';
+  } catch { return 'Madrid'; }
 }
