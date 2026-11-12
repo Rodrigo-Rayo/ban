@@ -1,5 +1,5 @@
 import { COUNTRIES } from '../constants/regions';
-import { ALL_PLACES, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, exactPlace, placeLabel, placeOption, placeValue, searchPlaces, whereCity } from './place';
+import { ALL_PLACES, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, exactPlace, matchParts, placeLabel, placeOption, placeValue, searchPlaces, whereCity } from './place';
 
 describe('place', () => {
   it('stores Spanish provinces exactly as before', () => {
@@ -83,6 +83,13 @@ describe('place', () => {
     expect(exactPlace('cordoba, argentina')?.value).toBe('Córdoba, Argentina');
     expect(exactPlace('cor')).toBeUndefined();
     expect(exactPlace('')).toBeUndefined();
+  });
+
+  it('splits a name around what was typed, ignoring accents', () => {
+    expect(matchParts('Córdoba', 'cor')).toEqual(['', 'Cór', 'doba']);
+    expect(matchParts('A Coruña', 'coru')).toEqual(['A ', 'Coru', 'ña']);
+    expect(matchParts('Madrid', 'xyz')).toEqual(['Madrid', '', '']);
+    expect(matchParts('Madrid', '')).toEqual(['Madrid', '', '']);
   });
 
   it('caps the number of matches', () => {

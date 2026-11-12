@@ -116,11 +116,11 @@
                 <p id="gear-price-error" class="text-xs font-bold text-signal-red mt-1.5">Introduce un precio válido (mín. 1 €).</p>
               }
             </div>
-            <div>
-              <label for="gear-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia</label>
-              <select id="gear-city" name="city" [(ngModel)]="form.city" class="input-field">
-                @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
-              </select>
+            <div class="sm:col-span-2">
+              <app-place-picker inputId="gear-city" name="city" [(ngModel)]="form.city"/>
+              @if (cityInvalid) {
+                <p class="text-xs font-bold text-signal-red mt-1.5">Elige dónde está el artículo.</p>
+              }
             </div>
           </div>
 

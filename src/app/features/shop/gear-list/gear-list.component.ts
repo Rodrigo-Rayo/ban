@@ -5,7 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SeoService } from '../../../core/services/seo.service';
-import { CITIES_WITH_ALL } from '../../../core/constants/cities';
+import { ALL_PLACES, PLACE_FILTER_GROUPS, whereCity } from '../../../core/utils/place';
+import { PlaceFilterComponent } from '../../../shared/components/place-filter/place-filter.component';
 import { GEAR_CONDITIONS, gearConditionValues } from '../../../core/constants/gear';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { GearCardComponent } from '../gear-card/gear-card.component';
@@ -30,7 +31,7 @@ export interface GearListing {
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-gear-list',
-    imports: [RouterLink, CommonModule, FormsModule, IconComponent, GearCardComponent],
+    imports: [RouterLink, CommonModule, FormsModule, IconComponent, GearCardComponent, PlaceFilterComponent],
     templateUrl: './gear-list.component.html'
 })
 export class GearListComponent implements OnInit {
@@ -52,13 +53,12 @@ export class GearListComponent implements OnInit {
 
   readonly categories = ['Guitarras', 'Bajos', 'Batería', 'Teclados', 'Amplificadores', 'Efectos', 'PA/Sonido', 'Accesorios', 'Otro'];
   readonly conditions = GEAR_CONDITIONS;
-  readonly cities = CITIES_WITH_ALL;
 
   async ngOnInit() {
     this.seo.set({ title: 'Tienda', description: 'Compra y vende instrumentos, amplificadores y equipamiento musical de segunda mano entre músicos en España.' });
     const qp = this.route.snapshot.queryParamMap;
     const city = qp.get('ciudad');
-    if (city && this.cities.includes(city)) this.filterCity.set(city);
+    if (city && PLACE_FILTER_GROUPS.some(g => g.options.some(o => o.value === city))) this.filterCity.set(city);
     const cat = qp.get('categoria');
     if (cat && this.categories.includes(cat)) this.filterCategory.set(cat);
     const cond = qp.get('estado');
@@ -73,7 +73,7 @@ export class GearListComponent implements OnInit {
   /** Filters live in the URL (?ciudad=&categoria=&estado=) so the view can be shared and survives reload. */
   async applyFilters() {
     const queryParams = {
-      ciudad: this.filterCity() !== 'Toda España' ? this.filterCity() : null,
+      ciudad: this.filterCity() !== ALL_PLACES ? this.filterCity() : null,
       categoria: this.filterCategory() || null,
       estado: this.filterCondition() || null,
     };
@@ -87,7 +87,7 @@ export class GearListComponent implements OnInit {
     try {
       let q = this.supabase.client.from('gear_listings').select(this.LISTING_COLS).eq('status', 'active');
       if (this.filterCategory()) q = q.eq('category', this.filterCategory());
-      if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+      q = whereCity(q, this.filterCity());
       if (this.filterCondition()) q = q.in('condition', gearConditionValues(this.filterCondition()));
       const { data, error } = await q.order('created_at', { ascending: false }).limit(this.PAGE_SIZE);
       if (error) { this.loadError.set(true); }
@@ -111,7 +111,7 @@ export class GearListComponent implements OnInit {
         .eq('status', 'active')
         .lt('created_at', last?.created_at ?? new Date().toISOString());
       if (this.filterCategory()) q = q.eq('category', this.filterCategory());
-      if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+      q = whereCity(q, this.filterCity());
       if (this.filterCondition()) q = q.in('condition', gearConditionValues(this.filterCondition()));
       const { data } = await q.order('created_at', { ascending: false }).limit(this.PAGE_SIZE);
       this.listings.update(l => [...l, ...(data || []) as GearListing[]]);
@@ -122,12 +122,12 @@ export class GearListComponent implements OnInit {
   }
 
   hasFilters() {
-    return this.filterCategory() || this.filterCity() !== 'Toda España' || this.filterCondition();
+    return this.filterCategory() || this.filterCity() !== ALL_PLACES || this.filterCondition();
   }
 
   async clearFilters() {
     this.filterCategory.set('');
-    this.filterCity.set('Toda España');
+    this.filterCity.set(ALL_PLACES);
     this.filterCondition.set('');
     await this.applyFilters();
   }

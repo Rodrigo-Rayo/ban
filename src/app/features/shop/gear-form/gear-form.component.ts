@@ -8,14 +8,23 @@ import type { User } from '@supabase/supabase-js';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { CITIES } from '../../../core/constants/cities';
+import { isKnownPlace } from '../../../core/utils/place';
+import { PlacePickerComponent } from '../../../shared/components/place-picker/place-picker.component';
 import { GEAR_CONDITIONS, GEAR_CONDITION_FORM_OPTIONS } from '../../../core/constants/gear';
+
+/** The seller's own province or region (kept by AuthService), so a new listing starts there. */
+function ownPlace(): string {
+  try {
+    const city = localStorage.getItem('bandyou_city') ?? '';
+    return isKnownPlace(city) ? city : '';
+  } catch { return ''; }
+}
 
 interface GearFormUserProfile { id: string; name: string; type: 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal'; }
 
 @Component({
     selector: 'app-gear-form',
-    imports: [FormsModule, RouterLink],
+    imports: [FormsModule, RouterLink, PlacePickerComponent],
     templateUrl: './gear-form.component.html'
 })
 export class GearFormComponent implements OnInit, OnDestroy {
@@ -41,7 +50,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
     price: null as number | null,
     category: 'Guitarras',
     condition: 'good',
-    city: 'Madrid',
+    city: ownPlace() || 'Madrid',
   };
 
   currentUser = signal<User | null>(null);
@@ -55,7 +64,6 @@ export class GearFormComponent implements OnInit, OnDestroy {
   get conditions(): { id: string; label: string }[] {
     return this.legacyCondition ? [...GEAR_CONDITION_FORM_OPTIONS, this.legacyCondition] : [...GEAR_CONDITION_FORM_OPTIONS];
   }
-  readonly cities = CITIES;
 
   async ngOnInit() {
     try {
@@ -156,7 +164,11 @@ export class GearFormComponent implements OnInit, OnDestroy {
   }
 
   get canSubmit() {
-    return this.form.title.trim() && this.form.price != null && this.form.price > 0;
+    return this.form.title.trim() && this.form.price != null && this.form.price > 0 && !!this.form.city;
+  }
+
+  get cityInvalid(): boolean {
+    return this.formTouched() && !this.form.city;
   }
 
   get titleInvalid(): boolean {
@@ -171,7 +183,7 @@ export class GearFormComponent implements OnInit, OnDestroy {
     this.formTouched.set(true);
     if (!this.canSubmit) {
       // Move focus to the first field that needs fixing (WCAG 3.3.1).
-      const firstId = !this.form.title.trim() ? 'gear-title' : 'gear-price';
+      const firstId = !this.form.title.trim() ? 'gear-title' : !this.form.price || this.form.price <= 0 ? 'gear-price' : 'gear-city';
       this.host.nativeElement.querySelector<HTMLElement>('#' + firstId)?.focus();
       return;
     }

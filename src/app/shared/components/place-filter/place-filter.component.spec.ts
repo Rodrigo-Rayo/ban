@@ -101,6 +101,34 @@ describe('PlaceFilterComponent', () => {
     expect(host.city()).toBe('Toda España');
   });
 
+  it('offers your own zone right after all of Spain', async () => {
+    localStorage.setItem('bandyou_city', 'Pichincha, Ecuador');
+    try {
+      const { box, update, options } = await render();
+      box.dispatchEvent(new Event('focus'));
+      update();
+      expect(options().slice(0, 2)).toEqual(['Toda España', 'Pichincha, Ecuador Tu zona']);
+    } finally {
+      localStorage.removeItem('bandyou_city');
+    }
+  });
+
+  it('clears the place with one tap', async () => {
+    const { host, el, update, box } = await render('Madrid');
+    const clear = el.querySelector<HTMLButtonElement>('button[aria-label="Quitar filtro: Madrid"]')!;
+    clear.click();
+    update();
+    expect(host.city()).toBe('Toda España');
+    expect(box.value).toBe('');
+    expect(el.querySelector('button')).toBeNull();
+  });
+
+  it('marks the letters that match', async () => {
+    const { el, type } = await render();
+    type('sevi');
+    expect(el.querySelector('[role="option"] mark')?.textContent).toBe('Sevi');
+  });
+
   it('is a combobox tied to its list', async () => {
     const { box, update, el } = await render();
     expect(box.getAttribute('role')).toBe('combobox');

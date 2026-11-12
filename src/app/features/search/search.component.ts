@@ -53,7 +53,6 @@ export class SearchComponent implements OnInit, OnDestroy {
   readonly canFilterGigs = this.features.state('bandAvailability');
   /** Applied only when the column exists: a stale ?bolos=1 must not claim to filter. */
   readonly gigsFilterOn = computed(() => this.gigsOnly() && this.canFilterGigs());
-  userCity = signal('');
 
   loading = signal(false);
   loadingMore = signal(false);
@@ -112,14 +111,6 @@ export class SearchComponent implements OnInit, OnDestroy {
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.isLoggedIn.set(!!user);
-
-    // Cache user's city for default filtering
-    if (user) {
-      try {
-        const cached = localStorage.getItem('bandyou_city');
-        if (cached) this.userCity.set(cached);
-      } catch {}
-    }
 
     const tabTitles: Record<SearchType, string> = {
       musicians: 'Músicos en España: encuentra músico para tu banda',
@@ -228,9 +219,12 @@ export class SearchComponent implements OnInit, OnDestroy {
   readonly cityScope = computed(() => this.selectedCity() !== 'Toda España' ? ' en ' + placeLabel(this.selectedCity()) : '');
   readonly hasGenreFilter = computed(() => !['rehearsal', 'events', 'teachers'].includes(this.activeTab()));
 
-  /** Number of secondary filters applied (city, instrument, genre). */
+  /** Whether this tab has filters besides place (instrument, genre, gigs) to fold away on mobile. */
+  readonly hasSecondaryFilters = computed(() =>
+    this.hasInstrumentFilter() || this.hasGenreFilter() || (this.activeTab() === 'bands' && this.canFilterGigs()));
+
+  /** Number of folded-away filters applied (instrument, genre, gigs); place is always visible. */
   readonly activeFilterCount = computed(() =>
-    (this.selectedCity() !== 'Toda España' ? 1 : 0) +
     (this.selectedInstrument() ? 1 : 0) +
     (this.selectedGenre() ? 1 : 0) +
     (this.gigsFilterOn() ? 1 : 0)
@@ -460,7 +454,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   clearFilters() {
     this.selectedGenre.set('');
-    this.selectedCity.set(this.userCity() || 'Toda España');
+    this.selectedCity.set('Toda España');
     this.searchQuery.set('');
     this.selectedInstrument.set('');
     this.gigsOnly.set(false);

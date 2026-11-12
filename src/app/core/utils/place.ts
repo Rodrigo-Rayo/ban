@@ -83,6 +83,17 @@ export function placeOption(value: string): PlaceMatch | undefined {
   return o && { value: o.value, label: o.label, group: o.group };
 }
 
+/**
+ * Splits a name around the first stretch matching what was typed, ignoring accents and case:
+ * ("Córdoba", "cor") → ["", "Cór", "doba"]. No match → [name, "", ""].
+ */
+export function matchParts(label: string, query: string): [string, string, string] {
+  const q = fold(query.trim());
+  // One folded character per original one, as long as names come precomposed (NFC).
+  const at = q && label.length === fold(label).length ? fold(label).indexOf(q) : -1;
+  return at < 0 ? [label, '', ''] : [label.slice(0, at), label.slice(at, at + q.length), label.slice(at + q.length)];
+}
+
 /** The option whose name is exactly what someone typed ("malaga", "córdoba, argentina"); Spain wins ties. */
 export function exactPlace(text: string): PlaceMatch | undefined {
   const q = fold(text.trim());
