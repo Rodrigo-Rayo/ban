@@ -41,7 +41,7 @@ function display(value: string): string {
       [value]="text()" (input)="onInput($any($event.target).value)"
       (focus)="onFocus($any($event.target))" (click)="open.set(true)" (blur)="onBlur()" (keydown)="onKey($event)" />
     @if (value() !== all && !open()) {
-      <button type="button" (click)="clear()" [attr.aria-label]="'Quitar filtro: ' + text()"
+      <button type="button" (click)="clear($event)" [attr.aria-label]="'Quitar filtro: ' + text()"
         class="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors">
         <svg aria-hidden="true" viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 18 18 6M6 6l12 12"/></svg>
       </button>
@@ -83,13 +83,17 @@ export class PlaceFilterComponent implements ControlValueAccessor {
   private readonly typed = signal(false);
 
   readonly all = ALL_PLACES;
-  private readonly home = homePlace();
+  /** Re-read on every focus: the profile may load (or the person log out) after this box appears. */
+  private readonly home = signal(homePlace());
+  private skipOpen = false;
 
   /** Before typing: all of Spain, the person's own zone, then every suggestion. */
   readonly results = computed<readonly Row[]>(() => {
     if (this.typed() && this.text().trim()) return searchPlaces(this.text());
-    const home = this.home && placeOption(this.home);
-    return home ? [SUGGESTIONS[0], { ...home, label: display(home.value), hint: 'Tu zona' }, ...SUGGESTIONS.slice(1)] : SUGGESTIONS;
+    const home = this.home() && placeOption(this.home());
+    if (!home) return SUGGESTIONS;
+    const rest = SUGGESTIONS.slice(1).filter(o => o.value !== home.value);
+    return [SUGGESTIONS[0], { ...home, label: display(home.value), hint: 'Tu zona' }, ...rest];
   });
 
   /** The typed letters stand out in each match. */
@@ -110,10 +114,9 @@ export class PlaceFilterComponent implements ControlValueAccessor {
 
   onFocus(el: HTMLInputElement) {
     el.select();
-    // On phones, lift the box to the top so the keyboard doesn't cover the list.
-    if (typeof matchMedia === 'function' && matchMedia('(max-width: 1023px)').matches) {
-      this.host.nativeElement.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }
+    if (this.skipOpen) { this.skipOpen = false; return; }
+    this.home.set(homePlace());
+    this.liftAboveKeyboard();
     this.typed.set(false);
     this.active.set(Math.max(0, this.results().findIndex(o => o.value === this.value())));
     this.open.set(true);
@@ -156,9 +159,23 @@ export class PlaceFilterComponent implements ControlValueAccessor {
     }
   }
 
-  clear() {
+  clear(e?: MouseEvent) {
     this.commit(ALL_PLACES);
     this.onTouched();
+    // From the keyboard (no pointer, detail 0) keep focus in the box instead of dropping it to the page.
+    if (e?.detail === 0) {
+      this.skipOpen = true;
+      setTimeout(() => this.host.nativeElement.querySelector('input')?.focus());
+    }
+  }
+
+  /** On phones, once the keyboard is up, lift the box to the top if the list would end up under it. */
+  private liftAboveKeyboard() {
+    if (typeof matchMedia !== 'function' || !matchMedia('(max-width: 1023px)').matches) return;
+    setTimeout(() => {
+      const el = this.host.nativeElement;
+      if (el.getBoundingClientRect().top > 160) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }, 300);
   }
 
   pick(o: PlaceMatch) {

@@ -205,17 +205,17 @@ export class SearchComponent implements OnInit, OnDestroy {
     return tab === 'musicians' || tab === 'teachers';
   });
 
-  /** " en Madrid" when a city is selected, nothing for "Toda España" (used in titles and empty states). */
   /** Page kicker: what the active category is about. */
   readonly tabKicker = computed(() => ({
     musicians: 'Gente que toca cerca de ti',
-    bands: 'Bandas de toda España',
+    bands: 'Bandas que buscan gente',
     rehearsal: 'Locales de ensayo',
     teachers: 'Clases de música',
     events: 'Conciertos, jams y festivales',
     venues: 'Salas de conciertos',
   } as Record<SearchType, string>)[this.activeTab()]);
 
+  /** " en Madrid" when a city is selected, nothing for "Toda España" (used in titles and empty states). */
   readonly cityScope = computed(() => this.selectedCity() !== 'Toda España' ? ' en ' + placeLabel(this.selectedCity()) : '');
   readonly hasGenreFilter = computed(() => !['rehearsal', 'events', 'teachers'].includes(this.activeTab()));
 
