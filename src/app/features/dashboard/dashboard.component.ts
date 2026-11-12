@@ -7,7 +7,6 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { SeoService } from '../../core/services/seo.service';
-import { CITIES } from '../../core/constants/cities';
 import { timeAgo, imageSrc } from '../../core/utils/display.utils';
 import { dateParts, formatTime } from '../../core/utils/date';
 import { askLabel as askLabelFor, askStampClass as askStampClassFor } from '../../core/utils/se-busca';
@@ -18,6 +17,7 @@ import { MediaFeaturesService } from '../../core/services/media-features.service
 import { WebBadgeComponent } from '../../shared/components/web-badge/web-badge.component';
 import { EmailPrefsComponent } from './email-prefs/email-prefs.component';
 import { MediaUploadService, MEDIA_ACCEPT, mediaPickError } from '../../core/services/media-upload.service';
+import { PlacePickerComponent } from '../../shared/components/place-picker/place-picker.component';
 
 interface DashboardProfile {
   id?: string;
@@ -58,7 +58,7 @@ export function postNudgeHiddenNow(now = Date.now()): boolean {
 
 @Component({
     selector: 'app-dashboard',
-    imports: [RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent, SpaceGalleryComponent, EmailPrefsComponent, WebBadgeComponent],
+    imports: [PlacePickerComponent, RouterLink, DecimalPipe, FormsModule, AvatarUploadComponent, SpaceGalleryComponent, EmailPrefsComponent, WebBadgeComponent],
     templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
@@ -116,7 +116,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly editPosterShown = computed(() =>
     this.editPosterPreview() ?? (this.editPosterRemoved() ? null : this.editPosterCurrent()));
   readonly genres = ['Rock', 'Jazz', 'Flamenco', 'Electrónica', 'Pop', 'Metal', 'Indie', 'Blues', 'Folk', 'Otro'];
-  readonly cities = CITIES;
 
   async ngOnInit() {
     this.seo.set({ title: 'Mi panel' });

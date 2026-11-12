@@ -320,12 +320,7 @@
         <p class="text-[15px] text-ink-muted mb-8 leading-relaxed">La provincia y datos de contacto.</p>
 
         <div class="flex flex-col gap-4 mb-6">
-          <div>
-            <label for="onb-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia <span aria-hidden="true">*</span></label>
-            <select id="onb-city" formControlName="city" class="input-field" required autocomplete="address-level2">
-              @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
-            </select>
-          </div>
+          <app-place-picker inputId="onb-city" formControlName="city"/>
           @if (role() === 'venue' || role() === 'rehearsal') {
             <div class="grid sm:grid-cols-2 gap-4">
 <div>
@@ -594,12 +589,7 @@
         <p class="text-[15px] text-ink-muted mb-8 leading-relaxed">Tu provincia y datos de contacto para completar el perfil.</p>
 
         <div class="flex flex-col gap-4 mb-6">
-          <div>
-            <label for="onb-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia <span aria-hidden="true">*</span></label>
-            <select id="onb-city" formControlName="city" class="input-field" required autocomplete="address-level2">
-              @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
-            </select>
-          </div>
+          <app-place-picker inputId="onb-city" formControlName="city"/>
           @if (role() === 'teacher') {
             <div class="grid sm:grid-cols-2 gap-4">
 <div>

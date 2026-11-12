@@ -4,16 +4,16 @@ import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { CITIES } from '../../../core/constants/cities';
 import { INSTRUMENTS } from '../../../core/constants/music.constants';
 import { findOwnProfile } from '../../../core/utils/profile-check';
 import { OneProfileNoticeComponent } from '../../../shared/components/one-profile-notice/one-profile-notice.component';
 import { ProfilePhotosComponent } from '../../../shared/components/profile-photos/profile-photos.component';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
+import { PlacePickerComponent } from '../../../shared/components/place-picker/place-picker.component';
 
 @Component({
     selector: 'app-teacher-form',
-    imports: [ReactiveFormsModule, RouterLink, ProfilePhotosComponent, OneProfileNoticeComponent],
+    imports: [PlacePickerComponent, ReactiveFormsModule, RouterLink, ProfilePhotosComponent, OneProfileNoticeComponent],
     templateUrl: './teacher-form.component.html'
 })
 export class TeacherFormComponent implements OnInit {
@@ -58,7 +58,6 @@ export class TeacherFormComponent implements OnInit {
     { id: 'online', label: 'Online' },
     { id: 'ambas', label: 'Presencial y online' },
   ];
-  readonly cities = CITIES;
 
   form = this.fb.group({
     name:             ['', [Validators.required, Validators.minLength(2)]],

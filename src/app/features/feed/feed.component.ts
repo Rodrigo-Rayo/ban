@@ -12,7 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Post, PostType } from '../../core/models';
-import { CITIES, CITIES_WITH_ALL } from '../../core/constants/cities';
+import { PLACE_FILTER_GROUPS, isKnownPlace, whereCity } from '../../core/utils/place';
 
 const ALL_SPAIN = 'Toda España';
 
@@ -21,7 +21,7 @@ const ALL_SPAIN = 'Toda España';
  * user picked on the home (localStorage). Unknown values fall back to all of Spain.
  */
 export function preferredFeedCity(profileCity: string | null | undefined, cachedCity: string | null | undefined): string | null {
-  const known = (c: string | null | undefined) => !!c && c !== 'Otra' && (CITIES as readonly string[]).includes(c);
+  const known = (c: string | null | undefined) => isKnownPlace(c);
   if (known(profileCity)) return profileCity!;
   if (known(cachedCity)) return cachedCity!;
   return null;
@@ -35,6 +35,7 @@ import { timeAgo } from '../../core/utils/display.utils';
 import { addDaysISO, askLabel, askStampClass, gigLabel, GIG_MAX_DAYS_AHEAD, isValidGigDate, POST_TYPE_OPTIONS, SE_BUSCA_MAX_DAYS, SE_BUSCA_PERIODS, sinceISO } from '../../core/utils/se-busca';
 import { localToday } from '../../core/utils/date';
 import { composeGuidedText, firstKnown, GuidedAnswers, GuidedGroup, GuidedOption, guidedGroups, suggestTitle, toggleAnswer } from '../../core/utils/guided-post';
+import { PlacePickerComponent } from '../../shared/components/place-picker/place-picker.component';
 
 export type SeBuscaSection = 'todo' | 'bandas' | 'musicos' | 'otros';
 
@@ -79,7 +80,7 @@ export function mergeSeBusca(posts: Post[], vacancies: OpenVacancy[], morePosts:
 
 @Component({
     selector: 'app-feed',
-    imports: [FormsModule, RouterLink, IconComponent, PostAlertsComponent, InstrumentIconComponent],
+    imports: [PlacePickerComponent, FormsModule, RouterLink, IconComponent, PostAlertsComponent, InstrumentIconComponent],
     templateUrl: './feed.component.html'
 })
 export class FeedComponent implements OnInit {
@@ -148,7 +149,7 @@ export class FeedComponent implements OnInit {
     gigDate: '',
   };
 
-  readonly cities = CITIES_WITH_ALL;
+  readonly placeGroups = PLACE_FILTER_GROUPS;
   readonly instruments = INSTRUMENTS;
   readonly genres = GENRES;
 
@@ -401,7 +402,7 @@ export class FeedComponent implements OnInit {
         .gte('created_at', this.listSince)
         .order('created_at', { ascending: false });
       if (await this.features.has('postGigDate')) q = q.or(`gig_date.is.null,gig_date.gte.${localToday()}`);
-      if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+      q = whereCity(q, this.filterCity());
       const types = this.sectionTypes();
       if (types) q = q.in('type', types);
       if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);
@@ -429,7 +430,7 @@ export class FeedComponent implements OnInit {
         .lt('created_at', last?.created_at ?? new Date().toISOString())
         .gte('created_at', this.listSince || sinceISO(this.filterDays()));
       if (await this.features.has('postGigDate')) q = q.or(`gig_date.is.null,gig_date.gte.${localToday()}`);
-      if (this.filterCity() !== 'Toda España') q = q.eq('city', this.filterCity());
+      q = whereCity(q, this.filterCity());
       const types = this.sectionTypes();
       if (types) q = q.in('type', types);
       if (this.filterInstrument()) q = q.ilike('instrument', `%${this.filterInstrument()}%`);

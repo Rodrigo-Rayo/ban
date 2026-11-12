@@ -40,15 +40,8 @@
                   <p id="event-venue-error" class="text-xs font-bold text-signal-red mt-1.5">El local es obligatorio.</p>
                 }
               </div>
-              <div>
-                <label for="event-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia <span class="text-signal-red" aria-hidden="true">*</span></label>
-                <select id="event-city" formControlName="city" class="input-field" required
-                  [attr.aria-invalid]="isInvalid('city')"
-                  [attr.aria-describedby]="isInvalid('city') ? 'event-city-error' : null">
-                  @for (city of cities; track city) {
-                    <option [value]="city">{{ city }}</option>
-                  }
-                </select>
+              <div class="sm:col-span-2">
+                <app-place-picker inputId="event-city" formControlName="city"/>
                 @if (form.get('city')?.invalid && form.get('city')?.touched) {
                   <p id="event-city-error" class="text-xs font-bold text-signal-red mt-1.5">La provincia es obligatoria.</p>
                 }

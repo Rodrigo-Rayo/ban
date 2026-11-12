@@ -147,10 +147,7 @@
                         <label for="edit-event-venue" class="sr-only">Local / Sala</label>
                         <input id="edit-event-venue" [(ngModel)]="editEventData.venue" placeholder="Local / Sala"
                           class="input-field text-sm"/>
-                        <label for="edit-event-city" class="sr-only">Provincia</label>
-                        <select id="edit-event-city" [(ngModel)]="editEventData.city" class="input-field text-sm">
-                          @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
-                        </select>
+                        <app-place-picker class="sm:col-span-2" inputId="edit-event-city" [(ngModel)]="editEventData.city"/>
                       </div>
                       <div class="grid grid-cols-2 gap-2">
                         <div>

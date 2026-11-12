@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
-import { CITIES_WITH_ALL } from '../../core/constants/cities';
+import { PLACE_FILTER_GROUPS, whereCity } from '../../core/utils/place';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { genrePattern } from '../../core/utils/genre-match';
 import { avatarColor, imageSrc } from '../../core/utils/display.utils';
@@ -76,7 +76,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
 
   genres = GENRES;
-  cities = CITIES_WITH_ALL;
+  readonly placeGroups = PLACE_FILTER_GROUPS;
   instruments = INSTRUMENTS;
 
   tabs: { id: SearchType; label: string; icon: string }[] = [
@@ -347,7 +347,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       const instrument = this.selectedInstrument();
       const query = this.searchQuery().trim();
       let q = this.supabase.client.from('musicians').select(SearchComponent.SEARCH_COLS.musicians).eq('gives_lessons', true);
-      if (city !== 'Toda España') q = q.eq('city', city);
+      q = whereCity(q, city);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
       if (query) q = q.ilike('name', `%${query}%`);
       const { data, error } = await q.order('created_at', { ascending: false }).range(0, this.LIMIT - 1);
@@ -375,7 +375,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'musicians') {
       const instrument = this.selectedInstrument();
       let q = this.supabase.client.from('musicians').select(SearchComponent.SEARCH_COLS.musicians);
-      if (city !== 'Toda España') q = q.eq('city', city);
+      q = whereCity(q, city);
       if (genre && genre !== 'Todos') q = q.filter('genre', 'imatch', genrePattern(genre));
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
       if (query) { q = q.ilike('name', `%${query}%`); }
@@ -389,7 +389,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       const cols: string = (await this.features.has('eventImage'))
         ? `${SearchComponent.SEARCH_COLS.events},image_url` : SearchComponent.SEARCH_COLS.events;
       let q = this.supabase.client.from('events').select(cols).gte('date', localToday());
-      if (city !== 'Toda España') q = q.eq('city', city);
+      q = whereCity(q, city);
       if (genre && genre !== 'Todos') q = q.eq('genre', genre);
       if (query) q = q.ilike('title', `%${query}%`);
       const { data, error } = await q.order('date', { ascending: true }).range(offset, offset + this.LIMIT - 1);
@@ -402,7 +402,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       const hasGigs = await this.features.has('bandAvailability');
       let q = this.supabase.client.from('bands').select(hasGigs ? `${SearchComponent.SEARCH_COLS.bands},open_to_gigs` : SearchComponent.SEARCH_COLS.bands);
       if (hasGigs && this.gigsOnly()) q = q.eq('open_to_gigs', true);
-      if (city !== 'Toda España') q = q.eq('city', city);
+      q = whereCity(q, city);
       if (genre && genre !== 'Todos') q = q.filter('genre', 'imatch', genrePattern(genre));
       if (query) q = q.ilike('name', `%${query}%`);
       const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
@@ -412,7 +412,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
     if (tab === 'venues') {
       let q = this.supabase.client.from('venues').select(SearchComponent.SEARCH_COLS.venues);
-      if (city !== 'Toda España') q = q.eq('city', city);
+      q = whereCity(q, city);
       if (genre && genre !== 'Todos') q = q.filter('genres', 'imatch', genrePattern(genre));
       if (query) q = q.ilike('name', `%${query}%`);
       const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
@@ -423,7 +423,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (tab === 'teachers') {
       const instrument = this.selectedInstrument();
       let q = this.supabase.client.from('teachers').select(SearchComponent.SEARCH_COLS.teachers);
-      if (city !== 'Toda España') q = q.eq('city', city);
+      q = whereCity(q, city);
       if (instrument) q = q.ilike('instrument', `%${instrument}%`);
       if (query) { q = q.ilike('name', `%${query}%`); }
       const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
@@ -433,7 +433,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
     if (tab === 'rehearsal') {
       let q = this.supabase.client.from('rehearsal_spaces').select(SearchComponent.SEARCH_COLS.rehearsal);
-      if (city !== 'Toda España') q = q.eq('city', city);
+      q = whereCity(q, city);
       if (query) q = q.ilike('name', `%${query}%`);
       const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + this.LIMIT - 1);
       if (error) throw error;

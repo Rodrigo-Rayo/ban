@@ -118,11 +118,8 @@
 
         <!-- Meta fields -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-          <div>
-            <label for="post-city" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Provincia</label>
-            <select id="post-city" [ngModel]="newPost.city" (ngModelChange)="setField('city', $event)" class="input-field min-h-[44px]">
-              @for (c of cities.slice(1); track c) { <option [value]="c">{{ c }}</option> }
-            </select>
+          <div class="sm:col-span-3">
+            <app-place-picker inputId="post-city" [ngModel]="newPost.city" (ngModelChange)="setField('city', $event)"/>
           </div>
           <div>
             <label for="post-instrument" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1.5">Instrumento <span class="text-ink-muted">(opcional)</span></label>
@@ -185,7 +182,7 @@
         <select [ngModel]="filterCity()" (ngModelChange)="filterCity.set($event); loadPosts()"
           class="input-field col-span-2 sm:col-auto sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"
           aria-label="Filtrar por provincia">
-          @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
+          @for (g of placeGroups; track g.label) { <optgroup [label]="g.label">@for (o of g.options; track o.value) { <option [value]="o.value">{{ o.label }}</option> }</optgroup> }
         </select>
         <select [ngModel]="filterInstrument()" (ngModelChange)="onInstrumentChange($event)"
           class="input-field sm:!w-auto !py-2 !px-3 text-base sm:text-xs min-h-[44px] min-w-0"

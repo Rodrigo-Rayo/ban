@@ -5,7 +5,6 @@ import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { optionalUrl } from '../../../core/utils/form-validators';
-import { CITIES } from '../../../core/constants/cities';
 import { GENRES } from '../../../core/constants/music.constants';
 import { localToday } from '../../../core/utils/date';
 import { MediaFeaturesService } from '../../../core/services/media-features.service';
@@ -13,6 +12,7 @@ import { MediaUploadService, MEDIA_ACCEPT, mediaPickError } from '../../../core/
 import { QuedadaService } from '../../quedada/quedada.service';
 import { NO_PROVINCE } from '../../quedada/quedada-status.component';
 import { drawLabel, eligibleDates, monthName, openCycle } from '../../../core/utils/quedada-cycle';
+import { PlacePickerComponent } from '../../../shared/components/place-picker/place-picker.component';
 
 export function futureDate(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
@@ -21,7 +21,7 @@ export function futureDate(control: AbstractControl): ValidationErrors | null {
 
 @Component({
     selector: 'app-event-form',
-    imports: [ReactiveFormsModule, RouterLink],
+    imports: [PlacePickerComponent, ReactiveFormsModule, RouterLink],
     templateUrl: './event-form.component.html'
 })
 export class EventFormComponent implements OnDestroy {
@@ -112,7 +112,6 @@ export class EventFormComponent implements OnDestroy {
   readonly today = localToday();
 
   genres = GENRES;
-  cities = CITIES;
 
   form = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(5)]],

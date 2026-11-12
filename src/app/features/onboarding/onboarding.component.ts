@@ -9,7 +9,6 @@ import { ConfirmService } from '../../core/services/confirm.service';
 import { SeoService } from '../../core/services/seo.service';
 import { RegistrationStateService } from '../../core/services/registration-state.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
-import { CITIES } from '../../core/constants/cities';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { optionalUrl, optionalPositiveNumber, optionalPlayableUrl } from '../../core/utils/form-validators';
 import { LEGAL_INFO } from '../legal/legal-info';
@@ -18,6 +17,7 @@ import { ProfilePhotosComponent } from '../../shared/components/profile-photos/p
 import { BandInvitesService } from '../../core/services/band-invites.service';
 import { MemberDraft, planMemberSave } from './band-members';
 import { BandInviteSheetComponent } from '../bands/band-invite-sheet/band-invite-sheet.component';
+import { PlacePickerComponent } from '../../shared/components/place-picker/place-picker.component';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
 
@@ -41,7 +41,7 @@ const ROLE_NAMES: Readonly<Record<string, string>> = {
 
 @Component({
     selector: 'app-onboarding',
-    imports: [ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink, ProfilePhotosComponent, BandInviteSheetComponent],
+    imports: [PlacePickerComponent, ReactiveFormsModule, FormsModule, CommonModule, IconComponent, RouterLink, ProfilePhotosComponent, BandInviteSheetComponent],
     templateUrl: './onboarding.component.html'
 })
 export class OnboardingComponent implements OnInit {
@@ -125,7 +125,6 @@ export class OnboardingComponent implements OnInit {
     { id: 'experto',      label: 'Experto',      desc: 'Sesionista / maestro' },
   ];
   readonly levelIds: readonly string[] = this.levels.map(l => l.id);
-  cities = CITIES;
 
   nameForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],

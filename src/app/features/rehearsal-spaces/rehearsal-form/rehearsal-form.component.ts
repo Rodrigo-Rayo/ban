@@ -3,15 +3,15 @@ import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { CITIES } from '../../../core/constants/cities';
 import { findOwnProfile } from '../../../core/utils/profile-check';
 import { OneProfileNoticeComponent } from '../../../shared/components/one-profile-notice/one-profile-notice.component';
 import { ProfilePhotosComponent } from '../../../shared/components/profile-photos/profile-photos.component';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
+import { PlacePickerComponent } from '../../../shared/components/place-picker/place-picker.component';
 
 @Component({
     selector: 'app-rehearsal-form',
-    imports: [ReactiveFormsModule, RouterLink, ProfilePhotosComponent, OneProfileNoticeComponent],
+    imports: [PlacePickerComponent, ReactiveFormsModule, RouterLink, ProfilePhotosComponent, OneProfileNoticeComponent],
     templateUrl: './rehearsal-form.component.html'
 })
 export class RehearsalFormComponent implements OnInit {
@@ -39,7 +39,6 @@ export class RehearsalFormComponent implements OnInit {
   /** True when the existing profile could not be loaded — saving would overwrite it with blanks. */
   loadFailed = signal(false);
 
-  readonly cities = CITIES;
 
   form = this.fb.group({
     name:          ['', [Validators.required, Validators.minLength(2)]],

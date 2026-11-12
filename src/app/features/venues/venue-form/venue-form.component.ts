@@ -3,16 +3,16 @@ import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { CITIES } from '../../../core/constants/cities';
 import { GENRES } from '../../../core/constants/music.constants';
 import { findOwnProfile } from '../../../core/utils/profile-check';
 import { OneProfileNoticeComponent } from '../../../shared/components/one-profile-notice/one-profile-notice.component';
 import { ProfilePhotosComponent } from '../../../shared/components/profile-photos/profile-photos.component';
 import { optionalUrl, optionalPositiveNumber } from '../../../core/utils/form-validators';
+import { PlacePickerComponent } from '../../../shared/components/place-picker/place-picker.component';
 
 @Component({
     selector: 'app-venue-form',
-    imports: [ReactiveFormsModule, RouterLink, ProfilePhotosComponent, OneProfileNoticeComponent],
+    imports: [PlacePickerComponent, ReactiveFormsModule, RouterLink, ProfilePhotosComponent, OneProfileNoticeComponent],
     templateUrl: './venue-form.component.html'
 })
 export class VenueFormComponent implements OnInit {
@@ -42,7 +42,6 @@ export class VenueFormComponent implements OnInit {
 
   selectedGenres = signal<string[]>([]);
 
-  readonly cities = CITIES;
   readonly genres = GENRES;
 
   form = this.fb.group({

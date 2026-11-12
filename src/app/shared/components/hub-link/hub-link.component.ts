@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { HubKind, hubPath } from '../../../core/utils/hub-link';
+import { isSpanishProvince } from '../../../core/utils/place';
 
 /** "Más músicos en Madrid →", from a profile or an ad to the page of its province. */
 @Component({
@@ -21,6 +22,8 @@ export class HubLinkComponent {
   readonly href = computed(() => hubPath(this.kind(), this.city()));
   readonly text = computed(() => {
     const province = this.href().split('/').length > 2;
-    return province ? `${this.label()} en ${this.city()}` : `${this.label()} en España`;
+    if (province) return `${this.label()} en ${this.city()}`;
+    // Outside Spain there is no page per place yet: the link goes to the whole list.
+    return isSpanishProvince(this.city()) || !this.city() ? `${this.label()} en España` : `${this.label()} en BandYou`;
   });
 }
