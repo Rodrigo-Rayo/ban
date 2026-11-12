@@ -197,7 +197,7 @@ export class OnboardingComponent implements OnInit {
   get descriptionPlaceholder() {
     const map: Record<Role, string> = {
       musician:  'Cuéntanos sobre ti, tu estilo, lo que buscas...',
-      band:      'Describid la banda, vuestro sonido, lo que buscáis...',
+      band:      'La banda, su sonido, lo que busca...',
       venue:     'Describe la sala, el tipo de eventos que programas...',
       teacher:   'Cuéntanos tu experiencia y enfoque de enseñanza...',
       rehearsal: 'Describe el local, equipamiento, características...',

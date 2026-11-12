@@ -10,11 +10,15 @@ export type ContactTable = 'musicians' | 'bands' | 'venues' | 'teachers' | 'rehe
 const ALWAYS_HAS_PHONE: readonly ContactTable[] = ['venues', 'rehearsal_spaces'];
 
 /**
- * Spanish mobile (6xx / 7xx, optional +34) → wa.me link; anything else → null.
- * Landlines and foreign numbers only get the tel: link.
+ * Spanish mobile (6xx / 7xx, optional +34) or any other country's number written with its
+ * prefix (+54…, 0052…) → wa.me link. Spanish landlines and foreign numbers without a prefix
+ * only get the tel: link, since there is no telling which country they belong to.
  */
 export function whatsappLink(phone: string | null | undefined): string | null {
-  const digits = (phone ?? '').replace(/[^\d+]/g, '').replace(/^\+?34/, '').replace(/^0034/, '');
+  const raw = (phone ?? '').replace(/[^\d+]/g, '').replace(/^00/, '+');
+  const intl = /^\+(?!34)(\d{8,15})$/.exec(raw);
+  if (intl) return `https://wa.me/${intl[1]}`;
+  const digits = raw.replace(/^\+?34/, '');
   return /^[67]\d{8}$/.test(digits) ? `https://wa.me/34${digits}` : null;
 }
 

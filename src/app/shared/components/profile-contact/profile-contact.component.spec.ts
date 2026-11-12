@@ -10,10 +10,20 @@ describe('whatsappLink', () => {
   it('links Spanish mobiles in any common format', () => {
     expect(whatsappLink('612 345 678')).toBe('https://wa.me/34612345678');
     expect(whatsappLink('+34 712-345-678')).toBe('https://wa.me/34712345678');
+    expect(whatsappLink('0034 612 345 678')).toBe('https://wa.me/34612345678');
+  });
+
+  it('links other countries when the number has its prefix', () => {
+    expect(whatsappLink('+54 9 11 2345-6789')).toBe('https://wa.me/5491123456789');
+    expect(whatsappLink('0052 55 1234 5678')).toBe('https://wa.me/525512345678');
+    expect(whatsappLink('+593 99 123 4567')).toBe('https://wa.me/593991234567');
   });
 
   it('ignores landlines, short numbers and empty values', () => {
     expect(whatsappLink('954 123 456')).toBeNull();
+    expect(whatsappLink('+34 954 123 456')).toBeNull();
+    expect(whatsappLink('11 2345 6789')).toBeNull();
+    expect(whatsappLink('+54 11')).toBeNull();
     expect(whatsappLink('612')).toBeNull();
     expect(whatsappLink(null)).toBeNull();
   });

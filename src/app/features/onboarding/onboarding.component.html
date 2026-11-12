@@ -820,7 +820,7 @@
       @if (role() === 'venue' || role() === 'rehearsal' || contactPhoneAvailable()) {
         <div>
           <label for="onb-phone" class="block font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1">Teléfono / WhatsApp</label>
-          <input id="onb-phone" formControlName="phone" type="tel" autocomplete="tel" placeholder="+34 600 000 000" class="input-field"
+          <input id="onb-phone" formControlName="phone" type="tel" autocomplete="tel" placeholder="Con prefijo: +34 600 000 000" class="input-field"
             [attr.aria-invalid]="zInvalid('phone')"
             [attr.aria-describedby]="zInvalid('phone') ? 'onb-phone-error' : null"/>
           @if (zInvalid('phone')) {

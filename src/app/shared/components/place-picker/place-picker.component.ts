@@ -33,7 +33,7 @@ const PROVINCES = CITIES.filter(c => c !== OTHER_VALUE);
       }
     </div>
     @if (country() !== spain) {
-      <p class="mt-2 text-sm text-ink-muted leading-snug">BandYou nació en España y en tu país aún somos pocos. Invita a tu gente para que os encontréis aquí.</p>
+      <p class="mt-2 text-sm text-ink-muted leading-snug">BandYou nació en España y en tu país aún somos pocos. Comparte BandYou con músicos de tu zona para que haya más gente cerca.</p>
     }
   `,
 })
