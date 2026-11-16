@@ -27,9 +27,26 @@
   </p>
 </section>
 
-<!-- TEASERS · contenido real, solo si hay datos ──────── -->
+<!-- CÓMO FUNCIONA ────────────────────────────────────── -->
+<section class="bg-ink text-poster-paper border-y-2 border-ink">
+  <div class="px-4 sm:px-8 lg:px-14 py-14 lg:py-20 max-w-7xl mx-auto">
+    <p class="font-mono text-xs font-bold uppercase tracking-wide text-poster-yellow mb-3">Cómo funciona</p>
+    <h2 class="text-5xl lg:text-7xl leading-[1.15] mb-10">Simple. <span class="text-poster-yellow">Directo.</span></h2>
+    <ol class="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8">
+      @for (step of steps; track step.n) {
+        <li class="border-t-2 border-poster-paper pt-3">
+          <span class="font-display text-5xl leading-none text-primary-400" aria-hidden="true">{{ step.n }}</span>
+          <h3 class="font-display text-2xl uppercase leading-tight mt-3 mb-1">{{ step.title }}</h3>
+          <p class="text-sm leading-relaxed text-poster-paper/85">{{ step.desc }}</p>
+        </li>
+      }
+    </ol>
+  </div>
+</section>
+
+<!-- TEASERS · contenido real, solo si hay datos. Llega tras la primera pintura: va bajo «Cómo funciona» para no mover la primera pantalla -->
 @if (vacancies().length > 0 || people().length > 0) {
-  <section class="px-4 sm:px-8 lg:px-14 pb-14 max-w-7xl mx-auto" aria-label="Lo que se cuece ahora">
+  <section class="px-4 sm:px-8 lg:px-14 pt-14 lg:pt-20 max-w-7xl mx-auto" aria-label="Lo que se cuece ahora">
     <div class="grid grid-cols-1 gap-10 lg:gap-14" [class.lg:grid-cols-2]="vacancies().length > 0 && people().length > 0">
 
       @if (vacancies().length > 0) {
@@ -81,23 +98,6 @@
     </div>
   </section>
 }
-
-<!-- CÓMO FUNCIONA ────────────────────────────────────── -->
-<section class="bg-ink text-poster-paper border-y-2 border-ink">
-  <div class="px-4 sm:px-8 lg:px-14 py-14 lg:py-20 max-w-7xl mx-auto">
-    <p class="font-mono text-xs font-bold uppercase tracking-wide text-poster-yellow mb-3">Cómo funciona</p>
-    <h2 class="text-5xl lg:text-7xl leading-[1.15] mb-10">Simple. <span class="text-poster-yellow">Directo.</span></h2>
-    <ol class="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8">
-      @for (step of steps; track step.n) {
-        <li class="border-t-2 border-poster-paper pt-3">
-          <span class="font-display text-5xl leading-none text-primary-400" aria-hidden="true">{{ step.n }}</span>
-          <h3 class="font-display text-2xl uppercase leading-tight mt-3 mb-1">{{ step.title }}</h3>
-          <p class="text-sm leading-relaxed text-poster-paper/85">{{ step.desc }}</p>
-        </li>
-      }
-    </ol>
-  </div>
-</section>
 
 <!-- ¿QUÉ BUSCAS? ─────────────────────────────────────── -->
 <section class="px-4 sm:px-8 lg:px-14 py-14 lg:py-20 max-w-7xl mx-auto" aria-labelledby="que-buscas">
