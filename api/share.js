@@ -184,6 +184,29 @@ const PAGES = {
     image: q => `${SITE}/test/og${TEST_TYPES[q.vs] ? '-' + q.vs : ''}.png`,
     body: () => `<main><h1>¿Qué músico de banda eres?</h1><p>Un test de BandYou: un día de bolo en nueve decisiones. Al final sale qué músico eres en tu banda, con quién encajas y con quién chocas. Los resultados posibles son ${Object.values(TEST_TYPES).join(', ')}.</p><p><a href="/busco-banda">Busco banda</a> · <a href="/busco-musicos">Busco músicos</a> · <a href="/">BandYou</a></p></main>`,
   },
+  pregunta: {
+    path: '/pregunta', title: 'La pregunta del mes · BandYou',
+    description: 'Una pregunta al mes para la gente de la música. Responde en dos líneas y lee lo que cuentan otros músicos y bandas.',
+    /** The open question and its latest answers: the same text the page shows. */
+    async load() {
+      const headers = { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` };
+      const now = new Date().toISOString();
+      // Like the page: the open question, else the latest one (between two questions).
+      const qr = await fetch(`${SUPABASE_URL}/rest/v1/questions?select=id,title,intro,closes_at&opens_at=lte.${now}&order=opens_at.desc&limit=12`, { headers, signal: AbortSignal.timeout(3000) });
+      const opened = qr.ok ? await qr.json() : [];
+      const q = opened.find(x => x.closes_at > now) || opened[0];
+      if (!q) return null;
+      const ar = await fetch(`${SUPABASE_URL}/rest/v1/question_answers?select=text,author_name,author_role,author_city&question_id=eq.${encodeURIComponent(q.id)}&order=created_at.desc&limit=30`, { headers, signal: AbortSignal.timeout(3000) });
+      const answers = ar.ok ? await ar.json() : [];
+      const items = answers.map(a => `<li><blockquote>${escapeHtml(a.text)}</blockquote> — ${escapeHtml([a.author_name, a.author_role, a.author_city].filter(Boolean).join(' · '))}</li>`);
+      return {
+        title: `${q.title} · La pregunta del mes · BandYou`,
+        description: clip(`${q.intro ? q.intro + ' ' : ''}Responde en BandYou y lee lo que cuentan otros músicos.`, 200),
+        body: `<main><p>La pregunta del mes</p><h1>${escapeHtml(q.title)}</h1>${q.intro ? `<p>${escapeHtml(q.intro)}</p>` : ''}<ul>${items.join('')}</ul><p><a href="/feed">Se busca</a> · <a href="/">BandYou</a></p></main>`,
+      };
+    },
+    body: () => '<main><h1>La pregunta del mes</h1><p>Una pregunta al mes para la gente de la música. Responde en dos líneas y lee lo que cuentan otros músicos y bandas.</p><p><a href="/">BandYou</a></p></main>',
+  },
   'legal-privacidad': { path: '/legal/privacidad', title: 'Política de privacidad · BandYou', description: 'Política de privacidad de BandYou.', body: () => '' },
   'legal-terminos': { path: '/legal/terminos', title: 'Términos de uso · BandYou', description: 'Términos de uso de BandYou.', body: () => '' },
   'legal-cookies': { path: '/legal/cookies', title: 'Política de cookies · BandYou', description: 'Política de cookies de BandYou.', body: () => '' },
@@ -235,11 +258,17 @@ module.exports = async function handler(req, res) {
     res.statusCode = 200;
     res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400');
     let content = '';
-    try { content = await section.body(); } catch (err) { console.error('[share] page', err?.message); }
+    let loaded = null;
+    // A section can read its own title and text (La pregunta: the question of the month).
+    if (section.load) {
+      try { loaded = await section.load(); } catch (err) { console.error('[share] page', err?.message); }
+    }
+    if (loaded) content = loaded.body;
+    else try { content = await section.body(); } catch (err) { console.error('[share] page', err?.message); }
     // A section's title or image can depend on the link (the /test challenge link carries ?vs=).
     const query = { vs: Object.hasOwn(TEST_TYPES, String(req.query.vs || '')) ? String(req.query.vs) : '' };
     const pick = v => (typeof v === 'function' ? v(query) : v);
-    return res.end(setMeta(html, { title: pick(section.title), description: section.description, url: query.vs ? `${pageUrl}?vs=${query.vs}` : pageUrl, image: pick(section.image) || DEFAULT_IMAGE, type: 'website' })
+    return res.end(setMeta(html, { title: loaded?.title ?? pick(section.title), description: loaded?.description ?? section.description, url: query.vs ? `${pageUrl}?vs=${query.vs}` : pageUrl, image: pick(section.image) || DEFAULT_IMAGE, type: 'website' })
       .replace('<app-root></app-root>', () => `<app-root>${content}</app-root>`));
   }
 

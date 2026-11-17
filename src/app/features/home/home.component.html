@@ -107,6 +107,9 @@
         }
       </section>
 
+      <!-- La pregunta del mes, right after Se busca; renders nothing until its tables exist -->
+      <app-question-teaser class="block empty:hidden"/>
+
       <!-- La quedada de BandYou, first in the column on every screen; renders nothing until its tables exist -->
       <app-quedada-status class="block empty:hidden order-first"[province]="userCity()" variant="home"/>
 

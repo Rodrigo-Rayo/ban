@@ -1,4 +1,5 @@
 import { InstrumentIconComponent } from '../../shared/components/instrument-icon/instrument-icon.component';
+import { QuestionTeaserComponent } from '../question/question-teaser.component';
 import { QuedadaStatusComponent } from '../quedada/quedada-status.component';
 import { MediaFeaturesService } from '../../core/services/media-features.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, effect } from '@angular/core';
@@ -97,7 +98,7 @@ const NEW_PEOPLE_LIMIT = 8;
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-home',
-    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent, InstrumentIconComponent],
+    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent, InstrumentIconComponent, QuestionTeaserComponent],
     templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit {

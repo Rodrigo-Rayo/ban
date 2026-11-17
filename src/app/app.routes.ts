@@ -85,6 +85,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/quedada/quedada-page.component').then(m => m.QuedadaPageComponent),
   },
   {
+    path: 'pregunta', title: 'La pregunta del mes · BandYou',
+    loadComponent: () => import('./features/question/question-page.component').then(m => m.QuestionPageComponent),
+  },
+  {
+    path: 'pregunta/:slug', title: 'La pregunta del mes · BandYou',
+    loadComponent: () => import('./features/question/question-page.component').then(m => m.QuestionPageComponent),
+  },
+  {
     path: 'events/:id',
     loadComponent: () => import('./features/events/event-detail/event-detail.component').then(m => m.EventDetailComponent),
   },

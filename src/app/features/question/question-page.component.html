@@ -1,0 +1,197 @@
+<div class="min-h-screen bg-dark-900 pb-24 lg:pb-16" style="padding-top:64px">
+  @if (loading()) {
+    <div class="page-wrap pt-8 lg:pt-14 pb-8" role="status" aria-busy="true">
+      <span class="sr-only">Cargando la pregunta…</span>
+      <div class="h-6 w-48 bg-dark-700 animate-pulse mb-5"></div>
+      <div class="h-28 sm:h-40 max-w-3xl bg-dark-700 animate-pulse mb-6"></div>
+      <div class="h-48 max-w-3xl bg-dark-800 border-2 border-ink/20"></div>
+    </div>
+  } @else if (question(); as q) {
+
+    <!-- ══ LA PREGUNTA ══ -->
+    <header class="border-b-2 border-ink relative overflow-hidden">
+      <!-- A huge question mark printed behind, like a poster's background letter -->
+      <span aria-hidden="true" class="hidden sm:block pointer-events-none select-none absolute right-6 -top-6 font-display text-[20rem] leading-none text-poster-yellow/40">?</span>
+      <div class="page-wrap relative pt-7 pb-7 lg:pt-14 lg:pb-12">
+        <p class="flex flex-wrap items-center gap-2 mb-4">
+          <span class="tag-red">La pregunta del mes</span>
+          <span class="tag-accent -rotate-2">{{ month(q.opens_at) }}</span>
+        </p>
+        <h1 class="font-display uppercase text-[2.5rem] leading-[1.02] sm:text-6xl lg:text-7xl max-w-4xl [text-wrap:balance]">{{ q.title }}</h1>
+        @if (q.intro) {
+          <p class="mt-4 text-base sm:text-lg max-w-2xl text-ink-2">{{ q.intro }}</p>
+        }
+        <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p class="font-mono text-xs sm:text-sm font-bold uppercase tracking-wide" aria-live="polite">
+            <span class="text-primary-500">{{ total() }}</span> {{ total() === 1 ? 'respuesta' : 'respuestas' }}
+            <span class="text-ink-muted"> · </span>
+            @if (open()) { {{ deadline() }} } @else { <span class="text-ink-muted">Cerrada</span> }
+          </p>
+          @if (open()) {
+            <button type="button" (click)="invite()"
+              class="font-mono text-xs font-bold uppercase underline underline-offset-4 decoration-2 hover:text-primary-600 min-h-[44px] inline-flex items-center gap-1.5">
+              <svg aria-hidden="true" viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg>
+              Pásasela a alguien
+            </button>
+          }
+        </div>
+      </div>
+    </header>
+
+    <div class="page-wrap pt-6 lg:pt-10">
+
+      <!-- ══ RESPONDER ══ -->
+      @if (showComposer()) {
+        <form (ngSubmit)="publish()" id="responder"
+          class="max-w-3xl bg-dark-800 border-2 border-ink shadow-[6px_6px_0_0_#141210] p-4 sm:p-6 pop-in">
+          <label for="answer-box" class="block font-display uppercase text-2xl sm:text-3xl leading-none mb-3">
+            {{ editing() ? 'Edita tu respuesta' : '¿Y tú? Cuéntalo' }}
+          </label>
+          @if (restored() && !editing()) {
+            <p class="mb-3 text-sm font-semibold bg-poster-yellow border-[1.5px] border-ink px-3 py-2">Tu respuesta te estaba esperando. Dale a publicar.</p>
+          }
+          <textarea #box id="answer-box" name="answer" [ngModel]="draft()" (ngModelChange)="onDraft($event)"
+            (keydown)="onKey($event)" [maxlength]="max" rows="3" enterkeyhint="enter"
+            placeholder="En dos o tres frases. Sin nombres de salas ni de personas."
+            class="input-field text-[17px] leading-relaxed resize-none min-h-[7.5rem] [field-sizing:content] max-h-[22rem]"></textarea>
+
+          @if (q.starters.length && !editing()) {
+            <div class="mt-3">
+              <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted mb-1.5">¿No sabes cómo empezar?</p>
+              <div class="flex gap-2 overflow-x-auto snap-x pb-1 -mx-1 px-1 [scrollbar-width:none]">
+                @for (s of q.starters; track s) {
+                  <button type="button" (click)="useStarter(s)"
+                    class="snap-start shrink-0 min-h-[44px] px-3 border-[1.5px] border-ink bg-dark-900 text-sm font-semibold whitespace-nowrap
+                           hover:bg-poster-yellow active:translate-y-px transition-colors">{{ s }}</button>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <span class="font-mono text-xs font-bold" [class.text-primary-500]="left() < 30" [class.text-ink-muted]="left() >= 30"
+                  [attr.aria-label]="left() + ' caracteres disponibles'">{{ draft().length }}/{{ max }}</span>
+            <div class="flex items-center gap-2 ml-auto">
+              @if (editing()) {
+                <button type="button" (click)="cancelEdit()" class="btn-ghost min-h-[48px]">Cancelar</button>
+              }
+              <button type="submit" [disabled]="saving()" class="btn-primary min-h-[48px] px-6 text-sm">
+                @if (saving()) { Publicando… } @else if (editing()) { Guardar } @else { Publicar respuesta }
+              </button>
+            </div>
+          </div>
+          @if (!loggedIn()) {
+            <p class="mt-3 text-sm text-ink-muted">
+              Escribe sin miedo: al publicar entras con tu cuenta y tu respuesta te espera.
+              ¿Sin cuenta? <a routerLink="/auth/register" class="font-bold text-ink underline underline-offset-2 hover:text-primary-600">Créala en un minuto</a>.
+            </p>
+          }
+        </form>
+      } @else if (mine(); as m) {
+        <!-- ══ TU RESPUESTA ══ -->
+        <section aria-labelledby="mine-title" class="max-w-3xl bg-poster-yellow border-2 border-ink shadow-[6px_6px_0_0_#141210] p-4 sm:p-6 -rotate-[0.4deg] pop-in">
+          <h2 #mineHeading id="mine-title" tabindex="-1" class="font-mono text-xs font-bold uppercase tracking-wide mb-2 outline-none">Tu respuesta</h2>
+          <p class="text-lg sm:text-xl font-semibold leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">{{ m.text }}</p>
+          <div class="mt-5 flex flex-wrap items-center gap-2">
+            <button type="button" (click)="shareStory()" [disabled]="sharing()" class="btn-night min-h-[48px] px-5">
+              <svg aria-hidden="true" viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+              {{ sharing() ? 'Preparando…' : 'Compartir en historias' }}
+            </button>
+            @if (open()) {
+              <button type="button" (click)="edit()" class="btn-secondary min-h-[48px]">Editar</button>
+            }
+            <button type="button" (click)="remove()" class="btn-ghost min-h-[48px] text-ink hover:text-primary-600">Borrar</button>
+          </div>
+        </section>
+      } @else if (!open()) {
+        <div class="max-w-3xl border-2 border-ink bg-dark-800 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+          <p class="font-semibold">Esta pregunta ya está cerrada. Aquí queda lo que contestó la gente.</p>
+          @if (current()) {
+            <a routerLink="/pregunta" class="btn-primary min-h-[48px]">Responder la de este mes</a>
+          }
+        </div>
+      }
+
+      <!-- ══ EL MURO ══ -->
+      <section aria-labelledby="wall-title" class="mt-12 lg:mt-16">
+        <h2 id="wall-title" class="rule-label mb-5">
+          <span>Lo que contáis</span>
+          <span class="text-ink-muted">{{ total() }}</span>
+        </h2>
+
+        @if (failed()) {
+          <p class="text-sm">No se pudieron cargar las respuestas.
+            <button type="button" (click)="retry()" class="font-bold underline underline-offset-2 hover:text-primary-600 min-h-[44px]">Reintentar</button>
+          </p>
+        } @else if (others().length) {
+          <ul class="columns-1 sm:columns-2 lg:columns-3 gap-5">
+            @for (a of others(); track a.id; let i = $index) {
+              <li class="break-inside-avoid mb-5 border-2 border-ink p-5 pop-in transition-transform duration-150 hover:-translate-y-0.5"
+                  [style.--i]="i < 12 ? i : 0"
+                  [class.bg-dark-800]="tone(i) === 'paper'" [class.shadow-[4px_4px_0_0_#141210]]="tone(i) !== 'ink'"
+                  [class.bg-poster-yellow]="tone(i) === 'yellow'"
+                  [class.bg-ink]="tone(i) === 'ink'" [class.text-poster-paper]="tone(i) === 'ink'" [class.shadow-[4px_4px_0_0_#c23a1f]]="tone(i) === 'ink'">
+                <span aria-hidden="true" class="block font-display text-6xl leading-[0.6] h-7 text-primary-500">“</span>
+                <blockquote class="text-[17px] leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">{{ a.text }}</blockquote>
+                <div class="mt-4 pt-3 flex items-center gap-3 border-t-[1.5px]" [class.border-ink]="tone(i) !== 'ink'" [class.border-poster-paper]="tone(i) === 'ink'">
+                  <span class="avatar w-10 h-10 text-sm border-2 border-current overflow-hidden"
+                        [style.background]="a.author_avatar ? null : color(a.author_name)" aria-hidden="true">
+                    @if (a.author_avatar) { <img [src]="imageSrc(a.author_avatar, 96)" alt="" width="40" height="40" class="w-full h-full object-cover" loading="lazy"/> } @else { {{ initial(a.author_name) }} }
+                  </span>
+                  <div class="min-w-0">
+                    @if (routeOf(a); as r) {
+                      <a [routerLink]="r" class="block font-bold text-sm truncate hover:underline underline-offset-2">{{ a.author_name || 'Usuario' }}</a>
+                    } @else {
+                      <span class="block font-bold text-sm truncate">{{ a.author_name || 'Usuario' }}</span>
+                    }
+                    <span class="block font-mono text-[11px] font-bold uppercase tracking-wide truncate opacity-75">{{ detail(a) || ago(a.created_at) }}</span>
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+          @if (hasMore()) {
+            <div class="text-center mt-2">
+              <button type="button" (click)="more()" [disabled]="loadingMore()" class="btn-secondary min-h-[48px]">
+                {{ loadingMore() ? 'Cargando…' : 'Ver más respuestas' }}
+              </button>
+            </div>
+          }
+        } @else if (!mine()) {
+          <div class="border-2 border-dashed border-ink/40 p-8 text-center">
+            <p class="font-display uppercase text-2xl sm:text-3xl">Nadie ha respondido todavía</p>
+            @if (open()) { <p class="mt-2 text-ink-muted">Estrena la pregunta: la primera respuesta es la que más se lee.</p> }
+          </div>
+        } @else {
+          <p class="text-ink-muted">Eres el primero en responder. Pásasela a alguien para que no estés solo.</p>
+        }
+      </section>
+
+      <!-- ══ ARCHIVO ══ -->
+      @if (archive().length) {
+        <section aria-labelledby="archive-title" class="mt-14">
+          <h2 id="archive-title" class="rule-label mb-2"><span>Otras preguntas</span></h2>
+          <ul>
+            @for (p of archive(); track p.id) {
+              <li class="border-b border-ink/15">
+                <a [routerLink]="['/pregunta', p.slug]" class="group flex items-baseline gap-4 py-3 min-h-[48px]">
+                  <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted w-28 shrink-0">{{ month(p.opens_at) }}</span>
+                  <span class="font-display uppercase text-lg sm:text-xl leading-tight group-hover:text-primary-600">{{ p.title }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      <p class="mt-10"><app-report-link what="una respuesta de esta página"/></p>
+    </div>
+  } @else {
+    <div class="page-wrap pt-14 pb-10 text-center">
+      <p class="page-kicker">La pregunta del mes</p>
+      <h1 class="page-title">Pronto, una pregunta nueva</h1>
+      <p class="mt-3 text-ink-muted">Cada mes, una pregunta para la gente de la música.</p>
+      <a routerLink="/feed" class="btn-primary mt-6 min-h-[48px]">Ir a Se busca</a>
+    </div>
+  }
+</div>

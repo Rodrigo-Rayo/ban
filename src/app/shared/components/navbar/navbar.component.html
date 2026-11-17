@@ -105,12 +105,20 @@
 @if (menuOpen) {
   <div class="lg:hidden fixed inset-x-0 top-16 bottom-0 z-[49] bg-ink/40" (click)="menuOpen = false" aria-hidden="true"></div>
   <div id="mobile-menu" class="lg:hidden fixed z-50 top-16 bottom-16 inset-x-0 sm:left-auto sm:w-[26rem] flex flex-col overflow-y-auto bg-dark-900 border-t-2 sm:border-l-2 border-ink animate-slide-in">
+    <a routerLink="/pregunta" (click)="menuOpen = false"
+       class="flex items-center justify-between gap-3 px-4 min-h-[56px] bg-poster-yellow border-b-2 border-ink flex-shrink-0 hover:bg-primary-500 hover:text-white transition-colors">
+      <span>
+        <span class="block font-mono text-[11px] font-bold uppercase tracking-wide">La pregunta del mes</span>
+        <span class="block font-display text-xl uppercase leading-tight">Responde en dos líneas</span>
+      </span>
+      <span aria-hidden="true" class="font-display text-4xl leading-none">?</span>
+    </a>
     <nav aria-label="Secciones" class="grid grid-cols-2 border-b-2 border-ink flex-shrink-0">
-      @for (s of sections; track s.label; let i = $index) {
+      @for (s of gridSections; track s.label; let i = $index) {
         <a [routerLink]="s.link" [queryParams]="s.query ?? null" (click)="menuOpen = false"
            [attr.aria-current]="isActive(s) ? 'page' : null"
            class="px-4 min-h-[52px] flex items-center font-display text-xl uppercase border-ink hover:bg-poster-yellow transition-colors"
-           [class.border-r]="i % 2 === 0" [class.border-b]="i < sections.length - 2"
+           [class.border-r]="i % 2 === 0" [class.border-b]="i < gridSections.length - 2"
            [class.bg-ink]="isActive(s)" [class.text-poster-paper]="isActive(s)">
           {{ s.label }}
         </a>

@@ -35,6 +35,7 @@ export interface PublishOption { label: string; hint: string; icon: string; link
 
 export const NAV_SECTIONS: readonly NavSection[] = [
   { label: 'Se busca', link: '/feed' },
+  { label: 'Pregunta', link: '/pregunta' },
   { label: 'Músicos',  link: '/search', query: { tab: 'musicians' } },
   { label: 'Bandas',   link: '/search', query: { tab: 'bands' } },
   { label: 'Locales',  link: '/search', query: { tab: 'rehearsal' } },
@@ -96,6 +97,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   publishOpen = false;
   accountOpen = false;
   readonly sections = NAV_SECTIONS;
+  /** Phone menu: La pregunta gets its own banner on top, the rest fill the two-column grid. */
+  readonly gridSections = NAV_SECTIONS.filter(s => s.link !== '/pregunta');
   /** Content group, plus the band vacancy when the user has a band profile. */
   readonly publishItems = computed<readonly PublishOption[]>(() => {
     const vacancy = bandVacancyOption(this.auth.userProfileType(), this.auth.userProfileData()?.id);
