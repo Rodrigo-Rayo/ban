@@ -29,6 +29,17 @@ describe('scene counts', () => {
     expect(spy).toHaveBeenCalledWith('/api/counts');
   });
 
+  it('does not keep a failure: the next call tries again', async () => {
+    const spy = spyOn(window, 'fetch').and.returnValues(
+      Promise.reject(new TypeError('offline')),
+      Promise.resolve(json({ musicians: { Madrid: 1 }, bands: {}, posts: {} })),
+    );
+    expect(await loadSceneCounts()).toBeNull();
+    expect((await loadSceneCounts())?.musicians).toEqual({ Madrid: 1 });
+    await loadSceneCounts();
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
   it('returns null for the SPA fallback page (ng serve), errors and odd JSON', async () => {
     spyOn(window, 'fetch').and.returnValues(
       Promise.resolve(new Response('<!doctype html>', { headers: { 'content-type': 'text/html' } })),

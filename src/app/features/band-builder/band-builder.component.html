@@ -60,10 +60,10 @@
           <button type="button" (click)="pickQuick()" class="btn-night min-h-[44px] mt-1">{{ quickPick.join(' + ') }}</button>
         </div>
       } @else if (error()) {
-        <div class="empty-state py-12" role="alert">
-          <p class="font-display text-2xl uppercase text-ink">No se pudo cargar</p>
-          <button type="button" (click)="load()" class="btn-secondary min-h-[44px]">Reintentar</button>
-        </div>
+        <p class="flex flex-wrap items-center justify-center gap-3 px-4 py-8 text-sm text-ink" role="alert">
+          No se pudo cargar el cartel.
+          <button type="button" (click)="retry()" class="btn-secondary min-h-[44px] text-xs">Reintentar</button>
+        </p>
       } @else {
         <ol class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 p-4 sm:p-6" [attr.aria-busy]="loading()">
           @for (slot of slots(); track slot.instrument; let n = $index) {

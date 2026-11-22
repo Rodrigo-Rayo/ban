@@ -1,16 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
-import { BandBuilderComponent, BuilderMusician, fillSlot } from './band-builder.component';
+import { BandBuilderComponent, BuilderMusician, fillSlot, isPlaceValue } from './band-builder.component';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
 import { MessagesService } from '../../core/services/messages.service';
 import { ToastService } from '../../core/services/toast.service';
 
+type Response = unknown[] | Promise<{ data: unknown; error: unknown }>;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function builder(rows: unknown[] = []): any {
+function builder(rows: Response = []): any {
+  const answer = Array.isArray(rows) ? Promise.resolve({ data: rows, error: null }) : rows;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const b: any = { then: (res: (v: unknown) => unknown) => Promise.resolve({ data: rows, error: null }).then(res) };
+  const b: any = { then: (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => answer.then(res, rej) };
   ['select', 'eq', 'or', 'in', 'like', 'ilike', 'order', 'limit'].forEach(m => { b[m] = jasmine.createSpy(m).and.returnValue(b); });
   return b;
 }
@@ -30,7 +33,7 @@ describe('BandBuilderComponent', () => {
   let session: { user: { id: string } } | null;
   let savedCity: string | null;
 
-  async function create(query: Record<string, string>, ...responses: unknown[][]) {
+  async function create(query: Record<string, string>, ...responses: Response[]) {
     params = new BehaviorSubject(query);
     builders = [];
     let n = 0;
@@ -72,8 +75,30 @@ describe('BandBuilderComponent', () => {
     const b = builders[0];
     expect(b.select).toHaveBeenCalledWith('id,name,city,avatar_url,instrument,genre,user_id,created_at');
     expect(b.eq).toHaveBeenCalledWith('city', 'Sevilla');
-    expect(b.or).toHaveBeenCalledWith(jasmine.stringContaining('instrument.ilike.%Batería%,instrument.ilike.%Bajo%'));
-    expect(b.limit).toHaveBeenCalledWith(60);
+    // One small query per instrument, so a common one can't crowd out a rare one.
+    expect(builders.slice(0, 5).map(x => x.ilike.calls.mostRecent().args)).toEqual([
+      ['instrument', '%Batería%'], ['instrument', '%Bajo%'], ['instrument', '%Voz%'], ['instrument', '%Piano%'], ['instrument', '%Flauta%'],
+    ]);
+    expect(b.limit).toHaveBeenCalledWith(12);
+  });
+
+  it('accepts only place values it knows', async () => {
+    expect(isPlaceValue('Toda España')).toBeTrue();
+    expect(isPlaceValue('Todos los países')).toBeTrue();
+    expect(isPlaceValue('pais:EC')).toBeTrue();
+    expect(isPlaceValue('Pichincha, Ecuador')).toBeTrue();
+    expect(isPlaceValue('pais:ZZ')).toBeFalse();
+    expect(isPlaceValue('Narnia')).toBeFalse();
+    const c = await create({ donde: 'Narnia', faltan: 'Bajo' });
+    expect(c.place()).toBe('Toda España');
+    expect(builders[0].in).toHaveBeenCalledWith('city', jasmine.any(Array));
+  });
+
+  it('a musician who plays two missing instruments shows once in each slot; Contrabajo is not Bajo', async () => {
+    const both = mus({ id: 'both', instrument: 'Bajo, Voz' });
+    const c = await create({ donde: 'Madrid', faltan: 'Bajo,Voz' },
+      [mus({ id: 'cb', instrument: 'Contrabajo' }), both], [both]);
+    expect(c.slots().map(s => s.musicians.map(m => m.id))).toEqual([['both'], ['both']]);
   });
 
   it('defaults to the viewer\'s own known place, else the usual default, and asks nothing with no instruments', async () => {
@@ -105,10 +130,11 @@ describe('BandBuilderComponent', () => {
   it('widens only the empty slots to neighbouring provinces, with one extra query', async () => {
     const c = await create({ donde: 'Sevilla', faltan: 'Batería,Bajo' },
       [mus({ id: 'd1', instrument: 'Batería', city: 'Sevilla' })],
+      [],
       [mus({ id: 'b1', instrument: 'Bajo', city: 'Cádiz' })]);
-    expect(from.calls.count()).toBe(2);
-    expect(builders[1].in).toHaveBeenCalledWith('city', jasmine.arrayContaining(['Cádiz', 'Málaga']));
-    expect(builders[1].or).toHaveBeenCalledWith('instrument.ilike.%Bajo%');
+    expect(from.calls.count()).toBe(3);
+    expect(builders[2].in).toHaveBeenCalledWith('city', jasmine.arrayContaining(['Cádiz', 'Málaga']));
+    expect(builders[2].ilike).toHaveBeenCalledWith('instrument', '%Bajo%');
     const [drums, bass] = c.slots();
     expect(drums.musicians.map(m => m.id)).toEqual(['d1']);
     expect(drums.nearLabel).toBe('');
@@ -140,8 +166,29 @@ describe('BandBuilderComponent', () => {
     expect(from.calls.count()).toBe(1);
     expect(c.loading()).toBeTrue();
     await tick(350);
-    expect(from.calls.count()).toBeGreaterThanOrEqual(2);
-    expect(builders[1].or).toHaveBeenCalledWith(jasmine.stringContaining('Piano'));
+    expect(from.calls.count()).toBe(7); // 3 for the place, 3 for neighbours (all came back empty)
+    expect(builders.slice(1, 4).map(b => b.ilike.calls.mostRecent().args[1])).toEqual(['%Bajo%', '%Voz%', '%Piano%']);
+  });
+
+  it('drops an answer still in flight once the choice changes', async () => {
+    let resolveOld!: (v: { data: unknown; error: unknown }) => void;
+    const old = new Promise<{ data: unknown; error: unknown }>(r => { resolveOld = r; });
+    const c = await create({ donde: 'Madrid', faltan: 'Bajo' }, old);
+    params.next({ donde: 'Madrid', faltan: 'Voz' });
+    resolveOld({ data: [mus({ id: 'stale', instrument: 'Bajo' })], error: null });
+    await tick();
+    expect(c.loading()).toBeTrue();
+    expect(c.slots()[0].musicians).toEqual([]);
+  });
+
+  it('a failed load shows the error and can be retried', async () => {
+    const c = await create({ donde: 'Madrid', faltan: 'Bajo' }, Promise.resolve({ data: null, error: { message: 'boom' } }));
+    expect(c.error()).toBeTrue();
+    expect(c.loading()).toBeFalse();
+    c.retry();
+    await tick(); await tick();
+    expect(from.calls.count()).toBe(3); // Madrid again, then its neighbours for the empty slot
+    expect(c.error()).toBeFalse();
   });
 
   it('leaves out the viewer\'s own profile and rows without an account', async () => {

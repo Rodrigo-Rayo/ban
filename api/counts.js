@@ -7,12 +7,14 @@ const PAGE = 1000;      // PostgREST max rows per request on Supabase
 const MAX_PAGES = 20;
 /** Same window Se busca opens on (SE_BUSCA_MAX_DAYS in src/app/core/utils/se-busca.ts). */
 const POST_DAYS = 90;
+const TIMEOUT_MS = 8000;
 
 async function cities(table, filter = '') {
   const counts = {};
   for (let page = 0; page < MAX_PAGES; page++) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=city${filter ? '&' + filter : ''}&order=id&limit=${PAGE}&offset=${page * PAGE}`, {
       headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!res.ok) throw new Error(`${table} ${res.status}`);
     const rows = await res.json();
@@ -26,6 +28,12 @@ async function cities(table, filter = '') {
 }
 
 module.exports = async function handler(req, res) {
+  if (req.method && req.method !== 'GET' && req.method !== 'HEAD') {
+    res.statusCode = 405;
+    res.setHeader('Allow', 'GET, HEAD');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.end();
+  }
   try {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
     const postFilter = `created_at=gte.${encodeURIComponent(daysAgo(POST_DAYS))}&or=(gig_date.is.null,gig_date.gte.${today})`;

@@ -124,22 +124,45 @@ describe('ChatComponent', () => {
 
   describe('draft from navigation state', () => {
     let saved: unknown;
-    beforeEach(() => { saved = history.state; });
+    beforeEach(() => {
+      saved = history.state;
+      msgSvc.getConversationById.and.returnValue(Promise.resolve(existingConv));
+    });
     afterEach(() => history.replaceState(saved, ''));
 
-    it('prefills an empty message box with the trimmed draft, capped, and does not send it', async () => {
+    it('prefills an empty new conversation with the trimmed, capped draft, does not send it, and consumes it', async () => {
       history.replaceState({ name: 'Ana', draft: '  ¡Hola Ana!  ' }, '');
       await component.ngOnInit();
       expect(component.newMessage).toBe('¡Hola Ana!');
       expect(msgSvc.sendMessage).not.toHaveBeenCalled();
+      expect(history.state.draft).toBeUndefined();
+      expect(history.state.name).toBe('Ana');
+
+      // Back/reload: the state no longer carries it.
+      component.newMessage = '';
+      await component.ngOnInit();
+      expect(component.newMessage).toBe('');
 
       history.replaceState({ draft: 'x'.repeat(component.maxLength + 50) }, '');
-      component.newMessage = '';
       await component.ngOnInit();
       expect(component.newMessage.length).toBe(component.maxLength);
     });
 
-    it('keeps what is already typed and ignores a non-string draft', async () => {
+    it('skips the draft when the conversation already has messages, is gone, or something is typed', async () => {
+      msgSvc.getMessages.and.returnValue(Promise.resolve({ messages: [fakeMsg], hasMore: false }));
+      history.replaceState({ draft: 'Hola' }, '');
+      await component.ngOnInit();
+      expect(component.newMessage).toBe('');
+      expect(history.state.draft).toBeUndefined();
+
+      msgSvc.getMessages.and.returnValue(Promise.resolve({ messages: [], hasMore: false }));
+      component.messages.set([]);
+      msgSvc.getConversationById.and.returnValue(Promise.resolve(null));
+      history.replaceState({ draft: 'Hola' }, '');
+      await component.ngOnInit();
+      expect(component.newMessage).toBe('');
+
+      msgSvc.getConversationById.and.returnValue(Promise.resolve(existingConv));
       history.replaceState({ draft: 'Hola' }, '');
       component.newMessage = 'ya escrito';
       await component.ngOnInit();

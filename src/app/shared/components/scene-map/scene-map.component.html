@@ -10,6 +10,8 @@
     </label>
   </div>
 
+  <div class="lg:grid lg:grid-cols-[minmax(0,34rem)_minmax(0,1fr)] lg:gap-10 lg:items-start">
+  <div class="min-w-0">
   @if (isSpain()) {
     <div class="grid gap-0.5 sm:gap-1 max-w-[34rem]" [style.grid-template-columns]="'repeat(' + cols + ', minmax(0, 1fr))'">
       @for (t of tiles(); track t.value) {
@@ -24,6 +26,10 @@
       }
     </div>
   } @else {
+    <div class="min-h-[6.5rem]" data-regions>
+    @if (status() === 'loading') {
+      <div class="h-[6.5rem] bg-dark-800/40 animate-pulse" aria-hidden="true"></div>
+    } @else {
     @if (regionsActive().length) {
       <div class="flex flex-wrap gap-1.5">
         @for (t of regionsActive(); track t.value) {
@@ -48,6 +54,8 @@
         <button type="button" class="btn-ghost min-h-[44px] px-0 mt-1 underline" (click)="showAll.set(true)">Ver todas ({{ regionsRest().length }})</button>
       }
     }
+    }
+    </div>
   }
 
   <p class="mt-3 min-h-[1.25rem] text-sm text-ink-muted" aria-live="polite">{{ summary() }}</p>
@@ -57,9 +65,13 @@
       <li class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 border-[1.5px]" [class]="bucketClass[l.bucket]" aria-hidden="true"></span>{{ l.label }}</li>
     }
   </ul>
+  </div>
 
+  <!-- Right column on desktop (top-aligned, reserved height); below the map on phones -->
+  <div class="min-w-0 lg:min-h-[17rem]">
+  <p class="sr-only" aria-live="polite">{{ announcement() }}</p>
   @if (panel(); as p) {
-    <div class="card-flat mt-4 p-4 sm:p-5 max-w-[34rem]" role="region" [attr.aria-label]="p.label">
+    <div class="card-flat mt-4 lg:mt-0 p-4 sm:p-5 max-w-[34rem]" role="region" [attr.aria-label]="p.label">
       <h3 class="font-display text-3xl uppercase leading-[1.15]">{{ p.label }}</h3>
       @if (p.empty) {
         <p class="mt-1 text-sm text-ink-muted">Aún no hay nadie en {{ p.label }}.</p>
@@ -80,5 +92,21 @@
         </div>
       }
     </div>
+  } @else {
+    <div class="hidden lg:block border-2 border-dashed border-ink/30 p-5" data-prompt>
+      <p class="font-display text-2xl uppercase leading-[1.15]">Toca {{ isSpain() ? 'una provincia' : 'una región' }} para ver quién hay</p>
+      @if (topPlaces().length) {
+        <p class="mt-4 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">Donde más se mueve</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          @for (t of topPlaces(); track t.value) {
+            <button type="button" class="btn-secondary min-h-[44px] px-3 normal-case" (click)="selected.set(t.value)">
+              {{ t.label }} <span class="font-mono text-xs" aria-hidden="true">{{ total(t.value) }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
   }
+  </div>
+  </div>
 </section>

@@ -24,13 +24,19 @@ const isCountMap = (v: unknown): v is Record<string, number> =>
 
 let pending: Promise<SceneCounts | null> | null = null;
 
-/** Fetched once per session; null when the API is missing (ng serve), down or returns anything odd. */
+/**
+ * Fetched once per session; null when the API is missing (ng serve), down or returns anything odd.
+ * A failure is not kept: the next map that mounts tries again.
+ */
 export function loadSceneCounts(): Promise<SceneCounts | null> {
-  return pending ??= fetch('/api/counts')
+  if (pending) return pending;
+  const request: Promise<SceneCounts | null> = fetch('/api/counts')
     .then(r => r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : null)
     .then(d => d && isCountMap(d.musicians) && isCountMap(d.bands) && isCountMap(d.posts)
       ? { musicians: d.musicians, bands: d.bands, posts: d.posts } as SceneCounts : null)
-    .catch(() => null);
+    .catch(() => null)
+    .then(c => { if (!c && pending === request) pending = null; return c; });
+  return pending = request;
 }
 
 /** Tests only: forget the cached request. */

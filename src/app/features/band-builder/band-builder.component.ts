@@ -19,14 +19,14 @@ export interface BandSlot { instrument: string; musicians: BuilderMusician[]; ne
 const COLS = 'id,name,city,avatar_url,instrument,genre,user_id,created_at';
 export const MAX_MISSING = 5;
 const PER_SLOT = 3;
-const ROWS = 60;
+/** Per instrument: enough to show 3 after dropping Contrabajo-for-Bajo, your own profile and seed rows. */
+const ROWS = 12;
 const DEBOUNCE_MS = 300;
 const PICKABLE = INSTRUMENTS.filter(i => i !== 'Otro');
 const QUICK_PICK = ['Batería', 'Bajo'];
 
 const fold = (s: string) => s.trim().toLowerCase();
 const plays = (m: BuilderMusician, inst: string) => parseList(m.instrument).some(i => fold(i) === fold(inst));
-const instrumentFilter = (list: readonly string[]) => list.map(i => `instrument.ilike.%${i}%`).join(',');
 
 /** The viewer's own province or region if it is one we know, else the usual default. */
 function startPlace(): string {
@@ -34,6 +34,13 @@ function startPlace(): string {
   try { city = localStorage.getItem('bandyou_city') ?? ''; } catch { /* storage blocked */ }
   return isKnownPlace(city) ? city : defaultPlace();
 }
+
+/** A place filter value we understand; anything else from the URL is ignored. */
+export function isPlaceValue(v: string): boolean {
+  return v === ALL_PLACES || v === ANY_PLACE || (v.startsWith('pais:') && !!countryByCode(v.slice(5))) || isKnownPlace(v);
+}
+
+type ByInstrument = Readonly<Record<string, BuilderMusician[]>>;
 
 /** Who fills one slot: chosen style first, then those with a photo, then newest (rows come newest first). */
 export function fillSlot(rows: readonly BuilderMusician[], instrument: string, genre: string): BuilderMusician[] {
@@ -74,8 +81,8 @@ export class BandBuilderComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly error = signal(false);
   /** Rows for the chosen place, and the widened rows (neighbours / whole country) for empty slots. */
-  private readonly rows = signal<BuilderMusician[]>([]);
-  private readonly wideRows = signal<BuilderMusician[]>([]);
+  private readonly rows = signal<ByInstrument>({});
+  private readonly wideRows = signal<ByInstrument>({});
   private readonly wideLabel = signal('');
   readonly opening = signal<string | null>(null);
 
@@ -87,9 +94,9 @@ export class BandBuilderComponent implements OnInit, OnDestroy {
   private loadedKey: string | null = null;
 
   readonly slots = computed<BandSlot[]>(() => this.missing().map(instrument => {
-    const here = fillSlot(this.rows(), instrument, this.genre());
+    const here = fillSlot(this.rows()[instrument] ?? [], instrument, this.genre());
     if (here.length) return { instrument, musicians: here, nearLabel: '' };
-    return { instrument, musicians: fillSlot(this.wideRows(), instrument, this.genre()), nearLabel: this.wideLabel() };
+    return { instrument, musicians: fillSlot(this.wideRows()[instrument] ?? [], instrument, this.genre()), nearLabel: this.wideLabel() };
   }));
 
   /** " en Madrid" for a real place; nothing for all of Spain or every country. */
@@ -113,7 +120,8 @@ export class BandBuilderComponent implements OnInit, OnDestroy {
   }
 
   private readParams(p: Params) {
-    const donde = typeof p['donde'] === 'string' && p['donde'].trim() ? p['donde'].trim() : startPlace();
+    const raw = typeof p['donde'] === 'string' ? p['donde'].trim() : '';
+    const donde = isPlaceValue(raw) ? raw : startPlace();
     const faltan = [...new Set(parseList(typeof p['faltan'] === 'string' ? p['faltan'] : '')
       .map(x => PICKABLE.find(i => fold(i) === fold(x)))
       .filter((x): x is string => !!x))].slice(0, MAX_MISSING);
@@ -132,6 +140,7 @@ export class BandBuilderComponent implements OnInit, OnDestroy {
     this.loadedKey = key;
     clearTimeout(this.timer);
     if (first) { void this.load(); return; }
+    this.seq++; // an answer still in flight is for the old choice
     this.loading.set(true);
     this.timer = setTimeout(() => void this.load(), DEBOUNCE_MS);
   }
@@ -155,6 +164,8 @@ export class BandBuilderComponent implements OnInit, OnDestroy {
     this.writeUrl();
   }
 
+  retry() { this.loadedKey = null; this.scheduleLoad(); }
+
   pickQuick() { this.missing.set([...QUICK_PICK]); this.writeUrl(); }
 
   async load() {
@@ -162,21 +173,21 @@ export class BandBuilderComponent implements OnInit, OnDestroy {
     const missing = this.missing();
     const place = this.place();
     if (!missing.length) {
-      this.rows.set([]); this.wideRows.set([]); this.loading.set(false); this.error.set(false);
+      this.rows.set({}); this.wideRows.set({}); this.loading.set(false); this.error.set(false);
       return;
     }
     this.loading.set(true);
     this.error.set(false);
     try {
       await this.session;
-      const rows = await this.fetch(missing, q => whereCity(q, place));
+      const rows = await this.fetchEach(missing, q => whereCity(q, place));
       if (seq !== this.seq) return;
-      const empty = missing.filter(i => !rows.some(m => plays(m, i)));
-      let wide: BuilderMusician[] = [];
+      const empty = missing.filter(i => !rows[i].length);
+      let wide: ByInstrument = {};
       let label = '';
       const widen = empty.length ? this.widerArea(place) : null;
       if (widen) {
-        wide = await this.fetch(empty, widen.narrow).catch(() => []);
+        wide = await this.fetchEach(empty, widen.narrow).catch(() => ({}));
         if (seq !== this.seq) return;
         label = widen.label;
       }
@@ -184,7 +195,9 @@ export class BandBuilderComponent implements OnInit, OnDestroy {
       this.wideRows.set(wide);
       this.wideLabel.set(label);
     } catch {
-      if (seq === this.seq) { this.rows.set([]); this.wideRows.set([]); this.error.set(true); }
+      if (seq !== this.seq) return;
+      this.rows.set({}); this.wideRows.set({}); this.error.set(true);
+      this.loadedKey = null; // the next change (or "Reintentar") asks again
     } finally {
       if (seq === this.seq) this.loading.set(false);
     }
@@ -201,12 +214,16 @@ export class BandBuilderComponent implements OnInit, OnDestroy {
     return c ? { label: `En todo ${c.name}`, narrow: q => whereCity(q, `pais:${c.code}`) } : null;
   }
 
+  /** One small query per instrument, in parallel, so a common one can't crowd out a rare one. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async fetch(instruments: readonly string[], narrow: (q: any) => any): Promise<BuilderMusician[]> {
-    const q = narrow(this.supabase.client.from('musicians').select(COLS)).or(instrumentFilter(instruments));
-    const { data, error } = await q.order('created_at', { ascending: false }).limit(ROWS);
-    if (error) throw error;
-    return ((data ?? []) as BuilderMusician[]).filter(m => m.user_id && m.user_id !== this.viewerId);
+  private async fetchEach(instruments: readonly string[], narrow: (q: any) => any): Promise<Record<string, BuilderMusician[]>> {
+    const lists = await Promise.all(instruments.map(async inst => {
+      const q = narrow(this.supabase.client.from('musicians').select(COLS)).ilike('instrument', `%${inst}%`);
+      const { data, error } = await q.order('created_at', { ascending: false }).limit(ROWS);
+      if (error) throw error;
+      return ((data ?? []) as BuilderMusician[]).filter(m => m.user_id && m.user_id !== this.viewerId && plays(m, inst));
+    }));
+    return Object.fromEntries(instruments.map((inst, i) => [inst, lists[i]]));
   }
 
   searchParams(instrument: string) {

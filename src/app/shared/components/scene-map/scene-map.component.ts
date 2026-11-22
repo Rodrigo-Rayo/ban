@@ -8,13 +8,16 @@ import { activityBucket, ActivityBucket, loadSceneCounts, PlaceCounts, placeCoun
 
 interface MapTile { value: string; label: string; code: string; col: number; row: number }
 
+/** Busiest places offered as quick picks beside the map on desktop. */
+const TOP_PLACES = 5;
+
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const countsText = (c: PlaceCounts) => [plural(c.musicians, 'músico', 'músicos'), plural(c.bands, 'banda', 'bandas'), plural(c.posts, 'anuncio', 'anuncios')];
 
 /** Tile colors per activity step; ink text on paper and yellow, white on poster red. */
 export const BUCKET_CLASS: Record<ActivityBucket | 'none', string> = {
-  none: 'bg-dark-700 text-ink-muted border-ink/20',
-  zero: 'bg-dark-800 text-ink-muted border-ink/20',
+  none: 'bg-dark-700 text-ink/75 border-ink/20',
+  zero: 'bg-dark-800 text-ink/75 border-ink/20',
   low: 'bg-poster-yellow/40 text-ink border-ink/40',
   mid: 'bg-poster-yellow text-ink border-ink',
   high: 'bg-primary-500 text-white border-ink',
@@ -43,6 +46,7 @@ export class SceneMapComponent implements OnInit {
 
   readonly country = signal(SPAIN);
   readonly counts = signal<SceneCounts | null>(null);
+  readonly status = signal<'loading' | 'ok' | 'failed'>('loading');
   readonly selected = signal<string | null>(null);
   readonly showAll = signal(false);
 
@@ -59,8 +63,12 @@ export class SceneMapComponent implements OnInit {
   readonly regionsActive = computed(() => this.tiles().filter(t => this.total(t.value) > 0).sort((a, b) => this.total(b.value) - this.total(a.value)));
   readonly regionsRest = computed(() => this.tiles().filter(t => !this.total(t.value)));
 
+  readonly topPlaces = computed(() => this.tiles().filter(t => this.total(t.value) > 0)
+    .sort((a, b) => this.total(b.value) - this.total(a.value)).slice(0, TOP_PLACES));
+
   readonly summary = computed(() => {
     const c = this.counts();
+    if (this.status() === 'failed') return 'No se pudieron cargar las cifras.';
     if (!c) return '';
     let people = 0, places = 0, posts = 0;
     for (const t of this.tiles()) {
@@ -88,7 +96,9 @@ export class SceneMapComponent implements OnInit {
     try { city = localStorage.getItem('bandyou_city') ?? ''; } catch { /* storage blocked */ }
     const { country } = parsePlace(city);
     if (countryByCode(country)) this.country.set(country);
-    this.counts.set(await loadSceneCounts());
+    const counts = await loadSceneCounts();
+    this.counts.set(counts);
+    this.status.set(counts ? 'ok' : 'failed');
   }
 
   setCountry(code: string) {
@@ -98,6 +108,12 @@ export class SceneMapComponent implements OnInit {
   }
 
   select(value: string) { this.selected.update(v => (v === value ? null : value)); }
+
+  /** What screen readers hear when a place is picked (the panel itself is not moved into focus). */
+  readonly announcement = computed(() => {
+    const p = this.panel();
+    return p ? (p.text ? `${p.label}: ${p.text.split(' · ').join(', ')}` : p.label) : '';
+  });
 
   total(value: string): number {
     const c = this.counts();

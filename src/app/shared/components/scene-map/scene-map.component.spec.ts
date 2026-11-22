@@ -78,6 +78,56 @@ describe('SceneMapComponent', () => {
     click(tile('Sevilla'));
     expect(links().length).toBe(4);
     expect(el.textContent).not.toContain('Aún no hay nadie');
+    expect(el.textContent).toContain('No se pudieron cargar las cifras.');
+  });
+
+  it('beside the map, offers the busiest places as quick picks that open the panel', async () => {
+    await setup(Promise.resolve(json(COUNTS)));
+    const prompt = el.querySelector('[data-prompt]')!;
+    expect(prompt.textContent).toContain('Toca una provincia para ver quién hay');
+    const picks = [...prompt.querySelectorAll('button')];
+    expect(picks.map(b => b.textContent!.trim().split(/\s+/)[0])).toEqual(['Madrid', 'Sevilla']);
+    click(picks[1]);
+    expect(el.querySelector('[data-prompt]')).toBeNull();
+    expect(el.querySelector('[role="region"] h3')!.textContent).toContain('Sevilla');
+  });
+
+  it('announces the picked place to screen readers without moving focus', async () => {
+    await setup(Promise.resolve(json(COUNTS)));
+    const live = el.querySelector('.sr-only[aria-live="polite"]')!;
+    expect(live.textContent!.trim()).toBe('');
+    const before = document.activeElement;
+    click(tile('Sevilla'));
+    expect(live.textContent!.trim()).toBe('Sevilla: 3 músicos, 1 banda, 2 anuncios');
+    expect(document.activeElement).toBe(before);
+  });
+
+  it('empty tiles use ink text strong enough to read, not the muted grey', async () => {
+    await setup(Promise.resolve(json(COUNTS)));
+    expect(tile('Soria').className).toContain('text-ink/75');
+    expect(tile('Soria').className).not.toContain('text-ink-muted');
+  });
+
+  it('abroad, holds the regions block height with a placeholder until counts arrive', async () => {
+    resetSceneCounts();
+    let resolve!: (r: Response) => void;
+    spyOn(window, 'fetch').and.returnValue(new Promise<Response>(r => (resolve = r)));
+    spyOn(Storage.prototype, 'getItem').and.callFake(k => (k === 'bandyou_city' ? 'Mendoza, Argentina' : null));
+    await TestBed.configureTestingModule({
+      imports: [SceneMapComponent],
+      providers: [provideRouter([]), { provide: AuthService, useValue: { isLoggedIn: signal(false) } }],
+    }).compileComponents();
+    fixture = TestBed.createComponent(SceneMapComponent);
+    el = fixture.nativeElement;
+    fixture.detectChanges();
+    expect(el.querySelector('[data-regions] .animate-pulse')).not.toBeNull();
+    expect(el.querySelectorAll('button[aria-pressed]').length).toBe(0);
+    resolve(json(COUNTS));
+    await loadSceneCounts();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(el.querySelector('.animate-pulse')).toBeNull();
+    expect(el.querySelectorAll('button[aria-pressed]').length).toBe(1);
   });
 
   it('opens on the viewer\'s own country and lists its regions, busiest first', async () => {
