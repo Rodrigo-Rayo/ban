@@ -91,9 +91,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     const navName = history.state?.name;
     if (navName && typeof navName === 'string') this.otherName.set(navName);
-    // A ready-written first message (e.g. from /arma-tu-banda): read once so Back/reload doesn't bring it back.
-    const draft = history.state?.draft;
-    if (draft !== undefined) history.replaceState({ ...history.state, draft: undefined }, '');
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.currentUserId.set(user?.id ?? '');
@@ -120,10 +117,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       ]);
       this.messages.update(current => this.merge(msgs, current));
       this.hasMore.set(hasMore);
-      // Only for a first message, and never sent for them.
-      if (typeof draft === 'string' && conv && !this.messages().length && !this.newMessage.trim()) {
-        this.newMessage = draft.trim().slice(0, this.maxLength);
-      }
       setTimeout(() => this.scrollToBottom(), 0);
 
       this.markRead();

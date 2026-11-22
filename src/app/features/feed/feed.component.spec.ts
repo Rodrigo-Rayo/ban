@@ -430,18 +430,6 @@ describe('FeedComponent', () => {
     expect(other.newPost.type).toBe('musician_seeking_band');
   });
 
-  it('32b. ?city= from the scene map opens on that place; unknown text is ignored', async () => {
-    authSpy.userProfileData.and.returnValue({ id: 'm1', name: 'Ana', city: 'Madrid', avatar_url: null });
-    routeMock.snapshot.queryParamMap.get.and.callFake((k: string) => (k === 'city' ? 'Sevilla' : null));
-    await component.ngOnInit();
-    expect(component.filterCity()).toBe('Sevilla');
-
-    const other = TestBed.createComponent(FeedComponent).componentInstance;
-    routeMock.snapshot.queryParamMap.get.and.callFake((k: string) => (k === 'city' ? '<script>' : null));
-    await other.ngOnInit();
-    expect(other.filterCity()).toBe('Madrid');
-  });
-
   it('33. the type picker offers the shared emoji-free options', () => {
     expect(component.postTypes.map(t => t.label)).toContain('Buscamos músico');
     expect(component.postTypes.every(t => !/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(t.label))).toBeTrue();

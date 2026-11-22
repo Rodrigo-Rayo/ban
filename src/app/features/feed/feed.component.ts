@@ -366,9 +366,6 @@ export class FeedComponent implements OnInit {
     } catch {
       // Auth errors are non-fatal — continue to load posts for anonymous view
     }
-    // ?city=<place> (from the scene map) wins over the profile's city.
-    const urlCity = this.route.snapshot.queryParamMap.get('city');
-    if (isKnownPlace(urlCity)) this.filterCity.set(urlCity!);
 
     this.initialised = true;
     if (!this.formOnly()) await this.loadPosts();
