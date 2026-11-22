@@ -35,6 +35,8 @@ export class ExploreLinksComponent {
     { href: '/salas-de-conciertos', label: 'Salas de conciertos' },
     { href: '/conciertos', label: 'Conciertos' },
     { href: '/guias', label: 'Guías' },
+    { href: '/afinador', label: 'Afinador' },
+    { href: '/metronomo', label: 'Metrónomo' },
   ];
   readonly provinces = [
     { href: '/busco-banda/madrid', label: 'Busco banda en Madrid' },

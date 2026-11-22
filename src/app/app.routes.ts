@@ -149,6 +149,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/bands/join-band/join-band.component').then(m => m.JoinBandComponent),
   },
   {
+    path: 'afinador', title: 'Afinador online gratis para guitarra, bajo y ukelele · BandYou',
+    loadComponent: () => import('./features/tools/tuner/tuner.component').then(m => m.TunerComponent),
+  },
+  {
+    path: 'metronomo', title: 'Metrónomo online gratis · BandYou',
+    loadComponent: () => import('./features/tools/metronome/metronome.component').then(m => m.MetronomeComponent),
+  },
+  {
     path: 'test', title: '¿Qué músico de banda eres? · BandYou',
     loadComponent: () => import('./features/test/test.component').then(m => m.TestComponent),
   },

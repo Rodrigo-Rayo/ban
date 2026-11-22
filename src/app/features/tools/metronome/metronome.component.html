@@ -1,0 +1,172 @@
+<div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
+<header class="page-head bg-dark-900">
+  <div class="page-head-inner py-4 sm:py-5">
+    <div class="min-w-0">
+      <p class="page-kicker">Herramientas</p>
+      <h1 class="page-title">Metrónomo online</h1>
+      <p class="mt-1 text-sm text-ink-muted">Gratis y preciso, de 30 a 300 BPM.</p>
+    </div>
+  </div>
+</header>
+
+<div class="page-wrap py-4 sm:py-8">
+  <section class="met card-flat shadow-card max-w-xl mx-auto p-3 sm:p-6" aria-label="Metrónomo">
+
+    <!-- Beat squares -->
+    <ol class="beats" [class.beats-many]="pulses().length > 7" aria-hidden="true">
+      @for (p of pulses(); track p.i) {
+        <li class="beat"
+            [class.beat-strong]="p.strong"
+            [class.beat-first]="p.i === 0 && settings().accent"
+            [class.beat-on]="activePulse() === p.i"></li>
+      }
+    </ol>
+
+    <!-- BPM -->
+    <div class="mt-3 sm:mt-4 flex items-center justify-between gap-3">
+      <button type="button" class="btn-secondary step-btn" aria-label="Bajar 1 BPM"
+              (pointerdown)="holdStart(-1, $event)" (pointerup)="holdEnd()" (pointerleave)="holdEnd()"
+              (pointercancel)="holdEnd()" (contextmenu)="$event.preventDefault()" (click)="stepClick(-1, $event)">−</button>
+      <div class="text-center min-w-0">
+        <output class="bpm font-display block" for="met-bpm" aria-hidden="true">{{ settings().bpm }}</output>
+        <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted">
+          BPM · <span class="text-primary-600">{{ tempo() }}</span>
+        </p>
+      </div>
+      <button type="button" class="btn-secondary step-btn" aria-label="Subir 1 BPM"
+              (pointerdown)="holdStart(1, $event)" (pointerup)="holdEnd()" (pointerleave)="holdEnd()"
+              (pointercancel)="holdEnd()" (contextmenu)="$event.preventDefault()" (click)="stepClick(1, $event)">+</button>
+    </div>
+
+    <label for="met-bpm" class="sr-only">Tempo en BPM</label>
+    <input id="met-bpm" type="range" class="met-range mt-2 sm:mt-3" step="1"
+           [min]="BPM_MIN" [max]="BPM_MAX" [value]="settings().bpm"
+           [attr.aria-valuetext]="settings().bpm + ' BPM, ' + tempo()"
+           (input)="onSlider($event)" />
+
+    <!-- Transport -->
+    <div class="mt-3 sm:mt-4 grid grid-cols-[1fr_auto] gap-3">
+      <button type="button" class="btn-primary start-btn" (click)="toggle()">
+        {{ playing() ? 'Parar' : 'Empezar' }}
+      </button>
+      <button type="button" class="btn-night tap-btn" (click)="tap()"
+              aria-describedby="met-tap-hint">Marcar tempo</button>
+    </div>
+    <p id="met-tap-hint" class="hidden sm:block mt-1 text-right font-mono text-[11px] text-ink-muted" aria-live="off">
+      @if (tapCount() > 1) { {{ tapCount() }} toques } @else { Toca al ritmo de la canción }
+    </p>
+
+    @if (unsupported()) {
+      <p class="mt-3 text-sm text-signal-red" role="alert">Tu navegador no permite reproducir audio aquí. Prueba con Chrome, Safari o Firefox actualizados.</p>
+    }
+
+    <!-- Options -->
+    <div class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 sm:gap-3">
+      <div>
+        <label for="met-meter" class="section-label block mb-1">Compás</label>
+        <select id="met-meter" class="input-field met-select" [value]="settings().meter"
+                (change)="setMeter($any($event.target).value)">
+          @for (m of meters; track m.id) {
+            <option [value]="m.id" [selected]="m.id === settings().meter">{{ m.id }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label for="met-sub" class="section-label block mb-1">Subdivisión</label>
+        <select id="met-sub" class="input-field met-select" [disabled]="compound()"
+                [attr.aria-describedby]="compound() ? 'met-sub-note' : null"
+                (change)="setSubdivision($any($event.target).value)">
+          @for (s of subdivisions; track s.value) {
+            <option [value]="s.value" [selected]="s.value === settings().subdivision">{{ s.label }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label for="met-sound" class="section-label block mb-1">Sonido</label>
+        <select id="met-sound" class="input-field met-select" (change)="setSound($any($event.target).value)">
+          @for (s of sounds; track s.value) {
+            <option [value]="s.value" [selected]="s.value === settings().sound">{{ s.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="flex flex-col">
+        <span class="section-label block mb-1" id="met-accent-label">Acento</span>
+        <button type="button" class="accent-btn" [class.accent-on]="settings().accent"
+                [attr.aria-pressed]="settings().accent" aria-labelledby="met-accent-label met-accent-state"
+                (click)="toggleAccent()">
+          <span id="met-accent-state">{{ settings().accent ? 'En el 1' : 'Sin acento' }}</span>
+        </button>
+      </div>
+      <div class="col-span-2">
+        <label for="met-vol" class="section-label block mb-1">Volumen</label>
+        <input id="met-vol" type="range" class="met-range" min="0" max="100" step="1"
+               [value]="volumePct()" [attr.aria-valuetext]="volumePct() + ' %'"
+               (input)="setVolume($event)" />
+      </div>
+    </div>
+    @if (compound()) {
+      <p id="met-sub-note" class="mt-2 font-mono text-[11px] text-ink-muted">En {{ settings().meter }} cada clic es una corchea{{ settings().meter === '7/8' ? ', agrupadas 2+2+3' : '' }}.</p>
+    }
+
+    <p class="kbd-hint mt-3 font-mono text-[11px] text-ink-muted">
+      Teclado: <kbd>Espacio</kbd> empezar/parar · <kbd>←</kbd><kbd>→</kbd> ±1 · <kbd>↑</kbd><kbd>↓</kbd> ±5 · <kbd>T</kbd> marcar tempo
+    </p>
+
+    <p class="sr-only" aria-live="polite" aria-atomic="true">{{ announcement() }}</p>
+  </section>
+
+  <!-- SEO content -->
+  <article class="max-w-3xl mx-auto mt-12 grid gap-10">
+    <section aria-labelledby="met-tips">
+      <h2 id="met-tips" class="text-3xl">Cómo practicar con metrónomo</h2>
+      <ol class="mt-4 grid gap-3 sm:grid-cols-2">
+        @for (t of tips; track t.title; let i = $index) {
+          <li class="card-flat p-4">
+            <p class="font-mono text-[11px] font-bold uppercase text-primary-600">{{ i + 1 }} · {{ t.title }}</p>
+            <p class="mt-1 text-sm">{{ t.text }}</p>
+          </li>
+        }
+      </ol>
+    </section>
+
+    <section aria-labelledby="met-table">
+      <h2 id="met-table" class="text-3xl">Indicaciones de tempo y sus BPM</h2>
+      <p class="mt-2 text-sm text-ink-muted">Son orientativas: cada época y cada partitura las interpreta un poco distinto.</p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="tempo-table w-full text-sm">
+          <thead>
+            <tr><th scope="col">Indicación</th><th scope="col">BPM</th><th scope="col">Carácter</th></tr>
+          </thead>
+          <tbody>
+            @for (row of tempoTable; track row.name) {
+              <tr [class.row-now]="row.name === tempo()">
+                <th scope="row">{{ row.name }}</th><td class="font-mono">{{ row.range }}</td><td>{{ row.feel }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="met-faq">
+      <h2 id="met-faq" class="text-3xl">Preguntas frecuentes</h2>
+      <div class="mt-4 grid gap-5">
+        @for (f of faqs; track f.q) {
+          <div>
+            <h3 class="font-bold text-base">{{ f.q }}</h3>
+            <p class="mt-1 text-sm">{{ f.a }}</p>
+          </div>
+        }
+      </div>
+    </section>
+
+    <aside class="border-t-2 border-ink pt-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+      <p class="font-display text-xl">¿Buscas banda o músicos?</p>
+      <div class="flex flex-wrap gap-3">
+        <a routerLink="/feed" class="btn-secondary">Ver anuncios</a>
+        <a routerLink="/afinador" class="btn-ghost underline">Afinador online</a>
+      </div>
+    </aside>
+  </article>
+</div>
+</div>
