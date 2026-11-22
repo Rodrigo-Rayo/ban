@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SeoService } from '../../../core/services/seo.service';
-import { ALL_PLACES, PLACE_FILTER_GROUPS, whereCity } from '../../../core/utils/place';
+import { PLACE_FILTER_GROUPS, defaultPlace, whereCity } from '../../../core/utils/place';
 import { PlaceFilterComponent } from '../../../shared/components/place-filter/place-filter.component';
 import { GEAR_CONDITIONS, gearConditionValues } from '../../../core/constants/gear';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
@@ -48,7 +48,7 @@ export class GearListComponent implements OnInit {
   private readonly PAGE_SIZE = 24;
 
   filterCategory = signal('');
-  filterCity = signal('Toda España');
+  filterCity = signal(defaultPlace());
   filterCondition = signal('');
 
   readonly categories = ['Guitarras', 'Bajos', 'Batería', 'Teclados', 'Amplificadores', 'Efectos', 'PA/Sonido', 'Accesorios', 'Otro'];
@@ -73,7 +73,7 @@ export class GearListComponent implements OnInit {
   /** Filters live in the URL (?ciudad=&categoria=&estado=) so the view can be shared and survives reload. */
   async applyFilters() {
     const queryParams = {
-      ciudad: this.filterCity() !== ALL_PLACES ? this.filterCity() : null,
+      ciudad: this.filterCity() !== defaultPlace() ? this.filterCity() : null,
       categoria: this.filterCategory() || null,
       estado: this.filterCondition() || null,
     };
@@ -122,12 +122,12 @@ export class GearListComponent implements OnInit {
   }
 
   hasFilters() {
-    return this.filterCategory() || this.filterCity() !== ALL_PLACES || this.filterCondition();
+    return this.filterCategory() || this.filterCity() !== defaultPlace() || this.filterCondition();
   }
 
   async clearFilters() {
     this.filterCategory.set('');
-    this.filterCity.set(ALL_PLACES);
+    this.filterCity.set(defaultPlace());
     this.filterCondition.set('');
     await this.applyFilters();
   }

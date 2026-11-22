@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { ALL_PLACES, OTHER_VALUE, PLACE_FILTER_GROUPS, PlaceMatch, exactPlace, isKnownPlace, matchParts, placeOption, searchPlaces } from '../../../core/utils/place';
+import { ALL_PLACES, ANY_PLACE, OTHER_VALUE, PLACE_FILTER_GROUPS, PlaceMatch, defaultPlace, exactPlace, isKnownPlace, matchParts, placeOption, searchPlaces } from '../../../core/utils/place';
 
 let nextId = 0;
 
-/** What shows before typing: all of Spain, its provinces, then each country as a whole. */
+/** What shows before typing: all of Spain, every country, Spain's provinces, then each country as a whole. */
 const SUGGESTIONS: readonly PlaceMatch[] = PLACE_FILTER_GROUPS.flatMap((g, i) =>
   (i === 0 ? g.options : g.options.slice(0, 1)).map(o => ({ ...o, group: g.label })));
 
@@ -19,9 +19,14 @@ function homePlace(): string {
   } catch { return ''; }
 }
 
-/** Text in the box for a filter value; empty for "all of Spain", so the placeholder says it. */
-function display(value: string): string {
-  if (!value || value === ALL_PLACES) return '';
+/** What clearing the box means: all of Spain for people in Spain, every country for everyone else. */
+function emptyValue(): string {
+  return defaultPlace() === ALL_PLACES ? ALL_PLACES : ANY_PLACE;
+}
+
+/** Text in the box for a filter value; empty for what clearing means, so the placeholder says it. */
+function display(value: string, empty = emptyValue()): string {
+  if (!value || value === empty) return '';
   const o = placeOption(value);
   if (!o) return value;
   return o.group === 'España' || o.value.startsWith('pais:') || o.value === OTHER_VALUE ? o.label : `${o.label}, ${o.group}`;
@@ -34,13 +39,13 @@ function display(value: string): string {
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => PlaceFilterComponent), multi: true }],
   host: { class: 'relative block scroll-mt-24' },
   template: `
-    <input type="text" role="combobox" autocomplete="off" spellcheck="false" placeholder="Toda España"
+    <input type="text" role="combobox" autocomplete="off" spellcheck="false" [placeholder]="empty()"
       [class]="inputClass()" [attr.aria-label]="label()" aria-autocomplete="list"
       [attr.aria-expanded]="open()" [attr.aria-controls]="id + '-list'"
       [attr.aria-activedescendant]="open() && results().length ? id + '-' + active() : null"
       [value]="text()" (input)="onInput($any($event.target).value)"
       (focus)="onFocus($any($event.target))" (click)="open.set(true)" (blur)="onBlur()" (keydown)="onKey($event)" />
-    @if (value() !== all && !open()) {
+    @if (value() !== empty() && !open()) {
       <button type="button" (click)="clear($event)" [attr.aria-label]="'Quitar filtro: ' + text()"
         class="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-ink hover:bg-ink hover:text-poster-paper transition-colors">
         <svg aria-hidden="true" viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 18 18 6M6 6l12 12"/></svg>
@@ -82,9 +87,9 @@ export class PlaceFilterComponent implements ControlValueAccessor {
   /** True once the person types, so the list narrows instead of showing every suggestion. */
   private readonly typed = signal(false);
 
-  readonly all = ALL_PLACES;
   /** Re-read on every focus: the profile may load (or the person log out) after this box appears. */
   private readonly home = signal(homePlace());
+  readonly empty = signal(emptyValue());
   private skipOpen = false;
 
   /** Before typing: all of Spain, the person's own zone, then every suggestion. */
@@ -106,7 +111,8 @@ export class PlaceFilterComponent implements ControlValueAccessor {
   private onTouched: () => void = () => {};
 
   writeValue(value: string | null): void {
-    this.value.set(value || ALL_PLACES);
+    this.empty.set(emptyValue());
+    this.value.set(value || this.empty());
     this.text.set(display(this.value()));
   }
   registerOnChange(fn: (v: string) => void): void { this.onChange = fn; }
@@ -116,6 +122,7 @@ export class PlaceFilterComponent implements ControlValueAccessor {
     el.select();
     if (this.skipOpen) { this.skipOpen = false; return; }
     this.home.set(homePlace());
+    this.empty.set(emptyValue());
     this.liftAboveKeyboard();
     this.typed.set(false);
     this.active.set(Math.max(0, this.results().findIndex(o => o.value === this.value())));
@@ -131,10 +138,10 @@ export class PlaceFilterComponent implements ControlValueAccessor {
   }
 
   onBlur() {
-    // Clearing the box means "all of Spain"; a place typed in full counts as picked;
+    // Clearing the box means all of Spain (every country abroad); a place typed in full counts as picked;
     // anything else half-typed goes back to the current place.
     const typedPlace = this.typed() ? exactPlace(this.text()) : undefined;
-    if (!this.text().trim() && this.value() !== ALL_PLACES) this.commit(ALL_PLACES);
+    if (!this.text().trim() && this.value() !== this.empty()) this.commit(this.empty());
     else if (typedPlace) this.commit(typedPlace.value);
     else this.text.set(display(this.value()));
     this.open.set(false);
@@ -160,7 +167,7 @@ export class PlaceFilterComponent implements ControlValueAccessor {
   }
 
   clear(e?: MouseEvent) {
-    this.commit(ALL_PLACES);
+    this.commit(this.empty());
     this.onTouched();
     // From the keyboard (no pointer, detail 0) keep focus in the box instead of dropping it to the page.
     if (e?.detail === 0) {

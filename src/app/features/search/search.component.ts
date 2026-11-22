@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SeoService } from '../../core/services/seo.service';
-import { placeLabel, whereCity } from '../../core/utils/place';
+import { ALL_PLACES, ANY_PLACE, defaultPlace, isSpanishProvince, placeLabel, whereCity } from '../../core/utils/place';
 import { PlaceFilterComponent } from '../../shared/components/place-filter/place-filter.component';
 import { GENRES, INSTRUMENTS } from '../../core/constants/music.constants';
 import { genrePattern } from '../../core/utils/genre-match';
@@ -45,7 +45,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   activeTab = signal<SearchType>('musicians');
   searchQuery = signal('');
   selectedGenre = signal('');
-  selectedCity = signal('Toda España');
+  selectedCity = signal(defaultPlace());
   selectedInstrument = signal('');
   /** Bands tab: only bands marked "Disponibles para bolos" (URL ?bolos=1). */
   gigsOnly = signal(false);
@@ -144,11 +144,8 @@ export class SearchComponent implements OnInit, OnDestroy {
         description: tabDescriptions[tab],
         url: 'https://www.bandyou.es/search',
       });
-      if (params['city']) {
-        this.selectedCity.set(params['city']);
-      } else {
-        this.selectedCity.set('Toda España');
-      }
+      // No city in the URL means the person's default: Spain, or their own country abroad.
+      this.selectedCity.set(params['city'] || defaultPlace());
       // The URL is the source of truth: absent params mean "no filter" (previously a
       // filter from an earlier URL kept applying invisibly).
       this.selectedGenre.set(params['genre'] || '');
@@ -215,8 +212,13 @@ export class SearchComponent implements OnInit, OnDestroy {
     venues: 'Salas de conciertos',
   } as Record<SearchType, string>)[this.activeTab()]);
 
-  /** " en Madrid" when a city is selected, nothing for "Toda España" (used in titles and empty states). */
-  readonly cityScope = computed(() => this.selectedCity() !== 'Toda España' ? ' en ' + placeLabel(this.selectedCity()) : '');
+  /** " en Madrid" when a place is selected, nothing for all of Spain or every country (used in titles and empty states). */
+  readonly cityScope = computed(() => [ALL_PLACES, ANY_PLACE].includes(this.selectedCity()) ? '' : ' en ' + placeLabel(this.selectedCity()));
+
+  /** Where an empty list widens to: all of Spain from a province, every country from anywhere else. */
+  readonly widerPlace = computed(() => isSpanishProvince(this.selectedCity())
+    ? { value: ALL_PLACES, label: 'Ver toda España' }
+    : { value: ANY_PLACE, label: 'Ver todos los países' });
   readonly hasGenreFilter = computed(() => !['rehearsal', 'events', 'teachers'].includes(this.activeTab()));
 
   /** Whether this tab has filters besides place (instrument, genre, gigs) to fold away on mobile. */
@@ -233,7 +235,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   readonly hasActiveFilters = computed(() =>
     !!this.searchQuery() ||
     !!this.selectedGenre() ||
-    this.selectedCity() !== 'Toda España' ||
+    this.selectedCity() !== defaultPlace() ||
     !!this.selectedInstrument() ||
     this.gigsFilterOn()
   );
@@ -262,7 +264,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   filterChanged() {
     const params: Record<string, string> = { tab: this.activeTab() };
     const city = this.selectedCity();
-    if (city && city !== 'Toda España') params['city'] = city;
+    if (city && city !== defaultPlace()) params['city'] = city;
     const genre = this.selectedGenre();
     if (genre) params['genre'] = genre;
     const q = this.searchQuery();
@@ -441,7 +443,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   /** Why the list is empty decides the empty-state copy. */
   readonly emptyMode = computed<'query' | 'filters' | 'none'>(() =>
     this.searchQuery().trim() ? 'query'
-      : (this.selectedCity() !== 'Toda España' || this.selectedInstrument() || this.selectedGenre() || this.gigsFilterOn()) ? 'filters' : 'none');
+      : (this.selectedCity() !== defaultPlace() || this.selectedInstrument() || this.selectedGenre() || this.gigsFilterOn()) ? 'filters' : 'none');
 
   /** Initials from first + last word ("Sofía López" -> "SL"). */
   initials(name: string | null | undefined): string {
@@ -454,7 +456,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   clearFilters() {
     this.selectedGenre.set('');
-    this.selectedCity.set('Toda España');
+    this.selectedCity.set(defaultPlace());
     this.searchQuery.set('');
     this.selectedInstrument.set('');
     this.gigsOnly.set(false);

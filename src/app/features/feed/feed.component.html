@@ -244,8 +244,8 @@
         @if (onlyCityFilter()) {
           <div class="empty-state">
             <p class="font-display text-2xl uppercase text-ink">Nada en {{ placeLabel(filterCity()) }} todavía</p>
-            <p class="text-sm text-ink-muted mb-3 max-w-[280px]">Mira lo que se busca en el resto de España o publica el primer anuncio de tu provincia.</p>
-            <button (click)="showAllSpain()" class="btn-secondary text-sm min-h-[44px]">Ver toda España</button>
+            <p class="text-sm text-ink-muted mb-3 max-w-[280px]">Mira lo que se busca en {{ widensToSpain() ? 'el resto de España' : 'otros países' }} o publica el primer anuncio de tu zona.</p>
+            <button (click)="showWider()" class="btn-secondary text-sm min-h-[44px]">{{ widensToSpain() ? 'Ver toda España' : 'Ver todos los países' }}</button>
           </div>
         } @else if (hasActiveFilters()) {
           <div class="empty-state">

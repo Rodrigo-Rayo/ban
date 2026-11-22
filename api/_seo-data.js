@@ -44,15 +44,18 @@ const enc = encodeURIComponent;
 const today = () => new Date().toISOString().slice(0, 10);
 const daysAgo = n => new Date(Date.now() - n * 864e5).toISOString();
 
-/** Rows of one directory table, optionally for one province. */
+/** Spain's provinces only: these pages are about Spain, and the city column also holds "Región, País" and "Otra". */
+const IN_SPAIN = `city=in.${enc(`(${PROVINCES.map(p => `"${p}"`).join(',')})`)}`;
+
+/** Rows of one directory table, for one province or for all of Spain. */
 function list(table, cols, { city, filter = '', order = 'created_at.desc', limit = 30 } = {}) {
-  const where = [city ? `city=eq.${enc(city)}` : '', filter].filter(Boolean).join('&');
+  const where = [city ? `city=eq.${enc(city)}` : IN_SPAIN, filter].filter(Boolean).join('&');
   return rest(`${table}?select=${cols}${where ? '&' + where : ''}&order=${order}&limit=${limit}`);
 }
 
 /** How many rows each province has (for the province index and cross-links). */
 async function countByProvince(table, filter = '') {
-  const rows = await rest(`${table}?select=city${filter ? '&' + filter : ''}&limit=5000`);
+  const rows = await rest(`${table}?select=city&${IN_SPAIN}${filter ? '&' + filter : ''}&limit=5000`);
   const counts = new Map();
   for (const r of rows) if (r.city) counts.set(r.city, (counts.get(r.city) || 0) + 1);
   return counts;

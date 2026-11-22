@@ -5,6 +5,7 @@ import { MediaFeaturesService } from '../../../core/services/media-features.serv
 import { ToastService } from '../../../core/services/toast.service';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { ProfileGateService } from '../../../core/services/profile-gate.service';
+import { ANY_PLACE } from '../../../core/utils/place';
 
 export interface PostAlert { id: string; city: string | null; instrument: string | null }
 
@@ -81,7 +82,7 @@ export class PostAlertsComponent {
   /** The alert the current filters would create. */
   readonly current = computed(() => ({
     // Alerts match one exact place; a whole-country filter ("pais:EC") is not one.
-    city: this.city() && this.city() !== ALL_SPAIN && !this.city().startsWith('pais:') ? this.city() : null,
+    city: this.city() && this.city() !== ALL_SPAIN && this.city() !== ANY_PLACE && !this.city().startsWith('pais:') ? this.city() : null,
     instrument: this.instrument() || null,
   }));
   readonly currentAlert = computed(() => {

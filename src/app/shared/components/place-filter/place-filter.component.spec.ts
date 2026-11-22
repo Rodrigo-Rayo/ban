@@ -101,6 +101,20 @@ describe('PlaceFilterComponent', () => {
     expect(host.city()).toBe('Toda España');
   });
 
+  it('for someone outside Spain, clearing means every country', async () => {
+    localStorage.setItem('bandyou_city', 'Córdoba, Argentina');
+    try {
+      const { host, el, box, update } = await render('pais:AR');
+      expect(box.placeholder).toBe('Todos los países');
+      el.querySelector<HTMLButtonElement>('button[aria-label="Quitar filtro: Todo Argentina"]')!.click();
+      update();
+      expect(host.city()).toBe('Todos los países');
+      expect(box.value).toBe('');
+    } finally {
+      localStorage.removeItem('bandyou_city');
+    }
+  });
+
   it('offers your own zone right after all of Spain', async () => {
     localStorage.setItem('bandyou_city', 'Pichincha, Ecuador');
     try {

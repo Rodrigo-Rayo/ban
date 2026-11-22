@@ -203,7 +203,7 @@
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <button type="button" (click)="joinAs('musician')" class="btn-primary min-h-[44px] text-sm px-5">Crear mi perfil de músico</button>
             @if (cityScope()) {
-              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+              <button type="button" (click)="selectedCity.set(widerPlace().value); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">{{ widerPlace().label }}</button>
             }
           </div>
           }
@@ -256,7 +256,7 @@
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <button type="button" (click)="joinAs('band')" class="btn-primary min-h-[44px] text-sm px-5">Registrar mi banda</button>
             @if (cityScope()) {
-              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+              <button type="button" (click)="selectedCity.set(widerPlace().value); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">{{ widerPlace().label }}</button>
             }
           </div>
           }
@@ -305,7 +305,7 @@
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/venues/new" class="btn-primary min-h-[44px] text-sm px-5">Publicar mi sala</a>
             @if (cityScope()) {
-              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+              <button type="button" (click)="selectedCity.set(widerPlace().value); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">{{ widerPlace().label }}</button>
             }
           </div>
           }
@@ -349,7 +349,7 @@
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/events/create" class="btn-primary min-h-[44px] text-sm px-5">Publicar evento</a>
             @if (cityScope()) {
-              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+              <button type="button" (click)="selectedCity.set(widerPlace().value); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">{{ widerPlace().label }}</button>
             }
           </div>
           }
@@ -374,7 +374,7 @@
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/teachers/new" class="btn-primary min-h-[44px] text-sm px-5">Ofrecer clases</a>
             @if (cityScope()) {
-              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+              <button type="button" (click)="selectedCity.set(widerPlace().value); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">{{ widerPlace().label }}</button>
             }
           </div>
           }
@@ -431,7 +431,7 @@
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/rehearsal/new" class="btn-primary min-h-[44px] text-sm px-5">Publicar mi local</a>
             @if (cityScope()) {
-              <button type="button" (click)="selectedCity.set('Toda España'); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">Ver toda España</button>
+              <button type="button" (click)="selectedCity.set(widerPlace().value); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-5">{{ widerPlace().label }}</button>
             }
           </div>
           }

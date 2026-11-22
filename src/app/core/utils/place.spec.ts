@@ -1,5 +1,5 @@
 import { COUNTRIES } from '../constants/regions';
-import { ALL_PLACES, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, exactPlace, matchParts, placeLabel, placeOption, placeValue, searchPlaces, whereCity } from './place';
+import { ALL_PLACES, ANY_PLACE, defaultPlace, OTHER_COUNTRY, OTHER_VALUE, PLACE_FILTER_GROUPS, SPAIN, isKnownPlace, isSpanishProvince, parsePlace, exactPlace, matchParts, placeLabel, placeOption, placeValue, searchPlaces, whereCity } from './place';
 
 describe('place', () => {
   it('stores Spanish provinces exactly as before', () => {
@@ -42,20 +42,44 @@ describe('place', () => {
     expect(COUNTRIES.find(c => c.code === 'PR')!.regions.length).toBe(78);
   });
 
-  it('filters by nothing, a whole country or one place', () => {
+  it('filters by every country, Spain, a whole country or one place', () => {
     const calls: string[] = [];
-    const q = { eq: (c: string, v: string) => { calls.push(`eq ${c} ${v}`); return q; }, like: (c: string, v: string) => { calls.push(`like ${c} ${v}`); return q; } };
+    const q = {
+      eq: (c: string, v: string) => { calls.push(`eq ${c} ${v}`); return q; },
+      like: (c: string, v: string) => { calls.push(`like ${c} ${v}`); return q; },
+      in: (c: string, v: readonly string[]) => { calls.push(`in ${c} ${v.length}${v.includes('Madrid') && !v.includes(OTHER_VALUE) ? ' provinces' : ''}`); return q; },
+    };
+    whereCity(q, ANY_PLACE);
     whereCity(q, ALL_PLACES);
     whereCity(q, 'pais:AR');
     whereCity(q, 'Madrid');
     whereCity(q, 'pais:ZZ');
-    expect(calls).toEqual(['like city %, Argentina', 'eq city Madrid']);
+    expect(calls).toEqual(['in city 52 provinces', 'like city %, Argentina', 'eq city Madrid']);
+  });
+
+  describe('defaultPlace', () => {
+    afterEach(() => localStorage.removeItem('bandyou_city'));
+
+    it('starts on Spain when the person is in Spain or unknown', () => {
+      localStorage.removeItem('bandyou_city');
+      expect(defaultPlace()).toBe(ALL_PLACES);
+      localStorage.setItem('bandyou_city', 'Sevilla');
+      expect(defaultPlace()).toBe(ALL_PLACES);
+    });
+
+    it('starts on their own country elsewhere, and on every country for "Otra"', () => {
+      localStorage.setItem('bandyou_city', 'Córdoba, Argentina');
+      expect(defaultPlace()).toBe('pais:AR');
+      localStorage.setItem('bandyou_city', OTHER_VALUE);
+      expect(defaultPlace()).toBe(ANY_PLACE);
+    });
   });
 
   it('names a whole-country filter by the country', () => {
     expect(placeLabel('pais:AR')).toBe('Argentina');
     expect(placeLabel('Madrid')).toBe('Madrid');
     expect(placeLabel(OTHER_VALUE)).toBe('otro país');
+    expect(placeLabel(ANY_PLACE)).toBe('todos los países');
   });
 
   it('finds places by what people type, ignoring accents and case', () => {

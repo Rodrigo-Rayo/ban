@@ -12,9 +12,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Post, PostType } from '../../core/models';
-import { isKnownPlace, placeLabel, whereCity } from '../../core/utils/place';
+import { ALL_PLACES, ANY_PLACE, defaultPlace, isKnownPlace, isSpanishProvince, placeLabel, whereCity } from '../../core/utils/place';
 
-const ALL_SPAIN = 'Toda España';
 
 /**
  * The city "Se busca" opens on: the profile's city, else the last city the
@@ -118,7 +117,7 @@ export class FeedComponent implements OnInit {
   private readonly PAGE_SIZE = 20;
   readonly MAX_POST_LENGTH = 500;
 
-  filterCity = signal('Toda España');
+  filterCity = signal(defaultPlace());
   filterInstrument = signal('');
   /** "Publicado" window in days; never more than SE_BUSCA_MAX_DAYS. */
   filterDays = signal(SE_BUSCA_MAX_DAYS);
@@ -263,24 +262,27 @@ export class FeedComponent implements OnInit {
   }
 
   hasActiveFilters(): boolean {
-    return this.filterCity() !== 'Toda España' || !!this.filterInstrument() || this.filterDays() !== SE_BUSCA_MAX_DAYS;
+    return this.filterCity() !== defaultPlace() || !!this.filterInstrument() || this.filterDays() !== SE_BUSCA_MAX_DAYS;
   }
 
-  /** Only the city narrows the list (no instrument): the empty state offers all of Spain. */
-  readonly onlyCityFilter = computed(() => this.filterCity() !== ALL_SPAIN && !this.filterInstrument() && this.filterDays() === SE_BUSCA_MAX_DAYS);
+  /** Only the place narrows the list (no instrument): the empty state offers a wider one. */
+  readonly onlyCityFilter = computed(() => ![ALL_PLACES, ANY_PLACE].includes(this.filterCity()) && !this.filterInstrument() && this.filterDays() === SE_BUSCA_MAX_DAYS);
+
+  /** From a Spanish province the list widens to all of Spain; from anywhere else, to every country. */
+  readonly widensToSpain = computed(() => isSpanishProvince(this.filterCity()));
 
   onPeriodChange(days: number | string) {
     this.filterDays.set(Number(days) || SE_BUSCA_MAX_DAYS);
     this.loadPosts();
   }
 
-  showAllSpain() {
-    this.filterCity.set(ALL_SPAIN);
+  showWider() {
+    this.filterCity.set(this.widensToSpain() ? ALL_PLACES : ANY_PLACE);
     this.loadPosts();
   }
 
   clearFilters() {
-    this.filterCity.set('Toda España');
+    this.filterCity.set(defaultPlace());
     this.filterInstrument.set('');
     this.filterDays.set(SE_BUSCA_MAX_DAYS);
     this.loadPosts();

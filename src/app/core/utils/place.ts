@@ -9,8 +9,10 @@ import { COUNTRIES, Country } from '../constants/regions';
 export const SPAIN = 'ES';
 export const OTHER_COUNTRY = 'XX';
 export const OTHER_VALUE = 'Otra';
-/** Filter value meaning "no filter" (the label predates other countries; it stays for saved links). */
+/** Filter value for Spain's provinces only (the default for anyone in Spain or not signed in). */
 export const ALL_PLACES = 'Toda España';
+/** Filter value meaning "no filter": every country. */
+export const ANY_PLACE = 'Todos los países';
 
 const PROVINCES = CITIES.filter(c => c !== OTHER_VALUE) as readonly string[];
 const BY_CODE = new Map(COUNTRIES.map(c => [c.code, c]));
@@ -56,7 +58,7 @@ export interface PlaceGroup { label: string; options: readonly PlaceOption[] }
 
 /** Options for the filters: all, Spain's provinces, then each country (whole country first). */
 export const PLACE_FILTER_GROUPS: readonly PlaceGroup[] = [
-  { label: 'España', options: [{ value: ALL_PLACES, label: ALL_PLACES }, ...PROVINCES.map(p => ({ value: p, label: p }))] },
+  { label: 'España', options: [{ value: ALL_PLACES, label: ALL_PLACES }, { value: ANY_PLACE, label: ANY_PLACE }, ...PROVINCES.map(p => ({ value: p, label: p }))] },
   ...COUNTRIES.map(c => ({
     label: c.name,
     options: [{ value: `pais:${c.code}`, label: `Todo ${c.name}` }, ...c.regions.map(r => ({ value: `${r}, ${c.name}`, label: r }))],
@@ -67,6 +69,7 @@ export const PLACE_FILTER_GROUPS: readonly PlaceGroup[] = [
 /** A filter value as people read it: "pais:AR" is "Argentina", "Otra" is "otro país"; anything else is already a name. */
 export function placeLabel(value: string): string {
   if (value === OTHER_VALUE) return 'otro país';
+  if (value === ANY_PLACE) return 'todos los países';
   return value.startsWith('pais:') ? BY_CODE.get(value.slice(5))?.name ?? value : value;
 }
 
@@ -114,11 +117,28 @@ export function searchPlaces(query: string, limit = 40): PlaceMatch[] {
   return [...starts, ...contains, ...inCountry].slice(0, limit).map(({ value, label, group }) => ({ value, label, group }));
 }
 
-interface CityQuery<Q> { eq(column: string, value: string): Q; like(column: string, pattern: string): Q }
+/**
+ * Where a filter starts: Spain for people in Spain (or not signed in), their own country for
+ * people elsewhere, every country for "Otra". Reads the profile city kept by AuthService.
+ */
+export function defaultPlace(): string {
+  let city = '';
+  try { city = localStorage.getItem('bandyou_city') ?? ''; } catch { /* storage blocked */ }
+  const { country } = parsePlace(city);
+  if (country === SPAIN) return ALL_PLACES;
+  return country === OTHER_COUNTRY ? ANY_PLACE : `pais:${country}`;
+}
 
-/** Narrows a Supabase query to a filter value: nothing, a whole country or one place. */
+interface CityQuery<Q> {
+  eq(column: string, value: string): Q;
+  like(column: string, pattern: string): Q;
+  in(column: string, values: readonly string[]): Q;
+}
+
+/** Narrows a Supabase query to a filter value: every country, Spain, a whole country or one place. */
 export function whereCity<Q extends CityQuery<Q>>(q: Q, value: string): Q {
-  if (!value || value === ALL_PLACES) return q;
+  if (!value || value === ANY_PLACE) return q;
+  if (value === ALL_PLACES) return q.in('city', PROVINCES);
   if (value.startsWith('pais:')) {
     const c = BY_CODE.get(value.slice(5));
     return c ? q.like('city', `%, ${c.name}`) : q;
