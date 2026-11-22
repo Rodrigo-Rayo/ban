@@ -88,7 +88,7 @@ describe('TunerComponent', () => {
     cmp.start();
     await fixture.whenStable();
     await emitFor(41.2, 6);
-    expect(cmp.readout()?.stringIndex).toBe(1);
+    expect(cmp.readout()?.target?.index).toBe(1);
     const pressedOrActive = el().querySelectorAll('[aria-label="Cuerdas"] button')[1];
     expect(pressedOrActive.classList).toContain('bg-ink');
   });
@@ -104,11 +104,67 @@ describe('TunerComponent', () => {
     cmp.start();
     await fixture.whenStable();
     await emitFor(110, 6);
-    expect(cmp.readout()?.stringIndex).toBe(0);
+    expect(cmp.readout()?.target?.index).toBe(0);
     expect(Math.round(cmp.readout()!.cents)).toBe(500);
     btn().click();
     fixture.detectChanges();
     expect(btn().getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('instrument mode: big note is the sounding note, target string below, "Sube mucho" when far', async () => {
+    const cmp = fixture.componentInstance;
+    cmp.setMode('guitar');
+    cmp.start();
+    await fixture.whenStable();
+    await emitFor(73.42, 6);
+    expect(text('[data-testid=tuner-note]')).toBe('Re');
+    expect(text('[data-testid=tuner-octave]')).toBe('2');
+    expect(text('[data-testid=tuner-target]')).toContain('Cuerda 6 · Mi2');
+    expect(text('[data-testid=tuner-cents]')).toBe('−200 ¢');
+    expect(text('[data-testid=tuner-hint]')).toContain('Sube mucho (tensa)');
+  });
+
+  it('never shows "Afinada" from a held value after the sound dies', async () => {
+    const cmp = fixture.componentInstance;
+    cmp.start();
+    await fixture.whenStable();
+    // In tune for only 200 ms, then silence: the hold must not complete the 300 ms.
+    await emitFor(82.41, 9);
+    for (let t = 225; t <= 900; t += 25) engine.emit(null, t);
+    fixture.detectChanges();
+    expect(cmp.inTune()).toBeFalse();
+    expect(text('[data-testid=tuner-hint]')).not.toContain('Afinada');
+  });
+
+  it('drops "Afinada" as soon as the reading is only held', async () => {
+    const cmp = fixture.componentInstance;
+    cmp.start();
+    await fixture.whenStable();
+    await emitFor(82.41, 20);
+    expect(cmp.inTune()).toBeTrue();
+    engine.emit(null, 600);
+    fixture.detectChanges();
+    expect(cmp.inTune()).toBeFalse();
+  });
+
+  it('guitar mode stays on Mi2 through a 150 ms octave (2×) burst', async () => {
+    const cmp = fixture.componentInstance;
+    cmp.setMode('guitar');
+    cmp.start();
+    await fixture.whenStable();
+    const seen = new Set<string>();
+    let t = 0;
+    const feed = (f: number, n: number) => {
+      for (let i = 0; i < n; i++, t += 25) {
+        engine.emit(f, t);
+        const r = cmp.readout();
+        if (r) seen.add(`${r.name}${r.octave}:${r.target?.index}`);
+      }
+    };
+    feed(82.41, 30);
+    feed(164.82, 6);
+    feed(82.41, 20);
+    expect([...seen]).toEqual(['Mi2:0']);
   });
 
   it('shows a Spanish error message when permission is denied', async () => {
@@ -141,6 +197,13 @@ describe('TunerComponent', () => {
     expect(engine.stop).toHaveBeenCalled();
     expect(cmp.status()).toBe('idle');
     expect(cmp.paused()).toBeTrue();
+    fixture.detectChanges();
+    expect(el().textContent).toContain('Reanudar');
+    expect(engine.start).toHaveBeenCalledTimes(1); // no auto-restart
+    cmp.start();
+    await fixture.whenStable();
+    window.dispatchEvent(new Event('pagehide'));
+    expect(cmp.status()).toBe('idle');
     engine.stop.calls.reset();
     fixture.destroy();
     expect(engine.stop).toHaveBeenCalled();

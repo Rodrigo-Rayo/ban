@@ -15,11 +15,25 @@ describe('PitchSmoother', () => {
     expect(out).toBeCloseTo(82.45, 1);
   });
 
-  it('switches at once after a confirmed jump to another note', () => {
+  it('switches only after a jump persists ≥120 ms and ≥4 readings, then at once', () => {
     const s = new PitchSmoother();
     [82.4, 82.4, 82.4, 82.4, 82.4].forEach((f, i) => s.push(f, i * 25));
     expect(s.push(110, 200)!.frequency).toBeCloseTo(82.4, 1);
-    expect(s.push(110.2, 225)!.frequency).toBeCloseTo(110.1, 1);
+    expect(s.push(110.2, 225)!.frequency).toBeCloseTo(82.4, 1);
+    expect(s.push(110, 250)!.frequency).toBeCloseTo(82.4, 1);
+    expect(s.push(110, 275)!.frequency).toBeCloseTo(82.4, 1); // 4 readings but only 75 ms
+    expect(s.push(110, 300)!.frequency).toBeCloseTo(82.4, 1);
+    expect(s.push(110, 325)!.frequency).toBeCloseTo(110, 1);  // 125 ms: accepted
+  });
+
+  it('ignores a 60 ms octave burst during a sustained note', () => {
+    const s = new PitchSmoother();
+    let t = 0;
+    const out: number[] = [];
+    for (let i = 0; i < 40; i++, t += 25) out.push(s.push(82.41, t)!.frequency);
+    for (let i = 0; i < 3; i++, t += 25) out.push(s.push(164.82, t)!.frequency);
+    for (let i = 0; i < 40; i++, t += 25) out.push(s.push(82.41, t)!.frequency);
+    out.forEach(f => expect(f).toBeCloseTo(82.41, 2));
   });
 
   it('holds the last pitch after the signal drops, then clears', () => {

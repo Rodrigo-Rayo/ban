@@ -17,22 +17,25 @@ export interface SmootherOptions {
   holdMs: number;
   /** A reading this far (in cents) from the current pitch counts as a jump to another note. */
   jumpCents: number;
-  /** Consecutive agreeing readings needed to accept a jump (single outliers are dropped). */
+  /** Consecutive agreeing readings needed to accept a jump (short glitches are dropped). */
   jumpConfirm: number;
+  /** …and for at least this long, in ms (detection windows overlap, so readings alone aren't enough). */
+  jumpConfirmMs: number;
 }
 
-const DEFAULTS: SmootherOptions = { window: 5, holdMs: 800, jumpCents: 60, jumpConfirm: 2 };
+const DEFAULTS: SmootherOptions = { window: 5, holdMs: 800, jumpCents: 60, jumpConfirm: 4, jumpConfirmMs: 120 };
 
 /**
- * Median smoothing with a short hold. A sudden jump to a different pitch must be confirmed by
- * consecutive readings and then replaces the history at once, so changing strings is instant but a
- * single octave glitch never reaches the needle.
+ * Median smoothing with a short hold. A sudden jump to a different pitch must persist (several
+ * agreeing readings over ≥120 ms) and then replaces the history at once, so changing strings is
+ * quick but a short octave/harmonic glitch never reaches the needle.
  */
 export class PitchSmoother {
   private readonly opts: SmootherOptions;
   private readonly history: number[] = [];
   private readonly scratch: number[] = [];
   private candidates: number[] = [];
+  private candidateSince = 0;
   private current: number | null = null;
   private lastLiveAt = 0;
 
@@ -49,7 +52,7 @@ export class PitchSmoother {
 
   push(reading: RawReading, now: number): SmoothedPitch | null {
     if (reading !== null && Number.isFinite(reading) && reading > 0) {
-      this.accept(reading);
+      this.accept(reading, now);
       if (this.current !== null) {
         this.lastLiveAt = now;
         return { frequency: this.current, live: true };
@@ -62,7 +65,12 @@ export class PitchSmoother {
     return null;
   }
 
-  private accept(reading: number): void {
+  /** The current smoothed pitch (live or held), or null. */
+  get value(): number | null {
+    return this.current;
+  }
+
+  private accept(reading: number, now: number): void {
     if (this.current === null || Math.abs(centsBetween(reading, this.current)) <= this.opts.jumpCents) {
       this.candidates = [];
       this.add(reading);
@@ -71,12 +79,13 @@ export class PitchSmoother {
     // Possible jump: keep it aside until enough consecutive readings agree with each other.
     const last = this.candidates[this.candidates.length - 1];
     if (last !== undefined && Math.abs(centsBetween(reading, last)) > this.opts.jumpCents) this.candidates = [];
+    if (!this.candidates.length) this.candidateSince = now;
     this.candidates.push(reading);
-    if (this.candidates.length >= this.opts.jumpConfirm) {
+    if (this.candidates.length >= this.opts.jumpConfirm && now - this.candidateSince >= this.opts.jumpConfirmMs) {
       this.history.length = 0;
       const seeds = this.candidates;
       this.candidates = [];
-      seeds.forEach(r => this.add(r));
+      seeds.slice(-this.opts.window).forEach(r => this.add(r));
     }
   }
 

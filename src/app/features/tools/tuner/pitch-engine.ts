@@ -1,7 +1,7 @@
 import { PitchDetector } from 'pitchy';
 
 /** Why the microphone could not be used. */
-export type TunerErrorCode = 'insecure' | 'unsupported' | 'denied' | 'no-mic' | 'busy' | 'lost' | 'unknown';
+export type TunerErrorCode = 'insecure' | 'unsupported' | 'denied' | 'no-mic' | 'busy' | 'lost' | 'audio' | 'unknown';
 
 export class TunerError extends Error {
   constructor(readonly code: TunerErrorCode, cause?: unknown) {
@@ -18,6 +18,7 @@ export const TUNER_ERROR_MESSAGES: Record<TunerErrorCode, string> = {
   'no-mic': 'No encontramos ningún micrófono. Conecta uno o revisa que esté activado en tu dispositivo.',
   busy: 'El micrófono está ocupado por otra app (una llamada, otra pestaña, una app de grabación…). Ciérrala y vuelve a intentarlo.',
   lost: 'Se ha perdido la conexión con el micrófono. Vuelve a activarlo.',
+  audio: 'No se pudo activar el audio. Toca de nuevo Activar micrófono.',
   unknown: 'No hemos podido activar el micrófono. Recarga la página y vuelve a intentarlo.',
 };
 
@@ -116,6 +117,14 @@ export function detect(detector: PitchDetectorLike, buf: Float32Array, sampleRat
   return pitch;
 }
 
+/** Resolves when `p` settles or after `ms`, whichever comes first (never rejects). */
+function withTimeout(p: Promise<unknown>, ms: number): Promise<void> {
+  return new Promise(resolve => {
+    const timer = setTimeout(resolve, ms);
+    p.then(() => { clearTimeout(timer); resolve(); }, () => { clearTimeout(timer); resolve(); });
+  });
+}
+
 export type ReadingListener = (frequency: number | null, now: number) => void;
 export type ErrorListener = (code: TunerErrorCode) => void;
 
@@ -134,6 +143,8 @@ export class PitchEngine {
   private detectors: { long: PitchDetectorLike; short: PitchDetectorLike } | null = null;
   private windowMode: WindowMode = 'auto';
   private deps: EngineDeps | null = null;
+  /** How long to wait for AudioContext.resume() before giving up. */
+  resumeTimeoutMs = 3000;
   private readonly onTrackEnded = () => this.fail('lost');
   private readonly onStateChange = () => {
     const state = this.ctx?.state as string | undefined;
@@ -172,6 +183,8 @@ export class PitchEngine {
     }
     this.ctx = ctx;
     this.deps = deps;
+    ctx.addEventListener('statechange', this.onStateChange);
+    // Resume inside the gesture (iOS); the result is checked once the mic is granted.
     const resumed = ctx.resume().catch(() => undefined);
 
     let stream: MediaStream;
@@ -188,12 +201,15 @@ export class PitchEngine {
     }
     this.stream = stream;
     try {
-      await resumed;
+      await withTimeout(resumed, this.resumeTimeoutMs);
+      // Some browsers only let the context run once the mic is live: one more try.
+      if (ctx.state !== 'running') await withTimeout(ctx.resume().catch(() => undefined), this.resumeTimeoutMs);
       if (gen !== this.generation) return;
+      if (ctx.state !== 'running') throw new TunerError('audio');
       this.wire(ctx, stream, deps);
     } catch (err) {
       if (gen === this.generation) this.teardown();
-      throw new TunerError(mapMediaError(err), err);
+      throw err instanceof TunerError ? err : new TunerError(mapMediaError(err), err);
     }
     this.loop(deps, gen);
   }
@@ -221,7 +237,6 @@ export class PitchEngine {
     this.detectors = { long: deps.createDetector(long), short: deps.createDetector(short) };
     this.analyser = analyser;
     stream.getTracks().forEach(t => t.addEventListener('ended', this.onTrackEnded));
-    ctx.addEventListener('statechange', this.onStateChange);
   }
 
   private loop(deps: EngineDeps, gen: number): void {

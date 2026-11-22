@@ -179,12 +179,16 @@ describe('MetronomeEngine', () => {
     expect(e.current()?.pulse).toBe(1);
   });
 
-  it('unlocks audio inside the gesture: resumes and primes once', () => {
+  it('unlocks audio inside the gesture (primes once), suspends on stop and resumes on start', () => {
     const e = engine();
     e.start();
-    e.stop();
-    e.start();
     expect(clock.ctx.resumed).toBe(1);
+    e.stop();
+    expect(clock.ctx.suspended).toBe(1);
+    expect(clock.ctx.closed).toBeFalse();
+    clock.ctx.state = 'running'; // a suspend still pending reports 'running'
+    e.start();
+    expect(clock.ctx.resumed).toBe(2);
     expect(clock.ctx.primed).toBe(1);
   });
 

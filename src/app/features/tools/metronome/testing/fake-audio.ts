@@ -39,6 +39,7 @@ export class FakeContext implements AudioContextLike {
   readonly oscillators: FakeOsc[] = [];
   readonly gains: FakeGain[] = [];
   resumed = 0;
+  suspended = 0;
   closed = false;
   primed = 0;
   createOscillator() { const o = new FakeOsc(); this.oscillators.push(o); return o; }
@@ -46,6 +47,7 @@ export class FakeContext implements AudioContextLike {
   createBuffer() { return {}; }
   createBufferSource() { return { buffer: null as unknown, connect: () => undefined, start: () => { this.primed++; } }; }
   resume() { this.resumed++; this.state = 'running'; return Promise.resolve(); }
+  suspend() { this.suspended++; this.state = 'suspended'; return Promise.resolve(); }
   close() { this.closed = true; this.state = 'closed'; return Promise.resolve(); }
 
   /** Start times of clicks that will actually sound (not cancelled). */

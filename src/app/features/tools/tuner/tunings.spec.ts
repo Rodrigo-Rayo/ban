@@ -1,6 +1,6 @@
 import { midiToFrequency } from './note-math';
-import { closestString, isTunerMode, matchString, tuningFor } from './tunings';
-import { computeReadout, hintFor, needlePercent } from './tuner-view';
+import { closestString, foldOctaveError, isTunerMode, matchString, tuningFor } from './tunings';
+import { HINT_LABELS, computeReadout, formatCents, hintFor, needlePercent } from './tuner-view';
 
 describe('tunings', () => {
   const guitar = tuningFor('guitar').strings;
@@ -43,6 +43,22 @@ describe('tunings', () => {
     expect(closestString(0, guitar, 440)).toBeNull();
   });
 
+  it('folds a 2× / ½× reading back to the string it was stable on', () => {
+    const e2 = midiToFrequency(40);
+    expect(foldOctaveError(164.82, guitar, 0, 82.4, 440)).toBeCloseTo(82.41, 1);
+    expect(foldOctaveError(41.2, guitar, 0, 82.4, 440)).toBeCloseTo(82.4, 1);
+    // Not stable on that string before → unchanged.
+    expect(foldOctaveError(164.82, guitar, 0, 70, 440)).toBe(164.82);
+    // Not an octave → unchanged (a real change of string).
+    expect(foldOctaveError(110, guitar, 0, e2, 440)).toBe(110);
+    expect(foldOctaveError(164.82, guitar, null, e2, 440)).toBe(164.82);
+  });
+
+  it('does not fold when the octave is another string (Drop D: D2 → D3)', () => {
+    const dropD = tuningFor('guitar-drop-d').strings;
+    expect(foldOctaveError(146.83, dropD, 0, 73.42, 440)).toBe(146.83);
+  });
+
   it('validates modes and falls back to chromatic', () => {
     expect(isTunerMode('bass5')).toBeTrue();
     expect(isTunerMode('banjo')).toBeFalse();
@@ -53,20 +69,32 @@ describe('tunings', () => {
 describe('tuner-view', () => {
   it('chromatic readout uses the nearest note', () => {
     const r = computeReadout({ frequency: 82.41, a4: 440, notation: 'es', strings: [], lockedString: null })!;
-    expect(r).toEqual(jasmine.objectContaining({ name: 'Mi', octave: 2, stringIndex: null }));
+    expect(r).toEqual(jasmine.objectContaining({ name: 'Mi', octave: 2, target: null }));
   });
 
-  it('instrument readout names the target string, not the nearest note', () => {
-    const r = computeReadout({ frequency: 77.78, a4: 440, notation: 'en', strings: tuningFor('guitar').strings, lockedString: null })!;
-    expect(r.name).toBe('E');
+  it('instrument readout shows the sounding note plus the target string and cents vs it', () => {
+    // D2 played on the low E string in Guitarra mode.
+    const r = computeReadout({ frequency: 73.42, a4: 440, notation: 'es', strings: tuningFor('guitar').strings, lockedString: null })!;
+    expect(r.name).toBe('Re');
     expect(r.octave).toBe(2);
-    expect(r.cents).toBeCloseTo(-100, 0);
-    expect(r.stringIndex).toBe(0);
+    expect(r.cents).toBeCloseTo(-200, 0);
+    expect(r.target).toEqual({ index: 0, number: 6, name: 'Mi', octave: 2 });
   });
 
-  it('hints: sharp → down (Baja), flat → up (Sube)', () => {
+  it('numbers strings from the highest (guitar thin E = 1, ukulele A = 1)', () => {
+    const g = computeReadout({ frequency: 329.63, a4: 440, notation: 'es', strings: tuningFor('guitar').strings, lockedString: null })!;
+    expect(g.target!.number).toBe(1);
+    const u = computeReadout({ frequency: 392, a4: 440, notation: 'es', strings: tuningFor('ukulele').strings, lockedString: null })!;
+    expect(u.target!.number).toBe(4);
+  });
+
+  it('hints: sharp → down (Baja), flat → up (Sube), "mucho" beyond 50 cents', () => {
     expect(hintFor(20, false)).toBe('down');
     expect(hintFor(-20, false)).toBe('up');
+    expect(hintFor(-200, false)).toBe('way-up');
+    expect(hintFor(51, false)).toBe('way-down');
+    expect(HINT_LABELS['way-up']).toBe('Sube mucho (tensa)');
+    expect(HINT_LABELS['way-down']).toBe('Baja mucho (afloja)');
     expect(hintFor(3, false)).toBe('close');
     expect(hintFor(6, true)).toBe('in-tune');
   });
@@ -75,5 +103,7 @@ describe('tuner-view', () => {
     expect(needlePercent(0)).toBe(0);
     expect(needlePercent(25)).toBe(50);
     expect(needlePercent(-300)).toBe(-100);
+    expect(formatCents(-200.4)).toBe('−200 ¢');
+    expect(formatCents(0.2)).toBe('±0 ¢');
   });
 });

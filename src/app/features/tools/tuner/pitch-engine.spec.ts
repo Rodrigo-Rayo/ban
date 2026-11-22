@@ -106,12 +106,14 @@ function setup(signal: (n: number, call: number) => Float32Array) {
     addEventListener: jasmine.createSpy(),
     removeEventListener: jasmine.createSpy(),
   };
+  let initialState = 'running';
   const frames: ((t: number) => void)[] = [];
   let clock = 0;
   let gumResult: Promise<MediaStream> = Promise.resolve(stream);
   const deps: EngineDeps = {
     getUserMedia: jasmine.createSpy('gum').and.callFake(() => gumResult),
-    createContext: jasmine.createSpy('ctx').and.returnValue(ctx as unknown as AudioContext),
+    // A fresh context per start (the fake is reused, so reset its state).
+    createContext: jasmine.createSpy('ctx').and.callFake(() => { ctx.state = initialState; return ctx as unknown as AudioContext; }),
     createDetector: size => PitchDetector.forFloat32Array(size),
     requestFrame: cb => frames.push(cb),
     cancelFrame: jasmine.createSpy('cancel'),
@@ -130,6 +132,7 @@ function setup(signal: (n: number, call: number) => Float32Array) {
   return {
     engine, deps, ctx, track, analyser, readings, errors, runFrames, frames,
     rejectWith: (e: unknown) => { gumResult = Promise.reject(e); },
+    setInitialState: (state: string) => { initialState = state; },
     deferGum: () => {
       let resolve!: (s: MediaStream) => void;
       gumResult = new Promise(r => { resolve = r; });
@@ -220,6 +223,22 @@ describe('PitchEngine lifecycle', () => {
     ended();
     expect(t.errors).toEqual(['lost']);
     expect(t.engine.running).toBeFalse();
+  });
+
+  it('fails with "audio" and releases the mic when the context never starts running', async () => {
+    const t = setup(n => tone(110, n));
+    t.setInitialState('suspended');
+    t.engine.resumeTimeoutMs = 20;
+    t.ctx.resume.and.returnValue(new Promise<void>(() => undefined)); // hangs forever
+    await expectAsync(t.engine.start()).toBeRejectedWith(jasmine.objectContaining({ code: 'audio' }));
+    expect(t.track.stop).toHaveBeenCalled();
+    expect(t.engine.running).toBeFalse();
+  });
+
+  it('listens for statechange before awaiting resume', () => {
+    const t = setup(n => tone(110, n));
+    void t.engine.start();
+    expect(t.ctx.addEventListener).toHaveBeenCalledWith('statechange', jasmine.any(Function));
   });
 
   it('wraps environment failures (no mediaDevices) as TunerError', async () => {

@@ -57,3 +57,30 @@ export function matchString(frequency: number, strings: readonly number[], index
   const target = midiToFrequency(midi, a4);
   return { index, midi, target, cents: centsBetween(frequency, target) };
 }
+
+/** An octave error is a reading within this many cents of 2× or ½× the string target. */
+const OCTAVE_FOLD_CENTS = 40;
+/** The previous stable pitch counts as "on that string" within this distance of its target. */
+const ANCHOR_NEAR_CENTS = 100;
+/** Don't fold when the octave reading is itself near another string (Drop D: D2 and D3). */
+const OTHER_STRING_CENTS = 100;
+
+/**
+ * Detectors sometimes lock onto the 2nd harmonic (or a subharmonic) for a moment. If the pitch was
+ * stable on string `anchorIndex` and the new reading is ≈ an octave away from that string, fold it
+ * back to the string's octave instead of jumping. Returns `frequency` unchanged otherwise.
+ */
+export function foldOctaveError(
+  frequency: number, strings: readonly number[], anchorIndex: number | null, previous: number | null, a4: number,
+): number {
+  if (anchorIndex === null || previous === null || strings[anchorIndex] === undefined) return frequency;
+  const target = midiToFrequency(strings[anchorIndex], a4);
+  if (Math.abs(centsBetween(previous, target)) > ANCHOR_NEAR_CENTS) return frequency;
+  for (const factor of [2, 0.5]) {
+    if (Math.abs(centsBetween(frequency, target * factor)) > OCTAVE_FOLD_CENTS) continue;
+    const nearOther = strings.some((midi, i) =>
+      i !== anchorIndex && Math.abs(centsBetween(frequency, midiToFrequency(midi, a4))) <= OTHER_STRING_CENTS);
+    return nearOther ? frequency : frequency / factor;
+  }
+  return frequency;
+}

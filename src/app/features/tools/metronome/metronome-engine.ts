@@ -61,6 +61,7 @@ export interface AudioContextLike {
   createBuffer?(channels: number, length: number, rate: number): unknown;
   createBufferSource?(): { buffer: unknown; connect(d: unknown): unknown; start(when: number): void };
   resume(): Promise<void>;
+  suspend?(): Promise<void>;
   close(): Promise<void>;
 }
 
@@ -171,7 +172,8 @@ export class MetronomeEngine {
     if (this.playing) return true;
     const ctx = this.ensureContext();
     if (!ctx) return false;
-    this.resumeContext();
+    // Always resume: right after stop() a suspend may still be pending while state reads 'running'.
+    ctx.resume().catch(() => undefined);
     this.prime(ctx);
     this.playing = true;
     this.step = 0;
@@ -188,6 +190,8 @@ export class MetronomeEngine {
     const now = this.ctx?.currentTime ?? 0;
     this.queue.filter(c => c.time > now).forEach(c => this.silence(c));
     this.queue = [];
+    // Idle contexts keep the audio device (and battery) busy; start() resumes it.
+    this.ctx?.suspend?.().catch(() => undefined);
   }
 
   toggle(): boolean {

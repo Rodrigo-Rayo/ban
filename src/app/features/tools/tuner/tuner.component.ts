@@ -9,8 +9,8 @@ import { InTuneTracker, PitchSmoother } from './pitch-smoother';
 import { TUNER_DESCRIPTION, TUNER_TITLE, TUNER_URL, tunerJsonLd } from './tuner-content';
 import { TunerGuideComponent } from './tuner-guide.component';
 import { TunerSettings, loadSettings, saveSettings } from './tuner-settings';
-import { TunerReadout, computeReadout, hintFor, needlePercent } from './tuner-view';
-import { TUNINGS, TunerMode, isTunerMode, tuningFor } from './tunings';
+import { HINT_LABELS, TunerReadout, computeReadout, formatCents, hintFor, needlePercent } from './tuner-view';
+import { TUNINGS, TunerMode, foldOctaveError, isTunerMode, tuningFor } from './tunings';
 
 export interface PitchEngineLike {
   readonly running: boolean;
@@ -31,7 +31,8 @@ const UI_INTERVAL_MS = 50;
 /** A note/state must be stable this long before the screen reader announces it. */
 const ANNOUNCE_STABLE_MS = 700;
 
-const HINT_TEXT = { 'in-tune': 'Afinada', close: 'Casi', up: 'Sube', down: 'Baja' } as const;
+/** Height of the fixed navbar: the tuner card must not hide under it. */
+const NAVBAR_PX = 64;
 
 /** /afinador: chromatic and instrument tuner using the microphone. */
 @Component({
@@ -76,13 +77,11 @@ export class TunerComponent implements OnInit, OnDestroy {
   });
   readonly hintText = computed(() => {
     const h = this.hint();
-    return h ? HINT_TEXT[h] : '';
+    return h ? HINT_LABELS[h] : '';
   });
   readonly centsText = computed(() => {
     const r = this.readout();
-    if (!r) return '';
-    const c = Math.round(r.cents);
-    return `${c > 0 ? '+' : c < 0 ? '−' : '±'}${Math.abs(c)} ¢`;
+    return r ? formatCents(r.cents) : '';
   });
   readonly frequencyText = computed(() => {
     const r = this.readout();
@@ -90,6 +89,7 @@ export class TunerComponent implements OnInit, OnDestroy {
   });
 
   private readonly needle = viewChild<ElementRef<HTMLElement>>('needle');
+  private readonly card = viewChild<ElementRef<HTMLElement>>('card');
   private readonly smoother = new PitchSmoother();
   private readonly tracker = new InTuneTracker();
   private lastUiAt = 0;
@@ -99,10 +99,10 @@ export class TunerComponent implements OnInit, OnDestroy {
   private needleShown: number | null = null;
 
   private readonly onVisibility = () => {
-    if (this.doc.visibilityState === 'hidden' && this.status() !== 'idle') {
-      this.zone.run(() => this.stop(true));
-    }
+    if (this.doc.visibilityState === 'hidden') this.pauseIfActive();
   };
+  /** iOS may put the page in the back-forward cache without a visibilitychange. */
+  private readonly onPageHide = () => this.pauseIfActive();
 
   constructor() {
     const factory = inject(TUNER_ENGINE_FACTORY);
@@ -116,11 +116,13 @@ export class TunerComponent implements OnInit, OnDestroy {
     this.seo.set({ title: TUNER_TITLE, description: TUNER_DESCRIPTION, url: TUNER_URL });
     this.seo.injectJsonLd(tunerJsonLd());
     this.doc.addEventListener('visibilitychange', this.onVisibility);
+    this.doc.defaultView?.addEventListener('pagehide', this.onPageHide);
     this.applyWindowMode();
   }
 
   ngOnDestroy(): void {
     this.doc.removeEventListener('visibilitychange', this.onVisibility);
+    this.doc.defaultView?.removeEventListener('pagehide', this.onPageHide);
     this.engine.stop();
   }
 
@@ -135,7 +137,9 @@ export class TunerComponent implements OnInit, OnDestroy {
     // The detection loop runs outside Angular; only the capped signal updates reach the view.
     this.zone.runOutsideAngular(() => this.engine.start()).then(
       () => this.zone.run(() => {
-        if (this.status() === 'starting') this.status.set(this.engine.running ? 'listening' : 'idle');
+        if (this.status() !== 'starting') return;
+        this.status.set(this.engine.running ? 'listening' : 'idle');
+        this.keepCardVisible();
       }),
       err => this.zone.run(() => this.fail(mapMediaError(err))),
     );
@@ -146,6 +150,19 @@ export class TunerComponent implements OnInit, OnDestroy {
     this.status.set('idle');
     this.paused.set(paused);
     this.resetReadings();
+  }
+
+  private pauseIfActive(): void {
+    if (this.status() !== 'idle') this.zone.run(() => this.stop(true));
+  }
+
+  /** If the card's top is hidden under the fixed navbar (mobile), bring it back into view. */
+  private keepCardVisible(): void {
+    const el = this.card()?.nativeElement;
+    const win = this.doc.defaultView;
+    if (!el || !win) return;
+    const top = el.getBoundingClientRect().top;
+    if (top < NAVBAR_PX) win.scrollBy({ top: top - NAVBAR_PX - 8, behavior: 'auto' });
   }
 
   toggle(): void {
@@ -183,7 +200,7 @@ export class TunerComponent implements OnInit, OnDestroy {
   }
 
   stringActive(index: number): boolean {
-    return this.readout()?.stringIndex === index;
+    return this.readout()?.target?.index === index;
   }
 
   private update(patch: Partial<TunerSettings>): void {
@@ -217,7 +234,14 @@ export class TunerComponent implements OnInit, OnDestroy {
   }
 
   /** Runs outside Angular for every detection frame (~40 Hz). */
-  private handleReading(frequency: number | null, now: number): void {
+  private handleReading(raw: number | null, now: number): void {
+    const s = this.settings();
+    const strings = this.tuning().strings;
+    let frequency = raw;
+    if (frequency !== null && strings.length && this.live()) {
+      const anchor = this.lockedString() ?? this.readout()?.target?.index ?? null;
+      frequency = foldOctaveError(frequency, strings, anchor, this.smoother.value, s.a4);
+    }
     const smoothed = this.smoother.push(frequency, now);
     if (!smoothed) {
       this.tracker.reset();
@@ -229,18 +253,19 @@ export class TunerComponent implements OnInit, OnDestroy {
       }
       return;
     }
-    const s = this.settings();
     const readout = computeReadout({
       frequency: smoothed.frequency, a4: s.a4, notation: s.notation,
-      strings: this.tuning().strings, lockedString: this.lockedString(),
+      strings, lockedString: this.lockedString(),
     });
     if (!readout) return;
-    const inTune = this.tracker.update(readout.cents, now);
+    // A held (frozen) value must never turn into "Afinada": only live readings count.
+    if (!smoothed.live) this.tracker.reset();
+    const inTune = smoothed.live && this.tracker.update(readout.cents, now);
     this.setNeedle(readout.cents);
 
     const prev = this.readout();
     const changedState = inTune !== this.inTune() || smoothed.live !== this.live()
-      || prev?.name !== readout.name || prev?.octave !== readout.octave || prev?.stringIndex !== readout.stringIndex;
+      || prev?.name !== readout.name || prev?.octave !== readout.octave || prev?.target?.index !== readout.target?.index;
     if (changedState || now - this.lastUiAt >= UI_INTERVAL_MS) {
       this.lastUiAt = now;
       this.readout.set(readout);
@@ -253,7 +278,7 @@ export class TunerComponent implements OnInit, OnDestroy {
   /** Screen readers hear the note and state only once it has been stable for a moment. */
   private maybeAnnounce(r: TunerReadout, inTune: boolean, now: number): void {
     const hint = hintFor(r.cents, inTune);
-    const key = `${r.name}${r.octave}|${hint}`;
+    const key = `${r.name}${r.octave}|${r.target?.index ?? ''}|${hint}`;
     if (key !== this.pendingKey) {
       this.pendingKey = key;
       this.pendingSince = now;
@@ -261,7 +286,8 @@ export class TunerComponent implements OnInit, OnDestroy {
     }
     if (key === this.announceKey || now - this.pendingSince < ANNOUNCE_STABLE_MS) return;
     this.announceKey = key;
-    this.announcement.set(`${r.name} ${r.octave}: ${HINT_TEXT[hint].toLowerCase()}`);
+    const target = r.target ? `, cuerda ${r.target.number} ${r.target.name} ${r.target.octave}` : '';
+    this.announcement.set(`${r.name} ${r.octave}${target}: ${HINT_LABELS[hint].toLowerCase()}`);
   }
 
   /** Writes the needle transform straight to the element (compositor-only, no change detection). */

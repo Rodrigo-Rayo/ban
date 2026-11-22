@@ -60,25 +60,63 @@ describe('MetronomeComponent', () => {
     expect(clock.timers).toBe(0);
   });
 
-  it('arrow keys change BPM by 1 and 5, but not while typing or on the focused slider', () => {
+  it('Space on the focused Start button toggles once (native click suppressed on keyup)', () => {
+    const f = render();
+    const start = el(f).querySelector('.start-btn') as HTMLButtonElement;
+    expect(key(' ', start).defaultPrevented).toBeTrue();
+    const up = new KeyboardEvent('keyup', { key: ' ', bubbles: true, cancelable: true });
+    start.dispatchEvent(up);
+    expect(up.defaultPrevented).toBeTrue();
+    expect(f.componentInstance.playing()).toBeTrue();
+  });
+
+  it('leaves Space, arrows and T alone on other controls (navbar, banners, links, fields)', () => {
+    const f = render();
+    const outside = document.createElement('button');
+    const link = document.createElement('a');
+    document.body.append(outside, link);
+    try {
+      for (const target of [outside, link, el(f).querySelector('.tap-btn')!, el(f).querySelector('#met-meter')!]) {
+        expect(key(' ', target).defaultPrevented).withContext('space').toBeFalse();
+        const up = new KeyboardEvent('keyup', { key: ' ', bubbles: true, cancelable: true });
+        target.dispatchEvent(up);
+        expect(up.defaultPrevented).toBeFalse();
+      }
+      expect(f.componentInstance.playing()).toBeFalse();
+      for (const target of [outside, link, el(f).querySelector('a')!]) {
+        expect(key('ArrowDown', target).defaultPrevented).withContext('arrow').toBeFalse();
+        key('t', target);
+      }
+      expect(f.componentInstance.tapCount()).toBe(0);
+      expect(bpmText(f)).toBe('100');
+    } finally {
+      outside.remove();
+      link.remove();
+    }
+  });
+
+  it('arrow keys change BPM by 1 and 5 from the body or a card button, not on fields or the slider', () => {
     const f = render();
     expect(bpmText(f)).toBe('100');
-    key('ArrowRight'); key('ArrowUp');
+    expect(key('ArrowRight').defaultPrevented).toBeTrue();
+    key('ArrowUp');
     expect(bpmText(f)).toBe('106');
-    key('ArrowLeft'); key('ArrowDown');
+    key('ArrowLeft', el(f).querySelector('.start-btn')!);
+    key('ArrowDown', el(f).querySelector('.step-btn')!);
     expect(bpmText(f)).toBe('100');
     const select = el(f).querySelector('#met-meter') as HTMLSelectElement;
-    key('ArrowUp', select);
+    expect(key('ArrowUp', select).defaultPrevented).toBeFalse();
     const slider = el(f).querySelector('#met-bpm') as HTMLInputElement;
-    key('ArrowUp', slider);
+    expect(key('ArrowUp', slider).defaultPrevented).toBeFalse();
     key('ArrowUp', document.body, { ctrlKey: true });
     expect(bpmText(f)).toBe('100');
   });
 
-  it('T taps the tempo', () => {
+  it('T taps the tempo from the body or the Tap button', () => {
     const f = render();
     const now = spyOn(performance, 'now');
-    [0, 400, 800, 1200].forEach(t => { now.and.returnValue(t); key('t'); });
+    const tapBtn = el(f).querySelector('.tap-btn')!;
+    [0, 400, 800, 1200].forEach((t, i) => { now.and.returnValue(t); key('t', i % 2 ? tapBtn : document.body); });
     expect(bpmText(f)).toBe('150');
   });
 
@@ -152,6 +190,66 @@ describe('MetronomeComponent', () => {
     expect(clock.ctx.closed).toBeTrue();
     expect(clock.timers).toBe(0);
     expect(document.getElementById('ld-json')).toBeNull();
+  });
+
+  describe('screen wake lock', () => {
+    let requests: { resolve: (l: unknown) => void }[];
+    let locks: { released: number; listeners: (() => void)[]; release(): Promise<void>; addEventListener(t: string, fn: () => void): void }[];
+    beforeEach(() => {
+      requests = [];
+      locks = [];
+      Object.defineProperty(navigator, 'wakeLock', {
+        configurable: true,
+        value: { request: () => new Promise(resolve => requests.push({ resolve })) },
+      });
+    });
+    afterEach(() => delete (navigator as unknown as Record<string, unknown>)['wakeLock']);
+    const newLock = () => {
+      const l = {
+        released: 0, listeners: [] as (() => void)[],
+        release() { l.released++; return Promise.resolve(); },
+        addEventListener(_t: string, fn: () => void) { l.listeners.push(fn); },
+      };
+      locks.push(l);
+      return l;
+    };
+    const settle = () => new Promise(r => setTimeout(r));
+
+    it('holds one lock while playing and releases it on stop', async () => {
+      const f = render();
+      f.componentInstance.toggle();
+      requests[0].resolve(newLock());
+      await settle();
+      f.componentInstance.toggle();
+      expect(locks[0].released).toBe(1);
+    });
+
+    it('a request still pending at stop is released as soon as it resolves; start/stop/start never holds two', async () => {
+      const f = render();
+      const c = f.componentInstance;
+      c.toggle(); c.toggle(); c.toggle(); // start, stop, start while the first request is pending
+      expect(requests.length).toBe(1);
+      requests[0].resolve(newLock());
+      await settle();
+      expect(locks[0].released).toBe(0); // playing again: kept
+      c.toggle();
+      c.toggle();
+      requests[1].resolve(newLock());
+      c.toggle(); // stop before it resolved
+      await settle();
+      expect(locks[1].released).toBe(1);
+    });
+
+    it('re-requests after the browser releases the lock when the tab comes back', async () => {
+      const f = render();
+      f.componentInstance.toggle();
+      requests[0].resolve(newLock());
+      await settle();
+      locks[0].listeners.forEach(fn => fn()); // tab hidden: browser released it
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(requests.length).toBe(2);
+      f.componentInstance.toggle();
+    });
   });
 
   it('shows a message when Web Audio is unavailable', () => {

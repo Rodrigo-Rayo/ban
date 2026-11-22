@@ -1,5 +1,6 @@
 import {
-  ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, InjectionToken, NgZone, OnInit, computed, inject, signal,
+  ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, InjectionToken, NgZone, OnInit, computed, inject, signal,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SITE_URL, SeoService } from '../../../core/services/seo.service';
@@ -18,7 +19,10 @@ const HOLD_DELAY_MS = 400;
 const HOLD_REPEAT_MS = 70;
 const ANNOUNCE_DELAY_MS = 700;
 
-interface WakeLockLike { release(): Promise<void> }
+interface WakeLockLike {
+  release(): Promise<void>;
+  addEventListener?(type: 'release', fn: () => void): void;
+}
 
 /** /metronomo — free online metronome, also an SEO landing page. */
 @Component({
@@ -45,6 +49,9 @@ export class MetronomeComponent implements OnInit {
   private holdRepeat: ReturnType<typeof setInterval> | null = null;
   private announceTimer: ReturnType<typeof setTimeout> | null = null;
   private wakeLock: WakeLockLike | null = null;
+  private wakePending = false;
+  private destroyed = false;
+  private readonly card = viewChild<ElementRef<HTMLElement>>('card');
 
   readonly BPM_MIN = BPM_MIN;
   readonly BPM_MAX = BPM_MAX;
@@ -174,33 +181,46 @@ export class MetronomeComponent implements OnInit {
 
   // ── keyboard shortcuts ──
 
+  /*
+   * Shortcuts never steal keys from other controls: Space only when nothing is focused
+   * (or the Start button is), arrows only on the page body or inside the metronome card
+   * (so the page still scrolls elsewhere), T only from the body, Start or Tap button.
+   */
   onKeyDown(e: KeyboardEvent): void {
-    if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
-    const onRange = isRange(e.target);
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target instanceof Element ? e.target : null;
+    const onBody = !t || t === this.doc.body || t === this.doc.documentElement;
+    const inCard = !!t && !!this.card()?.nativeElement.contains(t);
+    const onStart = inCard && t!.classList.contains('start-btn');
+    const onTap = inCard && t!.classList.contains('tap-btn');
     switch (e.key) {
       case ' ':
       case 'Spacebar':
-        e.preventDefault();
+        if (!onBody && !onStart) return;
+        e.preventDefault(); // no page scroll, no native click on Start
         if (!e.repeat) this.toggle();
         return;
       case 'ArrowLeft':
       case 'ArrowRight':
       case 'ArrowUp':
       case 'ArrowDown':
-        if (onRange) return; // the focused slider moves itself
+        if (!onBody && !(inCard && !isField(t))) return;
         e.preventDefault();
         this.nudge({ ArrowLeft: -1, ArrowRight: 1, ArrowUp: 5, ArrowDown: -5 }[e.key]);
         return;
       case 't':
       case 'T':
-        if (!e.repeat) this.tap();
+        if ((onBody || onStart || onTap) && !e.repeat) this.tap();
         return;
     }
   }
 
-  /** Stops a focused button from also "clicking" on Space release. */
+  /** Space on the focused Start button was handled on keydown; stop the native click on release. */
   onKeyUp(e: KeyboardEvent): void {
-    if ((e.key === ' ' || e.key === 'Spacebar') && !isTyping(e.target)) e.preventDefault();
+    const t = e.target instanceof Element ? e.target : null;
+    if ((e.key === ' ' || e.key === 'Spacebar') && t?.classList.contains('start-btn') && this.card()?.nativeElement.contains(t)) {
+      e.preventDefault();
+    }
   }
 
   onVisibility(): void {
@@ -232,12 +252,23 @@ export class MetronomeComponent implements OnInit {
 
   private async requestWakeLock(): Promise<void> {
     const api = (navigator as unknown as { wakeLock?: { request(t: 'screen'): Promise<WakeLockLike> } }).wakeLock;
-    if (!api || this.wakeLock) return;
+    if (!api || this.wakeLock || this.wakePending) return;
+    this.wakePending = true;
     try {
       const lock = await api.request('screen');
-      if (this.playing()) this.wakeLock = lock;
-      else lock.release().catch(() => undefined);
-    } catch { /* denied or unsupported: the metronome keeps playing */ }
+      // Stopped (or already locked) while the request was pending: never hold a stale or second lock.
+      if (!this.playing() || this.wakeLock || this.destroyed) {
+        lock.release().catch(() => undefined);
+        return;
+      }
+      this.wakeLock = lock;
+      // The browser drops the lock when the tab is hidden; forget it so visibility can re-request.
+      lock.addEventListener?.('release', () => { if (this.wakeLock === lock) this.wakeLock = null; });
+    } catch {
+      /* denied or unsupported: the metronome keeps playing */
+    } finally {
+      this.wakePending = false;
+    }
   }
 
   private releaseWakeLock(): void {
@@ -247,6 +278,7 @@ export class MetronomeComponent implements OnInit {
   }
 
   private teardown(): void {
+    this.destroyed = true;
     this.engine.destroy();
     this.stopVisuals();
     this.holdEnd();
@@ -256,17 +288,10 @@ export class MetronomeComponent implements OnInit {
   }
 }
 
-function isTyping(target: EventTarget | null): boolean {
-  const el = target as HTMLElement | null;
-  if (!el || !el.tagName) return false;
-  if (el.isContentEditable || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
-  if (el.tagName !== 'INPUT') return false;
-  return !['range', 'checkbox', 'radio', 'button', 'submit'].includes((el as HTMLInputElement).type);
-}
-
-function isRange(target: EventTarget | null): boolean {
-  const el = target as HTMLInputElement | null;
-  return !!el && el.tagName === 'INPUT' && el.type === 'range';
+/** Form fields handle their own arrow keys. */
+function isField(el: Element | null): boolean {
+  if (!el) return false;
+  return ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName) || (el as HTMLElement).isContentEditable;
 }
 
 function safeStorage(): Storage | null {
