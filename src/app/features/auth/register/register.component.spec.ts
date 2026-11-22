@@ -59,7 +59,14 @@ describe('RegisterComponent', () => {
     it('calls registrationState.set with the correct email and password', () => {
       component.form.setValue({ email: 'user@example.com', password: 'securepass' });
       component.onSubmit();
-      expect(registrationStateSpy.set).toHaveBeenCalledWith('user@example.com', 'securepass');
+      expect(registrationStateSpy.set).toHaveBeenCalledWith('user@example.com', 'securepass', undefined);
+    });
+
+    it('hands the Turnstile token to onboarding when there is one', () => {
+      component.form.setValue({ email: 'user@example.com', password: 'securepass' });
+      component.captcha.onToken('tok-2');
+      component.onSubmit();
+      expect(registrationStateSpy.set).toHaveBeenCalledWith('user@example.com', 'securepass', 'tok-2');
     });
 
     it('navigates to /onboarding on a valid submission', () => {

@@ -75,17 +75,28 @@
         </section>
       }
 
-      <!-- Nothing in Se busca yet: the guided ad takes 20 seconds -->
+      <!-- Nothing in Se busca yet (bands: no "Buscamos músico" in 30 days). /feed?new=1 opens
+           the composer already set to the profile's type, city and style. -->
       @if (showPostNudge()) {
         <section class="border-2 border-ink bg-poster-yellow p-4 sm:p-5 mb-6" aria-labelledby="post-nudge-title">
-          <h2 id="post-nudge-title" class="font-display text-2xl sm:text-3xl uppercase leading-tight text-ink">Publica tu anuncio en Se busca</h2>
-          <p class="text-sm text-ink mt-1 mb-4">
-            {{ profileType() === 'band' ? 'Que los músicos sepan qué buscáis.' : 'Que las bandas sepan que buscas grupo.' }}
-            Tus datos ya vienen puestos: solo te falta contar qué buscas.
-          </p>
+          @if (profileType() === 'band') {
+            <p class="font-mono text-[11px] font-bold uppercase tracking-wide text-ink mb-1">Se busca</p>
+            <h2 id="post-nudge-title" class="font-display text-2xl sm:text-3xl uppercase leading-tight text-ink">¿Os falta alguien?</h2>
+            <p class="text-sm text-ink mt-1 mb-4">
+              Publica lo que buscáis: los músicos{{ profile()?.city ? ' de ' + profile()?.city : '' }} lo verán en Se busca y en Google.
+            </p>
+          } @else {
+            <h2 id="post-nudge-title" class="font-display text-2xl sm:text-3xl uppercase leading-tight text-ink">Publica tu anuncio en Se busca</h2>
+            <p class="text-sm text-ink mt-1 mb-4">
+              Que las bandas sepan que buscas grupo. Tus datos ya vienen puestos: solo te falta contar qué buscas.
+            </p>
+          }
           <div class="flex flex-wrap items-center gap-2">
-            <a routerLink="/feed" [queryParams]="{ new: '1' }" class="btn-night min-h-[48px] px-5">Escribir mi anuncio</a>
-            <button type="button" (click)="hidePostNudge()" class="btn-ghost min-h-[48px] text-xs">Ahora no</button>
+            <a routerLink="/feed" [queryParams]="{ new: '1' }" class="btn-night min-h-[48px] px-5">
+              {{ profileType() === 'band' ? 'Publicar anuncio' : 'Escribir mi anuncio' }}
+            </a>
+            <button type="button" (click)="hidePostNudge()" class="btn-ghost min-h-[48px] text-xs"
+              aria-label="Ahora no: ocultar esta sugerencia una semana">Ahora no</button>
           </div>
         </section>
       }

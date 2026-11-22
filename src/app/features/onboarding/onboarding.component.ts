@@ -18,6 +18,7 @@ import { BandInvitesService } from '../../core/services/band-invites.service';
 import { MemberDraft, planMemberSave } from './band-members';
 import { BandInviteSheetComponent } from '../bands/band-invite-sheet/band-invite-sheet.component';
 import { PlacePickerComponent } from '../../shared/components/place-picker/place-picker.component';
+import { CAPTCHA_FAILED_MESSAGE, isCaptchaError } from '../../shared/components/turnstile/turnstile';
 
 export type Role = 'musician' | 'band' | 'venue' | 'teacher' | 'rehearsal' | 'listener';
 
@@ -420,11 +421,11 @@ export class OnboardingComponent implements OnInit {
         terms_version: LEGAL_INFO.version,
         terms_accepted_at: new Date().toISOString(),
         age_confirmed: true,
-      });
+      }, this.registrationState.captchaToken);
       this.registrationState.clear();
 
       if (error) {
-        this.error.set('Error al crear la cuenta. Inténtalo de nuevo.');
+        this.error.set(isCaptchaError(error) ? CAPTCHA_FAILED_MESSAGE : 'Error al crear la cuenta. Inténtalo de nuevo.');
         return;
       }
 

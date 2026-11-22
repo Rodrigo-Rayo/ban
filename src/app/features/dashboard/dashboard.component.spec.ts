@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { DashboardComponent } from './dashboard.component';
+import { DashboardComponent, hasRecentBandAd } from './dashboard.component';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -144,6 +144,90 @@ describe('DashboardComponent', () => {
       expect(fresh.editPosterShown()).toBeNull();
       await fresh.saveEditEvent('a');
       expect(update.calls.mostRecent().args[0].image_url).toBeNull();
+    });
+  });
+
+  describe('Se busca card ("¿Os falta alguien?")', () => {
+    const DAY = 86400000;
+    const iso = (daysAgo: number) => new Date(Date.now() - daysAgo * DAY).toISOString();
+
+    /** Panel load with one profile row and the given own posts; records every table queried. */
+    function loadPanel(type: 'band' | 'musician', posts: { type: string; created_at: string }[]) {
+      const tables: string[] = [];
+      const rows: Record<string, unknown> = {
+        [type === 'band' ? 'bands' : 'musicians']: { id: 'p1', name: 'Los Test', city: 'Valencia', user_id: 'u1' },
+        posts: posts.map((p, i) => ({ id: `post${i}`, text: 'x', city: null, ...p })),
+      };
+      const supabase = TestBed.inject(SupabaseService) as unknown as { client: { from: (t: string) => unknown }; auth: unknown };
+      supabase.auth = { getSession: () => Promise.resolve({ data: { session: { user: { id: 'u1' } } } }) };
+      supabase.client.from = (table: string) => {
+        tables.push(table);
+        const isList = table === 'posts' || table === 'events' || table === 'gear_listings';
+        const result = { data: rows[table] ?? (isList ? [] : null), error: null };
+        const chain: Record<string, unknown> = {};
+        for (const m of ['select', 'eq', 'order', 'limit', 'gte']) chain[m] = () => chain;
+        chain['maybeSingle'] = () => Promise.resolve(result);
+        chain['then'] = (res: (v: unknown) => unknown) => Promise.resolve(result).then(res);
+        return chain;
+      };
+      const fx = TestBed.createComponent(DashboardComponent);
+      return { fx, tables };
+    }
+
+    async function render(fx: ComponentFixture<DashboardComponent>) {
+      await fx.componentInstance.ngOnInit();
+      fx.detectChanges();
+      return fx.nativeElement as HTMLElement;
+    }
+
+    beforeEach(() => { try { localStorage.removeItem('bandyou_post_nudge_until'); } catch { /* ignore */ } });
+    afterEach(() => { try { localStorage.removeItem('bandyou_post_nudge_until'); } catch { /* ignore */ } });
+
+    it('shows for a band without a "Buscamos músico" ad in the last 30 days, linking to the prefilled composer', async () => {
+      const { fx } = loadPanel('band', [
+        { type: 'band_seeking_musician', created_at: iso(45) },
+        { type: 'collab', created_at: iso(2) },
+      ]);
+      const el = await render(fx);
+      expect(fx.componentInstance.showPostNudge()).toBeTrue();
+      expect(el.querySelector('#post-nudge-title')?.textContent).toContain('¿Os falta alguien?');
+      expect(el.textContent).toContain('los músicos de Valencia lo verán en Se busca y en Google');
+      const link = Array.from(el.querySelectorAll('a')).find(a => a.textContent?.includes('Publicar anuncio'));
+      expect(link?.getAttribute('href')).toBe('/feed?new=1');
+    });
+
+    it('stays hidden for a band with a recent "Buscamos músico" ad', async () => {
+      const { fx } = loadPanel('band', [{ type: 'band_seeking_musician', created_at: iso(10) }]);
+      const el = await render(fx);
+      expect(fx.componentInstance.showPostNudge()).toBeFalse();
+      expect(el.querySelector('#post-nudge-title')).toBeNull();
+    });
+
+    it('never shows the band card to musicians and adds no query for it', async () => {
+      const { fx, tables } = loadPanel('musician', [{ type: 'musician_seeking_band', created_at: iso(3) }]);
+      await fx.componentInstance.ngOnInit();
+      // The panel's own load only: the posts list it already shows, nothing extra for the card.
+      expect(tables.filter(t => t === 'posts').length).toBe(1);
+      expect(fx.componentInstance.showPostNudge()).toBeFalse();
+    });
+
+    it('"Ahora no" hides it and the choice survives a reload', async () => {
+      const first = loadPanel('band', []);
+      const el = await render(first.fx);
+      (Array.from(el.querySelectorAll('button')).find(b => b.textContent?.includes('Ahora no')) as HTMLButtonElement).click();
+      first.fx.detectChanges();
+      expect(el.querySelector('#post-nudge-title')).toBeNull();
+      expect(Number(localStorage.getItem('bandyou_post_nudge_until'))).toBeGreaterThan(Date.now());
+
+      const again = loadPanel('band', []);
+      await render(again.fx);
+      expect(again.fx.componentInstance.showPostNudge()).toBeFalse();
+    });
+
+    it('hasRecentBandAd counts only band_seeking_musician ads from the last 30 days', () => {
+      expect(hasRecentBandAd([{ type: 'band_seeking_musician', created_at: iso(29) }])).toBeTrue();
+      expect(hasRecentBandAd([{ type: 'band_seeking_musician', created_at: iso(31) }])).toBeFalse();
+      expect(hasRecentBandAd([{ type: 'musician_seeking_band', created_at: iso(1) }])).toBeFalse();
     });
   });
 });

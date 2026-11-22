@@ -77,8 +77,8 @@ export class AuthService {
     });
   }
 
-  async signInWithEmail(email: string, password: string) {
-    const { error } = await this.supabase.signInWithEmail(email, password);
+  async signInWithEmail(email: string, password: string, captchaToken?: string) {
+    const { error } = await this.supabase.signInWithEmail(email, password, captchaToken);
     if (error) throw error;
     try {
       const returnUrl = sessionStorage.getItem('bandyou_return_url');
@@ -94,8 +94,8 @@ export class AuthService {
     this.router.navigate(['/home']);
   }
 
-  async signUpWithEmail(email: string, password: string): Promise<{ needsConfirmation: boolean }> {
-    const { data, error } = await this.supabase.signUpWithEmail(email, password);
+  async signUpWithEmail(email: string, password: string, captchaToken?: string): Promise<{ needsConfirmation: boolean }> {
+    const { data, error } = await this.supabase.signUpWithEmail(email, password, undefined, captchaToken);
     if (error) throw error;
     if (data.session) {
       // Email confirmation disabled — user is immediately authenticated

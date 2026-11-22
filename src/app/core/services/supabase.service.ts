@@ -38,12 +38,23 @@ export class SupabaseService {
     return this.supabase.auth.onAuthStateChange(callback);
   }
 
-  signInWithEmail(email: string, password: string) {
-    return this.supabase.auth.signInWithPassword({ email, password });
+  /** `captchaToken` is only sent when given (Supabase requires it once Turnstile is on). */
+  signInWithEmail(email: string, password: string, captchaToken?: string) {
+    return this.supabase.auth.signInWithPassword(
+      captchaToken ? { email, password, options: { captchaToken } } : { email, password },
+    );
   }
 
-  signUpWithEmail(email: string, password: string, metadata?: Record<string, unknown>) {
-    return this.supabase.auth.signUp({ email, password, options: metadata ? { data: metadata } : undefined });
+  signUpWithEmail(email: string, password: string, metadata?: Record<string, unknown>, captchaToken?: string) {
+    const options = { ...(metadata ? { data: metadata } : {}), ...(captchaToken ? { captchaToken } : {}) };
+    return this.supabase.auth.signUp({ email, password, options: Object.keys(options).length ? options : undefined });
+  }
+
+  resetPasswordForEmail(email: string, captchaToken?: string) {
+    return this.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      ...(captchaToken ? { captchaToken } : {}),
+    });
   }
 
   signInWithGoogle() {

@@ -7,10 +7,12 @@ import { AuthService } from '../../../core/services/auth.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { RegistrationStateService } from '../../../core/services/registration-state.service';
 import { LEGAL_INFO } from '../../legal/legal-info';
+import { TurnstileComponent } from '../../../shared/components/turnstile/turnstile.component';
+import { injectCaptchaGate } from '../../../shared/components/turnstile/turnstile';
 
 @Component({
     selector: 'app-register',
-    imports: [ReactiveFormsModule, RouterLink, AuthPosterComponent],
+    imports: [ReactiveFormsModule, RouterLink, AuthPosterComponent, TurnstileComponent],
     templateUrl: './register.component.html'
 })
 export class RegisterComponent implements OnInit {
@@ -21,6 +23,8 @@ export class RegisterComponent implements OnInit {
   private registrationState = inject(RegistrationStateService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
   auth = inject(AuthService);
+  /** Cloudflare Turnstile; the token travels to onboarding, where signUp runs. */
+  readonly captcha = injectCaptchaGate();
 
   error = signal('');
   showPassword = signal(false);
@@ -80,7 +84,7 @@ export class RegisterComponent implements OnInit {
       return;
     }
     const { email, password } = this.form.value;
-    this.registrationState.set(email!, password!);
+    this.registrationState.set(email!, password!, this.captcha.take());
     this.router.navigate(['/onboarding']);
   }
 

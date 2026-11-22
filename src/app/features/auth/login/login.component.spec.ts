@@ -144,7 +144,26 @@ describe('LoginComponent', () => {
       component.form.setValue({ email: 'user@example.com', password: 'mypassword' });
       authSpy.signInWithEmail.and.returnValue(Promise.resolve());
       await component.onSubmit();
-      expect(authSpy.signInWithEmail).toHaveBeenCalledWith('user@example.com', 'mypassword');
+      expect(authSpy.signInWithEmail).toHaveBeenCalledWith('user@example.com', 'mypassword', undefined);
+    });
+
+    it('passes the Turnstile token when there is one', async () => {
+      component.form.setValue({ email: 'user@example.com', password: 'mypassword' });
+      authSpy.signInWithEmail.and.returnValue(Promise.resolve());
+      component.captcha.onToken('tok-1');
+      await component.onSubmit();
+      expect(authSpy.signInWithEmail).toHaveBeenCalledWith('user@example.com', 'mypassword', 'tok-1');
+    });
+
+    it('shows the Spanish captcha message when Supabase rejects the captcha', async () => {
+      component.form.setValue({ email: 'user@example.com', password: 'mypassword' });
+      authSpy.signInWithEmail.and.callFake(async () => { throw { code: 'captcha_failed', message: 'captcha protection' }; });
+      await component.onSubmit();
+      expect(component.error()).toBe('No hemos podido comprobar que no eres un robot. Inténtalo de nuevo.');
+    });
+
+    it('never waits for a captcha when no site key is configured', () => {
+      expect(component.captcha.pending()).toBeFalse();
     });
 
     it('clears the error signal before attempting the request', async () => {

@@ -13,6 +13,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Post, PostType } from '../../core/models';
 import { ALL_PLACES, ANY_PLACE, defaultPlace, isKnownPlace, isSpanishProvince, placeLabel, whereCity } from '../../core/utils/place';
+import { NEARBY_ROWS, NearbyCount, countNearby, nearbyProvinces } from '../../core/constants/nearby-provinces';
 
 
 /**
@@ -268,11 +269,19 @@ export class FeedComponent implements OnInit {
   /** Only the place narrows the list (no instrument): the empty state offers a wider one. */
   readonly onlyCityFilter = computed(() => ![ALL_PLACES, ANY_PLACE].includes(this.filterCity()) && !this.filterInstrument() && this.filterDays() === SE_BUSCA_MAX_DAYS);
 
+  /** Neighbouring provinces with ads, shown when the chosen province has none. */
+  readonly nearby = signal<readonly NearbyCount[]>([]);
+
   /** From a Spanish province the list widens to all of Spain; from anywhere else, to every country. */
   readonly widensToSpain = computed(() => isSpanishProvince(this.filterCity()));
 
   onPeriodChange(days: number | string) {
     this.filterDays.set(Number(days) || SE_BUSCA_MAX_DAYS);
+    this.loadPosts();
+  }
+
+  showProvince(city: string) {
+    this.filterCity.set(city);
     this.loadPosts();
   }
 
@@ -419,10 +428,23 @@ export class FeedComponent implements OnInit {
         this.posts.set((data || []) as unknown as Post[]);
         this.hasMore.set((data?.length ?? 0) === this.PAGE_SIZE);
       }
+      this.nearby.set([]);
       await vacanciesDone;
+      if (!error && !data?.length && !this.vacancies().length && this.onlyCityFilter()) void this.loadNearby(seq);
     } finally {
       if (seq === this.listSeq) { this.loading.set(false); this.loadedOnce.set(true); }
     }
+  }
+
+  /** Nothing in this province: count the recent ads of the provinces next to it (one small query). */
+  private async loadNearby(seq: number) {
+    const near = nearbyProvinces(this.filterCity());
+    if (!near.length) return;
+    let q = this.supabase.client.from('posts').select('city').gte('created_at', this.listSince).in('city', near);
+    const types = this.sectionTypes();
+    if (types) q = q.in('type', types);
+    const { data } = await q.limit(NEARBY_ROWS);
+    if (seq === this.listSeq) this.nearby.set(countNearby(data ?? [], near));
   }
 
   async loadMore() {

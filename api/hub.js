@@ -7,6 +7,7 @@
 // Search engines and AI assistants (GPTBot, ClaudeBot, PerplexityBot…) do not run the
 // Angular app, so these pages carry real HTML: H1, answer-first text, real profiles and
 // posts as links, FAQ and JSON-LD. vercel.json rewrites the paths here.
+const { nearbyProvinces } = require('./_nearby');
 const { SITE, PROVINCES, PROVINCE_BY_SLUG, slugify, escapeHtml: h, clip, safeImage, shortDate, today } = require('./_seo-data');
 const { KINDS, kindCounts, INSTRUMENTS, INSTRUMENT_BY_SLUG, MIN_INSTRUMENT_RESULTS, instrumentResults, instrumentCounts, GENRES, GENRE_BY_SLUG, genreResults, genreCounts } = require('./_seo-kinds');
 const { page } = require('./_seo-layout');
@@ -38,6 +39,9 @@ ${tags.length ? `<span class="tags">${tags.map(t => `<span class="tag${it.stamp 
 </span></a></li>`;
 }
 
+/** Below this many results a province page also suggests the provinces next to it. */
+const NEARBY_WHEN_FEWER_THAN = 5;
+
 /** Links to the other provinces; those with nothing yet stay reachable but pass no ranking signal. */
 function provinceList(prefix, counts, current) {
   const items = PROVINCES.filter(p => p !== current).map(p => {
@@ -45,6 +49,16 @@ function provinceList(prefix, counts, current) {
     return `<li><a href="${prefix}/${slugify(p)}"${n ? ' class="has"' : ' rel="nofollow"'}>${h(p)}</a>${n ? ` <span class="n">(${n})</span>` : ''}</li>`;
   });
   return `<ul class="provinces">${items.join('')}</ul>`;
+}
+
+/** Few or no results in a province: the neighbouring ones that have something, most first. */
+function nearbyLinks(prefix, counts, prov, shown) {
+  if (!prov || shown >= NEARBY_WHEN_FEWER_THAN) return '';
+  const near = nearbyProvinces(prov).map(p => [p, counts.get(p) || 0]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  if (!near.length) return '';
+  return `<h2>Cerca de ${h(prov)}</h2>
+<p>${shown ? 'Hay poco todavía en' : 'Aún no hay nada en'} ${h(prov)}, pero sí en las provincias de al lado:</p>
+<ul class="provinces">${near.map(([p, n]) => `<li><a class="has" href="${prefix}/${slugify(p)}">${h(p)}</a> <span class="n">(${n})</span></li>`).join('')}</ul>`;
 }
 
 const dated = () => `${shortDate(today())} ${today().slice(0, 4)}`;
@@ -120,6 +134,7 @@ ${factLine(def.noun, prov ? counts.get(prov) || 0 : sum(counts), prov)}
 ${kind === 'locales-de-ensayo' && prov === 'Madrid' ? '<p><a href="/guias/locales-de-ensayo-madrid">Mira cuánto cuesta un local en Madrid, por horas y por meses</a></p>' : ''}
 <div class="btns"><a class="btn" href="${def.cta.href}">${h(def.cta.label)}</a><a class="btn alt" href="/auth/register">Crear perfil gratis</a></div>
 ${listHtml}
+${nearbyLinks(`/${kind}`, counts, prov, items.length)}
 ${byInstrument}
 ${byGenre}
 ${faqHtml(faq)}
@@ -145,6 +160,17 @@ ${provinceList(`/${kind}`, counts, prov)}
   };
 }
 
+/** What a band should say in its ad to find each instrument: practical, specific, no invented facts. */
+const INSTRUMENT_TIPS = {
+  guitarrista: ['Di si buscáis guitarra rítmica, solista o las dos, y si es eléctrica o acústica.', 'Nombra dos o tres bandas de referencia: dice más del sonido que cualquier etiqueta de estilo.', 'Aclara si hay temas propios, versiones o ambos, y si toca componer.'],
+  bajista: ['Di el estilo y si el bajo va con púa, con dedos o slap: cambia mucho el perfil.', 'Si hay contrabajo o bajo de cinco cuerdas en algún tema, dilo desde el principio.', 'Cuenta si el bajista también haría coros.'],
+  bateria: ['Di si el local ya tiene batería montada: muchos baterías solo llevan platos, caja y pedal.', 'Indica cuántos días a la semana ensayáis y a qué hora: la batería es el instrumento más difícil de mover.', 'Si tocáis con claqueta o secuencias, avísalo.'],
+  cantante: ['Di si buscáis voz principal o coros, y en qué idioma se canta.', 'Si tenéis temas grabados, enlázalos para que pueda ver si encaja con su registro.', 'Aclara si las letras ya están escritas o si el cantante también compondría.'],
+  teclista: ['Di si basta con un teclado o hacen falta sintetizadores, órgano o samples.', 'Indica si el local tiene teclado o amplificación para él.', 'Cuenta si hay partes con secuencias o arreglos que tenga que preparar.'],
+  pianista: ['Di si es para banda, dúo, coro o acompañamiento, y si hay piano en el local.', 'Indica el repertorio: clásico, jazz, pop, canción de autor…', 'Si es para bolos, di cuántos al mes y si son pagados.'],
+};
+const GENERIC_TIPS = ['Di el estilo, dos o tres bandas de referencia y si hay temas propios o versiones.', 'Indica en qué zona ensayáis, cuántos días a la semana y si tenéis local.', 'Cuenta qué nivel buscáis y si hay bolos a la vista.'];
+
 async function instrumentPage(slug, provSlug) {
   const inst = INSTRUMENT_BY_SLUG.get(slug);
   const prov = provSlug ? PROVINCE_BY_SLUG.get(provSlug) : null;
@@ -156,8 +182,11 @@ async function instrumentPage(slug, provSlug) {
   const crumbs = [['BandYou', '/'], ['Busco músicos', '/busco-musicos'], [`Busco ${inst.one}`, `/busco/${slug}`], ...(prov ? [[prov, path]] : [])];
   const faq = [
     [`¿Dónde encuentro un ${inst.one} ${where}?`, `En BandYou puedes ver los ${inst.many} ${where} con perfil o anuncio, sus estilos y su provincia, y escribirles gratis por mensaje. Si no ves a quien buscas, publica un anuncio en «Se busca» con el estilo, los días de ensayo y si tenéis local.`],
+    [`¿Qué pongo en el anuncio para encontrar ${inst.one}?`, `Lo que más ayuda: el estilo con dos o tres bandas de referencia, la zona y los días de ensayo, si tenéis local y si hay temas propios o bolos. Un anuncio concreto recibe menos mensajes, pero de gente que encaja.`],
+    [`¿Cómo hago la primera prueba con un ${inst.one}?`, `Pasadle antes dos o tres temas para que los prepare, quedad en el local una hora y hablad después de horarios, objetivos y gastos del local. Mejor saberlo el primer día que al tercer mes.`],
     ['¿Cuesta algo?', 'No. Crear el perfil, publicar anuncios y enviar mensajes en BandYou es gratis.'],
   ];
+  const tips = INSTRUMENT_TIPS[slug] || GENERIC_TIPS;
   const provinces = [...counts.get(slug)].filter(([p, n]) => n >= MIN_INSTRUMENT_RESULTS && p !== prov && PROVINCE_BY_SLUG.has(slugify(p)));
   const body = `${crumbsHtml(crumbs)}
 <p class="kicker">BandYou · ${prov ? h(prov) : 'Toda España'}</p>
@@ -168,6 +197,9 @@ ${factLine(inst.many, people.length, prov)}
 ${people.length ? `<h2>${h(inst.many.charAt(0).toUpperCase() + inst.many.slice(1))} ${h(where)}</h2><ul class="grid">${people.map(card).join('')}</ul>` : ''}
 ${bands.length ? `<h2>Bandas que buscan ${h(inst.one)}</h2><ul class="grid">${bands.map(card).join('')}</ul>` : ''}
 ${total ? '' : `<div class="empty"><p><strong>Todavía no hay ${h(inst.many)} ${h(where)}.</strong> Publica un anuncio y te encontrarán quienes busquen en tu zona.</p></div>`}
+${nearbyLinks(`/busco/${slug}`, counts.get(slug), prov, total)}
+<h2>Cómo encontrar ${h(inst.one)} más rápido</h2>
+<ul class="tips">${tips.map(t => `<li>${h(t)}</li>`).join('')}</ul>
 ${faqHtml(faq)}
 ${otherInstruments}
 ${provinces.length ? `<h2>Busco ${h(inst.one)} en otras provincias</h2><ul class="provinces">${provinces.map(([p, n]) => `<li><a class="has" href="/busco/${slug}/${slugify(p)}">${h(p)}</a> <span class="n">(${n})</span></li>`).join('')}</ul>` : ''}
@@ -208,6 +240,7 @@ ${factLine(`bandas y músicos de ${label}`, total, prov)}
 ${bands.length ? `<h2>Bandas de ${h(label)} ${h(where)}</h2><ul class="grid">${bands.map(card).join('')}</ul>` : ''}
 ${people.length ? `<h2>Músicos de ${h(label)} ${h(where)}</h2><ul class="grid">${people.map(card).join('')}</ul>` : ''}
 ${total ? '' : `<div class="empty"><p><strong>Todavía no hay bandas ni músicos de ${h(label)} ${h(where)}.</strong> Publica un anuncio y te encontrarán quienes busquen en tu zona.</p></div>`}
+${nearbyLinks(`/estilo/${slug}`, counts.get(slug), prov, total)}
 ${faqHtml(faq)}
 ${otherGenres}
 ${provinces.length ? `<h2>${h(label.charAt(0).toUpperCase() + label.slice(1))} en otras provincias</h2><ul class="provinces">${provinces.map(([p, n]) => `<li><a class="has" href="/estilo/${slug}/${slugify(p)}">${h(p)}</a> <span class="n">(${n})</span></li>`).join('')}</ul>` : ''}

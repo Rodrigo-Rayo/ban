@@ -12,9 +12,7 @@ describe('ForgotPasswordComponent', () => {
     resetPasswordSpy = jasmine.createSpy('resetPasswordForEmail');
 
     const supabaseMock = {
-      auth: {
-        resetPasswordForEmail: resetPasswordSpy,
-      },
+      resetPasswordForEmail: resetPasswordSpy,
     };
 
     await TestBed.configureTestingModule({
@@ -152,6 +150,34 @@ describe('ForgotPasswordComponent', () => {
       resetPasswordSpy.and.callFake(() => Promise.resolve({ error: null }));
       await component.onSubmit();
       expect(component.error()).toBe('');
+    });
+  });
+
+  // ── Turnstile captcha ──────────────────────────────────────────────────────
+
+  describe('captcha', () => {
+    beforeEach(() => component.form.setValue({ email: 'user@example.com' }));
+
+    it('is off without a site key: never pending, no token sent', async () => {
+      resetPasswordSpy.and.returnValue(Promise.resolve({ error: null }));
+      expect(component.captcha.enabled).toBeFalse();
+      expect(component.captcha.pending()).toBeFalse();
+      await component.onSubmit();
+      expect(resetPasswordSpy).toHaveBeenCalledWith('user@example.com', undefined);
+    });
+
+    it('passes the Turnstile token when there is one, and uses it only once', async () => {
+      resetPasswordSpy.and.returnValue(Promise.resolve({ error: null }));
+      component.captcha.onToken('tok-123');
+      await component.onSubmit();
+      expect(resetPasswordSpy).toHaveBeenCalledWith('user@example.com', 'tok-123');
+      expect(component.captcha.token()).toBeNull();
+    });
+
+    it('shows the Spanish captcha message when Supabase rejects the captcha', async () => {
+      resetPasswordSpy.and.returnValue(Promise.resolve({ error: { code: 'captcha_failed', message: 'captcha protection: request disallowed' } }));
+      await component.onSubmit();
+      expect(component.error()).toBe('No hemos podido comprobar que no eres un robot. Inténtalo de nuevo.');
     });
   });
 });

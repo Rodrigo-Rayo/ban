@@ -108,6 +108,24 @@ describe('AuthService', () => {
       await expectAsync(service.signUpWithEmail('a@b.com', 'pass')).toBeResolved();
       expect(routerSpy.navigate).not.toHaveBeenCalled();
     });
+
+    it('forwards the captcha token only when given', async () => {
+      supabaseSpy.signUpWithEmail.and.returnValue(
+        Promise.resolve({ data: { user: null, session: null }, error: null } as never)
+      );
+      await service.signUpWithEmail('a@b.com', 'pass', 'tok');
+      expect(supabaseSpy.signUpWithEmail).toHaveBeenCalledWith('a@b.com', 'pass', undefined, 'tok');
+      await service.signUpWithEmail('a@b.com', 'pass');
+      expect(supabaseSpy.signUpWithEmail).toHaveBeenCalledWith('a@b.com', 'pass', undefined, undefined);
+    });
+  });
+
+  describe('signInWithEmail() captcha', () => {
+    it('forwards the captcha token to SupabaseService', async () => {
+      supabaseSpy.signInWithEmail.and.returnValue(Promise.resolve({ data: {}, error: null } as never));
+      await service.signInWithEmail('a@b.com', 'pass', 'tok');
+      expect(supabaseSpy.signInWithEmail).toHaveBeenCalledWith('a@b.com', 'pass', 'tok');
+    });
   });
 
   describe('signInWithGoogle()', () => {

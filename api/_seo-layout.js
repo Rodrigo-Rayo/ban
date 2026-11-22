@@ -34,7 +34,7 @@ h1,h2,h3{font-family:'Anton',Impact,'Arial Narrow',sans-serif;font-weight:400;te
 h1{font-size:clamp(2.4rem,7vw,4.5rem);margin-bottom:16px}
 h2{font-size:clamp(1.6rem,4vw,2.2rem);margin:40px 0 14px}
 h3{font-size:1.35rem}
-.lead{font-size:1.15rem;max-width:46rem;margin:0 0 20px}
+.lead{font-size:1.15rem;max-width:46rem;margin:0 0 20px}.tips{max-width:46rem;padding-left:1.2rem;margin:0 0 8px}.tips li{margin:6px 0}
 .meta{font:700 12px/1.4 'JetBrains Mono',ui-monospace,monospace;color:var(--muted);margin:0 0 14px}
 .answer{background:var(--card);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:16px 18px;max-width:46rem;font-size:1.1rem;margin:0 0 24px}
 .btn{display:inline-flex;align-items:center;min-height:48px;padding:0 20px;background:var(--red);color:#fff;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);font:700 13px/1 'JetBrains Mono',ui-monospace,monospace;text-transform:uppercase;text-decoration:none}

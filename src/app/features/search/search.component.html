@@ -17,6 +17,22 @@
   </div>
 </ng-template>
 
+<!-- Empty province: the provinces next to it that do have something -->
+<ng-template #nearbyHint>
+  @if (nearby().length) {
+    <div class="w-full max-w-sm mt-3" role="group" [attr.aria-label]="'Cerca de ' + selectedCity()">
+      <p class="font-mono text-xs font-bold uppercase tracking-wide text-ink-muted mb-2">Cerca de {{ selectedCity() }}</p>
+      <div class="flex flex-wrap justify-center gap-2">
+        @for (c of nearby(); track c.city) {
+          <button type="button" (click)="selectedCity.set(c.city); filterChanged()" class="btn-secondary min-h-[44px] text-sm px-4">
+            {{ c.city }} <span class="font-mono text-xs text-ink-muted ml-1">{{ c.n }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  }
+</ng-template>
+
 <div class="min-h-screen bg-dark-900" style="padding-top:64px; padding-bottom:80px">
 
   <header class="page-head bg-dark-900 sm:sticky sm:top-16 sm:z-20">
@@ -200,6 +216,7 @@
           } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay músicos{{ cityScope() }}</p>
           <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra provincia o con menos filtros.' : 'Sé el primero: crea tu perfil.' }}</p>
+          <ng-container *ngTemplateOutlet="nearbyHint"/>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <button type="button" (click)="joinAs('musician')" class="btn-primary min-h-[44px] text-sm px-5">Crear mi perfil de músico</button>
             @if (cityScope()) {
@@ -253,6 +270,7 @@
           } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay bandas{{ cityScope() }}</p>
           <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra provincia o con menos filtros' : '¿Tienes banda? Que te encuentren.' }}</p>
+          <ng-container *ngTemplateOutlet="nearbyHint"/>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <button type="button" (click)="joinAs('band')" class="btn-primary min-h-[44px] text-sm px-5">Registrar mi banda</button>
             @if (cityScope()) {
@@ -302,6 +320,7 @@
           } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay salas{{ cityScope() }}</p>
           <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra provincia' : '¿Programas conciertos? Publica tu sala.' }}</p>
+          <ng-container *ngTemplateOutlet="nearbyHint"/>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/venues/new" class="btn-primary min-h-[44px] text-sm px-5">Publicar mi sala</a>
             @if (cityScope()) {
@@ -346,6 +365,7 @@
           } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay eventos próximos{{ cityScope() }}</p>
           <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra provincia o publica el tuyo.' : 'Publica el tuyo.' }}</p>
+          <ng-container *ngTemplateOutlet="nearbyHint"/>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/events/create" class="btn-primary min-h-[44px] text-sm px-5">Publicar evento</a>
             @if (cityScope()) {
@@ -371,6 +391,7 @@
           } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay clases{{ cityScope() }}</p>
           <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra provincia o con otro instrumento' : '¿Das clases? Publícate.' }}</p>
+          <ng-container *ngTemplateOutlet="nearbyHint"/>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/teachers/new" class="btn-primary min-h-[44px] text-sm px-5">Ofrecer clases</a>
             @if (cityScope()) {
@@ -428,6 +449,7 @@
           } @else {
           <p class="font-display text-2xl uppercase text-ink">No hay locales{{ cityScope() }}</p>
           <p class="text-sm text-ink-muted max-w-sm">{{ emptyMode() === 'filters' ? 'Prueba con otra provincia' : '¿Alquilas un local de ensayo? Publícalo.' }}</p>
+          <ng-container *ngTemplateOutlet="nearbyHint"/>
           <div class="flex flex-wrap justify-center gap-2 mt-2">
             <a routerLink="/rehearsal/new" class="btn-primary min-h-[44px] text-sm px-5">Publicar mi local</a>
             @if (cityScope()) {

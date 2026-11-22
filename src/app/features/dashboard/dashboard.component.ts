@@ -51,6 +51,14 @@ export type DashboardTab = 'events' | 'posts' | 'gear';
 const POST_NUDGE_KEY = 'bandyou_post_nudge_until';
 const POST_NUDGE_SNOOZE_MS = 7 * 86400000;
 
+const BAND_AD_FRESH_DAYS = 30;
+
+/** The band published a "Buscamos músico" ad in the last 30 days. */
+export function hasRecentBandAd(posts: readonly { type: string; created_at: string }[], now = Date.now()): boolean {
+  const since = now - BAND_AD_FRESH_DAYS * 86400000;
+  return posts.some(p => p.type === 'band_seeking_musician' && Date.parse(p.created_at) >= since);
+}
+
 /** The Se busca card was put off and the week has not passed yet. */
 export function postNudgeHiddenNow(now = Date.now()): boolean {
   try { return Number(localStorage.getItem(POST_NUDGE_KEY) ?? 0) > now; } catch { return false; }
@@ -496,9 +504,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private readonly postNudgeHidden = signal(postNudgeHiddenNow());
   /** The posts query answered (a failed one must not look like "no posts"). */
   private readonly postsLoaded = signal(false);
-  /** Musicians and bands with nothing in Se busca get a card inviting them to publish. */
-  readonly showPostNudge = computed(() => !this.loading() && this.postsLoaded() && !this.postNudgeHidden()
-    && (this.profileType() === 'musician' || this.profileType() === 'band') && this.myPosts().length === 0);
+  /**
+   * Musicians with nothing in Se busca, and bands without a "Buscamos músico" ad in the
+   * last 30 days, get a card inviting them to publish. Read from the posts the panel
+   * already loads (type + created_at), so it costs no extra query.
+   */
+  readonly showPostNudge = computed(() => {
+    if (this.loading() || !this.postsLoaded() || this.postNudgeHidden()) return false;
+    const type = this.profileType();
+    if (type === 'band') return !hasRecentBandAd(this.myPosts());
+    return type === 'musician' && this.myPosts().length === 0;
+  });
 
   hidePostNudge() {
     try { localStorage.setItem(POST_NUDGE_KEY, String(Date.now() + POST_NUDGE_SNOOZE_MS)); } catch { /* storage blocked */ }

@@ -11,7 +11,7 @@ import { MediaFeaturesService } from '../../core/services/media-features.service
 function builder(rows: unknown[] = []): any {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const b: any = { then: (res: (v: unknown) => unknown) => Promise.resolve({ data: rows, error: null }).then(res) };
-  ['select', 'eq', 'ilike', 'filter', 'gte', 'order', 'range'].forEach(m => { b[m] = jasmine.createSpy(m).and.returnValue(b); });
+  ['select', 'eq', 'in', 'like', 'ilike', 'filter', 'gte', 'order', 'range'].forEach(m => { b[m] = jasmine.createSpy(m).and.returnValue(b); });
   return b;
 }
 
@@ -45,6 +45,23 @@ describe('SearchComponent', () => {
   }
 
   beforeEach(() => { gigsColumn = true; });
+
+  it('an empty province suggests the provinces next to it that have musicians', async () => {
+    const c = await create({ tab: 'musicians', city: 'Sevilla' });
+    // First query (Sevilla) came back empty; the next one asks the neighbours.
+    expect(from.calls.count()).toBe(2);
+    expect(last.in).toHaveBeenCalledWith('city', jasmine.arrayContaining(['Cádiz', 'Málaga']));
+    from.and.returnValues(builder(), builder([{ city: 'Málaga' }, { city: 'Málaga' }, { city: 'Cádiz' }]));
+    await c.loadData();
+    await new Promise(r => setTimeout(r));
+    expect(c.nearby()).toEqual([{ city: 'Málaga', n: 2 }, { city: 'Cádiz', n: 1 }]);
+  });
+
+  it('asks nothing extra when the list has results or a search text', async () => {
+    const c = await create({ tab: 'musicians', city: 'Madrid', q: 'ana' });
+    expect(from.calls.count()).toBe(1);
+    expect(c.nearby()).toEqual([]);
+  });
 
   it('?tab=bands&bolos=1 asks only for bands open to gigs', async () => {
     const c = await create({ tab: 'bands', bolos: '1' });

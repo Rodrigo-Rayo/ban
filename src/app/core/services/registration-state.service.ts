@@ -13,10 +13,13 @@ import { Injectable } from '@angular/core';
 export class RegistrationStateService {
   private _email = '';
   private _password = '';
+  private _captchaToken: string | undefined;
 
-  set(email: string, password: string) {
+  /** `captchaToken`: Turnstile token from the register page (single-use, ~5 min). */
+  set(email: string, password: string, captchaToken?: string) {
     this._email = email;
     this._password = password;
+    this._captchaToken = captchaToken;
   }
 
   get hasPending(): boolean {
@@ -31,8 +34,13 @@ export class RegistrationStateService {
     return this._password;
   }
 
+  get captchaToken(): string | undefined {
+    return this._captchaToken;
+  }
+
   clear() {
     this._email = '';
     this._password = '';
+    this._captchaToken = undefined;
   }
 }

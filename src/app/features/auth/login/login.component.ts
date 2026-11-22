@@ -1,14 +1,16 @@
-import { Component, ElementRef, inject, signal, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, signal, OnInit, viewChild } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { Meta } from '@angular/platform-browser';
 import { AuthPosterComponent } from '../auth-poster.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { SeoService } from '../../../core/services/seo.service';
+import { TurnstileComponent } from '../../../shared/components/turnstile/turnstile.component';
+import { CAPTCHA_FAILED_MESSAGE, injectCaptchaGate, isCaptchaError } from '../../../shared/components/turnstile/turnstile';
 
 @Component({
     selector: 'app-login',
-    imports: [ReactiveFormsModule, RouterLink, AuthPosterComponent],
+    imports: [ReactiveFormsModule, RouterLink, AuthPosterComponent, TurnstileComponent],
     templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {
@@ -18,6 +20,9 @@ export class LoginComponent implements OnInit {
   private meta = inject(Meta);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
   auth = inject(AuthService);
+  /** Cloudflare Turnstile; inert while no site key is configured. */
+  readonly captcha = injectCaptchaGate();
+  private turnstile = viewChild(TurnstileComponent);
 
   loading = signal(false);
   error = signal('');
@@ -74,10 +79,11 @@ export class LoginComponent implements OnInit {
     this.error.set('');
     try {
       const { email, password } = this.form.value;
-      await this.auth.signInWithEmail(email!, password!);
+      await this.auth.signInWithEmail(email!, password!, this.captcha.take());
     } catch (e: unknown) {
       this.error.set(loginErrorMessage(e));
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.turnstile()?.reset();
     } finally {
       this.loading.set(false);
     }
@@ -97,6 +103,7 @@ export class LoginComponent implements OnInit {
 /** Maps Supabase auth errors to actionable Spanish messages. */
 function loginErrorMessage(e: unknown): string {
   const err = e as { code?: string; status?: number; name?: string } | null;
+  if (isCaptchaError(e)) return CAPTCHA_FAILED_MESSAGE;
   switch (err?.code) {
     case 'email_not_confirmed':
       return 'Aún no has confirmado tu email. Revisa tu bandeja de entrada (y spam).';
