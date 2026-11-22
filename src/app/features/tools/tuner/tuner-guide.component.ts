@@ -1,28 +1,34 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TUNER_FAQS, TUNING_TABLE } from './tuner-content';
+import { TOOLS_SHARED } from '../tools-seo';
+import { TUNER_SEO, TunerPage, tuningRowsFor } from './tuner-content';
 
-/** Static help below the tuner: how to tune, standard tunings, FAQ and a quiet CTA. */
+/**
+ * Help below the tuner: intro, how to tune, tunings table, FAQ and links. All copy comes from
+ * tuner-seo.json, the same source scripts/prerender-tools.mjs writes into the static HTML.
+ */
 @Component({
   selector: 'app-tuner-guide',
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
+    @if (page().intro) {
+      <p class="mt-8 max-w-2xl text-sm sm:text-base leading-relaxed" data-testid="tuner-intro">{{ page().intro }}</p>
+    }
+
     <section class="mt-10 border-t-2 border-ink pt-5" aria-labelledby="tg-how">
-      <h2 id="tg-how" class="font-display text-2xl sm:text-3xl uppercase leading-none">Cómo afinar la guitarra</h2>
+      <h2 id="tg-how" class="font-display text-2xl sm:text-3xl uppercase leading-none">{{ page().howTo.title }}</h2>
       <ol class="mt-4 grid gap-3 text-sm sm:text-base leading-relaxed list-decimal pl-5 max-w-2xl">
-        <li>Elige <strong>Guitarra</strong> en el selector de instrumento y toca <strong>Activar micrófono</strong>.</li>
-        <li>Toca una sola cuerda al aire, empezando por la sexta (la más gruesa, Mi grave), y déjala sonar.</li>
-        <li>Si el afinador dice <strong>Sube</strong>, la cuerda está grave: tensa girando la clavija. Si dice <strong>Baja</strong>, está aguda: destensa.</li>
-        <li>Ajusta poco a poco hasta que la aguja quede en el centro y aparezca <strong>Afinada</strong>. Mejor llegar a la nota desde abajo: la cuerda se mantiene afinada más tiempo.</li>
-        <li>Repite con las demás cuerdas y da una segunda pasada: al tensar unas, las otras se mueven un poco.</li>
+        @for (step of page().howTo.steps; track $index) {
+          <li>{{ step }}</li>
+        }
       </ol>
     </section>
 
     <section class="mt-10 border-t-2 border-ink pt-5" aria-labelledby="tg-tunings">
-      <h2 id="tg-tunings" class="font-display text-2xl sm:text-3xl uppercase leading-none">Afinaciones estándar</h2>
-      <p class="mt-2 text-sm text-ink-muted max-w-2xl">De la cuerda más grave a la más aguda (en el ukelele, en el orden en que se tocan: la cuerda Sol es aguda).</p>
+      <h2 id="tg-tunings" class="font-display text-2xl sm:text-3xl uppercase leading-none">{{ seo.tuningsTitle }}</h2>
+      <p class="mt-2 text-sm text-ink-muted max-w-2xl">{{ seo.tuningsNote }}</p>
       <div class="mt-4 max-w-2xl">
         <table class="w-full text-sm border-2 border-ink bg-dark-800">
           <thead>
@@ -32,7 +38,7 @@ import { TUNER_FAQS, TUNING_TABLE } from './tuner-content';
             </tr>
           </thead>
           <tbody>
-            @for (row of tunings; track row.instrument) {
+            @for (row of rows(); track row.id) {
               <tr class="border-t border-ink/20 align-top">
                 <th scope="row" class="px-3 py-2 text-left font-semibold">{{ row.instrument }}</th>
                 <td class="px-3 py-2">
@@ -47,9 +53,9 @@ import { TUNER_FAQS, TUNING_TABLE } from './tuner-content';
     </section>
 
     <section class="mt-10 border-t-2 border-ink pt-5" aria-labelledby="tg-faq">
-      <h2 id="tg-faq" class="font-display text-2xl sm:text-3xl uppercase leading-none">Preguntas frecuentes</h2>
+      <h2 id="tg-faq" class="font-display text-2xl sm:text-3xl uppercase leading-none">{{ seo.faqTitle }}</h2>
       <div class="mt-4 grid gap-4 max-w-2xl">
-        @for (f of faqs; track f.q) {
+        @for (f of page().faqs; track f.q) {
           <div>
             <h3 class="font-semibold text-base">{{ f.q }}</h3>
             <p class="mt-1 text-sm leading-relaxed">{{ f.a }}</p>
@@ -58,17 +64,23 @@ import { TUNER_FAQS, TUNING_TABLE } from './tuner-content';
       </div>
     </section>
 
-    <section class="mt-10 border-t-2 border-ink pt-5 max-w-2xl" aria-labelledby="tg-cta">
-      <h2 id="tg-cta" class="font-display text-2xl uppercase leading-none">¿Buscas banda o músicos?</h2>
-      <p class="text-sm leading-relaxed mt-2">En BandYou encuentras grupos que buscan gente y músicos de tu provincia. Gratis.</p>
-      <div class="mt-4 flex flex-wrap gap-3">
-        <a routerLink="/feed" class="btn-secondary min-h-[44px]">Ver quién busca</a>
-        <a routerLink="/metronomo" class="btn-ghost min-h-[44px] underline underline-offset-4">Metrónomo online</a>
-      </div>
-    </section>
+    <nav class="mt-10 border-t-2 border-ink pt-5 max-w-2xl" aria-labelledby="tg-links">
+      <h2 id="tg-links" class="font-display text-2xl uppercase leading-none">{{ seo.instrumentLinksTitle }}</h2>
+      <ul class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+        @for (p of otherPages(); track p.path) {
+          <li><a [routerLink]="p.path" class="underline underline-offset-4 hover:text-primary-600 min-h-[44px] inline-flex items-center">{{ p.linkLabel }}</a></li>
+        }
+        <li><a routerLink="/metronomo" class="underline underline-offset-4 hover:text-primary-600 min-h-[44px] inline-flex items-center">{{ metronomeLabel }}</a></li>
+        <li><a routerLink="/feed" class="underline underline-offset-4 hover:text-primary-600 min-h-[44px] inline-flex items-center">{{ feedLabel }}</a></li>
+      </ul>
+    </nav>
   `,
 })
 export class TunerGuideComponent {
-  readonly faqs = TUNER_FAQS;
-  readonly tunings = TUNING_TABLE;
+  readonly page = input.required<TunerPage>();
+  readonly seo = TUNER_SEO;
+  readonly rows = computed(() => tuningRowsFor(this.page()));
+  readonly otherPages = computed(() => TUNER_SEO.pages.filter(p => p.path !== this.page().path));
+  readonly metronomeLabel = TOOLS_SHARED.tools.find(t => t.href === '/metronomo')!.label;
+  readonly feedLabel = TOOLS_SHARED.moreLinks.find(t => t.href === '/feed')!.label;
 }

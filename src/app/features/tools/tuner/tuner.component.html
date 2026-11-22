@@ -3,8 +3,8 @@
     <div class="page-head-inner py-3 sm:py-5">
       <div>
         <p class="page-kicker">Herramientas</p>
-        <h1 class="page-title">Afinador online</h1>
-        <p class="mt-1 text-sm sm:text-base text-ink-muted">Guitarra, bajo y ukelele con el micrófono. Gratis.</p>
+        <h1 class="page-title">{{ page().h1 }}</h1>
+        <p class="mt-1 text-sm sm:text-base text-ink-muted">{{ page().lead }}</p>
       </div>
     </div>
   </header>
@@ -164,6 +164,8 @@
       </details>
     </section>
 
-    <app-tuner-guide />
+    <app-tools-cta class="mt-6 max-w-2xl" />
+
+    <app-tuner-guide [page]="page()" />
   </div>
 </div>

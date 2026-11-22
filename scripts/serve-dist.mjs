@@ -11,6 +11,10 @@ const types = { '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/htm
 
 http.createServer((req, res) => {
   let file = path.join(root, decodeURIComponent(req.url.split('?')[0]));
+  // Like Vercel: a directory with an index.html (prerendered tool pages) is served before the SPA fallback.
+  if (file.startsWith(root) && fs.existsSync(file) && fs.statSync(file).isDirectory() && fs.existsSync(path.join(file, 'index.html'))) {
+    file = path.join(file, 'index.html');
+  }
   if (!file.startsWith(root) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) file = path.join(root, 'index.html');
   res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Content-Security-Policy': csp });
   fs.createReadStream(file).pipe(res);

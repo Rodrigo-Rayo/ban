@@ -1,0 +1,133 @@
+{
+  "appName": "Afinador online de BandYou",
+  "tuningsTitle": "Afinaciones estándar",
+  "tuningsNote": "De la cuerda más grave a la más aguda (en el ukelele, en el orden en que se tocan: la cuerda Sol es aguda).",
+  "tunings": [
+    { "id": "guitar", "instrument": "Guitarra (estándar)", "notesEs": "Mi2 La2 Re3 Sol3 Si3 Mi4", "notesEn": "E2 A2 D3 G3 B3 E4" },
+    { "id": "guitar-drop-d", "instrument": "Guitarra Drop D", "notesEs": "Re2 La2 Re3 Sol3 Si3 Mi4", "notesEn": "D2 A2 D3 G3 B3 E4" },
+    { "id": "bass4", "instrument": "Bajo 4 cuerdas", "notesEs": "Mi1 La1 Re2 Sol2", "notesEn": "E1 A1 D2 G2" },
+    { "id": "bass5", "instrument": "Bajo 5 cuerdas", "notesEs": "Si0 Mi1 La1 Re2 Sol2", "notesEn": "B0 E1 A1 D2 G2" },
+    { "id": "ukulele", "instrument": "Ukelele", "notesEs": "Sol4 Do4 Mi4 La4", "notesEn": "G4 C4 E4 A4" }
+  ],
+  "instrumentLinksTitle": "Afinador por instrumento",
+  "faqTitle": "Preguntas frecuentes",
+  "pages": [
+    {
+      "slug": "",
+      "path": "/afinador",
+      "mode": null,
+      "breadcrumb": "Afinador",
+      "linkLabel": "Afinador cromático",
+      "title": "Afinador online gratis: guitarra, bajo y ukelele",
+      "description": "Afinador online gratis con el micrófono para guitarra, bajo de 4 y 5 cuerdas, ukelele y modo cromático. Preciso y sin instalar nada.",
+      "h1": "Afinador online",
+      "lead": "Guitarra, bajo y ukelele con el micrófono. Gratis.",
+      "intro": "",
+      "tableOrder": ["guitar", "guitar-drop-d", "bass4", "bass5", "ukulele"],
+      "howTo": {
+        "title": "Cómo afinar la guitarra",
+        "steps": [
+          "Elige «Guitarra» en el selector de instrumento y toca «Activar micrófono».",
+          "Toca una sola cuerda al aire, empezando por la sexta (la más gruesa, Mi grave), y déjala sonar.",
+          "Si el afinador dice «Sube», la cuerda está grave: tensa girando la clavija. Si dice «Baja», está aguda: afloja.",
+          "Ajusta poco a poco hasta que la aguja quede en el centro y aparezca «Afinada». Mejor llegar a la nota desde abajo: la cuerda se mantiene afinada más tiempo.",
+          "Repite con las demás cuerdas y da una segunda pasada: al tensar unas, las otras se mueven un poco."
+        ]
+      },
+      "faqs": [
+        { "q": "¿Funciona en el móvil?", "a": "Sí. Funciona en el navegador del móvil (Chrome en Android, Safari en iPhone) y del ordenador, sin instalar ninguna app. Solo tienes que permitir el micrófono la primera vez." },
+        { "q": "¿Se graba algo de lo que toco?", "a": "No. El sonido se analiza en tu propio dispositivo y nunca sale de él: no se graba, no se guarda y no se envía a ningún servidor." },
+        { "q": "¿Qué es el La 440?", "a": "Es la frecuencia de referencia de la afinación estándar: la nota La central vibra a 440 Hz. Algunas orquestas y grabaciones usan 442 Hz o 432 Hz; puedes cambiar la referencia en Ajustes, entre 415 y 466 Hz." },
+        { "q": "¿Por qué no detecta la nota?", "a": "Toca una sola cuerda cada vez y deja que suene, acerca el instrumento al micrófono y evita ruido de fondo (otras personas, música, ventiladores). Si usas auriculares con micrófono, prueba con el micrófono del propio móvil o del portátil." },
+        { "q": "¿Qué es el modo cromático?", "a": "En modo cromático el afinador te dice cualquier nota que suene, sin suponer un instrumento. Sirve para afinaciones alternativas, violín, voz o cualquier instrumento; en los modos de guitarra, bajo y ukelele además te marca qué cuerda estás afinando." }
+      ]
+    },
+    {
+      "slug": "guitarra",
+      "path": "/afinador/guitarra",
+      "mode": "guitar",
+      "breadcrumb": "Guitarra",
+      "linkLabel": "Afinador de guitarra",
+      "title": "Afinador de guitarra online gratis (con micrófono)",
+      "description": "Afina tu guitarra con el micrófono del móvil u ordenador: afinación estándar Mi La Re Sol Si Mi y Drop D. Gratis, preciso y sin instalar nada.",
+      "h1": "Afinador de guitarra online",
+      "lead": "Acústica, española o eléctrica, con el micrófono. Gratis.",
+      "intro": "Este afinador de guitarra escucha por el micrófono, reconoce la cuerda que tocas y te dice si tienes que subirla o bajarla. Sirve para guitarra acústica, clásica o española y eléctrica (con el ampli o desenchufada), en afinación estándar y en Drop D.",
+      "tableOrder": ["guitar", "guitar-drop-d"],
+      "howTo": {
+        "title": "Cómo afinar la guitarra paso a paso",
+        "steps": [
+          "Toca «Activar micrófono» y permite el micro. El modo «Guitarra» ya está elegido.",
+          "Toca la sexta cuerda al aire (la más gruesa, Mi2) y déjala sonar. El afinador marca la cuerda que está oyendo.",
+          "Si dice «Sube», tensa girando la clavija; si dice «Baja», afloja. Si dice «Sube mucho», la cuerda está a más de medio tono: gira con calma.",
+          "Cuando la aguja quede en el centro y aparezca «Afinada», pasa a la quinta (La2) y sigue hasta la primera (Mi4).",
+          "Da una segunda pasada a las seis cuerdas: al tensar unas, el mástil cede un poco y las otras se mueven."
+        ]
+      },
+      "faqs": [
+        { "q": "¿Cuál es la afinación estándar de la guitarra?", "a": "De la sexta cuerda (la más grave) a la primera: Mi2, La2, Re3, Sol3, Si3 y Mi4. En cifrado americano: E A D G B E." },
+        { "q": "¿Cómo afino en Drop D?", "a": "Elige «Guitarra Drop D» en el selector: es la afinación estándar con la sexta cuerda bajada un tono, de Mi a Re (Re2). Las otras cinco cuerdas no cambian." },
+        { "q": "¿Sirve para guitarra eléctrica?", "a": "Sí. Puedes tocarla desenchufada cerca del micrófono o con el ampli a volumen moderado y sin efectos (distorsión, chorus o delay confunden al afinador)." },
+        { "q": "¿Por qué se desafina la guitarra tan rápido?", "a": "Las cuerdas nuevas estiran durante los primeros días, y los cambios de temperatura y humedad mueven la madera. Afina siempre antes de tocar y, con cuerdas nuevas, estíralas un poco con la mano y vuelve a afinar." }
+      ]
+    },
+    {
+      "slug": "bajo",
+      "path": "/afinador/bajo",
+      "mode": "bass4",
+      "breadcrumb": "Bajo",
+      "linkLabel": "Afinador de bajo",
+      "title": "Afinador de bajo online gratis (4 y 5 cuerdas)",
+      "description": "Afinador de bajo online con el micrófono: bajo de 4 cuerdas (Mi La Re Sol) y de 5 cuerdas con Si grave. Preciso en las notas más graves. Gratis.",
+      "h1": "Afinador de bajo online",
+      "lead": "Bajo de 4 y 5 cuerdas, con el micrófono. Gratis.",
+      "intro": "Las notas del bajo son muy graves (el Si de un bajo de 5 cuerdas está en unos 31 Hz) y muchos afinadores online fallan con ellas. Este analiza una ventana de sonido más larga en modo bajo para captarlas bien. Elige «Bajo 4 cuerdas» o «Bajo 5 cuerdas» en el selector.",
+      "tableOrder": ["bass4", "bass5"],
+      "howTo": {
+        "title": "Cómo afinar el bajo",
+        "steps": [
+          "Toca «Activar micrófono». Está elegido «Bajo 4 cuerdas»; si tu bajo tiene 5, cámbialo en el selector.",
+          "Toca la cuerda más grave al aire (Mi1, o Si0 en un bajo de 5) con fuerza y cerca del micrófono, y déjala sonar.",
+          "Si dice «Sube», tensa; si dice «Baja», afloja. Gira la clavija poco a poco: en el bajo un cuarto de vuelta es mucho.",
+          "Cuando aparezca «Afinada», sigue con La, Re y Sol.",
+          "Repasa todas las cuerdas al final. Si tu micrófono capta mal los graves, toca un poco más fuerte o pulsa la cuerda en el armónico del traste 12."
+        ]
+      },
+      "faqs": [
+        { "q": "¿Cuál es la afinación del bajo de 4 cuerdas?", "a": "De la más grave a la más aguda: Mi1, La1, Re2 y Sol2 (E A D G). Son las mismas notas que las cuatro cuerdas graves de la guitarra, una octava más abajo." },
+        { "q": "¿Y la del bajo de 5 cuerdas?", "a": "Añade una cuerda grave en Si: Si0, Mi1, La1, Re2 y Sol2 (B E A D G). El Si0 vibra a unos 30,9 Hz." },
+        { "q": "¿Por qué el móvil no detecta bien la cuerda grave?", "a": "Los micrófonos de los móviles captan poco por debajo de 50 Hz. Toca con más fuerza y más cerca, o toca el armónico del traste 12 (suena una octava más aguda y tiene la misma afinación)." },
+        { "q": "¿Puedo afinar el bajo enchufado?", "a": "Sí: con el ampli a volumen moderado y sin efectos, el afinador lo oye por el micrófono igual que un bajo acústico." }
+      ]
+    },
+    {
+      "slug": "ukelele",
+      "path": "/afinador/ukelele",
+      "mode": "ukulele",
+      "breadcrumb": "Ukelele",
+      "linkLabel": "Afinador de ukelele",
+      "title": "Afinador de ukelele online gratis (con micrófono)",
+      "description": "Afina tu ukelele con el micrófono: afinación estándar Sol Do Mi La (G C E A) para soprano, concierto y tenor. Gratis y sin instalar nada.",
+      "h1": "Afinador de ukelele online",
+      "lead": "Soprano, concierto o tenor, con el micrófono. Gratis.",
+      "intro": "Afina tu ukelele en la afinación estándar Sol Do Mi La (G C E A). El afinador reconoce la cuerda que tocas y te dice si subirla o bajarla. Vale para ukelele soprano, concierto y tenor.",
+      "tableOrder": ["ukulele"],
+      "howTo": {
+        "title": "Cómo afinar el ukelele",
+        "steps": [
+          "Toca «Activar micrófono». El modo «Ukelele» ya está elegido.",
+          "Toca la cuerda de arriba (la cuarta, Sol4) al aire. Ojo: es aguda, no grave.",
+          "Si dice «Sube», tensa; si dice «Baja», afloja, girando la clavija despacio.",
+          "Cuando aparezca «Afinada», sigue con Do4, Mi4 y La4.",
+          "Las cuerdas de nailon estiran mucho cuando son nuevas: repasa la afinación varias veces los primeros días."
+        ]
+      },
+      "faqs": [
+        { "q": "¿Cuál es la afinación estándar del ukelele?", "a": "Sol4, Do4, Mi4 y La4 (G C E A), de la cuarta cuerda a la primera. Es una afinación «reentrante»: la cuarta cuerda (Sol) es más aguda que la tercera (Do)." },
+        { "q": "¿Sirve para ukelele barítono?", "a": "El barítono se afina como las cuatro cuerdas agudas de la guitarra: Re3, Sol3, Si3 y Mi4. Usa el modo cromático y afina cada cuerda a esas notas." },
+        { "q": "¿Y si mi ukelele tiene el Sol grave?", "a": "Con «Sol grave» (low G) la cuarta cuerda es Sol3, una octava más abajo. Usa el modo cromático y afina esa cuerda a Sol3." },
+        { "q": "¿Por qué se desafina tanto mi ukelele nuevo?", "a": "Las cuerdas de nailon tardan unos días en asentarse. Es normal tener que afinar a menudo al principio; después se estabilizan." }
+      ]
+    }
+  ]
+}

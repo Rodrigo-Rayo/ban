@@ -1,0 +1,47 @@
+{
+  "siteName": "BandYou",
+  "siteUrl": "https://www.bandyou.es",
+  "homeLabel": "Inicio",
+  "cta": {
+    "title": "¿Tocas en un grupo?",
+    "text": "En BandYou encuentras banda o músicos en tu provincia, gratis.",
+    "links": [
+      {
+        "label": "Busco banda",
+        "href": "/busco-banda"
+      },
+      {
+        "label": "Busco músicos",
+        "href": "/busco-musicos"
+      }
+    ]
+  },
+  "moreTitle": "Más en BandYou",
+  "moreLinks": [
+    {
+      "label": "Busco banda",
+      "href": "/busco-banda",
+      "text": "bandas que buscan músico en tu provincia"
+    },
+    {
+      "label": "Busco músicos",
+      "href": "/busco-musicos",
+      "text": "músicos que buscan banda"
+    },
+    {
+      "label": "Se busca",
+      "href": "/feed",
+      "text": "anuncios de bandas y músicos"
+    }
+  ],
+  "tools": [
+    {
+      "label": "Afinador online",
+      "href": "/afinador"
+    },
+    {
+      "label": "Metrónomo online",
+      "href": "/metronomo"
+    }
+  ]
+}

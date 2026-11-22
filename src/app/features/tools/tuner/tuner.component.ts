@@ -1,12 +1,15 @@
 import {
-  ChangeDetectionStrategy, Component, DOCUMENT, ElementRef, InjectionToken, NgZone, OnDestroy, OnInit,
+  ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, InjectionToken, NgZone, OnDestroy, OnInit,
   computed, inject, signal, viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ToolsCtaComponent } from '../tools-cta.component';
 import { SeoService } from '../../../core/services/seo.service';
 import { A4_DEFAULT, A4_MAX, A4_MIN, Notation, clampA4, midiOctave, noteName } from './note-math';
 import { ErrorListener, PitchEngine, ReadingListener, TUNER_ERROR_MESSAGES, TunerErrorCode, WindowMode, mapMediaError } from './pitch-engine';
 import { InTuneTracker, PitchSmoother } from './pitch-smoother';
-import { TUNER_DESCRIPTION, TUNER_TITLE, TUNER_URL, tunerJsonLd } from './tuner-content';
+import { TUNER_MAIN_PAGE, TunerPage, tunerJsonLd, tunerPageFor, tunerUrl } from './tuner-content';
 import { TunerGuideComponent } from './tuner-guide.component';
 import { TunerSettings, loadSettings, saveSettings } from './tuner-settings';
 import { HINT_LABELS, TunerReadout, computeReadout, formatCents, hintFor, needlePercent } from './tuner-view';
@@ -37,7 +40,7 @@ const NAVBAR_PX = 64;
 /** /afinador: chromatic and instrument tuner using the microphone. */
 @Component({
   selector: 'app-tuner',
-  imports: [TunerGuideComponent],
+  imports: [TunerGuideComponent, ToolsCtaComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tuner.component.html',
 })
@@ -52,7 +55,14 @@ export class TunerComponent implements OnInit, OnDestroy {
   readonly a4Max = A4_MAX;
   readonly a4Default = A4_DEFAULT;
 
+  private readonly route = inject(ActivatedRoute, { optional: true });
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  /** Mode saved by the user on /afinador; instrument pages preselect theirs without overwriting it. */
+  private savedMode: TunerMode;
+
   readonly settings = signal<TunerSettings>(loadSettings());
+  readonly page = signal<TunerPage>(TUNER_MAIN_PAGE);
   readonly status = signal<Status>('idle');
   readonly error = signal<TunerErrorCode | null>(null);
   readonly paused = signal(false);
@@ -105,6 +115,7 @@ export class TunerComponent implements OnInit, OnDestroy {
   private readonly onPageHide = () => this.pauseIfActive();
 
   constructor() {
+    this.savedMode = this.settings().mode;
     const factory = inject(TUNER_ENGINE_FACTORY);
     this.engine = factory(
       (frequency, now) => this.handleReading(frequency, now),
@@ -113,8 +124,13 @@ export class TunerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.seo.set({ title: TUNER_TITLE, description: TUNER_DESCRIPTION, url: TUNER_URL });
-    this.seo.injectJsonLd(tunerJsonLd());
+    const params = this.route?.paramMap;
+    if (params) {
+      // The component is reused between /afinador/guitarra and /afinador/bajo: follow the param.
+      params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(p => this.showPage(p.get('instrumento')));
+    } else {
+      this.showPage(null);
+    }
     this.doc.addEventListener('visibilitychange', this.onVisibility);
     this.doc.defaultView?.addEventListener('pagehide', this.onPageHide);
     this.applyWindowMode();
@@ -206,7 +222,28 @@ export class TunerComponent implements OnInit, OnDestroy {
   private update(patch: Partial<TunerSettings>): void {
     const next = { ...this.settings(), ...patch };
     this.settings.set(next);
-    saveSettings(next);
+    if (!this.page().mode) this.savedMode = next.mode;
+    saveSettings({ ...next, mode: this.savedMode });
+  }
+
+  /** Applies the SEO copy and preselected mode of /afinador or an instrument page. */
+  private showPage(slug: string | null): void {
+    const page = tunerPageFor(slug);
+    if (!page) {
+      // Unknown slug (normally caught by the route's canMatch): fall back to the main page.
+      void this.router.navigateByUrl(TUNER_MAIN_PAGE.path, { replaceUrl: true });
+      return;
+    }
+    this.page.set(page);
+    this.seo.set({ title: page.title, description: page.description, url: tunerUrl(page) });
+    this.seo.injectJsonLd(tunerJsonLd(page));
+    const mode = page.mode ?? this.savedMode;
+    if (mode !== this.settings().mode) {
+      this.settings.set({ ...this.settings(), mode });
+      this.lockedString.set(null);
+      this.resetReadings();
+    }
+    this.applyWindowMode();
   }
 
   private applyWindowMode(): void {

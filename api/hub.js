@@ -169,6 +169,13 @@ const INSTRUMENT_TIPS = {
   teclista: ['Di si basta con un teclado o hacen falta sintetizadores, órgano o samples.', 'Indica si el local tiene teclado o amplificación para él.', 'Cuenta si hay partes con secuencias o arreglos que tenga que preparar.'],
   pianista: ['Di si es para banda, dúo, coro o acompañamiento, y si hay piano en el local.', 'Indica el repertorio: clásico, jazz, pop, canción de autor…', 'Si es para bolos, di cuántos al mes y si son pagados.'],
 };
+/** Free tools (SPA pages) linked from the server-rendered pages so Google finds them from pages it already ranks. */
+const TUNER_BY_INSTRUMENT = { guitarrista: '/afinador/guitarra', bajista: '/afinador/bajo' };
+function toolsLinks(slug) {
+  const tuner = TUNER_BY_INSTRUMENT[slug];
+  return `<h2>Herramientas gratis para ensayar</h2>
+<ul class="provinces"><li><a class="has" href="${tuner || '/afinador'}">Afinador online${tuner === '/afinador/bajo' ? ' de bajo' : tuner ? ' de guitarra' : ''}</a></li><li><a class="has" href="/metronomo">Metrónomo online</a></li></ul>`;
+}
 const GENERIC_TIPS = ['Di el estilo, dos o tres bandas de referencia y si hay temas propios o versiones.', 'Indica en qué zona ensayáis, cuántos días a la semana y si tenéis local.', 'Cuenta qué nivel buscáis y si hay bolos a la vista.'];
 
 async function instrumentPage(slug, provSlug) {
@@ -201,6 +208,7 @@ ${nearbyLinks(`/busco/${slug}`, counts.get(slug), prov, total)}
 <h2>Cómo encontrar ${h(inst.one)} más rápido</h2>
 <ul class="tips">${tips.map(t => `<li>${h(t)}</li>`).join('')}</ul>
 ${faqHtml(faq)}
+${toolsLinks(slug)}
 ${otherInstruments}
 ${provinces.length ? `<h2>Busco ${h(inst.one)} en otras provincias</h2><ul class="provinces">${provinces.map(([p, n]) => `<li><a class="has" href="/busco/${slug}/${slugify(p)}">${h(p)}</a> <span class="n">(${n})</span></li>`).join('')}</ul>` : ''}
 <h2>Sigue por aquí</h2>
@@ -264,7 +272,8 @@ function guideIndex() {
     jsonLd: [breadcrumb(crumbs)],
     body: `${crumbsHtml(crumbs)}<p class="kicker">Guías BandYou</p><h1>Guías para músicos</h1>
 <p class="lead">Consejos prácticos para encontrar banda o músicos, ensayar y tocar en directo en España.</p>
-<ul class="grid">${GUIDES.map(g => card({ href: `/guias/${g.slug}`, title: g.h1, text: g.answer })).join('')}</ul>`,
+<ul class="grid">${GUIDES.map(g => card({ href: `/guias/${g.slug}`, title: g.h1, text: g.answer })).join('')}</ul>
+${toolsLinks()}`,
   };
 }
 
@@ -297,6 +306,7 @@ ${sections}
 ${faq.length ? faqHtml(faq) : ''}
 ${g.sources ? `<h2>Fuentes</h2><ul>${g.sources.map(l => `<li><a rel="nofollow noopener" href="${h(l.href)}">${h(l.label)}</a></li>`).join('')}</ul>` : ''}
 ${links.length ? `<h2>Sigue aquí</h2><div class="btns">${links.map((l, i) => `<a class="btn${i ? ' alt' : ''}" href="${h(l.href)}">${h(l.label)}</a>`).join('')}</div>` : ''}
+${toolsLinks()}
 <h2>Otras guías</h2>
 <ul class="provinces">${GUIDES.filter(x => x.slug !== g.slug).map(x => `<li><a class="has" href="/guias/${x.slug}">${h(x.h1)}</a></li>`).join('')}</ul>
 </article>`,

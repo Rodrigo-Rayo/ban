@@ -2,6 +2,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { MetronomeComponent, METRONOME_DEPS } from './metronome.component';
 import { SeoService } from '../../../core/services/seo.service';
+import { METRONOME_SEO } from './metronome-content';
 import { STORAGE_KEY } from './metronome-model';
 import { FakeClock } from './testing/fake-audio';
 
@@ -38,11 +39,26 @@ describe('MetronomeComponent', () => {
 
   it('sets title, description and FAQ + WebApplication JSON-LD', () => {
     const f = render();
-    expect(seo.set).toHaveBeenCalledWith(jasmine.objectContaining({ title: 'Metrónomo online gratis' }));
+    expect(seo.set).toHaveBeenCalledWith(jasmine.objectContaining({
+      title: METRONOME_SEO.title, description: METRONOME_SEO.description, url: 'https://www.bandyou.es/metronomo',
+    }));
     const ld = seo.injectJsonLd.calls.mostRecent().args[0] as { '@graph': { '@type': string; mainEntity?: unknown[] }[] };
-    expect(ld['@graph'].map(n => n['@type'])).toEqual(['WebApplication', 'FAQPage']);
-    expect(ld['@graph'][1].mainEntity?.length).toBe(4);
-    expect(el(f).querySelector('h1')?.textContent).toContain('Metrónomo online');
+    expect(ld['@graph'].map(n => n['@type'])).toEqual(['WebApplication', 'FAQPage', 'BreadcrumbList']);
+    expect(ld['@graph'][1].mainEntity?.length).toBe(METRONOME_SEO.faqs.length);
+    expect(el(f).querySelector('h1')?.textContent).toContain(METRONOME_SEO.h1);
+  });
+
+  it('renders the SEO copy from metronome-seo.json and the BandYou card under the tool', () => {
+    const f = render();
+    const text = el(f).textContent ?? '';
+    expect(text).toContain(METRONOME_SEO.lead);
+    METRONOME_SEO.faqs.forEach(q => expect(text).toContain(q.q));
+    METRONOME_SEO.tips.forEach(t => expect(text).toContain(t.text));
+    expect(text).toContain(METRONOME_SEO.tempoTable[0].feel);
+    const cta = el(f).querySelector('app-tools-cta')!;
+    expect(cta.textContent).toContain('¿Tocas en un grupo?');
+    expect(cta.querySelector('a[href="/busco-banda"]')?.textContent).toContain('Busco banda');
+    expect(cta.querySelector('a[href="/busco-musicos"]')?.textContent).toContain('Busco músicos');
   });
 
   it('Start/Stop button and Space toggle the engine', () => {

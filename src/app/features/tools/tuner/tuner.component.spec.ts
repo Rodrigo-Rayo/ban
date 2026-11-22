@@ -54,7 +54,7 @@ describe('TunerComponent', () => {
     expect(text('h1')).toBe('Afinador online');
     expect(seo.set).toHaveBeenCalledWith(jasmine.objectContaining({ url: 'https://www.bandyou.es/afinador' }));
     const ld = seo.injectJsonLd.calls.mostRecent().args[0] as { '@graph': { '@type': string }[] };
-    expect(ld['@graph'].map(g => g['@type'])).toEqual(['WebApplication', 'FAQPage']);
+    expect(ld['@graph'].map(g => g['@type'])).toEqual(['WebApplication', 'FAQPage', 'BreadcrumbList']);
     expect(el().textContent).toContain('Activar micrófono');
   });
 

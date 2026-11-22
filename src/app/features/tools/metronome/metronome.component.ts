@@ -3,14 +3,15 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SITE_URL, SeoService } from '../../../core/services/seo.service';
+import { SeoService } from '../../../core/services/seo.service';
 import { EngineDeps, MetronomeEngine } from './metronome-engine';
 import {
   BPM_MAX, BPM_MIN, METERS, MeterId, MetronomeSettings, SOUNDS, SUBDIVISIONS, SoundId, Subdivision, TEMPO_TABLE,
   clampBpm, groupStarts, isCompound, loadSettings, meterById, saveSettings, tempoName,
 } from './metronome-model';
 import { TapTempo } from './tap-tempo';
-import { FAQS, PRACTICE_TIPS, metronomeJsonLd } from './metronome-content';
+import { FAQS, METRONOME_SEO, METRONOME_URL, PRACTICE_TIPS, metronomeJsonLd } from './metronome-content';
+import { ToolsCtaComponent } from '../tools-cta.component';
 
 /** Lets tests swap the AudioContext, timers and visibility for fakes. */
 export const METRONOME_DEPS = new InjectionToken<Partial<EngineDeps>>('METRONOME_DEPS');
@@ -27,7 +28,7 @@ interface WakeLockLike {
 /** /metronomo — free online metronome, also an SEO landing page. */
 @Component({
   selector: 'app-metronome',
-  imports: [RouterLink],
+  imports: [RouterLink, ToolsCtaComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './metronome.component.html',
   styleUrl: './metronome.component.css',
@@ -61,6 +62,7 @@ export class MetronomeComponent implements OnInit {
   readonly tempoTable = TEMPO_TABLE;
   readonly tips = PRACTICE_TIPS;
   readonly faqs = FAQS;
+  readonly copy = METRONOME_SEO;
 
   readonly settings = signal<MetronomeSettings>(loadSettings(this.storage));
   readonly playing = signal(false);
@@ -85,11 +87,7 @@ export class MetronomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.seo.set({
-      title: 'Metrónomo online gratis',
-      description: 'Metrónomo online gratis y preciso: de 30 a 300 BPM, compases 2/4 a 12/8, corcheas, tresillos, acento y marcar tempo. Funciona en el móvil, sin registrarte.',
-      url: `${SITE_URL}/metronomo`,
-    });
+    this.seo.set({ title: METRONOME_SEO.title, description: METRONOME_SEO.description, url: METRONOME_URL });
     this.seo.injectJsonLd(metronomeJsonLd());
   }
 

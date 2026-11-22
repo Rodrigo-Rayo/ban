@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
-import { Router, Routes } from '@angular/router';
+import { Router, Routes, UrlSegment } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { isTunerSlug } from './features/tools/tuner/tuner-slugs';
 
 /** Private, transactional and auth pages must never be indexed. */
 const NOINDEX = { noindex: true };
@@ -148,12 +149,20 @@ export const routes: Routes = [
     path: 'unirse/:token', title: 'Invitación a la banda · BandYou', data: NOINDEX,
     loadComponent: () => import('./features/bands/join-band/join-band.component').then(m => m.JoinBandComponent),
   },
+  // Titles and meta for the tools come from their SEO JSON (set by the components).
   {
-    path: 'afinador', title: 'Afinador online gratis para guitarra, bajo y ukelele · BandYou',
+    path: 'afinador',
     loadComponent: () => import('./features/tools/tuner/tuner.component').then(m => m.TunerComponent),
   },
   {
-    path: 'metronomo', title: 'Metrónomo online gratis · BandYou',
+    // Instrument landing pages (/afinador/guitarra…); any other slug goes back to /afinador.
+    path: 'afinador/:instrumento',
+    canMatch: [(_route: unknown, segments: UrlSegment[]) => isTunerSlug(segments[1]?.path)],
+    loadComponent: () => import('./features/tools/tuner/tuner.component').then(m => m.TunerComponent),
+  },
+  { path: 'afinador/:instrumento', redirectTo: '/afinador' },
+  {
+    path: 'metronomo',
     loadComponent: () => import('./features/tools/metronome/metronome.component').then(m => m.MetronomeComponent),
   },
   {

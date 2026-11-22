@@ -1,3 +1,4 @@
+import seoData from './metronome-seo.json';
 /**
  * Pure metronome model: meters, accent patterns, tempo names and persisted settings.
  * No DOM or Web Audio here, so every rule is unit-testable.
@@ -115,19 +116,8 @@ export function tempoName(bpm: number): string {
   return TEMPO_NAMES.find(([max]) => bpm < max)?.[1] ?? 'Prestissimo';
 }
 
-/** Ranges shown in the page's reference table. */
-export const TEMPO_TABLE: readonly { name: string; range: string; feel: string }[] = [
-  { name: 'Grave', range: '< 40', feel: 'Muy lento y solemne' },
-  { name: 'Largo', range: '40–60', feel: 'Lento y amplio' },
-  { name: 'Larghetto', range: '60–66', feel: 'Algo menos lento que largo' },
-  { name: 'Adagio', range: '66–76', feel: 'Lento, tranquilo' },
-  { name: 'Andante', range: '76–108', feel: 'Al paso, caminando' },
-  { name: 'Moderato', range: '108–120', feel: 'Moderado' },
-  { name: 'Allegro', range: '120–156', feel: 'Rápido y alegre' },
-  { name: 'Vivace', range: '156–176', feel: 'Vivo, enérgico' },
-  { name: 'Presto', range: '176–200', feel: 'Muy rápido' },
-  { name: 'Prestissimo', range: '> 200', feel: 'Lo más rápido posible' },
-];
+/** Ranges shown in the page's reference table (copy lives in metronome-seo.json). */
+export const TEMPO_TABLE: readonly { name: string; range: string; feel: string }[] = seoData.tempoTable;
 
 export interface MetronomeSettings {
   bpm: number;
