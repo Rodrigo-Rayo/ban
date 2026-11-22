@@ -30,6 +30,10 @@ const KINDS = {
     h1: p => `Busco banda ${en(p)}`,
     title: p => `Busco banda ${en(p)}: grupos que buscan músicos`,
     description: p => `Bandas ${de(p)} que buscan guitarra, batería, bajo, voz o teclados. Mira los anuncios de «Se busca» y escribe gratis a la banda en BandYou.`,
+    counted: (p, n, month) => ({
+      title: `Busco banda ${en(p)}: ${n} grupos y anuncios`,
+      description: `${n} bandas y anuncios de grupos que buscan músico ${en(p)}, actualizado en ${month}. Mira quién necesita guitarra, batería, bajo o voz y escríbeles gratis.`,
+    }),
     intro: p => `Si tocas y buscas grupo ${en(p)}, aquí tienes las bandas que han publicado que necesitan músico y las que ya están en BandYou. Escríbeles directamente, es gratis. Si no ves lo tuyo, publica tu propio anuncio «Busco banda» y crea tu perfil para que las bandas te encuentren.`,
     count: { table: 'bands', filter: REAL, postTypes: ['band_seeking_musician'] },
     noun: 'bandas y anuncios de bandas que buscan músico',
@@ -52,6 +56,10 @@ const KINDS = {
     h1: p => `Busco músicos ${en(p)}`,
     title: p => `Busco músicos para mi banda ${en(p)}`,
     description: p => `Músicos ${de(p)} que buscan banda: baterías, bajistas, guitarristas, cantantes y teclistas. Encuentra a quien te falta y escríbele gratis en BandYou.`,
+    counted: (p, n, month) => ({
+      title: `Busco músicos ${en(p)}: ${n} músicos y anuncios`,
+      description: `${n} músicos y anuncios de músicos que buscan banda ${en(p)}, actualizado en ${month}. Baterías, bajistas, guitarristas y voces: escríbeles gratis.`,
+    }),
     intro: p => `¿A tu banda le falta batería, bajista o voz ${en(p)}? Aquí están los músicos que han publicado que buscan grupo y los perfiles de músicos de la zona, con su instrumento y estilos. Escríbeles directamente o publica un anuncio para que te escriban ellos.`,
     count: { table: 'musicians', filter: REAL, postTypes: ['musician_seeking_band', 'collab'] },
     noun: 'músicos y anuncios de músicos que buscan banda',
@@ -74,6 +82,10 @@ const KINDS = {
     h1: p => `Músicos ${en(p)}`,
     title: p => `Músicos ${en(p)}: guitarristas, baterías, bajistas y voces`,
     description: p => `Directorio de músicos ${de(p)} por instrumento y estilo. Mira sus perfiles, su disponibilidad y escríbeles gratis en BandYou.`,
+    counted: (p, n, month) => ({
+      title: `Músicos ${en(p)}: ${n} guitarristas, baterías y voces`,
+      description: `${n} músicos ${en(p)} con perfil en BandYou, actualizado en ${month}. Búscalos por instrumento y estilo y escríbeles gratis.`,
+    }),
     intro: p => `Músicos ${de(p)} con perfil en BandYou: instrumento, estilos, días disponibles y si dan clases. Escríbeles para formar banda, cubrir un bolo o grabar.`,
     count: { table: 'musicians', filter: REAL },
     noun: 'músicos',
@@ -90,6 +102,10 @@ const KINDS = {
     h1: p => `Bandas y grupos de música ${en(p)}`,
     title: p => `Bandas y grupos de música ${en(p)}`,
     description: p => `Bandas y grupos musicales ${de(p)} en BandYou: estilos, formación y si buscan músico o bolos. Escríbeles gratis.`,
+    counted: (p, n, month) => ({
+      title: `Bandas y grupos de música ${en(p)}: ${n} grupos`,
+      description: `${n} bandas y grupos ${en(p)} en BandYou, actualizado en ${month}: estilos, formación y si buscan músico o bolos. Escríbeles gratis.`,
+    }),
     intro: p => `Grupos musicales ${de(p)} con perfil en BandYou. Algunos buscan músico, otros están disponibles para bolos: entra en su perfil para ver qué necesitan y escribirles.`,
     count: { table: 'bands', filter: REAL },
     noun: 'bandas',

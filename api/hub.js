@@ -62,6 +62,8 @@ function nearbyLinks(prefix, counts, prov, shown) {
 }
 
 const dated = () => `${shortDate(today())} ${today().slice(0, 4)}`;
+const MIN_COUNT_IN_TITLE = 3;
+const monthYear = () => new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' }).replace(' de ', ' ');
 const sum = counts => [...counts.values()].reduce((a, n) => a + n, 0);
 
 /** The answer in numbers, dated: what a reader, or an AI assistant quoting the page, wants first. */
@@ -119,6 +121,7 @@ async function kindPage(kind, provSlug) {
     seen.add(key);
     return true;
   });
+  const total = prov ? counts.get(prov) || 0 : sum(counts);
   const faq = def.faq(prov);
   const crumbs = [['BandYou', '/'], [def.label, `/${kind}`], ...(prov ? [[prov, path]] : [])];
 
@@ -129,7 +132,7 @@ async function kindPage(kind, provSlug) {
   const body = `${crumbsHtml(crumbs)}
 <p class="kicker">BandYou · ${prov ? h(prov) : 'Toda España'}</p>
 <h1>${h(def.h1(prov))}</h1>
-${factLine(def.noun, prov ? counts.get(prov) || 0 : sum(counts), prov)}
+${factLine(def.noun, total, prov)}
 <p class="lead">${h(def.intro(prov))}</p>
 ${kind === 'locales-de-ensayo' && prov === 'Madrid' ? '<p><a href="/guias/locales-de-ensayo-madrid">Mira cuánto cuesta un local en Madrid, por horas y por meses</a></p>' : ''}
 <div class="btns"><a class="btn" href="${def.cta.href}">${h(def.cta.label)}</a><a class="btn alt" href="/auth/register">Crear perfil gratis</a></div>
@@ -151,10 +154,12 @@ ${provinceList(`/${kind}`, counts, prov)}
       itemListElement: items.slice(0, 30).map((it, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + it.href, name: clip(it.title, 70) })),
     });
   }
+  // A real, dated number in the snippet earns more clicks than a generic line; below 3 it reads as empty.
+  const counted = total >= MIN_COUNT_IN_TITLE && def.counted ? def.counted(prov, total, monthYear()) : null;
   return {
     path, body, jsonLd,
-    title: `${def.title(prov)} | BandYou`,
-    description: def.description(prov),
+    title: `${counted ? counted.title : def.title(prov)} | BandYou`,
+    description: counted ? counted.description : def.description(prov),
     // A province with nothing yet is useful to visitors but thin for search engines.
     noindex: !!prov && items.length === 0,
   };
