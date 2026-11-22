@@ -122,6 +122,36 @@ describe('ChatComponent', () => {
     expect(component.hasMore()).toBeTrue();
   });
 
+  describe('draft from navigation state', () => {
+    let saved: unknown;
+    beforeEach(() => { saved = history.state; });
+    afterEach(() => history.replaceState(saved, ''));
+
+    it('prefills an empty message box with the trimmed draft, capped, and does not send it', async () => {
+      history.replaceState({ name: 'Ana', draft: '  ¡Hola Ana!  ' }, '');
+      await component.ngOnInit();
+      expect(component.newMessage).toBe('¡Hola Ana!');
+      expect(msgSvc.sendMessage).not.toHaveBeenCalled();
+
+      history.replaceState({ draft: 'x'.repeat(component.maxLength + 50) }, '');
+      component.newMessage = '';
+      await component.ngOnInit();
+      expect(component.newMessage.length).toBe(component.maxLength);
+    });
+
+    it('keeps what is already typed and ignores a non-string draft', async () => {
+      history.replaceState({ draft: 'Hola' }, '');
+      component.newMessage = 'ya escrito';
+      await component.ngOnInit();
+      expect(component.newMessage).toBe('ya escrito');
+
+      history.replaceState({ draft: 42 }, '');
+      component.newMessage = '';
+      await component.ngOnInit();
+      expect(component.newMessage).toBe('');
+    });
+  });
+
   it('5. sets currentUserId from supabase.auth.getUser', async () => {
     await component.ngOnInit();
     expect(component.currentUserId()).toBe('u1');

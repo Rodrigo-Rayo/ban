@@ -95,6 +95,9 @@
             <a routerLink="/feed" [queryParams]="{ new: '1' }" class="btn-night min-h-[48px] px-5">
               {{ profileType() === 'band' ? 'Publicar anuncio' : 'Escribir mi anuncio' }}
             </a>
+            @if (profileType() === 'band') {
+              <a routerLink="/arma-tu-banda" class="btn-secondary min-h-[48px] px-5">Arma tu banda</a>
+            }
             <button type="button" (click)="hidePostNudge()" class="btn-ghost min-h-[48px] text-xs"
               aria-label="Ahora no: ocultar esta sugerencia una semana">Ahora no</button>
           </div>

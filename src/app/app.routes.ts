@@ -149,6 +149,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/bands/join-band/join-band.component').then(m => m.JoinBandComponent),
   },
   {
+    path: 'arma-tu-banda', title: 'Arma tu banda · BandYou',
+    loadComponent: () => import('./features/band-builder/band-builder.component').then(m => m.BandBuilderComponent),
+  },
+  {
     path: 'test', title: '¿Qué músico de banda eres? · BandYou',
     loadComponent: () => import('./features/test/test.component').then(m => m.TestComponent),
   },

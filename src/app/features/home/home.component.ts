@@ -14,6 +14,7 @@ import { askLabel, askStampClass, SE_BUSCA_MAX_DAYS, sinceISO } from '../../core
 import { AvatarUploadService } from '../../core/services/avatar-upload.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { AvatarUploadComponent } from '../../shared/components/avatar-upload/avatar-upload.component';
+import { SceneMapComponent } from '../../shared/components/scene-map/scene-map.component';
 import { environment } from '../../../environments/environment';
 import { PostType } from '../../core/models';
 
@@ -97,7 +98,7 @@ const NEW_PEOPLE_LIMIT = 8;
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'app-home',
-    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent, InstrumentIconComponent],
+    imports: [RouterLink, DecimalPipe, AvatarUploadComponent, IconComponent, QuedadaStatusComponent, InstrumentIconComponent, SceneMapComponent],
     templateUrl: './home.component.html'
 })
 export class HomeComponent implements OnInit {

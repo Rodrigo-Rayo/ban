@@ -91,6 +91,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     const navName = history.state?.name;
     if (navName && typeof navName === 'string') this.otherName.set(navName);
+    // A ready-written first message (e.g. from /arma-tu-banda): prefilled, never sent for them.
+    const draft = history.state?.draft;
+    if (typeof draft === 'string' && !this.newMessage.trim()) this.newMessage = draft.trim().slice(0, this.maxLength);
 
     const { data: { user } } = await this.supabase.auth.getUser();
     this.currentUserId.set(user?.id ?? '');

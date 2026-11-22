@@ -1,4 +1,5 @@
 import { ExploreLinksComponent } from '../../shared/components/explore-links/explore-links.component';
+import { SceneMapComponent } from '../../shared/components/scene-map/scene-map.component';
 import { Component, signal, inject, OnInit, effect } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -16,7 +17,7 @@ interface LandingPerson { id: string; name: string; city: string | null; instrum
 
 @Component({
     selector: 'app-landing',
-    imports: [ExploreLinksComponent, RouterLink, IconComponent],
+    imports: [ExploreLinksComponent, RouterLink, IconComponent, SceneMapComponent],
     templateUrl: './landing.component.html'
 })
 export class LandingComponent implements OnInit {

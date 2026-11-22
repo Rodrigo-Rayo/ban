@@ -71,6 +71,8 @@
                   <span class="tag-accent">{{ notifSvc.unreadCount() > 9 ? '9+' : notifSvc.unreadCount() }}</span>
                 }
               </a>
+              <a role="menuitem" routerLink="/arma-tu-banda"
+                 class="flex items-center min-h-[44px] px-4 text-sm font-semibold text-ink hover:bg-poster-yellow focus-visible:bg-poster-yellow focus-visible:outline-none transition-colors">Arma tu banda</a>
               <div role="separator" class="border-t border-ink/15"></div>
               <button role="menuitem" type="button" (click)="signOut()"
                       class="w-full flex items-center gap-2 min-h-[44px] px-4 text-sm font-semibold text-ink-muted hover:text-ink hover:bg-poster-yellow focus-visible:bg-poster-yellow focus-visible:outline-none transition-colors text-left">
@@ -116,6 +118,10 @@
         </a>
       }
     </nav>
+    <a routerLink="/arma-tu-banda" (click)="menuOpen = false"
+       class="mx-4 mt-3 px-4 min-h-[52px] flex items-center justify-between border-2 border-ink bg-poster-yellow font-display text-xl uppercase text-ink hover:shadow-[3px_3px_0_0_#141210] transition-shadow">
+      Arma tu banda <app-icon name="arrow-right" [size]="18"/>
+    </a>
 
     <div class="px-4 pt-2 flex flex-col">
       @if (auth.isLoggedIn()) {

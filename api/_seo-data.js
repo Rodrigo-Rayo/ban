@@ -82,6 +82,6 @@ function shortDate(iso) {
 }
 
 module.exports = {
-  SITE, PROVINCES, PROVINCE_BY_SLUG, slugify, rest, list, countByProvince,
+  SITE, SUPABASE_URL, ANON_KEY, PROVINCES, PROVINCE_BY_SLUG, slugify, rest, list, countByProvince,
   escapeHtml, clip, safeImage, shortDate, today, daysAgo,
 };

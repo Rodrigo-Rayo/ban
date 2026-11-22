@@ -1,0 +1,84 @@
+<section aria-labelledby="escena-title">
+  <div class="rule-label"><span>La escena</span></div>
+  <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 mt-1 mb-4">
+    <h2 id="escena-title" class="text-5xl lg:text-6xl leading-[1.15]">¿Dónde hay gente?</h2>
+    <label class="w-full sm:w-56">
+      <span class="sr-only">País</span>
+      <select class="input-field py-2.5 min-h-[44px]" (change)="setCountry($any($event.target).value)">
+        @for (c of countries; track c.code) { <option [value]="c.code" [selected]="c.code === country()">{{ c.name }}</option> }
+      </select>
+    </label>
+  </div>
+
+  @if (isSpain()) {
+    <div class="grid gap-0.5 sm:gap-1 max-w-[34rem]" [style.grid-template-columns]="'repeat(' + cols + ', minmax(0, 1fr))'">
+      @for (t of tiles(); track t.value) {
+        <button type="button" (click)="select(t.value)"
+                [style.grid-area]="(t.row + 1) + ' / ' + (t.col + 1)"
+                [attr.aria-label]="ariaLabel(t)" [attr.aria-pressed]="selected() === t.value" [title]="t.label"
+                class="relative aspect-square border-[1.5px] flex flex-col items-center justify-center leading-none font-mono text-[10px] sm:text-xs font-bold transition-colors hover:border-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ink focus-visible:z-10 aria-pressed:z-10 aria-pressed:shadow-[3px_3px_0_0_#141210] aria-pressed:border-2 aria-pressed:border-ink"
+                [class]="tileClass(t.value)">
+          <span aria-hidden="true">{{ t.code }}</span>
+          @if (total(t.value)) { <span aria-hidden="true" class="hidden sm:block mt-0.5 text-[10px] font-normal">{{ total(t.value) }}</span> }
+        </button>
+      }
+    </div>
+  } @else {
+    @if (regionsActive().length) {
+      <div class="flex flex-wrap gap-1.5">
+        @for (t of regionsActive(); track t.value) {
+          <button type="button" (click)="select(t.value)" [attr.aria-label]="ariaLabel(t)" [attr.aria-pressed]="selected() === t.value"
+                  class="min-h-[44px] px-3 border-[1.5px] inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:border-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ink aria-pressed:shadow-[3px_3px_0_0_#141210] aria-pressed:border-2 aria-pressed:border-ink"
+                  [class]="tileClass(t.value)">
+            {{ t.label }} <span aria-hidden="true" class="font-mono text-xs font-bold">{{ total(t.value) }}</span>
+          </button>
+        }
+      </div>
+    }
+    @if (regionsRest().length) {
+      @if (showAll() || !regionsActive().length && regionsRest().length <= 12) {
+        <div class="flex flex-wrap gap-1.5" [class.mt-1.5]="regionsActive().length">
+          @for (t of regionsRest(); track t.value) {
+            <button type="button" (click)="select(t.value)" [attr.aria-label]="ariaLabel(t)" [attr.aria-pressed]="selected() === t.value"
+                    class="min-h-[44px] px-3 border-[1.5px] text-sm transition-colors hover:border-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ink aria-pressed:shadow-[3px_3px_0_0_#141210] aria-pressed:border-2 aria-pressed:border-ink"
+                    [class]="tileClass(t.value)">{{ t.label }}</button>
+          }
+        </div>
+      } @else {
+        <button type="button" class="btn-ghost min-h-[44px] px-0 mt-1 underline" (click)="showAll.set(true)">Ver todas ({{ regionsRest().length }})</button>
+      }
+    }
+  }
+
+  <p class="mt-3 min-h-[1.25rem] text-sm text-ink-muted" aria-live="polite">{{ summary() }}</p>
+
+  <ul class="flex flex-wrap gap-x-4 gap-y-1 mt-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-muted" aria-label="Leyenda">
+    @for (l of legend; track l.bucket) {
+      <li class="inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 border-[1.5px]" [class]="bucketClass[l.bucket]" aria-hidden="true"></span>{{ l.label }}</li>
+    }
+  </ul>
+
+  @if (panel(); as p) {
+    <div class="card-flat mt-4 p-4 sm:p-5 max-w-[34rem]" role="region" [attr.aria-label]="p.label">
+      <h3 class="font-display text-3xl uppercase leading-[1.15]">{{ p.label }}</h3>
+      @if (p.empty) {
+        <p class="mt-1 text-sm text-ink-muted">Aún no hay nadie en {{ p.label }}.</p>
+        <div class="mt-4">
+          @if (isLoggedIn()) {
+            <a routerLink="/feed" [queryParams]="{ new: '1' }" class="btn-primary min-h-[44px]">Publica el primer anuncio</a>
+          } @else {
+            <a routerLink="/auth/register" class="btn-primary min-h-[44px]">Sé el primero de {{ p.label }}</a>
+          }
+        </div>
+      } @else {
+        @if (p.text) { <p class="mt-1 font-mono text-xs font-bold uppercase tracking-wide">{{ p.text }}</p> }
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a routerLink="/search" [queryParams]="{ tab: 'musicians', city: p.value }" class="btn-secondary min-h-[44px] px-3">Ver músicos</a>
+          <a routerLink="/search" [queryParams]="{ tab: 'bands', city: p.value }" class="btn-secondary min-h-[44px] px-3">Ver bandas</a>
+          <a routerLink="/feed" [queryParams]="{ city: p.value }" class="btn-secondary min-h-[44px] px-3">Se busca</a>
+          <a routerLink="/arma-tu-banda" [queryParams]="{ donde: p.value }" class="btn-primary min-h-[44px] px-3">Arma tu banda aquí</a>
+        </div>
+      }
+    </div>
+  }
+</section>
