@@ -348,6 +348,9 @@ export class FeedComponent implements OnInit {
         if (city) {
           this.filterCity.set(city);
           this.newPost.city = city;
+        } else {
+          // "Otra" or no place yet: the profile has just been cached, so the default is now right.
+          this.filterCity.set(defaultPlace());
         }
         void this.prefillFromProfile(user.id, this.auth.userProfileType());
       }
