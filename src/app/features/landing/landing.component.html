@@ -121,6 +121,14 @@
       </li>
     }
   </ul>
+  <nav aria-label="Por provincia" class="mt-5 grid gap-1 font-mono text-[11px] font-bold uppercase text-ink-muted">
+    <p class="flex flex-wrap gap-x-3"><span class="text-ink">Busco banda en</span>
+      @for (p of bandProvinces; track p.slug) { <a [href]="'/busco-banda/' + p.slug" class="underline hover:text-ink py-1.5">{{ p.city }}</a> }
+    </p>
+    <p class="flex flex-wrap gap-x-3"><span class="text-ink">Busco músicos en</span>
+      @for (p of musicianProvinces; track p.slug) { <a [href]="'/busco-musicos/' + p.slug" class="underline hover:text-ink py-1.5">{{ p.city }}</a> }
+    </p>
+  </nav>
 </section>
 
 <!-- CTA FINAL ───────────────────────────────────────── -->

@@ -81,7 +81,7 @@ const GUIDES = [
       { q: '¿Cuánto se tarda en encontrar banda?', a: 'Depende mucho del instrumento y la ciudad. Baterías y bajistas suelen encontrar antes porque se buscan más; guitarristas y cantantes a menudo necesitan más paciencia y un perfil más trabajado.' },
     ],
     links: [
-      { href: '/busco-banda', label: 'Anuncios de músicos que buscan banda' },
+      { href: '/busco-banda', label: 'Bandas que buscan músico' },
       { href: '/feed', label: 'Tablón «Se busca»' },
       { href: '/auth/register', label: 'Crea tu perfil de músico gratis' },
       { href: '/guias/como-montar-una-banda', label: 'Guía: cómo montar una banda' },
@@ -163,7 +163,7 @@ const GUIDES = [
       { q: '¿Qué hago si nadie responde a mi anuncio?', a: 'Revisa que sea concreto y que incluya música vuestra, amplía la zona de búsqueda y escribe tú directamente a perfiles que encajen en lugar de esperar.' },
     ],
     links: [
-      { href: '/busco-musicos', label: 'Anuncios de bandas que buscan músicos' },
+      { href: '/busco-musicos', label: 'Músicos que buscan banda' },
       { href: '/musicos', label: 'Buscar músicos por provincia e instrumento' },
       { href: '/locales-de-ensayo', label: 'Locales de ensayo cerca de ti' },
       { href: '/guias/como-encontrar-banda', label: 'Guía: cómo encontrar banda' },
@@ -379,7 +379,7 @@ const GUIDES = [
       { q: '¿Cuánto tiempo tarda una banda en estar lista para tocar en directo?', a: 'Con ensayos semanales y músicos con algo de experiencia, unos meses suelen bastar para tener un repertorio presentable. Depende del nivel y de la constancia.' },
     ],
     links: [
-      { href: '/busco-musicos', label: 'Anuncios de bandas que buscan músicos' },
+      { href: '/busco-musicos', label: 'Músicos que buscan banda' },
       { href: '/locales-de-ensayo', label: 'Locales de ensayo por provincia' },
       { href: '/clases-de-musica', label: 'Profesores y clases de música' },
       { href: '/guias/como-conseguir-bolos', label: 'Guía: cómo conseguir bolos' },
@@ -494,7 +494,7 @@ const GUIDES = [
     links: [
       { href: '/locales-de-ensayo/madrid', label: 'Locales de ensayo en Madrid en BandYou' },
       { href: '/guias/local-de-ensayo-precio-y-consejos', label: 'Guía: cómo elegir local' },
-      { href: '/busco-musicos/madrid', label: 'Bandas que buscan músicos en Madrid' },
+      { href: '/busco-musicos/madrid', label: 'Músicos que buscan banda en Madrid' },
     ],
     sources: [
       { href: 'https://www.elobservatorio.net/', label: 'El Observatorio' },

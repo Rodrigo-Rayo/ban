@@ -1,3 +1,4 @@
+import { citySlug } from '../../core/utils/hub-link';
 import { ExploreLinksComponent } from '../../shared/components/explore-links/explore-links.component';
 import { Component, signal, inject, OnInit, effect } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
@@ -13,6 +14,8 @@ import { INSTAGRAM_URL } from '../../core/constants/social';
 
 interface LandingVacancy { id: string; instrument: string; genre: string | null; bands: { id: string; name: string; city: string | null; genre: string | null } | null; }
 interface LandingPerson { id: string; name: string; city: string | null; instrument: string | null; avatar_url: string | null; }
+
+const provinceLinks = (cities: string[]) => cities.map(city => ({ city, slug: citySlug(city) }));
 
 @Component({
     selector: 'app-landing',
@@ -33,6 +36,13 @@ export class LandingComponent implements OnInit {
   /** Curated teasers; each block is hidden while empty. */
   vacancies = signal<LandingVacancy[]>([]);
   people = signal<LandingPerson[]>([]);
+
+  /**
+   * Plain links to the server-rendered province pages: the home is the page Google trusts most.
+   * Only provinces whose page has content (an empty one is noindex); review as the numbers grow.
+   */
+  readonly bandProvinces = provinceLinks(['Madrid', 'Barcelona', 'Valencia', 'Alicante', 'Islas Baleares', 'Vizcaya', 'Cádiz', 'Lugo']);
+  readonly musicianProvinces = provinceLinks(['Madrid', 'Barcelona', 'Valencia', 'Islas Baleares', 'Málaga', 'Sevilla', 'Toledo', 'Guadalajara']);
 
   catalog: { label: string; desc: string; short: string; link: string; query?: Record<string, string> }[] = [
     { label: 'Se busca',  short: 'Vacantes y músicos', desc: 'Bandas que necesitan gente y músicos que buscan banda', link: '/feed' },

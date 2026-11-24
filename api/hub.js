@@ -284,16 +284,48 @@ ${toolsLinks()}`,
 
 const GUIDE_PUBLISHED = '2026-10-06';
 
+/**
+ * In-text links from the guides to the pages they talk about: Google weighs a link inside a
+ * sentence more than a list at the end. Each target once per guide, never the guide itself.
+ */
+const GUIDE_ANCHORS = [
+  [/grupos que necesitan músico|bandas publican que necesitan músico|bandas que buscan músicos?/i, '/busco-banda'],
+  [/músicos que buscan banda|buscar músicos/i, '/busco-musicos'],
+  [/tablón «Se busca»/i, '/feed'],
+  [/precios? de(?:l| un)? local(?:es)? de ensayo/i, '/guias/local-de-ensayo-precio-y-consejos'],
+  [/locales de ensayo/i, '/locales-de-ensayo'],
+  [/salas de conciertos/i, '/salas-de-conciertos'],
+  [/(?:conseguir|buscar) bolos/i, '/guias/como-conseguir-bolos'],
+  [/montar una banda/i, '/guias/como-montar-una-banda'],
+  [/compositor(?:es)? de canciones/i, '/guias/buscar-compositor-de-canciones'],
+  [/por provincia, instrumento y estilo/i, '/musicos'],
+];
+const MAX_GUIDE_ANCHORS = 6;
+
+/** Links the first mention of each target in a text, sharing `used` across the whole guide. */
+function linkMentions(text, used) {
+  for (const [re, href] of GUIDE_ANCHORS) {
+    if (used.has(href) || used.size > MAX_GUIDE_ANCHORS) continue;
+    const m = re.exec(text);
+    if (!m) continue;
+    used.add(href);
+    return `${text.slice(0, m.index)}<a href="${href}">${m[0]}</a>${linkMentions(text.slice(m.index + m[0].length), used)}`;
+  }
+  return text;
+}
+
 function guidePage(slug) {
   const g = GUIDES.find(x => x.slug === slug);
   if (!g) return null;
   const path = `/guias/${g.slug}`;
   const crumbs = [['BandYou', '/'], ['Guías', '/guias'], [g.h1, path]];
   const faq = (g.faq || []).map(f => [f.q, f.a]);
+  const used = new Set([path]);
+  const link = text => linkMentions(text, used);
   const sections = (g.sections || []).map(s => `<h2>${h(s.h2)}</h2>
-${(s.paragraphs || []).map(p => `<p>${h(p)}</p>`).join('')}
-${s.steps && s.steps.length ? `<ol>${s.steps.map(x => `<li>${h(x)}</li>`).join('')}</ol>` : ''}
-${s.bullets && s.bullets.length ? `<ul>${s.bullets.map(x => `<li>${h(x)}</li>`).join('')}</ul>` : ''}`).join('');
+${(s.paragraphs || []).map(p => `<p>${link(h(p))}</p>`).join('')}
+${s.steps && s.steps.length ? `<ol>${s.steps.map(x => `<li>${link(h(x))}</li>`).join('')}</ol>` : ''}
+${s.bullets && s.bullets.length ? `<ul>${s.bullets.map(x => `<li>${link(h(x))}</li>`).join('')}</ul>` : ''}`).join('');
   const links = (g.links || []).filter(l => /^\/[a-z0-9/?=&.-]*$/i.test(l.href));
   return {
     path, title: `${g.title} | BandYou`, description: g.description,
