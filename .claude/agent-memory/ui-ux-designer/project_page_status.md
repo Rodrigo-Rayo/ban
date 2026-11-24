@@ -458,6 +458,24 @@ Container padding changed to `px-5 py-8 sm:py-12` (less aggressive top padding o
 - Share button text: "Copiado" → "¡Enlace copiado!" (desktop) / "¡Copiado!" (mobile compact)
 - `encodeURIComponent` GOTCHA: Cannot be used in Angular templates — not a component method. Use plain string concatenation for Google Maps URLs.
 
+## Profile polish pass — 2026-08-04
+
+### Musician Profile (`/musicians/:id`) — IMPROVED
+- Loading skeleton restructured to match actual hero layout: full-width `h-36 sm:h-52 bg-dark-700` cover strip → overlapping avatar `w-28 h-28 sm:w-32 sm:h-32 rounded-2xl bg-dark-600 border-4 border-dark-900 -mt-14 sm:-mt-16` → text lines at `pt-16 sm:pt-20`. Wrapped both hero+content skeleton in a single `animate-pulse` parent.
+- Instrument display in hero info: converted from plain `text-primary-400` paragraph to an instrument badge chip (`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dark-700 border border-dark-600` with music-note SVG icon + bold ink text) + genre as `tag` pill. More scannable, matches teacher profile pattern.
+- Share button desktop: "Copiado" → "¡Enlace copiado!" (consistent with established pattern)
+
+### Band Profile (`/bands/:id`) — IMPROVED
+- Hero cover height bumped to `h-36 sm:h-52` (was `h-32 sm:h-44`) to match musician profile
+- Avatar size bumped to `w-28 h-28 sm:w-32 sm:h-32` (was `w-24 h-24 sm:w-28 sm:h-28`) to match musician
+- Hero overlap offset updated to `-mt-14 sm:-mt-16` (was `-mt-12 sm:-mt-14`) and info pushdown `pt-16 sm:pt-20` (was `pt-14 sm:pt-16`)
+- Avatar shadow upgraded to `shadow-2xl` (was `shadow-xl`) matching musician
+- Cover overlay: `from-dark-800/30` → `from-dark-800/20` (gradient handles dark falloff)
+- Desktop fav button: added missing `[class.text-primary-500]="isFav()"` and `[class.border-primary-500]="isFav()"` — button now visually confirms saved state
+- Share button desktop: "Copiado" → "¡Enlace copiado!"
+- "Sobre la banda" description: `text-ink-muted` → `text-ink` (consistent with musician profile description)
+- Loading skeleton restructured to match actual hero cover+avatar layout (same approach as musician profile)
+
 ## Pages still with known technical debt
 
 - Map: component file not found (may not exist yet)
@@ -465,6 +483,51 @@ Container padding changed to `px-5 py-8 sm:py-12` (less aggressive top padding o
 - not-found: already has btn-primary CTA — no changes needed
 - cookie-banner: correctly positioned at bottom-16 md:bottom-0 — no changes needed
 - post-detail: already accessible — no changes needed
+
+## Pre-launch audit findings — 2026-08-20 (UNRESOLVED)
+
+### CRITICAL — `text-ink-3` and `text-ink-2` are non-existent classes producing invisible text
+- event-detail.component.html:153 — event description invisible
+- dashboard.component.html:529, 592, 768 — application messages invisible
+- venue-profile.component.html:152, 173, 259 — description, equipment, review comments invisible
+- rehearsal-profile.component.html:42, 135, 142, 201 — not-found message and descriptions invisible
+- notifications.component.html:89, 97, 99, 120, 128, 130 — body text invisible; `[class.text-ink-3]` and `[class.text-ink-2]` bindings do nothing
+- teacher-profile.component.html:219, 305 — description and review comments invisible
+- Fix: replace all text-ink-3 → text-ink-muted; text-ink-2 → text-ink (when !n.read context) or text-ink-muted (when n.read context)
+
+### HIGH — `font-mono uppercase tracking-widest` still in three edit forms
+- venue-form.component.html: page eyebrow (line 12) and all form labels (8 occurrences)
+- rehearsal-form.component.html: page eyebrow (line 12) and all form labels (9 occurrences)
+- teacher-form.component.html: page eyebrow (line 12) and all form labels (9 occurrences)
+- Fix: replace with `text-xs font-semibold text-ink-muted mb-1.5` on labels; page eyebrow → `text-[10px] font-semibold uppercase tracking-wider text-primary-400`
+
+### HIGH — `hover:shadow-card-md` non-existent class in search
+- search.component.html:491 — event card hover has no shadow (class undefined)
+- Fix: replace with `hover:shadow-md`
+
+### HIGH — Register page missing loading state on submit button
+- register.component.html:92-95 — no spinner when form submits
+- Fix: add `loading()` signal + spinner matching login page pattern
+
+### MEDIUM — Event detail h1 uses `font-bold` not `font-black`
+- event-detail.component.html:90
+
+### MEDIUM — Event detail `isPast()` applies opacity-60 to entire hero wrapper (contrast risk)
+- event-detail.component.html:54-55 — moves text below WCAG AA
+- Fix: apply opacity only to date block, use text color change for title
+
+### MEDIUM — Onboarding progress bar at h-0.5 (2px) — too thin to read
+- onboarding.component.html:37 — increase to h-1 or h-1.5
+
+### MEDIUM — Notifications read/unread text color bindings use non-existent classes
+- Same as CRITICAL-1 but specifically the dynamic bindings that break the read/unread visual distinction
+
+### MEDIUM — Onboarding separator uses banned font-mono
+- onboarding.component.html:62 — `font-mono uppercase tracking-widest`
+- Fix: replace with `font-medium italic`
+
+### LOW — Sidebar "Salas" icon is a speaker SVG, not a venue/building icon
+- sidebar.component.html:54-57 — should use building SVG matching search page
 
 ## Known patterns established
 
@@ -492,15 +555,13 @@ Container padding changed to `px-5 py-8 sm:py-12` (less aggressive top padding o
 
 ## Redesign pass — 2026-07-22 (Home + Band Vacancies)
 
-### Home (`/home`) — REDESIGNED (discovery layout overhaul)
-- Added warm terracotta hero section at top of main column: `linear-gradient(135deg, #2d1109 0%, #1c0e08 55%, #120c09 100%)` card with search bar fake input (links to `/search`) + popular cities chips
-- Added category quick-nav grid below hero: 6 links (`Músicos, Bandas, Salas, Profesores, Ensayo, Equipo`) as `grid grid-cols-3 sm:grid-cols-6 gap-2` with icon containers and labels
-- Musicians section: changed from cramped `flex overflow-x-auto w-28` to `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3` — w-14 h-14 avatars, hover reveal "Ver perfil →" text
-- Bands section: same grid change, retained `looking_for` green dot at `absolute top-3 right-3` with `ring-2 ring-dark-800` for visual clarity, hover reveal "Ver banda →"
-- Loading skeletons for musicians/bands: updated to match new grid layout (`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`)
-- Empty states for musicians/bands: upgraded from bare text to `card p-8` with icon container + two-line message + CTA button
-- Gear item cards: added `hover:-translate-y-0.5` lift
-- Gear empty state: upgraded to two-line message with icon
+### Home (`/home`) — REDESIGNED (discovery layout overhaul) — IMPLEMENTED 2026-08-04
+- Added warm terracotta discovery hero card: `linear-gradient(135deg, #2d1109 0%, #1c0e08 55%, #120c09 100%)` with eyebrow, h2 "¿A quién buscas hoy?", fake search input linking to `/search`, city chip (from userCity()) + "Toda España" chip
+- Added category quick-nav grid: 6 `<a>` tiles in `grid grid-cols-3 sm:grid-cols-6 gap-2` — Músicos, Bandas, Salas, Clases, Ensayo, Equipo. Each: `w-9 h-9 rounded-xl bg-primary-900` icon that fills to `bg-primary-500` on hover, `text-[10px] font-bold text-ink-muted` label
+- Musicians section: changed from `flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:grid lg:grid-cols-4 lg:overflow-visible` to `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3` everywhere (including loading skeleton). Cards: removed `flex-shrink-0 w-28 lg:w-auto`, avatar upgraded `w-12 h-12` → `w-14 h-14`, hover reveals "Ver perfil →" text, added `hover:-translate-y-0.5 hover:shadow-md`
+- Bands section: same grid change. `looking_for` green dot now `absolute top-3 right-3 w-2 h-2 ring-2 ring-dark-800`. Bands that look for members show "Busca miembros" label in `text-signal-green` always (not just on hover)
+- Loading skeletons for musicians/bands: 4 items, `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3`, `w-14 h-14` avatar circle
+- Empty states for musicians/bands: upgraded from bare text to `card p-8` with `bg-dark-700 border border-dark-600` icon (not bg-dark-800 — would be invisible inside card) + two-line message + CTA button
 
 ### Band Profile (`/bands/:id`) — VACANCIES UX PASS
 - Open vacancies: each row now has a `w-9 h-9 rounded-xl bg-signal-gBg border border-signal-green/25` icon container (music note icon) with `w-2.5 h-2.5 bg-signal-green` dot at `-top-1 -right-1`; `tag-green` "Abierta" badge next to instrument name
@@ -511,3 +572,15 @@ Container padding changed to `px-5 py-8 sm:py-12` (less aggressive top padding o
 - Applications section: musician message now shown in quoted `bg-dark-700/50 rounded-lg px-3 py-2 border border-dark-600 line-clamp-2` block; vacancy applied-for shown with music icon; avatar has `border-2 border-dark-700`
 - Members section: each row now has a small `w-6 h-6 rounded-lg bg-primary-900` music icon badge before the name
 - `pureFilter` pipe reference removed — do not use non-existent pipes
+
+## Conversion & trust pass — 2026-08-04
+
+### Landing (`/landing`) — IMPROVED
+- Added stats bar between hero and "Cómo funciona": `grid grid-cols-2 sm:grid-cols-4 gap-6` showing real Supabase counts (musicians, bands, venues, events). Each cell: `display-serif` large number + `+` in `text-primary-500` + `text-xs uppercase tracking-wider` label. Guarded by `@if (stats().musicians > 0 || stats().bands > 0)` so it only appears once data loads.
+- Added CTA Final section before footer: eyebrow + "Tu próxima banda te está esperando" h2 with `display-serif text-primary-500` on second line + "Sin algoritmos" tagline + role selector `flex flex-wrap justify-center gap-3` using the `roles` array from TS (which was previously unused). Each role: `px-4 py-2.5 rounded-xl bg-dark-800 border border-dark-600` with icon + label + desc subtext. Big CTA button below. The `roles` array in the TS was already defined but never rendered — now it's used.
+
+### Key pattern: Empty state icon contrast inside `card` class
+- `card` class uses `bg-dark-800`. Icon containers inside empty states inside a `card` must use `bg-dark-700` (not `bg-dark-800`) to be visible. Always check the background chain when nesting icon containers.
+
+## Review 2026-09-30 (report only)
+Home (/home, authGuard) no longer shows hardcoded fake content (empty-state cards instead) — earlier note above is stale. Public `/` is the landing. Musician profile: availability stored as Postgres-array text ("{Miércoles,Sábado}") renders braces; mobile hero has extra `pt-16` gap; cover gradient hardcodes dark `#130d08`. Global NG01352 (ngModel without name in a form) logged on public pages. Test data ("Cheetos" gear) visible in prod shop.

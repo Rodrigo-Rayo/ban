@@ -4,7 +4,26 @@
       "Bash(ls \"C:\\\\Users\\\\Rodrigo\\\\.claude\\\\skills\" 2>/dev/null || echo \"no skills dir\")",
       "Read(//c/Users/Rodrigo/.claude/skills/**)",
       "Read(//c/Users/Rodrigo/.claude/commands/**)",
-      "Read(//c/Users/Rodrigo/.claude/agents/**)"
+      "Read(//c/Users/Rodrigo/.claude/agents/**)",
+      "Bash(node C:/Users/Rodrigo/AppData/Local/Temp/claude/c--Users-Rodrigo-bandyou/681223c9-dfef-4bae-bc36-10538b22679f/scratchpad/e2e/signup.cjs a)",
+      "Bash(node C:/Users/Rodrigo/AppData/Local/Temp/claude/c--Users-Rodrigo-bandyou/681223c9-dfef-4bae-bc36-10538b22679f/scratchpad/e2e/signup.cjs b)",
+      "Bash(node C:/Users/Rodrigo/AppData/Local/Temp/claude/c--Users-Rodrigo-bandyou/681223c9-dfef-4bae-bc36-10538b22679f/scratchpad/e2e/onboard.cjs a \"Músico\" \"Audit Músico A\")",
+      "Bash(node C:/Users/Rodrigo/AppData/Local/Temp/claude/c--Users-Rodrigo-bandyou/681223c9-dfef-4bae-bc36-10538b22679f/scratchpad/e2e/probe.cjs a /onboarding)",
+      "Bash(sed -i \"s#'http://localhost:4200' + url#'http://localhost:4200/' + url.replace\\(/^\\\\\\\\\\\\\\\\/+/, ''\\)#\" probe.cjs)",
+      "Bash(node probe.cjs a onboarding)",
+      "Bash(node -e ' *)",
+      "Bash(sed -i \"s/const location = res.headers.get\\('location'\\) || '';/const location = \\(res.headers.get \\\\&\\\\& res.headers.get\\('location'\\)\\) || '';/\" onboard.cjs)",
+      "Bash(node onboard.cjs a \"Músico\" \"Audit Músico A\")",
+      "Bash(node onboard.cjs b \"Banda\" \"Audit Banda B\" mobile)",
+      "Bash(curl -s 'https://yxaurffzwtqsckfmnzdj.supabase.co/rest/v1/bands?select=id,name,user_id&name=eq.Audit%20Banda%20B' -H 'apikey: __TRACKED_VAR__')",
+      "Bash(curl -s 'https://yxaurffzwtqsckfmnzdj.supabase.co/rest/v1/musicians?select=id,name,user_id&name=eq.Audit%20M%C3%BAsico%20A' -H 'apikey: __TRACKED_VAR__')",
+      "Bash(node messaging.cjs 83ef479b-7224-48ce-9ace-7cd7b552d8b8)",
+      "Bash(node C:/Users/Rodrigo/AppData/Local/Temp/claude/c--Users-Rodrigo-bandyou/681223c9-dfef-4bae-bc36-10538b22679f/scratchpad/sb.cjs q \"select policyname, cmd, qual, with_check from pg_policies where tablename='conversations' and cmd='UPDATE'\")",
+      "Bash(node C:/Users/Rodrigo/AppData/Local/Temp/claude/c--Users-Rodrigo-bandyou/681223c9-dfef-4bae-bc36-10538b22679f/scratchpad/sb.cjs file C:/Users/Rodrigo/bandyou/supabase/audit_2026_10_conversations_fix.sql)",
+      "Bash(node C:/Users/Rodrigo/AppData/Local/Temp/claude/c--Users-Rodrigo-bandyou/681223c9-dfef-4bae-bc36-10538b22679f/scratchpad/sb.cjs q \"select policyname, with_check from pg_policies where tablename='conversations' and cmd='UPDATE'; \")",
+      "Bash(sed -i \"s/ok\\('B sees A message in chat', await B.getByText\\(msg1\\).first\\(\\).isVisible\\({ timeout: 8000 }\\).catch\\(\\(\\) => false\\)\\);/ok\\('B sees A message in chat', await B.getByText\\(msg1\\).first\\(\\).waitFor\\({ timeout: 8000 }\\).then\\(\\(\\) => true\\).catch\\(\\(\\) => false\\)\\);/\" messaging.cjs)",
+      "Bash(node content.cjs 83ef479b-7224-48ce-9ace-7cd7b552d8b8)",
+      "Bash(node C:/Users/Rodrigo/AppData/Local/Temp/claude/c--Users-Rodrigo-bandyou/681223c9-dfef-4bae-bc36-10538b22679f/scratchpad/sb.cjs q \"select string_agg\\(column_name||':'||data_type||':'||is_nullable, ', ' order by ordinal_position\\) from information_schema.columns where table_name='events' and table_schema='public'\")"
     ]
   }
 }

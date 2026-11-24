@@ -103,3 +103,14 @@ NOT `pb-36 sm:pb-8` — between 640px and 768px the bottom nav is still visible 
 
 **Why:** Mobile is the PRIMARY access channel for Bandyou users.
 **How to apply:** Apply these patterns first when designing or reviewing any feature, before considering desktop layout.
+
+## Mobile polish utilities (2026-10-01, appended at end of src/styles.css)
+
+- `.fade-edge-r` — chip/tab scroller: right-edge mask fade + scroll-snap + trailing spacer; off at lg. Pair with `no-scrollbar`, left padding on the scroller itself (not an inner wrapper) and `[--fade-pad:1rem]` matching that padding (else snap eats the padding).
+- `.profile-cover` + `[style.--cover]="avatarColor(name)"` — light-theme cover gradient (color-mix into primary-900). Never hardcode dark hexes (#130d08/#141410).
+- `.bottom-above-nav` — fixed bars above bottom nav + iOS inset (replaces `bottom-16`); `.pb-cta-safe` replaces `pb-36 sm:pb-20 md:pb-8` on profile pages; `.text-micro` = 11px floor (no text-[9px]/[10px]).
+- Profile hero on mobile: info block `pt-0 sm:pt-*` (flex-col stacks avatar then info; the old pt-16 caused a big gap).
+- CTA bar secondary buttons: icon-only below 400px (`hidden min-[400px]:inline` label) + aria-label; `xs:` breakpoint does NOT exist.
+- Search cards (musicians/bands) are compact rows on mobile (<sm), banner cards at sm+.
+- `<app-icon>` has NO arrow-right/arrow-left/users/message-circle (falls back to the user glyph) — use inline SVG or add to icon.component.ts.
+- iOS zooms inputs/selects below 16px: use `text-base sm:text-xs` on filter selects/search inputs.
